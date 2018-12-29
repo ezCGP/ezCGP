@@ -19,7 +19,8 @@ class Block(Mate, Mutate, Fitness):
 
     def __init__(self, nickname,
                  ftn_dict, arg_dict, mate_dict, mut_dict,
-                 gene_dict, block_inputs, block_outputs, block_main_count, block_arg_count):
+                 gene_dict, block_inputs, block_outputs, block_main_count, block_arg_count,
+                 tensor_block=False):
         """
         take in a dictionary for each: key is the method, and value gives how to often that method will show
         values should go from (0,1]; anything geq to 1 means that we want this equally distributed with whatever is left.
@@ -28,6 +29,9 @@ class Block(Mate, Mutate, Fitness):
 
         # Block - MetaData
         self.name = nickname
+        self.tensor_block = tensor_block
+        self.logs_path = tempfile.mkdtemp()
+        self.num_classes = 10 # number of classes for what we are trying to classify
 
         # Block - Argument List
         self.args_count = block_arg_count
@@ -258,14 +262,28 @@ class Block(Mate, Mutate, Fitness):
         self.dead = False
         self.has_learner = False
         self.evaluated = [None] * self.block_genome_count
-        self.block_outputs_values = None
+        self.block_outputs_values = []
+        if self.tensor_block:
+            self.graph = tf.Graph()
+            self.feed_dict = {}
+            self.fetch_nodes = []
+            with self.graph.as_default():
+                saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
+        else:
+            pass
 
 
     def findActive(self):
+        """
+        Acitve nodes should include:
+        * all OUTPUT nodes
+        * any INPUT node eventually connected to output (expressed as negative positions: -1, -2, etc)
+        * any MAIN node eventually connected to output
+        """
         self.active_nodes = set(range(self.block_main_count, self.block_main_count+self.block_outputs_count))
         self.active_ftns = set()
         self.active_args = set()
-        # update what feed into the block outputs
+        # update with which nodes feed into the block outputs
         for node_input in self.active_nodes:
             self.active_nodes.update(self[node_index])
         # update what feed into the block main nodes
@@ -289,6 +307,20 @@ class Block(Mate, Mutate, Fitness):
         self.active_args = sorted(list(self.active_args))
 
 
+    def tensorblock_evaluate(self, fetch_nodes, feed_dict):
+        with tf.Session(graph=self.graph) as sess:
+            sess.run(tf.global_variables_initializer())
+            self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
+            self.tlog_writer.add_graphs(sess.graph)
+            for step in STEPS: # TODO how and where to define number of steps to train?
+                tf_outputs = sess.run(
+                                fetches=fetch_nodes,
+                                feed_dict=feed_dict)
+                self.tlog_writer.add_summary(summary, step)
+                saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
+            self.tlog_writer.close()
+
+
     def evaluate(self, block_inputs, learning_required=True):
         self.resetEvalAttr()
         self.findActive()
@@ -297,8 +329,24 @@ class Block(Mate, Mutate, Fitness):
             self.dead = True
         else:
             for i, input_ in enumerate(block_inputs):
-                self.evaluated[-1*(i+1)] = input_
+                if self.tensorblock:
+                    self.feed_dict[self.evaluated[-1*(i+1)]] = input_
+                    data_dimension = input_.shape
+                    with self.graph.as_default():
+                        # TODO, verify that this placeholder works
+                        self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, [None,data_dimension[1]])
+                else:
+                    self.evaluated[-1*(i+1)] = input_
             for node_index in self.active_nodes:
+                if node_index < 0:
+                    # nothing to evaluate at input nodes
+                    continue
+                elif node_index >= self.block_main_count:
+                    # nothing to evaluate at output nodes
+                    continue
+                else:
+                    # only thing left is main node...extract "ftn", "inputs", and "args" below
+                    pass
                 # get function to evaluate
                 function = self[node_index]["ftn"]
                 # get inputs to function to evaluate
@@ -313,12 +361,45 @@ class Block(Mate, Mutate, Fitness):
                     args.append(self.args[node_arg_index])
                 # and evaluate
                 try:
-                    self.evaluated[node_index] = function(*inputs, *args)
+                    if self.tensorblock:
+                        with self.graph.as_default():
+                            # really we are building the graph here; we need to evaluate after it is fully built
+                            self.evaluated[node_index] = function(*inputs, *args)
+                    else:
+                        self.evaluated[node_index] = function(*inputs, *args)
                 except:
                     self.dead = True
                     break
             if not self.dead:
-                self.block_outputs_values = self.evaluated[self.block_main_count: self.block_main_count+self.block_outputs_count]
+                if self.tensorblock:
+                    # final touches in the graph
+                    with self.graph.as_default():
+                        for ouptput_node in range(self.block_main_count: self.block_main_count+self.block_outputs_count):
+                            logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
+                            self.evaluated[output_node] = {
+                                "classes": tf.argmax(input=logits, axis=1),
+                                "probabilities": tf.nn.softmax(logits)}
+                            self.fetch_nodes.append(self.evaluated[output_node])
+                            tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
+                            tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
+                        optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
+                        #global_step = tf.Variable(0, name='backprop_steps', trainable=False)
+                        train_step = optimizer.minimize(loss, global_step=step) #global_step)
+                        #tf.summary.scalar('loss', loss)
+                        #tf.summary.scalar('logits', logits)
+                        #tf.summary.scalar('results', results)
+                        merged_summary = tf.summary.merge_all()
+                    for graph_metadata in [merged_summary]: # opportunity to add other things we would want to fetch from the graph
+                        self.fetch_nodes.append(graph_metadata)
+                    try:
+                        # now that the graph is built, we evaluate here
+                        self.block_outputs_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict)
+                    except:
+                        self.dead = True
+                else:
+                    for ouptput_node in range(self.block_main_count: self.block_main_count+self.block_outputs_count):
+                        referenced_node = self[output_node]
+                        self.block_outputs_values.append(self.evaluated[referenced_node])
             else:
                 pass
             self.evaluated = None # clear up some space by deleting eval from memory
