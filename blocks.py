@@ -1,6 +1,10 @@
 
 # external packages
 import numpy as np
+import time
+import shlex
+import subprocess
+import os
 
 # my scripts
 from mate_methods import Mate
@@ -32,6 +36,7 @@ class Block(Mate, Mutate, Fitness):
         self.tensor_block = tensor_block
         self.logs_path = tempfile.mkdtemp()
         self.num_classes = 10 # number of classes for what we are trying to classify
+        self.need_evaluate = True # all new blocks need to be evaluated
 
         # Block - Argument List
         self.args_count = block_arg_count
@@ -241,6 +246,7 @@ class Block(Mate, Mutate, Fitness):
             mutate_method = np.random.choice(a=self.mut_methods, size=1, p=self.mut_weights)
             mutate_method(self, *self.mut_dict[mutate_method]['args']) # or try Mutate.mut_method
             # make sure in mutate_methods.py we have class Mutate() where we define all these methods
+            self.need_evaluate = True
         else:
             # don't mutate
             pass
@@ -252,6 +258,8 @@ class Block(Mate, Mutate, Fitness):
             # then mate
             mate_method = np.random.choice(a=self.mate_methods, size=1, p=self.mate_weights)
             offspring_list = mate_method(self, other, *self.mate_dict[mate_method]['args'])
+            for offspring in offspring_list:
+                offspring.need_evaluate = True
             return offspring_list
         else:
             # don't mate
@@ -321,6 +329,17 @@ class Block(Mate, Mutate, Fitness):
             self.tlog_writer.close()
 
 
+    def tensorboard_show(self, wait_seconds=60):
+        # only should work after tensorblock_evaluate() is run
+        cmd = "tensorboard --log_dir=%s" % self.logs_path
+        args = shelx.split(cmd)
+        p = subprocess.Popen(args)
+        print("tensorboard link created for %iseconds" % wait_seconds)
+        time.sleep(wait_seconds)
+        p.terminate() # or p.kill()
+        print("tensorbard killed")
+
+
     def evaluate(self, block_inputs, learning_required=True):
         self.resetEvalAttr()
         self.findActive()
@@ -331,6 +350,8 @@ class Block(Mate, Mutate, Fitness):
             for i, input_ in enumerate(block_inputs):
                 if self.tensorblock:
                     self.feed_dict[self.evaluated[-1*(i+1)]] = input_
+                    # consider reading in the dataset with slices..."from_tensor_slices"
+                    # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
                     data_dimension = input_.shape
                     with self.graph.as_default():
                         # TODO, verify that this placeholder works
@@ -376,6 +397,11 @@ class Block(Mate, Mutate, Fitness):
                     with self.graph.as_default():
                         for ouptput_node in range(self.block_main_count: self.block_main_count+self.block_outputs_count):
                             logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
+                            loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                                                        logits,
+                                                        tf.cast(labels,dtype=tf.float32)))
+                            # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
+                            tf.summary.tensor_summary("loss", loss)
                             self.evaluated[output_node] = {
                                 "classes": tf.argmax(input=logits, axis=1),
                                 "probabilities": tf.nn.softmax(logits)}
@@ -389,7 +415,8 @@ class Block(Mate, Mutate, Fitness):
                         #tf.summary.scalar('logits', logits)
                         #tf.summary.scalar('results', results)
                         merged_summary = tf.summary.merge_all()
-                    for graph_metadata in [merged_summary]: # opportunity to add other things we would want to fetch from the graph
+                    for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
+                        # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
                         self.fetch_nodes.append(graph_metadata)
                     try:
                         # now that the graph is built, we evaluate here
