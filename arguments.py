@@ -1,10 +1,10 @@
-# copy paste from original cgp for now
+# copy paste from original cgp for now 
 ### arguments.py
 
 # packages
 import numpy as np
 from numpy import random as r
-import random
+#import random
 from copy import copy
 
 # other python scripts
@@ -74,7 +74,7 @@ class argBool(object):
             self.num_samples = 10
 
     def mutate(self):
-        self.value = random.choice([True, False])
+        self.value = r.choice([True, False])
         # or should i force it to pick whatever it isn't...true-->false, false-->true?
 arguments.append(argBool)
 

@@ -4,9 +4,14 @@
 # external packages
 import numpy as np
 from copy import deepcopy
+import queue
 
 # my scripts
 from individual import Individual
+
+
+def evaluator_queue():
+
 
 
 def run_universe(population, num_mutants, block=None): # be able to select which block we want to evolve or randomly select
@@ -39,10 +44,17 @@ def run_universe(population, num_mutants, block=None): # be able to select which
     # evaluate the population
     for individual in population:
         if individual.need_evaluate:
-            individual.evaluate(input_data, block)
-            individual.score_fitness(labels)
+            # look up concurrent.futures and queue...
+            #maybe make the queue thing a permanent part of universe in evaluating every individual
+            #then make solving each node customizable...gt computer nodes, locally on different processes, or on cloud compute service
+            #
+            # add to queue to evaluate individual
+            # evaluate uses multithreading to send individuals to evaluate blocks
+            eval_queue.put(individual)
+            #individual.evaluate(input_data, block)
+            #individual.score_fitness(labels)
 
-    return population
+    return population, eval_queue
 
 
 def create_universe(input_data, labels, population_size=100, seed=9, num_mutants=4):
@@ -56,11 +68,12 @@ def create_universe(input_data, labels, population_size=100, seed=9, num_mutants
         individual.score_fitness(labels=labels)
         population.append(individual)
 
+    eval_queue = queue.Queue()
     generation = 0
     converged = False
     while (not converged) & (generation<=GENERATION_LIMIT):
         generation += 1
-        population = run_universe(population, num_mutants, num_offpsring)
+        population, eval_queue = run_universe(population, eval_queue num_mutants, num_offpsring)
         # population multiobjective ranking here or right before it get's returned?
 
         scores = []
