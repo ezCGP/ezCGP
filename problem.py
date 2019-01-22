@@ -12,7 +12,7 @@ import mate_methods as mate
 
 # constants
 generation_limit = 199
-problem.score_min = 1e-1
+score_min = 1e-1
 
 
 def goalFunction(x):
