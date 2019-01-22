@@ -1,5 +1,7 @@
 ### mate_methods.py
 
+# my scripts
+from genome import Genome
 
 class Mate(Genome):
 

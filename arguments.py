@@ -8,7 +8,7 @@ from numpy import random as r
 from copy import copy
 
 # other python scripts
-from configuration import perc_args, streamData
+#from configuration import perc_args, streamData
 
 
 ### Mutation Methods

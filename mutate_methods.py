@@ -1,6 +1,7 @@
 ### mutate_methods.py
 
 # external packages
+import numpy as np
 
 # my scripts
 from genome import Genome
@@ -43,7 +44,7 @@ class Mutate(Genome):
                     if current_pointer == mutate_pointer:
                         # mutate this function
                         current_ftn = self[node_index]["ftn"]
-                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=current_ftn)
+                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn])
                         # see if we changed an active node
                         if node_index in self.active_nodes:
                             self.active_node_unchanged = False
@@ -59,7 +60,7 @@ class Mutate(Genome):
                         input_index = (len(self[node_index]["inputs"]) - 1) - (current_pointer - mutate_pointer)
                         current_input = self.genome[node_index]["inputs"][input_index]
                         input_dtypes = self.getNodeType(node_index, input_dtype=True)
-                        new_input = self.randomInput(dtype=input_dtypes[input_index], max_=node_index, exclude=current_input)
+                        new_input = self.randomInput(dtype=input_dtypes[input_index], max_=node_index, exclude=[current_input])
                         self[node_index]["inputs"][input_index] = new_input
                         # check if active node
                         if node_index in self.active_nodes:
@@ -76,7 +77,7 @@ class Mutate(Genome):
                         arg_index = (len(self[node_index]["args"]) - 1) - (current_pointer - mutate_pointer)
                         current_arg = self[node_index]["args"][arg_index]
                         arg_dtypes = self.getNodeType(node_index, arg_dtype=True)
-                        self[node_index]["args"][arg_index] = self.randmArg(dtype=arg_dtypes[arg_index], exclude=current_arg)
+                        self[node_index]["args"][arg_index] = self.randmArg(dtype=arg_dtypes[arg_index], exclude=[current_arg])
                         if node_index in self.active_nodes:
                             self.active_node_unchanged = False
                         else:
@@ -105,7 +106,7 @@ class Mutate(Genome):
                     node_index = (numOutputs - 1) - (gene_count - mutate_pointer) + numMain
                     current_node = self[node_index]
                     node_dtype = self.getNodeType(node_index)
-                    self[node_index] = self.randomInput(dtype=node_dtype, min_=0, max_=self.block_main_count, exclude=current_node)
+                    self[node_index] = self.randomInput(dtype=node_dtype, min_=0, max_=self.genome_main_count, exclude=[current_node])
                     self.active_node_unchanged = False
                     # mutate pointer has to be in output == found
                     break
@@ -133,7 +134,11 @@ class Mutate(Genome):
                 input_index = np.random.choice(a=np.arange(len(self[node_index]["inputs"])))
                 current_input = self[node_index]["inputs"][input_index]
                 input_dtypes = self.getNodeType(node_index, input_dtype=True)
-                self[node_index]["inputs"][input_index] = self.randomInput(dtype=input_dtypes[input_index], max_=node_index, exclude=current_input)
+                new_input = self.randomInput(dtype=input_dtypes[input_index], max_=node_index, exclude=[current_input])
+                if new_input is not None:
+                    self[node_index]["inputs"][input_index] = new_input
+                else: # cant mutate this node input
+                    continue
                 if node_index in self.active_nodes:
                     self.active_node_unchanged = False
                 else:
@@ -141,7 +146,11 @@ class Mutate(Genome):
             else: #output node
                 current_node = self[node_index]
                 node_dtype = self.getNodeType(node_index)
-                self[node_index] = self.randomInput(dtype=node_dtype, min_=0, max_=self.block_main_count, exclude=current_node)
+                new_node = self.randomInput(dtype=node_dtype, min_=0, max_=self.genome_main_count, exclude=[current_node])
+                if new_node is not None:
+                    self[node_index] = new_node
+                else:
+                    continue
                 self.active_node_unchanged = False
 
 
@@ -153,7 +162,7 @@ class Mutate(Genome):
         self.active_node_unchanged = True
         while self.active_node_unchanged:
             node_index = np.random.choice(a=choices)
-            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=self[node_index]["ftn"])
+            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[self[node_index]["ftn"]])
             # get all inputs to match new required datatype
             for input_index, input_node in enumerate(self[node_index]["inputs"]):
                 existing_dtype = self.getNodeType(input_node, output_dtype=True)

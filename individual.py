@@ -1,6 +1,8 @@
 ### individual.py
 
 # external packages
+import numpy as np
+from copy import deepcopy
 
 # my scripts
 from blocks import Block
@@ -35,7 +37,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         inputs0
         ]
         """
-        self.skeleton = skeleton
+        self.skeleton = deepcopy(skeleton) # needs deepcopy or else it will add 'block_object' to the dictionary
         self.blocks = list(self.skeleton.keys())
         self.blocks.remove('input')
         self.blocks.remove('output')
@@ -48,6 +50,8 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             else:
                 # now build out the block if it exists
                 self.skeleton[i]["block_object"] = Block(**self.skeleton[i])
+
+        self.fitness = self.Fitness()
         """
         self.preprocessing = Block(
                                 nickname="preprocessing",
@@ -61,6 +65,15 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                                 block_main_count=num_main,
                                 block_arg_count=num_args)
         """
+
+    def need_evaluate(self):
+        for i in range(1,self.num_blocks+1):
+            if self.skeleton[i]["block_object"].need_evaluate:
+                return True
+            else:
+                pass
+        return False
+
 
 
     def evaluate(self, data):
@@ -86,8 +99,8 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                 else:
                     continue
         elif block is None:
-            for i in range(1,self.num_blocks):
-                self.skeleton[i]['block_object'].mutate()
+            for i in range(self.num_blocks):
+                self.skeleton[i+1]['block_object'].mutate()
         else:
             self.skeleton[block]["block_object"].mutate()
 
@@ -110,3 +123,23 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             offspring_list = self.skeleton[i]["block_object"].mate(
                                     other.skeleton[i]["block_object"])
         return offspring_list
+
+
+    class Fitness(object):
+        '''
+        the NSGA taken from deap requires a Fitness class to hold the values.
+        so this attempts to recreate the bare minimums of that so that NSGA
+        or (hopefully) any other deap mutli obj ftn handles this Individual class
+        http://deap.readthedocs.io/en/master/api/base.html#fitness
+        '''
+
+        def __init__(self):
+            self.values = () #empty tuple
+
+        # check dominates
+        def dominates(self, other):
+            a = np.array(self.values)
+            b = np.array(other.values)
+            # 'self' must be at least as good as 'other' for all objective fnts (np.all(a>=b))
+            # and strictly better in at least one (np.any(a>b))
+            return np.any(a < b) and np.all(a <= b)
