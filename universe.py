@@ -7,6 +7,7 @@ from copy import deepcopy
 import queue
 import matplotlib.pyplot as plt
 import time
+from pathlib import Path
 
 # my scripts
 from individual import Individual
@@ -116,6 +117,8 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
             #plt.legend(['Weibull','Test Model Fit'])
             plt.legend(['log(x)','Test Model Fit'])
             #plt.show()
-            plt.savefig('outputs/seed%i_gen%i.png' % (universe_seed, generation))
+            Path('outputs').mkdir(parents=True, exists=True) #should help work on all OS
+            filepath = Path('outputs/seed%i_gen%i.png' % (universe_seed, generation))
+            plt.savefig(filepath)
             plt.close()
     print("ending universe", time.time()-start_time)
