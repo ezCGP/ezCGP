@@ -27,7 +27,7 @@ def scoreFunction(predict, actual):
     return rms_error, max_error
 
 # play with difference sizes, and different distribution
-x_train = [np.float64(1), np.random.uniform(low=0.25, high=2, size=200)]
+x_train = [np.float64(-1), np.random.uniform(low=0.25, high=2, size=200)]
 y_train = goalFunction(x_train[1])
 
 x_test = np.random.uniform(low=0.25, high=2, size=20)
@@ -47,9 +47,9 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         operators.add_ff2f: {'prob': 1},
         operators.add_fa2a: {'prob': 1},
         operators.add_aa2a: {'prob': 1},
-        operators.sub_ff2f: {'prob': 1},
-        operators.sub_fa2a: {'prob': 1},
-        operators.sub_aa2a: {'prob': 1},
+#        operators.sub_ff2f: {'prob': 1},
+#        operators.sub_fa2a: {'prob': 1},
+#        operators.sub_aa2a: {'prob': 1},
         operators.mul_ff2f: {'prob': 1},
         operators.mul_fa2a: {'prob': 1},
         operators.mul_aa2a: {'prob': 1}}, # TODO replace this with info from operator_dict?
