@@ -7,13 +7,13 @@ import problem
 
 # my scripts
 import universe
-num_universes = 5
+num_universes = 20
 
 if __name__ == '__main__':
     # Read in Data
     train_data = problem.x_train
     train_labels = problem.y_train
-    seed = 1
+    seed = 10
 
     final_populations = [] # one for each universe created
     for i in range(num_universes):
