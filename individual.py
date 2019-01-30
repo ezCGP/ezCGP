@@ -16,7 +16,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         # TODO eventually make it so we can read in an xml/json/yaml file
         # the user will be able to outline the individual.genome there
         # instead of having to edit this file every time
-        
+
         #self.genome = [] #maybe a dict instead?
         """
         self.skeleton = {
@@ -83,9 +83,8 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         self.genome_outputs = data
         #return genome_outputs
 
-
     def score_fitness(self, labels):
-        #self.fitness = 
+        #self.fitness =
         pass
 
 
