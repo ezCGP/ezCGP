@@ -1,9 +1,10 @@
-# problem
+# TODO edit problem towards mnist usage
 
 import numpy as np
 #from scipy.stats import weibull_min
 import scipy.stats as scst
 from sklearn.metrics import confusion_matrix
+import tensorflow as tf
 
 import operators
 import arguments
@@ -11,8 +12,8 @@ import mutate_methods as mut
 import mate_methods as mate
 
 # constants
-generation_limit = 199
-score_min = 1e-1
+generation_limit = 19
+score_min = 0.05 # terminate immediately when 95% accuracy is achieved
 
 
 def goalFunction(x):

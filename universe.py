@@ -98,9 +98,12 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
         # population multiobjective ranking here or right before it get's returned?
 
         scores = []
+        # print('printing genome_outputs')
         for individual in population:
             scores.append(individual.fitness.values[0])
+            # print(individual.fitness.values)
         print(generation, np.min(scores))
+        # print(scores)
         if np.min(scores) < SCORE_MIN:
             converged = True
         else:
@@ -109,18 +112,22 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
             # plot
             #import pdb; pdb.set_trace()
             sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
-            #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
-            print(problem.x_train)
-            print(sample_best.genome_outputs)
-            plt.figure()
-            plt.plot(problem.x_train[1], problem.y_train, '.')
-            #testY = solutions[run].testEvaluate()
-            plt.plot(problem.x_train[1], sample_best.genome_outputs[0], '.')
-            #plt.legend(['Weibull','Test Model Fit'])
-            plt.legend(['log(x)','Test Model Fit'])
-            #plt.show()
-            Path('outputs').mkdir(parents=True, exist_ok=True) #should help work on all OS
-            filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
-            plt.savefig(filepath)
-            plt.close()
+            try:
+                #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
+                # print(problem.x_train)
+                # print(sample_best.genome_outputs)
+                plt.figure()
+                plt.plot(problem.x_train[1], problem.y_train, '.')
+                #testY = solutions[run].testEvaluate()
+                plt.plot(problem.x_train[1], sample_best.genome_outputs[0], '.')
+                #plt.legend(['Weibull','Test Model Fit'])
+                plt.legend(['log(x)','Test Model Fit'])
+                #plt.show()
+                Path('outputs').mkdir(parents=True, exist_ok=True) #should help work on all OS
+                filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
+                plt.savefig(filepath)
+                plt.close()
+            except:
+                import pdb
+                pdb.set_trace()
     print("ending universe", time.time()-start_time)
