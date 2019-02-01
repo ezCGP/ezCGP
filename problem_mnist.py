@@ -3,7 +3,7 @@
 import numpy as np
 #from scipy.stats import weibull_min
 import scipy.stats as scst
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import tensorflow as tf
 
 import operators
@@ -13,32 +13,26 @@ import mate_methods as mate
 
 # constants
 generation_limit = 19
-score_min = 0.05 # terminate immediately when 95% accuracy is achieved
-
-
-def goalFunction(x):
-    #y = scst.weibull_min(1.79).pdf(x)
-    y = 1/x
-    return y
+score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
 def scoreFunction(predict, actual):
-    error = actual-predict
-    rms_error = np.sqrt(np.mean(np.square(error)))
-    max_error = np.max(np.abs(error))
-    return rms_error, max_error
+    acc_score = accuracy_score(actual, predict)
+    avg_f1_score = f1_score(actual, predict)
+    return acc_score, avg_f1_score
 
 # play with difference sizes, and different distribution
-x_train = [np.float64(1), np.random.uniform(low=0.25, high=2, size=200)]
-y_train = goalFunction(x_train[1])
+mnist = tf.keras.datasets.mnist
+(x_train, y_train),(x_test, y_test) = mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
 
-x_test = np.random.uniform(low=0.25, high=2, size=20)
-y_test = goalFunction(x_test)
-
+print('Loaded MNIST dataset. x_train: {} y_train: {} x_test: {} y_test: {}'
+    .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 # NOTE: a lot of this is hastily developed and I do hope to improve the 'initialization'
 #structure of the genome; please note your own ideas and we'll make that a 'project' on github soon
 
 skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
+    'tensorblock_flag': True,
     'nickname': 'regression_block',
     'setup_dict_ftn': {
         #declare which primitives are available to the genome,
@@ -77,7 +71,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
 }
 
 skeleton_genome = { # this defines the WHOLE GENOME
-    'input': [np.float64, np.ndarray],
+    'input': [np.ndarray, np.ndarray],
     'output': [np.ndarray],
     1: skeleton_block
 }
