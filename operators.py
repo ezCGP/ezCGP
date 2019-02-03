@@ -131,8 +131,8 @@ operDict[mult_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 ########################## TENSORFLOW OPERATORS ###############################
 
 operDict = {
-    "output": [tf.Tensor],
-    "input": [tf.Tensor]
+    "output": [np.ndarray], # output labels
+    "input": [np.ndarray] # input data
 }
 
 """
