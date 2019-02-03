@@ -24,8 +24,8 @@ def scoreFunction(predict, actual):
 mnist = tf.keras.datasets.mnist
 (x_train, y_train),(x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0
-#x_train = [x_train]
-#x_test = [x_test]
+x_train = [x_train]
+x_test = [x_test]
 
 # print('Loaded MNIST dataset. x_train: {} y_train: {} x_test: {} y_test: {}'
 #     .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
@@ -59,7 +59,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         # mut.Mutate.mutate_singleFtn: {'prob': 1, 'args': []},
     },
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive
-    'block_input_dtypes': [ tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data
+    'block_input_dtypes': [tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data
     'block_outputs_dtypes': [tf.Tensor],
     'block_main_count': 40, #10 genes
     'block_arg_count': 2, #not used...no primitives require arguments
