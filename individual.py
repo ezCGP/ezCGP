@@ -77,6 +77,8 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
 
 
     def evaluate(self, data):
+        # convert data to TF nodes
+        print("indiv eval being called")
         for i in range(1,self.num_blocks+1):
             self.skeleton[i]["block_object"].evaluate(block_inputs=data)
             data = self.skeleton[i]["block_object"].genome_output_values

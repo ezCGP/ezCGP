@@ -15,6 +15,8 @@ from mutate_methods import Mutate
 import operators
 import arguments
 
+import tensorflow as tf
+
 
 class Block(Mate, Mutate):
     """
@@ -82,7 +84,6 @@ class Block(Mate, Mutate):
         # Block - Evaluation
         self.resetEvalAttr()
 
-
     def __setitem__(self, node_index, dict_):
         # NOTE, isn't a dict if updating output node but shouldn't matter
         self.genome[node_index] = dict_
@@ -119,7 +120,6 @@ class Block(Mate, Mutate):
             # don't mate
             return None
 
-
     def resetEvalAttr(self):
         self.dead = False
         self.has_learner = False
@@ -129,8 +129,9 @@ class Block(Mate, Mutate):
             self.graph = tf.Graph()
             self.feed_dict = {}
             self.fetch_nodes = []
-            with self.graph.as_default():
-                saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
+#            with self.graph.as_default():
+ #               saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
+                
         else:
             pass
 
@@ -140,7 +141,7 @@ class Block(Mate, Mutate):
             sess.run(tf.global_variables_initializer())
             self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
             self.tlog_writer.add_graphs(sess.graph)
-            for step in STEPS: # TODO how and where to define number of steps to train?
+            for step in 20: # TODO how and where to define number of steps to train?
                 tf_outputs = sess.run(
                                 fetches=fetch_nodes,
                                 feed_dict=feed_dict)
@@ -161,10 +162,13 @@ class Block(Mate, Mutate):
 
 
     def evaluate(self, block_inputs):
+        self.evaluated = [None] * len(block_inputs)
+        print(block_inputs)
         self.resetEvalAttr()
         self.findActive()
         if (self.learning_required) and (not self.has_learner):
             # didn't learn, zero fitness
+            print("didn't learn, zero fitness")
             self.dead = True
         else:
             for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
@@ -240,6 +244,10 @@ class Block(Mate, Mutate):
                         self.fetch_nodes.append(graph_metadata)
                     try:
                         # now that the graph is built, we evaluate here
+                        print("self.fetch_nodes")
+                        print(self.fetch_nodes)
+                        print("self.feed_dict")
+                        print(self.feed_dict)
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict)
                     except:
                         self.dead = True
