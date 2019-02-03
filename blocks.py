@@ -73,6 +73,10 @@ class Block(Mate, Mutate):
         self.ftn_methods = list(setup_dict_ftn.keys())
         self.ftn_weights = self.buildWeights('ftn_methods', setup_dict_ftn)
         self.operator_dict = operator_dict
+        # for key, val in operator_dict.items():
+        #     print(key, val)
+        # print(operator_dict)
+        # quit()
         self.fillGenome(operator_dict)
         
         # Block - Evaluation
