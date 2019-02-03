@@ -90,9 +90,9 @@ class Genome():
         else:
             # then it's a Block Main Node
             pass 
-        print(self)
-        print("-----")
-        print(self[node_index])
+        #print(self)
+        #print("-----")
+        #print(self[node_index])
         ftn = self[node_index]["ftn"]
         ftn_dict = self.operator_dict[ftn]
         if input_dtype:

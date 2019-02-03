@@ -11,6 +11,7 @@ import gc
 # my scripts
 from mate_methods import Mate
 from mutate_methods import Mutate
+import tensorflow as tf
 #from fintess import Fitness
 import operators
 import arguments
@@ -129,8 +130,9 @@ class Block(Mate, Mutate):
             self.graph = tf.Graph()
             self.feed_dict = {}
             self.fetch_nodes = []
-            with self.graph.as_default():
-                saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
+            #with self.graph.as_default():
+            #    saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1) #""
+
         else:
             pass
 

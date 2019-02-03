@@ -59,8 +59,8 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         # mut.Mutate.mutate_singleFtn: {'prob': 1, 'args': []},
     },
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive
-    'block_input_dtypes': [ np.ndarray], #placeholder datatypes so that the genome can be built off datatypes instead of real data
-    'block_outputs_dtypes': [np.ndarray],
+    'block_input_dtypes': [tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data
+    'block_outputs_dtypes': [tf.Tensor],
     'block_main_count': 40, #10 genes
     'block_arg_count': 2, #not used...no primitives require arguments
     'block_mut_prob': 1, #mutate genome with probability 1...always
