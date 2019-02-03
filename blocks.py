@@ -130,15 +130,9 @@ class Block(Mate, Mutate):
             self.graph = tf.Graph()
             self.feed_dict = {}
             self.fetch_nodes = []
-<<<<<<< HEAD
 #            with self.graph.as_default():
  #               saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
                 
-=======
-            #with self.graph.as_default():
-            #    saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1) #""
-
->>>>>>> 3d01a52522cf57a437078228dccef7e0189d0202
         else:
             pass
 
