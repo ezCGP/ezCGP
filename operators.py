@@ -113,8 +113,8 @@ operDict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
 ########################## TENSORFLOW OPERATORS ###############################
 
 operDict = {
-    "output": [tf.Tensor],
-    "input": [tf.Tensor]
+    "output": [np.ndarray], # output labels
+    "input": [np.ndarray] # input data
 }
 
 """

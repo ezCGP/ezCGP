@@ -71,7 +71,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
 }
 
 skeleton_genome = { # this defines the WHOLE GENOME
-    'input': [np.ndarray, np.ndarray],
+    'input': [np.ndarray], # we don't pass in the labels since the labels are only used at evaluation and scoring time
     'output': [np.ndarray],
     1: skeleton_block
 }
