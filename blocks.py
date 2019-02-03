@@ -162,7 +162,7 @@ class Block(Mate, Mutate):
         print("tensorbard killed")
 
 
-    def evaluate(self, block_inputs):
+    def evaluate(self, block_inputs, labels):
         self.resetEvalAttr()
         self.findActive()
         if (self.learning_required) and (not self.has_learner):
@@ -218,10 +218,14 @@ class Block(Mate, Mutate):
                     # final touches in the graph
                     with self.graph.as_default():
                         for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
+                            # logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
+                            # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                            #                             logits,
+                            #                             tf.cast(labels,dtype=tf.float32)))
                             logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
                             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                                                        logits,
-                                                        tf.cast(labels,dtype=tf.float32)))
+                                                        logits = logits,
+                                                        labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
                             # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
                             tf.summary.tensor_summary("loss", loss)
                             self.evaluated[output_node] = {
@@ -231,7 +235,7 @@ class Block(Mate, Mutate):
                             tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
                             tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
                         optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
-                        #global_step = tf.Variable(0, name='backprop_steps', trainable=False)
+                        step = tf.Variable(0, name='backprop_steps', trainable=False)
                         train_step = optimizer.minimize(loss, global_step=step) #global_step)
                         #tf.summary.scalar('loss', loss)
                         #tf.summary.scalar('logits', logits)

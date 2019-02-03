@@ -79,6 +79,7 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
     population = []
     for i in range(population_size):
         individual = Individual(skeleton=problem.skeleton_genome)
+        print("blocks input", input_data)
         individual.evaluate(data=input_data)
         #individual.score_fitness(labels=labels)
         individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
