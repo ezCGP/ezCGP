@@ -140,15 +140,18 @@ class Block(Mate, Mutate):
     def tensorblock_evaluate(self, fetch_nodes, feed_dict):
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
-            self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
-            self.tlog_writer.add_graphs(sess.graph)
-            for step in 20: # TODO how and where to define number of steps to train?
+            #self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
+            print("is this coming here 1")
+            #self.tlog_writer.add_graphs(sess.graph)
+            print("coming here 2")
+            for step in range(20): # TODO how and where to define number of steps to train?
+                print(step)
                 tf_outputs = sess.run(
                                 fetches=fetch_nodes,
                                 feed_dict=feed_dict)
-                self.tlog_writer.add_summary(summary, step)
-                saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
-            self.tlog_writer.close()
+                #self.tlog_writer.add_summary(summary, step)
+                #saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
+            #self.tlog_writer.close()
 
 
     def tensorboard_show(self, wait_seconds=60):
@@ -252,7 +255,8 @@ class Block(Mate, Mutate):
                         print("self.feed_dict")
                         print(self.feed_dict)
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict)
-                    except:
+                    except Exception as e:
+                        print(e)
                         self.dead = True
                 else:
                     for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
