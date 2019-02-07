@@ -146,9 +146,13 @@ class Block(Mate, Mutate):
             print("coming here 2")
             for step in range(20): # TODO how and where to define number of steps to train?
                 print(step)
-                tf_outputs = sess.run(
+                tf_outputs = sess.run( 
                                 fetches=fetch_nodes,
                                 feed_dict=feed_dict)
+                #loss = sess.run([loss],
+                #            fetches=fetch_nodes,
+                #                   feed_dict=feed_dict)
+                #print(loss)
                 #self.tlog_writer.add_summary(summary, step)
                 #saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
             #self.tlog_writer.close()
@@ -173,15 +177,22 @@ class Block(Mate, Mutate):
             print("didn't learn, zero fitness")
             self.dead = True
         else:
+            print('block_input: {}'.format(np.array(block_inputs).shape))
             for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
                 if self.tensorblock_flag:
-                    self.feed_dict[self.evaluated[-1*(i+1)]] = input_
+#                    self.evaluated[-1*(i+1)] = input_
+                    print("self.evaluated: ", self.evaluated)
+
                     # consider reading in the dataset with slices..."from_tensor_slices"
                     # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
-                    data_dimension = input_.shape
+                    data_dimension = list(input_.shape)
+                    data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
+                    
+                    print(data_dimension)
                     with self.graph.as_default():
                         # TODO, verify that this placeholder works
-                        self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, [None,data_dimension[1]])
+                        self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, [None, data_dimension[1], data_dimension[2]])
+                    self.feed_dict[self.evaluated[-1*(i+1)]] = input_
                 else:
                     self.evaluated[-1*(i+1)] = input_
             for node_index in self.active_nodes:
@@ -226,7 +237,12 @@ class Block(Mate, Mutate):
                             # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             #                             logits,
                             #                             tf.cast(labels,dtype=tf.float32)))
-                            logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
+                            print("self[output_node]:", self[output_node])
+                            print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
+                            # flatten input matrix to meet NN output size (numinstances, numclasses)
+                            flattened = tf.layers.Flatten()(self.evaluated[self[output_node]]) 
+                            print(flattened)
+                            logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
                             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                                                         logits = logits,
                                                         labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
@@ -245,6 +261,7 @@ class Block(Mate, Mutate):
                         #tf.summary.scalar('logits', logits)
                         #tf.summary.scalar('results', results)
                         merged_summary = tf.summary.merge_all()
+                        print(loss)
                     for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
                         # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
                         self.fetch_nodes.append(graph_metadata)
@@ -259,6 +276,7 @@ class Block(Mate, Mutate):
                         print(e)
                         self.dead = True
                 else:
+                    # if it's not tensorflow
                     for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                         referenced_node = self[output_node]
                         self.genome_output_values.append(self.evaluated[referenced_node])
