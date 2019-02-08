@@ -138,6 +138,7 @@ class Block(Mate, Mutate):
 
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict):
+        final_outputs = []
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
             #self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
@@ -161,9 +162,11 @@ class Block(Mate, Mutate):
                 print('predictions have type: {} shape: {} and are: {}'\
                     .format(type(tf_output_dict['classes']),\
                      tf_output_dict['classes'].shape, tf_output_dict['classes']))
+                final_outputs = tf_output_dict['classes']
                 #self.tlog_writer.add_summary(summary, step)
                 #saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
             #self.tlog_writer.close()
+            return final_outputs
 
 
     def tensorboard_show(self, wait_seconds=60):

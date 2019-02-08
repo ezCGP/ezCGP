@@ -17,7 +17,7 @@ score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
 def scoreFunction(predict, actual):
     acc_score = accuracy_score(actual, predict)
-    avg_f1_score = f1_score(actual, predict)
+    avg_f1_score = f1_score(actual, predict, average='macro')
     return acc_score, avg_f1_score
 
 # play with difference sizes, and different distribution
