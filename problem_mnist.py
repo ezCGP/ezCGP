@@ -24,8 +24,8 @@ def scoreFunction(predict, actual):
 mnist = tf.keras.datasets.mnist
 (x_train, y_train),(x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0
-x_train = [x_train]
-x_test = [x_test]
+x_train = [x_train.reshape(-1, 28, 28, 1)]
+x_test = [x_test.reshape(-1, 28, 28, 1)]
 
 # print('Loaded MNIST dataset. x_train: {} y_train: {} x_test: {} y_test: {}'
 #     .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
@@ -41,9 +41,19 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #and assign a 'prob' so that you can control how likely a primitive will be used;
         #prob: float btwn 0 and 1 -> assigns that prob to that primitive...the sum can't be more than 1
         #prob: 1 -> equally distribute the remaining probability amoung all those remaining (hard to explain, sorry)
-        operators.add_tensors: {'prob': 1},
-        operators.sub_tensors: {'prob': 1},
-        operators.mult_tensors: {'prob': 1},
+        # operators.add_tensors: {'prob': 1},
+        # operators.sub_tensors: {'prob': 1},
+        # operators.mult_tensors: {'prob': 1},
+        operators.dense_layer: {'prob': 1},
+        # operators.conv_layer: {'prob': 1},
+        # operators.max_pool_layer: {'prob': 1},
+        # operators.avg_pool_layer: {'prob': 1},
+        # operators.concat_func: {'prob': 1},
+        # operators.sum_func: {'prob': 1},
+        # operators.conv_block: {'prob': 1},
+        # operators.res_block: {'prob': 1},
+        # operators.sqeeze_excitation_block: {'prob': 1},
+        # operators.identity_block: {'prob': 1},
     },
     'setup_dict_arg': {
         #if you have an 'arguments genome', declare which argument-datatypes should fill the argument genome
@@ -61,7 +71,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive
     'block_input_dtypes': [tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data
     'block_outputs_dtypes': [tf.Tensor],
-    'block_main_count': 40, #10 genes
+    'block_main_count': 20, #10 genes
     'block_arg_count': 2, #not used...no primitives require arguments
     'block_mut_prob': 1, #mutate genome with probability 1...always
     'block_mate_prob': 0 #mate with probability 0...never

@@ -199,10 +199,10 @@ class Block(Mate, Mutate):
                     data_dimension = list(input_.shape)
                     data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
 
-                    print(data_dimension)
+                    # print(data_dimension)
                     with self.graph.as_default():
                         # TODO, verify that this placeholder works
-                        self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, [None, data_dimension[1], data_dimension[2]])
+                        self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, data_dimension)
                     self.feed_dict[self.evaluated[-1*(i+1)]] = input_
                 else:
                     self.evaluated[-1*(i+1)] = input_
@@ -236,7 +236,8 @@ class Block(Mate, Mutate):
                             self.evaluated[node_index] = function(*inputs, *args)
                     else:
                         self.evaluated[node_index] = function(*inputs, *args)
-                except:
+                except Exception as e:
+                    print(e)
                     self.dead = True
                     break
             if not self.dead:

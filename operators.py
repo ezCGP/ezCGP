@@ -120,20 +120,20 @@ def sub_tensors(a,b):
 operDict[sub_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
 						"args": []
-						}                        
+						}
 def mult_tensors(a,b):
     return tf.multiply(a,b)
 operDict[mult_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
 						"args": []
-						}     
-'''
+						}
+
 ########################## TENSORFLOW OPERATORS ###############################
 
-operDict = {
-    "output": [np.ndarray], # output labels
-    "input": [np.ndarray] # input data
-}
+# operDict = {
+#     "output": [np.ndarray], # output labels
+#     "input": [np.ndarray] # input data
+# }
 
 """
 LAYERS
@@ -177,8 +177,7 @@ def global_avg_pool_layer(input_tensor):
 
 def dense_layer(input_tensor, num_units=128):
     # Flatten tensor into a batch of vectors
-    pool2_flat = tf.reshape(input_tensor, [-1, input_tensor.shape[1].value * \
-        input_tensor.shape[2].value * input_tensor.shape[3].value])
+    pool2_flat = tf.layers.Flatten()(input_tensor)
     # Densely connected layer with 1024 neurons
     logits = tf.layers.dense(inputs=pool2_flat, units=num_units, activation=tf.nn.relu)
     return logits
@@ -268,6 +267,16 @@ def identity_block(input_tensor, filters=64, kernel_size=(3,3)):
     return conv_block(conv_block(conv_block(input_tensor, filters, kernel_size)))
 
 
+operDict[dense_layer] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'denseLayer'}
+
+operDict[conv_layer] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'convLayer'}
+
 operDict[max_pool_layer] = {"inputs": [tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
@@ -293,12 +302,21 @@ operDict[conv_block] = {"inputs": [tf.Tensor],
                             "outputs": tf.Tensor,
                             "name": 'convBlock'}
 
+
 operDict[res_block] = {"inputs": [tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
                             "name": 'resBlock'}
 
-'''
+operDict[sqeeze_excitation_block] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'squeezeExcitationBlock'}
+
+operDict[identity_block] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'identityBlock'}
 
 '''Commented and left until args are checked'''
 
