@@ -29,7 +29,7 @@ class Block(Mate, Mutate):
     def __init__(self, nickname,
                  setup_dict_ftn, setup_dict_arg, setup_dict_mate, setup_dict_mut,
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
-                 block_mut_prob, block_mate_prob, 
+                 block_mut_prob, block_mate_prob,
                  tensorblock_flag=False, learning_required=False, num_classes=None):
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
@@ -61,7 +61,7 @@ class Block(Mate, Mutate):
         self.name = nickname
         self.tensorblock_flag = tensorblock_flag
         self.logs_path = tempfile.mkdtemp()
-        self.learning_required = learning_required # 
+        self.learning_required = learning_required #
         self.num_classes = 10 # number of classes for what we are trying to classify...only relevant if there is supposed to be a learner
         self.need_evaluate = True # all new blocks need to be evaluated
 
@@ -81,7 +81,7 @@ class Block(Mate, Mutate):
         # print(operator_dict)
         # quit()
         self.fillGenome(operator_dict)
-        
+
         # Block - Evaluation
         self.resetEvalAttr()
 
@@ -132,7 +132,7 @@ class Block(Mate, Mutate):
             self.fetch_nodes = []
 #            with self.graph.as_default():
  #               saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
-                
+
         else:
             pass
 
@@ -144,15 +144,18 @@ class Block(Mate, Mutate):
             print("is this coming here 1")
             #self.tlog_writer.add_graphs(sess.graph)
             print("coming here 2")
+            print('fetch_nodes: ', fetch_nodes)
             for step in range(20): # TODO how and where to define number of steps to train?
-                print(step)
-                tf_outputs = sess.run( 
+                # print(step)
+                tf_outputs = sess.run(
                                 fetches=fetch_nodes,
                                 feed_dict=feed_dict)
-                #loss = sess.run([loss],
+                # _, train_loss = sess.run([optimizer, loss],
                 #            fetches=fetch_nodes,
                 #                   feed_dict=feed_dict)
-                #print(loss)
+                # print(tf_outputs[0]['loss'])
+                print('at step: {} received tf_outputs with keys: {} and loss: {}'\
+                    .format(step, tf_outputs[0].keys(), tf_outputs[0]['loss']))
                 #self.tlog_writer.add_summary(summary, step)
                 #saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
             #self.tlog_writer.close()
@@ -187,7 +190,7 @@ class Block(Mate, Mutate):
                     # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
                     data_dimension = list(input_.shape)
                     data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
-                    
+
                     print(data_dimension)
                     with self.graph.as_default():
                         # TODO, verify that this placeholder works
@@ -240,17 +243,22 @@ class Block(Mate, Mutate):
                             print("self[output_node]:", self[output_node])
                             print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
                             # flatten input matrix to meet NN output size (numinstances, numclasses)
-                            flattened = tf.layers.Flatten()(self.evaluated[self[output_node]]) 
+                            flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
                             print(flattened)
                             logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
                             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                                                         logits = logits,
                                                         labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
+                            # predictions = tf.nn.softmax(logits=logits)
                             # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
                             tf.summary.tensor_summary("loss", loss)
+                            # self.evaluated[output_node] = {
+                            #     "classes": tf.argmax(input=logits, axis=1),
+                            #     "probabilities": tf.nn.softmax(logits)}
                             self.evaluated[output_node] = {
                                 "classes": tf.argmax(input=logits, axis=1),
-                                "probabilities": tf.nn.softmax(logits)}
+                                "probabilities": tf.nn.softmax(logits),
+                                "loss": loss}
                             self.fetch_nodes.append(self.evaluated[output_node])
                             tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
                             tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
@@ -261,7 +269,7 @@ class Block(Mate, Mutate):
                         #tf.summary.scalar('logits', logits)
                         #tf.summary.scalar('results', results)
                         merged_summary = tf.summary.merge_all()
-                        print(loss)
+                        # print(loss)
                     for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
                         # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
                         self.fetch_nodes.append(graph_metadata)
