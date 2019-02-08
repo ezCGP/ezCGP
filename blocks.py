@@ -154,8 +154,13 @@ class Block(Mate, Mutate):
                 #            fetches=fetch_nodes,
                 #                   feed_dict=feed_dict)
                 # print(tf_outputs[0]['loss'])
+                tf_output_dict = tf_outputs[0]
                 print('at step: {} received tf_outputs with keys: {} and loss: {}'\
-                    .format(step, tf_outputs[0].keys(), tf_outputs[0]['loss']))
+                    .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
+                # print the class predictions for this run
+                print('predictions have type: {} shape: {} and are: {}'\
+                    .format(type(tf_output_dict['classes']),\
+                     tf_output_dict['classes'].shape, tf_output_dict['classes']))
                 #self.tlog_writer.add_summary(summary, step)
                 #saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
             #self.tlog_writer.close()
