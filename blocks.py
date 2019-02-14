@@ -136,9 +136,37 @@ class Block(Mate, Mutate):
         else:
             pass
 
+    def initialize_batch(self, x_train, y_train):
+        self.__index_in_epoch = 0
+        self._index_in_epoch = 0
+        self._num_examples = len(x_train)
+        self._epochs_completed = 0
+        self._images = x_train
+        self._labels = y_train
+        
+    "https://github.com/tensorflow/tensorflow/blob/7c36309c37b04843030664cdc64aca2bb7d6ecaa/tensorflow/contrib/learn/python/learn/datasets/mnist.py#L160"
+    def next_batch(self, batch_size):
+        """Return the next `batch_size` examples from this data set."""        
+        start = self._index_in_epoch
+        self._index_in_epoch += batch_size
+        if self._index_in_epoch > self._num_examples:
+            # Finished epoch
+            self._epochs_completed += 1
+            # Shuffle the data
+            perm = np.arange(self._num_examples)
+            #np.random.shuffle(perm)
+            self._images = self._images[perm]
+            self._labels = self._labels[perm]
+            # Start next epoch
+            start = 0
+            self._index_in_epoch = batch_size
+            assert batch_size <= self._num_examples
+        end = self._index_in_epoch
+        return self._images[start:end], self._labels[start:end]
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
-        final_outputs = []
+        self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+        # final_outputs = []
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
             #self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
@@ -147,34 +175,85 @@ class Block(Mate, Mutate):
             print("coming here 2")
             print('fetch_nodes: ', fetch_nodes)
             X_train, y_train = data_pair['x_train'], data_pair['y_train']
+            print("shapes:", X_train.shape, y_train.shape)
 
-            for step in range(20): # TODO how and where to define number of steps to train?
-                # print(step)
-                #X_train, Y_train = get_next_batch(data_pair)
-                print("X batch")
-                x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
-                y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
-                feed_dict[x_batch] = X_train
-                feed_dict[y_batch] = y_train
-                tf_outputs = sess.run(
-                                fetches=fetch_nodes,
-                                feed_dict=feed_dict)
-                # _, train_loss = sess.run([optimizer, loss],
-                #            fetches=fetch_nodes,
-                #                   feed_dict=feed_dict)
-                # print(tf_outputs[0]['loss'])
-                tf_output_dict = tf_outputs[0]
-                print('at step: {} received tf_outputs with keys: {} and loss: {}'\
-                    .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
-                # print the class predictions for this run
-                print('predictions have type: {} shape: {} and are: {}'\
-                    .format(type(tf_output_dict['classes']),\
-                     tf_output_dict['classes'].shape, tf_output_dict['classes']))
-                final_outputs = tf_output_dict['classes']
-                #self.tlog_writer.add_summary(summary, step)
-                #saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
-            #self.tlog_writer.close()
-            return final_outputs
+            hm_epochs = 5
+            batch_size = 32
+            return_outputs = []
+            for epoch in range(hm_epochs):
+                #print(epoch)
+                epoch_loss = 0
+                epoch_outputs = []
+                print("num examples", self._num_examples)
+                for step in range(int(self._num_examples/batch_size)):
+                    print("loaded batch index", step)
+                    X_train, y_train = self.next_batch(batch_size)
+                    print("shapes:", X_train.shape, y_train.shape)
+                    x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+                    y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
+                    feed_dict[x_batch] = X_train
+                    feed_dict[y_batch] = y_train
+                    tf_outputs = sess.run(
+                                    fetches=fetch_nodes,
+                                    feed_dict=feed_dict)  
+
+                    tf_output_dict = tf_outputs[0]
+                    step_loss = tf_output_dict['loss']   
+                    epoch_loss += step_loss                 
+                    print('at step: {} received tf_outputs with keys: {} and loss: {}'\
+                        .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
+                    # print the class predictions for this run
+                    print('predictions have type: {} shape: {} and are: {}'\
+                        .format(type(tf_output_dict['classes']),\
+                        tf_output_dict['classes'].shape, tf_output_dict['classes']))
+                    final_outputs = tf_output_dict['classes']
+                    epoch_outputs += final_outputs.tolist()
+
+                    #epoch_outputs.hstack((epoch_outputs, final_outputs))
+                return_outputs = epoch_outputs   
+                print(return_outputs)
+            return np.array(return_outputs)         
+
+    # def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
+    #     self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+    #     # final_outputs = []
+    #     with tf.Session(graph=self.graph) as sess:
+    #         sess.run(tf.global_variables_initializer())
+    #         #self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
+    #         print("is this coming here 1")
+    #         #self.tlog_writer.add_graphs(sess.graph)
+    #         print("coming here 2")
+    #         print('fetch_nodes: ', fetch_nodes)
+    #         X_train, y_train = data_pair['x_train'], data_pair['y_train']
+
+    #         for step in range(20): # TODO how and where to define number of steps to train?
+                 
+    #             # print(step)
+    #             #X_train, Y_train = get_next_batch(data_pair)
+    #             print("X batch")
+    #             x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+    #             y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
+    #             feed_dict[x_batch] = X_train
+    #             feed_dict[y_batch] = y_train
+    #             tf_outputs = sess.run(
+    #                             fetches=fetch_nodes,
+    #                             feed_dict=feed_dict)
+    #             # _, train_loss = sess.run([optimizer, loss],
+    #             #            fetches=fetch_nodes,
+    #             #                   feed_dict=feed_dict)
+    #             # print(tf_outputs[0]['loss'])
+    #             tf_output_dict = tf_outputs[0]
+    #             print('at step: {} received tf_outputs with keys: {} and loss: {}'\
+    #                 .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
+    #             # print the class predictions for this run
+    #             print('predictions have type: {} shape: {} and are: {}'\
+    #                 .format(type(tf_output_dict['classes']),\
+    #                  tf_output_dict['classes'].shape, tf_output_dict['classes']))
+    #             final_outputs = tf_output_dict['classes']
+    #             #self.tlog_writer.add_summary(summary, step)
+    #             #saver.save(sess, save_path=self.logs_path, global_step=step) # keep the 5 most recent steps and keep one from ever hour
+    #         #self.tlog_writer.close()
+    #         return final_outputs
 
 
     def tensorboard_show(self, wait_seconds=60):
@@ -253,7 +332,7 @@ class Block(Mate, Mutate):
                     else:
                         self.evaluated[node_index] = function(*inputs, *args)
                 except Exception as e:
-                    print(e)
+                    raise(e)
                     self.dead = True
                     break
             if not self.dead:
@@ -307,7 +386,8 @@ class Block(Mate, Mutate):
                         print(self.feed_dict)
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
                     except Exception as e:
-                        print(e)
+                        raise(e)
+                        #print(e)
                         self.dead = True
                 else:
                     # if it's not tensorflow

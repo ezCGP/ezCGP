@@ -181,12 +181,12 @@ LAYERS
 #     return global_avg_pool(input_tensor)
 #
 #
-# def dense_layer(input_tensor, num_units=128):
-#     # Flatten tensor into a batch of vectors
-#     pool2_flat = tf.layers.Flatten()(input_tensor)
-#     # Densely connected layer with 1024 neurons
-#     logits = tf.layers.dense(inputs=pool2_flat, units=num_units, activation=tf.nn.relu)
-#     return logits
+def dense_layer(input_tensor, num_units=128):
+    # Flatten tensor into a batch of vectors
+    pool2_flat = tf.layers.Flatten()(input_tensor)
+    # Densely connected layer with 1024 neurons
+    logits = tf.layers.dense(inputs=pool2_flat, units=num_units, activation=tf.nn.relu)
+    return logits
 
 """
 FUNCTIONS
@@ -273,10 +273,10 @@ BLOCKS
 #     return conv_block(conv_block(conv_block(input_tensor, filters, kernel_size)))
 
 
-# operDict[dense_layer] = {"inputs": [tf.Tensor],
-#                             "args": [],
-#                             "outputs": tf.Tensor,
-#                             "name": 'denseLayer'}
+operDict[dense_layer] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'denseLayer'}
 
 # operDict[conv_layer] = {"inputs": [tf.Tensor],
 #                             "args": [],
