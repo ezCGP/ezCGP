@@ -3,11 +3,11 @@
 # external packages
 from copy import deepcopy
 
-import problem
+import problem_mnist as problem
 
 # my scripts
 import universe
-num_universes = 20
+num_universes = 1
 
 if __name__ == '__main__':
     # Read in Data

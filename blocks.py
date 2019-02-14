@@ -137,7 +137,7 @@ class Block(Mate, Mutate):
             pass
 
 
-    def tensorblock_evaluate(self, fetch_nodes, feed_dict):
+    def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         final_outputs = []
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
@@ -146,8 +146,16 @@ class Block(Mate, Mutate):
             #self.tlog_writer.add_graphs(sess.graph)
             print("coming here 2")
             print('fetch_nodes: ', fetch_nodes)
+            X_train, y_train = data_pair['x_train'], data_pair['y_train']
+
             for step in range(20): # TODO how and where to define number of steps to train?
                 # print(step)
+                #X_train, Y_train = get_next_batch(data_pair)
+                print("X batch")
+                x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+                y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
+                feed_dict[x_batch] = X_train
+                feed_dict[y_batch] = y_train
                 tf_outputs = sess.run(
                                 fetches=fetch_nodes,
                                 feed_dict=feed_dict)
@@ -180,7 +188,7 @@ class Block(Mate, Mutate):
         print("tensorbard killed")
 
 
-    def evaluate(self, block_inputs, labels):
+    def evaluate(self, block_inputs, labels_all):
         self.resetEvalAttr()
         self.findActive()
         if (self.learning_required) and (not self.has_learner):
@@ -189,6 +197,7 @@ class Block(Mate, Mutate):
             self.dead = True
         else:
             print('block_input: {}'.format(np.array(block_inputs).shape))
+            data_pair = {}
             for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
                 if self.tensorblock_flag:
 #                    self.evaluated[-1*(i+1)] = input_
@@ -202,8 +211,15 @@ class Block(Mate, Mutate):
                     # print(data_dimension)
                     with self.graph.as_default():
                         # TODO, verify that this placeholder works
-                        self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, data_dimension)
-                    self.feed_dict[self.evaluated[-1*(i+1)]] = input_
+                        # self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, data_dimension)
+                        batch_X = tf.placeholder(tf.float32, data_dimension, name='x_batch')
+                        self.evaluated[-1*(i+1)] = batch_X
+
+                    self.feed_dict[batch_X] = input_
+                    data_pair['x_train'] = input_
+                    data_pair['y_train'] = labels_all
+                    # self.feed_dict = {batch_X: input_}
+
                 else:
                     self.evaluated[-1*(i+1)] = input_
             for node_index in self.active_nodes:
@@ -254,6 +270,7 @@ class Block(Mate, Mutate):
                             # flatten input matrix to meet NN output size (numinstances, numclasses)
                             flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
                             print(flattened)
+                            labels = tf.placeholder(tf.int32, [None], name='y_batch')
                             logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
                             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                                                         logits = logits,
@@ -288,7 +305,7 @@ class Block(Mate, Mutate):
                         print(self.fetch_nodes)
                         print("self.feed_dict")
                         print(self.feed_dict)
-                        self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict)
+                        self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
                     except Exception as e:
                         print(e)
                         self.dead = True
@@ -302,4 +319,3 @@ class Block(Mate, Mutate):
             #self.evaluated = None # clear up some space by deleting eval from memory
             self.need_evaluate = False
             gc.collect()
-
