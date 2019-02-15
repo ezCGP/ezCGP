@@ -143,10 +143,10 @@ class Block(Mate, Mutate):
         self._epochs_completed = 0
         self._images = x_train
         self._labels = y_train
-        
+
     "https://github.com/tensorflow/tensorflow/blob/7c36309c37b04843030664cdc64aca2bb7d6ecaa/tensorflow/contrib/learn/python/learn/datasets/mnist.py#L160"
     def next_batch(self, batch_size):
-        """Return the next `batch_size` examples from this data set."""        
+        """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self._num_examples:
@@ -165,54 +165,56 @@ class Block(Mate, Mutate):
         return self._images[start:end], self._labels[start:end]
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
+        # initialize variables needed for batch feeding
         self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
         # final_outputs = []
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
-            #self.tlog_writer = tf.summary.FileWriter(self.logs_path, graph=sess.graph) # tensorboard uses these logs
-            print("is this coming here 1")
-            #self.tlog_writer.add_graphs(sess.graph)
-            print("coming here 2")
-            print('fetch_nodes: ', fetch_nodes)
-            X_train, y_train = data_pair['x_train'], data_pair['y_train']
-            print("shapes:", X_train.shape, y_train.shape)
 
-            hm_epochs = 5
-            batch_size = 32
+            # get placeholder nodes that will be fed to
+            x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+            y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
+
+            # X_train, y_train = data_pair['x_train'], data_pair['y_train']
+            # print("shapes:", X_train.shape, y_train.shape)
+
+            n_epochs = 5 # number of epochs to run for while training
+            batch_size = 32 # size of the batch
             return_outputs = []
-            for epoch in range(hm_epochs):
-                #print(epoch)
-                epoch_loss = 0
+            for epoch in range(n_epochs):
+                epoch_loss = 0 # holds cumulative loss over the epoch
+                # will hold predictions for training data at this epoch
                 epoch_outputs = []
                 print("num examples", self._num_examples)
                 for step in range(int(self._num_examples/batch_size)):
-                    print("loaded batch index", step)
+                    print("epoch: {} loaded batch index: {}. Fed {}/{} samples."\
+                        .format(epoch, step, step * batch_size, self._num_examples))
                     X_train, y_train = self.next_batch(batch_size)
-                    print("shapes:", X_train.shape, y_train.shape)
-                    x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
-                    y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
+                    # print("shapes:", X_train.shape, y_train.shape)
                     feed_dict[x_batch] = X_train
                     feed_dict[y_batch] = y_train
                     tf_outputs = sess.run(
                                     fetches=fetch_nodes,
-                                    feed_dict=feed_dict)  
+                                    feed_dict=feed_dict)
 
                     tf_output_dict = tf_outputs[0]
-                    step_loss = tf_output_dict['loss']   
-                    epoch_loss += step_loss                 
-                    print('at step: {} received tf_outputs with keys: {} and loss: {}'\
-                        .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
+                    step_loss = tf_output_dict['loss']
+                    print('step_loss: ', step_loss)
+                    epoch_loss += step_loss
+                    # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
+                    #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
                     # print the class predictions for this run
-                    print('predictions have type: {} shape: {} and are: {}'\
-                        .format(type(tf_output_dict['classes']),\
-                        tf_output_dict['classes'].shape, tf_output_dict['classes']))
+                    # print('predictions have type: {} shape: {} and are: {}'\
+                    #     .format(type(tf_output_dict['classes']),\
+                    #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
                     final_outputs = tf_output_dict['classes']
                     epoch_outputs += final_outputs.tolist()
 
-                    #epoch_outputs.hstack((epoch_outputs, final_outputs))
-                return_outputs = epoch_outputs   
+                return_outputs = epoch_outputs # holds the outputs of the latest epochs
+                print('Epoch completed. epoch_loss: ', epoch_loss)
+
                 print(return_outputs)
-            return np.array(return_outputs)         
+            return np.array(return_outputs)
 
     # def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
     #     self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
@@ -227,7 +229,7 @@ class Block(Mate, Mutate):
     #         X_train, y_train = data_pair['x_train'], data_pair['y_train']
 
     #         for step in range(20): # TODO how and where to define number of steps to train?
-                 
+
     #             # print(step)
     #             #X_train, Y_train = get_next_batch(data_pair)
     #             print("X batch")
@@ -380,10 +382,10 @@ class Block(Mate, Mutate):
                         self.fetch_nodes.append(graph_metadata)
                     try:
                         # now that the graph is built, we evaluate here
-                        print("self.fetch_nodes")
-                        print(self.fetch_nodes)
-                        print("self.feed_dict")
-                        print(self.feed_dict)
+                        # print("self.fetch_nodes")
+                        # print(self.fetch_nodes)
+                        # print("self.feed_dict")
+                        # print(self.feed_dict)
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
                     except Exception as e:
                         raise(e)
