@@ -24,8 +24,31 @@ def scoreFunction(predict, actual):
 mnist = tf.keras.datasets.mnist
 (x_train, y_train),(x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0
-x_train = [x_train.reshape(-1, 28, 28, 1)]
-x_test = [x_test.reshape(-1, 28, 28, 1)]
+
+print(x_train.shape[0])
+# val_size = int(0.1 * x_train.shape[0]) # percentage of training data
+val_size = 5600 # exact value done so that x_train has a size multiple of batch_size
+print(val_size)
+val_ind = np.random.choice(a=np.arange(x_train.shape[0]), size=val_size, \
+    replace=False)
+val_mask = np.zeros(x_train.shape[0], dtype=bool)
+val_mask[val_ind] = True
+
+x_train = x_train.reshape(-1, 28, 28, 1)
+x_test = x_test.reshape(-1, 28, 28, 1)
+
+x_val = x_train[val_mask]
+y_val = y_train[val_mask]
+
+x_train = x_train[~val_mask]
+y_train = y_train[~val_mask]
+
+x_train = [x_train]
+x_test = [x_test]
+
+print('Train: X: {} y: {}'.format(x_train[0].shape, y_train.shape))
+print('Validation: X: {} y: {}'.format(x_val.shape, y_val.shape))
+print('Test: X: {} y: {}'.format(x_test[0].shape, y_test.shape))
 
 # print('Loaded MNIST dataset. x_train: {} y_train: {} x_test: {} y_test: {}'
 #     .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
