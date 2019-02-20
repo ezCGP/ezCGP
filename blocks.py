@@ -30,7 +30,7 @@ class Block(Mate, Mutate):
                  setup_dict_ftn, setup_dict_arg, setup_dict_mate, setup_dict_mut,
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
                  block_mut_prob, block_mate_prob,
-                 tensorblock_flag=False, learning_required=False, num_classes=None):
+                 tensorblock_flag=False, learning_required=False, num_classes=None, batch_size=None):
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
 
@@ -64,6 +64,7 @@ class Block(Mate, Mutate):
         self.learning_required = learning_required #
         self.num_classes = 10 # number of classes for what we are trying to classify...only relevant if there is supposed to be a learner
         self.need_evaluate = True # all new blocks need to be evaluated
+        self.batch_size = batch_size # takes the batch_size from the block skeleton
 
         # Block - Argument List
         self.arg_methods = list(setup_dict_arg.keys())
@@ -178,18 +179,17 @@ class Block(Mate, Mutate):
             # X_train, y_train = data_pair['x_train'], data_pair['y_train']
             # print("shapes:", X_train.shape, y_train.shape)
 
-            n_epochs = 5 # number of epochs to run for while training
-            batch_size = 64 # size of the batch
+            n_epochs = 2 # number of epochs to run for while training
+            batch_size = self.batch_size # size of the batch
             return_outputs = []
             for epoch in range(n_epochs):
                 epoch_loss = 0 # holds cumulative loss over the epoch
                 # will hold predictions for training data at this epoch
                 epoch_outputs = []
                 print("num examples", self._num_examples)
-                for step in range(int(self._num_examples/batch_size)):
-                    print("epoch: {} loaded batch index: {}. Fed {}/{} samples."\
-                        .format(epoch, step, step * batch_size, self._num_examples))
-                    X_train, y_train = self.next_batch(batch_size)
+                for step in range(int(np.ceil(self._num_examples/batch_size))):
+                    X_train, y_train = self.next_batch(min(self._num_examples \
+                        - step * batch_size, batch_size))
                     # print("shapes:", X_train.shape, y_train.shape)
                     feed_dict[x_batch] = X_train
                     feed_dict[y_batch] = y_train
@@ -199,6 +199,8 @@ class Block(Mate, Mutate):
 
                     tf_output_dict = tf_outputs[0]
                     step_loss = tf_output_dict['loss']
+                    print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                        .format(epoch, step, step * batch_size, self._num_examples, step_loss))
                     # print('step_loss: ', step_loss)
                     # epoch_loss += step_loss
                     # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
