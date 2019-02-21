@@ -3,7 +3,7 @@
 # external packages
 from copy import deepcopy
 
-import problem_mnist as problem
+import problem
 
 # my scripts
 import universe

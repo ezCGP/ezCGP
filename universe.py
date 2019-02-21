@@ -11,7 +11,7 @@ from pathlib import Path
 
 # my scripts
 from individual import Individual
-import problem_mnist as problem
+import problem
 import selections
 
 

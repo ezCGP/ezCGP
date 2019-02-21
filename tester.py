@@ -1,5 +1,5 @@
 from individual import Individual
-import problem_mnist as problem
+import problem
 
 train_data = problem.x_train
 train_labels = problem.y_train
