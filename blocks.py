@@ -167,6 +167,8 @@ class Block(Mate, Mutate):
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         # initialize variables needed for batch feeding
         self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+        x_val = data_pair["x_val"]
+        y_val = data_pair["y_val"]
         # final_outputs = []
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
@@ -207,14 +209,21 @@ class Block(Mate, Mutate):
                     # print('predictions have type: {} shape: {} and are: {}'\
                     #     .format(type(tf_output_dict['classes']),\
                     #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
-                    final_outputs = tf_output_dict['classes']
-                    epoch_outputs += final_outputs.tolist()
+                    # final_outputs = tf_output_dict['classes']
+                    # epoch_outputs += final_outputs.tolist()
 
-                return_outputs = epoch_outputs # holds the outputs of the latest epochs
+                # return_outputs = epoch_outputs # holds the outputs of the latest epochs
                 print('Epoch completed. epoch_loss: ', epoch_loss)
 
-                print(return_outputs)
-            return np.array(return_outputs)
+            #    print(return_outputs)
+            feed_dict[x_batch] = x_val
+            feed_dict[y_batch] = y_val
+            tf_outputs = sess.run(
+                            fetches=fetch_nodes[:-2],
+                            feed_dict=feed_dict)
+            tf_output_dict = tf_outputs[0]
+
+            return tf_output_dict["classes"]
 
     def tensorboard_show(self, wait_seconds=60):
         # only should work after tensorblock_evaluate() is run
@@ -227,7 +236,7 @@ class Block(Mate, Mutate):
         print("tensorbard killed")
 
 
-    def evaluate(self, block_inputs, labels_all):
+    def evaluate(self, block_inputs, labels_all, validation_pair):
         self.resetEvalAttr()
         self.findActive()
         if (self.learning_required) and (not self.has_learner):
@@ -257,6 +266,8 @@ class Block(Mate, Mutate):
                     self.feed_dict[batch_X] = input_
                     data_pair['x_train'] = input_
                     data_pair['y_train'] = labels_all
+                    data_pair["x_val"] = validation_pair[0]
+                    data_pair["y_val"] = validation_pair[1]
                     # self.feed_dict = {batch_X: input_}
 
                 else:

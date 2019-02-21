@@ -58,7 +58,7 @@ print('Test: X: {} y: {}'.format(x_test[0].shape, y_test.shape))
 
 skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'tensorblock_flag': True,
-    'batch_size': 33,
+    'batch_size': 128,
     'nickname': 'regression_block',
     'setup_dict_ftn': {
         #declare which primitives are available to the genome,
