@@ -146,22 +146,21 @@ class Block(Mate, Mutate):
         self._labels = y_train
 
     "https://github.com/tensorflow/tensorflow/blob/7c36309c37b04843030664cdc64aca2bb7d6ecaa/tensorflow/contrib/learn/python/learn/datasets/mnist.py#L160"
+    """The method above shuffles. This one returns small batch sizes if index_in_epoch exceeds the num_example"""
     def next_batch(self, batch_size):
         """Return the next `batch_size` examples from this data set."""
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self._num_examples:
-            # Finished epoch
             self._epochs_completed += 1
-            # Shuffle the data
-            perm = np.arange(self._num_examples)
-            #np.random.shuffle(perm)
-            self._images = self._images[perm]
-            self._labels = self._labels[perm]
-            # Start next epoch
-            start = 0
-            self._index_in_epoch = batch_size
             assert batch_size <= self._num_examples
+            if self._index_in_epoch - batch_size == self._num_examples:            
+                start = 0
+                self._index_in_epoch = batch_size
+            else:
+                ret_image, ret_label = self._images[self._index_in_epoch - batch_size:], self._labels[self._index_in_epoch - batch_size:]            
+                self._index_in_epoch = 0
+                return ret_image, ret_label
         end = self._index_in_epoch
         return self._images[start:end], self._labels[start:end]
 
@@ -188,8 +187,7 @@ class Block(Mate, Mutate):
                 epoch_outputs = []
                 print("num examples", self._num_examples)
                 for step in range(int(np.ceil(self._num_examples/batch_size))):
-                    X_train, y_train = self.next_batch(min(self._num_examples \
-                        - step * batch_size, batch_size))
+                    X_train, y_train = self.next_batch(batch_size)
                     # print("shapes:", X_train.shape, y_train.shape)
                     feed_dict[x_batch] = X_train
                     feed_dict[y_batch] = y_train

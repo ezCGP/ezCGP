@@ -58,7 +58,7 @@ print('Test: X: {} y: {}'.format(x_test[0].shape, y_test.shape))
 
 skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'tensorblock_flag': True,
-    'batch_size': 65,
+    'batch_size': 33,
     'nickname': 'regression_block',
     'setup_dict_ftn': {
         #declare which primitives are available to the genome,
@@ -66,11 +66,11 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #prob: float btwn 0 and 1 -> assigns that prob to that primitive...the sum can't be more than 1
         #prob: 1 -> equally distribute the remaining probability amoung all those remaining (hard to explain, sorry)
         #operators.input_layer: {'prob': 1},
-        operators.add_tensors: {'prob': 1},
-        operators.sub_tensors: {'prob': 1},
-        operators.mult_tensors: {'prob': 1},
-        #operators.dense_layer: {'prob': 1},
-        operators.conv_layer: {'prob': 1},
+        #operators.add_tensors: {'prob': 1},
+        #operators.sub_tensors: {'prob': 1},
+        #operators.mult_tensors: {'prob': 1},
+        operators.dense_layer: {'prob': 1},
+        #operators.conv_layer: {'prob': 1},
         # operators.max_pool_layer: {'prob': 1},
         # operators.avg_pool_layer: {'prob': 1},
         # operators.concat_func: {'prob': 1},
