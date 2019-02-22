@@ -72,17 +72,24 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     return population #, eval_queue
 
 
-def create_universe(input_data, labels, population_size=100, universe_seed=9, num_mutants=4, num_offpsring=2):
+def create_universe(input_data, labels, population_size=1, universe_seed=9, num_mutants=4, num_offpsring=2):
     np.random.seed(universe_seed)
 
     # initialize the population
     population = []
     for i in range(population_size):
         individual = Individual(skeleton=problem.skeleton_genome)
-        print("blocks input", input_data)
-        individual.evaluate(data=input_data)
+        # print("blocks input", input_data)
+        # individual.evaluate(data=input_data)
+        individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
+            problem.y_val))
+
         #individual.score_fitness(labels=labels)
-        individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
+        # individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
+        individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
+            predict=individual.genome_outputs)
+        print('Initialized individual has fitness: {}'\
+            .format(individual.fitness.values))
         population.append(individual)
         del individual
 

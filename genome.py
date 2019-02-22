@@ -89,7 +89,7 @@ class Genome():
             return self.genome_output_dtypes[node_index-self.genome_main_count]
         else:
             # then it's a Block Main Node
-            pass 
+            pass
         ftn = self[node_index]["ftn"]
         ftn_dict = self.operator_dict[ftn]
         if input_dtype:

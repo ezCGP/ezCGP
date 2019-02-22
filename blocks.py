@@ -154,11 +154,11 @@ class Block(Mate, Mutate):
         if self._index_in_epoch > self._num_examples:
             self._epochs_completed += 1
             assert batch_size <= self._num_examples
-            if self._index_in_epoch - batch_size == self._num_examples:            
+            if self._index_in_epoch - batch_size == self._num_examples:
                 start = 0
                 self._index_in_epoch = batch_size
             else:
-                ret_image, ret_label = self._images[self._index_in_epoch - batch_size:], self._labels[self._index_in_epoch - batch_size:]            
+                ret_image, ret_label = self._images[self._index_in_epoch - batch_size:], self._labels[self._index_in_epoch - batch_size:]
                 self._index_in_epoch = 0
                 return ret_image, ret_label
         end = self._index_in_epoch
@@ -180,7 +180,7 @@ class Block(Mate, Mutate):
             # X_train, y_train = data_pair['x_train'], data_pair['y_train']
             # print("shapes:", X_train.shape, y_train.shape)
 
-            n_epochs = 2 # number of epochs to run for while training
+            n_epochs = 1 # number of epochs to run for while training
             batch_size = self.batch_size # size of the batch
             return_outputs = []
             for epoch in range(n_epochs):
@@ -202,7 +202,7 @@ class Block(Mate, Mutate):
                     print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                         .format(epoch, step, step * batch_size, self._num_examples, step_loss))
                     # print('step_loss: ', step_loss)
-                    # epoch_loss += step_loss
+                    epoch_loss += step_loss
                     # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
                     #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
                     # print the class predictions for this run
@@ -369,4 +369,10 @@ class Block(Mate, Mutate):
                 pass
             #self.evaluated = None # clear up some space by deleting eval from memory
             self.need_evaluate = False
+            if self.tensorblock_flag:
+                # clean up all tensorflow variables so that individual can be deepcopied
+                self.graph = None
+                self.feed_dict = {}
+                self.fetch_nodes = []
+                self.evaluated = [None] * self.genome_count
             gc.collect()
