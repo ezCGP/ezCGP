@@ -140,6 +140,8 @@ class Genome():
                 choices = np.delete(choices, np.where(choices==val))
         else:
             pass
+        if len(choices) == 0:
+            return None
         possible_nodes = np.random.choice(a=choices, size=len(choices), replace=False)
         # iterate through each input until we find a datatype that matches dtype
         for poss_node in possible_nodes:

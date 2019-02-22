@@ -60,9 +60,15 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
             # add to queue to evaluate individual
             # evaluate uses multithreading to send individuals to evaluate blocks
             #eval_queue.put(individual)
-            individual.evaluate(input_data)
-            #individual.score_fitness(labels)
-            individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
+                problem.y_val))
+            individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
+                predict=individual.genome_outputs)
+            print('Muatated population individual has fitness: {}'\
+                .format(individual.fitness.values))
+            # individual.evaluate(input_data)
+            # #individual.score_fitness(labels)
+            # individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
 
     # filter population down based off fitness
     # new population done: rank individuals in population and trim down
@@ -110,6 +116,7 @@ def create_universe(input_data, labels, population_size=1, universe_seed=9, num_
         for individual in population:
             scores.append(individual.fitness.values[0])
             # print(individual.fitness.values)
+        print("generation")
         print(generation, np.min(scores))
         # print(scores)
         if np.min(scores) < SCORE_MIN:
@@ -121,20 +128,21 @@ def create_universe(input_data, labels, population_size=1, universe_seed=9, num_
             #import pdb; pdb.set_trace()
             sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
             try:
+                print(sample_best.genome_outputs[0])
                 #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
                 # print(problem.x_train)
                 # print(sample_best.genome_outputs)
-                plt.figure()
-                plt.plot(problem.x_train[1], problem.y_train, '.')
-                #testY = solutions[run].testEvaluate()
-                plt.plot(problem.x_train[1], sample_best.genome_outputs[0], '.')
-                #plt.legend(['Weibull','Test Model Fit'])
-                plt.legend(['log(x)','Test Model Fit'])
-                #plt.show()
-                Path('outputs').mkdir(parents=True, exist_ok=True) #should help work on all OS
-                filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
-                plt.savefig(filepath)
-                plt.close()
+                # plt.figure()
+                # plt.plot(problem.x_train[1], problem.y_train, '.')
+                # #testY = solutions[run].testEvaluate()
+                # plt.plot(problem.x_train[1], sample_best.genome_outputs[0], '.')
+                # #plt.legend(['Weibull','Test Model Fit'])
+                # plt.legend(['log(x)','Test Model Fit'])
+                # #plt.show()
+                # Path('outputs').mkdir(parents=True, exist_ok=True) #should help work on all OS
+                # filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
+                # plt.savefig(filepath)
+                # plt.close()
             except:
                 import pdb
                 pdb.set_trace()
