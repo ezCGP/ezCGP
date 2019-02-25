@@ -40,7 +40,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     for i in range(len(population)): # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
-            mutant = deepcopy(individual)
+            mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
             mutant.mutate(block)
             if mutant.need_evaluate:
                 # then it did for sure mutate

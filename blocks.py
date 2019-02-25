@@ -77,10 +77,6 @@ class Block(Mate, Mutate):
         self.ftn_methods = list(setup_dict_ftn.keys())
         self.ftn_weights = self.buildWeights('ftn_methods', setup_dict_ftn)
         self.operator_dict = operator_dict
-        # for key, val in operator_dict.items():
-        #     print(key, val)
-        # print(operator_dict)
-        # quit()
         self.fillGenome(operator_dict)
 
         # Block - Evaluation
@@ -177,9 +173,6 @@ class Block(Mate, Mutate):
             x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
             y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
 
-            # X_train, y_train = data_pair['x_train'], data_pair['y_train']
-            # print("shapes:", X_train.shape, y_train.shape)
-
             n_epochs = 1 # number of epochs to run for while training
             batch_size = self.batch_size # size of the batch
             return_outputs = []
@@ -215,7 +208,8 @@ class Block(Mate, Mutate):
                 # return_outputs = epoch_outputs # holds the outputs of the latest epochs
                 print('Epoch completed. epoch_loss: ', epoch_loss)
 
-            #    print(return_outputs)
+            # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
+            # the input data originally
             feed_dict[x_batch] = x_val
             feed_dict[y_batch] = y_val
             tf_outputs = sess.run(
@@ -258,8 +252,6 @@ class Block(Mate, Mutate):
 
                     # print(data_dimension)
                     with self.graph.as_default():
-                        # TODO, verify that this placeholder works
-                        # self.evaluated[-1*(i+1)] = tf.placeholder(tf.float32, data_dimension)
                         batch_X = tf.placeholder(tf.float32, data_dimension, name='x_batch')
                         self.evaluated[-1*(i+1)] = batch_X
 
@@ -268,7 +260,6 @@ class Block(Mate, Mutate):
                     data_pair['y_train'] = labels_all
                     data_pair["x_val"] = validation_pair[0]
                     data_pair["y_val"] = validation_pair[1]
-                    # self.feed_dict = {batch_X: input_}
 
                 else:
                     self.evaluated[-1*(i+1)] = input_
@@ -328,9 +319,6 @@ class Block(Mate, Mutate):
                             # predictions = tf.nn.softmax(logits=logits)
                             # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
                             tf.summary.tensor_summary("loss", loss)
-                            # self.evaluated[output_node] = {
-                            #     "classes": tf.argmax(input=logits, axis=1),
-                            #     "probabilities": tf.nn.softmax(logits)}
                             self.evaluated[output_node] = {
                                 "classes": tf.argmax(input=logits, axis=1),
                                 "probabilities": tf.nn.softmax(logits),
@@ -351,10 +339,6 @@ class Block(Mate, Mutate):
                         self.fetch_nodes.append(graph_metadata)
                     try:
                         # now that the graph is built, we evaluate here
-                        # print("self.fetch_nodes")
-                        # print(self.fetch_nodes)
-                        # print("self.feed_dict")
-                        # print(self.feed_dict)
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
                     except Exception as e:
                         raise(e)
@@ -371,6 +355,8 @@ class Block(Mate, Mutate):
             self.need_evaluate = False
             if self.tensorblock_flag:
                 # clean up all tensorflow variables so that individual can be deepcopied
+                # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
+                #     this fixes the universe.py run_universe deepcopy() bug
                 self.graph = None
                 self.feed_dict = {}
                 self.fetch_nodes = []

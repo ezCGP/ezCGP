@@ -140,6 +140,7 @@ class Genome():
                 choices = np.delete(choices, np.where(choices==val))
         else:
             pass
+        # fixes random choice empty list bug (main cannot evaluate empty list)
         if len(choices) == 0:
             return None
         possible_nodes = np.random.choice(a=choices, size=len(choices), replace=False)
