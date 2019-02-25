@@ -59,20 +59,15 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
             #
             # add to queue to evaluate individual
             # evaluate uses multithreading to send individuals to evaluate blocks
-            #eval_queue.put(individual)
             individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
                 problem.y_val))
             individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
                 predict=individual.genome_outputs)
             print('Muatated population individual has fitness: {}'\
                 .format(individual.fitness.values))
-            # individual.evaluate(input_data)
-            # #individual.score_fitness(labels)
-            # individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
 
     # filter population down based off fitness
     # new population done: rank individuals in population and trim down
-    #print("prep for next pop")
     population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
 
     return population #, eval_queue
@@ -85,13 +80,10 @@ def create_universe(input_data, labels, population_size=1, universe_seed=9, num_
     population = []
     for i in range(population_size):
         individual = Individual(skeleton=problem.skeleton_genome)
-        # print("blocks input", input_data)
-        # individual.evaluate(data=input_data)
         individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
             problem.y_val))
 
         #individual.score_fitness(labels=labels)
-        # individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
         individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
             predict=individual.genome_outputs)
         print('Initialized individual has fitness: {}'\
@@ -107,10 +99,7 @@ def create_universe(input_data, labels, population_size=1, universe_seed=9, num_
     start_time = time.time()
     while (not converged) & (generation<=GENERATION_LIMIT):
         generation += 1
-        #population, eval_queue = run_universe(population, eval_queue num_mutants, num_offpsring)
         population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
-        # population multiobjective ranking here or right before it get's returned?
-
         scores = []
         # print('printing genome_outputs')
         for individual in population:
