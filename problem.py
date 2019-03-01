@@ -116,6 +116,9 @@ val_ind = np.random.choice(a=np.arange(x_train.shape[0]), size=val_size, \
 val_mask = np.zeros(x_train.shape[0], dtype=bool)
 val_mask[val_ind] = True
 
+x_train = x_train.reshape(-1, 28, 28, 1)	
+x_test = x_test.reshape(-1, 28, 28, 1)
+
 x_val = x_train[val_mask]
 y_val = y_train[val_mask]
 
