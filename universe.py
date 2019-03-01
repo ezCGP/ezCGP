@@ -37,6 +37,9 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     '''
     # mutate through the population
     #print("    MUTATING")
+    print("before mutation")
+    for ind in population:
+        print(ind.skeleton[1]["block_object"].active_nodes)
     for i in range(len(population)): # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
@@ -65,10 +68,16 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
                 predict=individual.genome_outputs)
             print('Muatated population individual has fitness: {}'\
                 .format(individual.fitness.values))
+    print("after mutation")
+    for ind in population:
+        print(ind.skeleton[1]["block_object"].active_nodes)
 
     # filter population down based off fitness
     # new population done: rank individuals in population and trim down
     population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
+    print("after selection")
+    for ind in population:
+        print(ind.skeleton[1]["block_object"].active_nodes)
 
     return population #, eval_queue
 
