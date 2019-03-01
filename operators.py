@@ -170,10 +170,12 @@ def max_pool_layer(input_tensor):
     # First max pooling layer with a 2x2 filter and stride of 2
     if input_tensor.shape[1].value == 1:
         return input_tensor
+    #max_pool = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding="valid")(input_tensor)
     return tf.layers.max_pooling2d(inputs=input_tensor, pool_size=[2, 2], strides=2)
 #
 #
 def avg_pool_layer(input_tensor):
+#    avg_pool = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding="valid")(input_tensor)
     return tf.layers.average_pooling2d(inputs=input_tensor, pool_size=[2,2], strides=2)
 
 
