@@ -161,63 +161,68 @@ class Block(Mate, Mutate):
         return self._images[start:end], self._labels[start:end]
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
-        # initialize variables needed for batch feeding
-        self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
-        x_val = data_pair["x_val"]
-        y_val = data_pair["y_val"]
-        # final_outputs = []
-        with tf.Session(graph=self.graph) as sess:
-            sess.run(tf.global_variables_initializer())
+        try:
+            # initialize variables needed for batch feeding
+            self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+            x_val = data_pair["x_val"]
+            y_val = data_pair["y_val"]
+            # final_outputs = []
+            with tf.Session(graph=self.graph) as sess:
+                sess.run(tf.global_variables_initializer())
 
-            # get placeholder nodes that will be fed to
-            x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
-            y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
+                # get placeholder nodes that will be fed to
+                x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+                y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
 
-            n_epochs = 1 # number of epochs to run for while training
-            batch_size = self.batch_size # size of the batch
-            return_outputs = []
-            for epoch in range(n_epochs):
-                epoch_loss = 0 # holds cumulative loss over the epoch
-                # will hold predictions for training data at this epoch
-                epoch_outputs = []
-                print("num examples", self._num_examples)
-                for step in range(int(np.ceil(self._num_examples/batch_size))):
-                    X_train, y_train = self.next_batch(batch_size)
-                    # print("shapes:", X_train.shape, y_train.shape)
-                    feed_dict[x_batch] = X_train
-                    feed_dict[y_batch] = y_train
-                    tf_outputs = sess.run(
-                                    fetches=fetch_nodes,
-                                    feed_dict=feed_dict)
-
-                    tf_output_dict = tf_outputs[0]
-                    step_loss = tf_output_dict['loss']
-                    #print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                    #    .format(epoch, step, step * batch_size, self._num_examples, step_loss))
-                    # print('step_loss: ', step_loss)
-                    epoch_loss += step_loss
-                    # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
-                    #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
-                    # print the class predictions for this run
-                    # print('predictions have type: {} shape: {} and are: {}'\
-                    #     .format(type(tf_output_dict['classes']),\
-                    #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
-                    # final_outputs = tf_output_dict['classes']
-                    # epoch_outputs += final_outputs.tolist()
-
-                # return_outputs = epoch_outputs # holds the outputs of the latest epochs
-                print('Epoch completed. epoch_loss: ', epoch_loss)
-
-            # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
-            # the input data originally
-            feed_dict[x_batch] = x_val
-            feed_dict[y_batch] = y_val
-            tf_outputs = sess.run(
-                            fetches=fetch_nodes[:-2],
+                n_epochs = 1 # number of epochs to run for while training
+                batch_size = self.batch_size # size of the batch
+                return_outputs = []
+                for epoch in range(n_epochs):
+                    epoch_loss = 0 # holds cumulative loss over the epoch
+                    # will hold predictions for training data at this epoch
+                    epoch_outputs = []
+                    print("num examples", self._num_examples)
+                    for step in range(int(np.ceil(self._num_examples/batch_size))):
+                        X_train, y_train = self.next_batch(batch_size)
+                        # print("shapes:", X_train.shape, y_train.shape)
+                        feed_dict[x_batch] = X_train
+                        feed_dict[y_batch] = y_train
+                        tf_outputs = sess.run(
+                            fetches=fetch_nodes,
                             feed_dict=feed_dict)
-            tf_output_dict = tf_outputs[0]
 
-            return tf_output_dict["classes"]
+                        tf_output_dict = tf_outputs[0]
+                        step_loss = tf_output_dict['loss']
+                        #print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                            #    .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                        # print('step_loss: ', step_loss)
+                        epoch_loss += step_loss
+                        # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
+                            #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
+                        # print the class predictions for this run
+                        # print('predictions have type: {} shape: {} and are: {}'\
+                            #     .format(type(tf_output_dict['classes']),\
+                            #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
+                        # final_outputs = tf_output_dict['classes']
+                        # epoch_outputs += final_outputs.tolist()
+
+                    # return_outputs = epoch_outputs # holds the outputs of the latest epochs
+                    print('Epoch completed. epoch_loss: ', epoch_loss)
+
+                # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
+                # the input data originally
+                feed_dict[x_batch] = x_val
+                feed_dict[y_batch] = y_val
+                tf_outputs = sess.run(
+                    fetches=fetch_nodes[:-2],
+                    feed_dict=feed_dict)
+                tf_output_dict = tf_outputs[0]
+
+                return tf_output_dict["classes"]
+        except ValueError:
+            print ("Dense layer was followed by a pooling layer, which causes a Value Error. Such a combination is not valid, and thus the block is ignored.")
+            self.dead = True
+            return tf_output_dict["classes"] # not really sure how to return properly after setting to dead... but this runs...
 
     def tensorboard_show(self, wait_seconds=60):
         # only should work after tensorblock_evaluate() is run
