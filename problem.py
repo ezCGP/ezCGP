@@ -96,9 +96,13 @@ print('Test labels shape: ', y_test.shape)
 '''
 
 def scoreFunction(predict, actual):
-    acc_score = accuracy_score(actual, predict)
-    avg_f1_score = f1_score(actual, predict, average='macro')
-    return 1 - acc_score, 1 - avg_f1_score
+    try:
+        acc_score = accuracy_score(actual, predict)
+        avg_f1_score = f1_score(actual, predict, average='macro')
+        return 1 - acc_score, 1 - avg_f1_score
+    except ValueError:
+        print ("Dense layer was followed by a pooling layer, which causes a Value Error. Such a combination is not valid, and thus the block is ignored.")
+        return 1, 1 # 0 acc_score and avg f1_score b/c we want this indiv ignored
 
 # play with difference sizes, and different distribution
 
@@ -153,10 +157,10 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #operators.add_tensors: {'prob': 1},
         #operators.sub_tensors: {'prob': 1},
         #operators.mult_tensors: {'prob': 1},
-        #operators.dense_layer: {'prob': 1},
+        operators.dense_layer: {'prob': 1},
         #operators.conv_layer: {'prob': 1},
-        operators.max_pool_layer: {'prob': 1},
-        #operators.avg_pool_layer: {'prob': 1},
+        #operators.max_pool_layer: {'prob': 1},
+        operators.avg_pool_layer: {'prob': 1},
         # operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
         # operators.conv_block: {'prob': 1},
