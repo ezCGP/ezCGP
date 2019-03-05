@@ -193,8 +193,8 @@ class Block(Mate, Mutate):
 
                         tf_output_dict = tf_outputs[0]
                         step_loss = tf_output_dict['loss']
-                        #print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                            #    .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                        # print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                        #        .format(epoch, step, step * batch_size, self._num_examples, step_loss))
                         # print('step_loss: ', step_loss)
                         epoch_loss += step_loss
                         # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
@@ -220,7 +220,7 @@ class Block(Mate, Mutate):
 
                 return tf_output_dict["classes"]
         except ValueError:
-            print ("Dense layer was followed by a pooling layer, which causes a Value Error. Such a combination is not valid, and thus the block is ignored.")
+            print ("Mismatched shapes of tensors leading to error at evaluation time. ")
             self.dead = True
             return tf_output_dict["classes"] # not really sure how to return properly after setting to dead... but this runs...
 

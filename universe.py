@@ -114,7 +114,7 @@ def create_universe(input_data, labels, population_size=1, universe_seed=9, num_
         for individual in population:
             scores.append(individual.fitness.values[0])
             # print(individual.fitness.values)
-        print("generation")
+        print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
         print(generation, np.min(scores))
         # print(scores)
         if np.min(scores) < SCORE_MIN:
