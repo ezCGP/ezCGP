@@ -8,7 +8,7 @@ import problem
 # my scripts
 import universe
 num_universes = 1
-
+import time
 if __name__ == '__main__':
     # Read in Data
     train_data = problem.x_train
@@ -18,7 +18,8 @@ if __name__ == '__main__':
     final_populations = [] # one for each universe created
     for i in range(num_universes):
         print("start new run %i" % i)
+        start = time.time()
         converged_solution = universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i)
         final_populations.append(converged_solution)
-
+        print("time of generation", time.time() - start)
         # post processing step for that run

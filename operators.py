@@ -162,7 +162,7 @@ def conv_layer(input_tensor, filters=64, kernel_size=(3, 3)):
     # Computes 32 features using a 5x5 filter with ReLU activation.
     # Padding is added to preserve width and height.
     return tf.layers.conv2d(inputs=input_tensor, filters=filters, \
-        kernel_size=kernel_size, padding="same", activation=None)
+        kernel_size=kernel_size, padding="same", activation=None, data_format = "channels_last")
 
 
 def max_pool_layer(input_tensor):

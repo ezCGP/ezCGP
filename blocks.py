@@ -140,7 +140,14 @@ class Block(Mate, Mutate):
         self._epochs_completed = 0
         self._images = x_train
         self._labels = y_train
-
+    
+    def clear_batch_structure(self):
+        self.__index_in_epoch = 0
+        self._index_in_epoch = 0
+        self._num_examples = 0
+        self._epochs_completed = 0
+        self._images = []
+        self._labels = []        
     "https://github.com/tensorflow/tensorflow/blob/7c36309c37b04843030664cdc64aca2bb7d6ecaa/tensorflow/contrib/learn/python/learn/datasets/mnist.py#L160"
     """The method above shuffles. This one returns small batch sizes if index_in_epoch exceeds the num_example"""
     def next_batch(self, batch_size):
@@ -181,7 +188,7 @@ class Block(Mate, Mutate):
                     epoch_loss = 0 # holds cumulative loss over the epoch
                     # will hold predictions for training data at this epoch
                     epoch_outputs = []
-                    print("num examples", self._num_examples)
+                   # print("num examples", self._num_examples)
                     for step in range(int(np.ceil(self._num_examples/batch_size))):
                         X_train, y_train = self.next_batch(batch_size)
                         # print("shapes:", X_train.shape, y_train.shape)
@@ -211,14 +218,23 @@ class Block(Mate, Mutate):
 
                 # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                 # the input data originally
-                feed_dict[x_batch] = x_val
-                feed_dict[y_batch] = y_val
-                tf_outputs = sess.run(
-                    fetches=fetch_nodes[:-2],
-                    feed_dict=feed_dict)
-                tf_output_dict = tf_outputs[0]
+                
+                self.initialize_batch(x_val, y_val)
+                batch_size = 256
+                finalOut = []
+                for step in range(int(np.ceil(self._num_examples/batch_size))):   
+                    X_train, y_train = self.next_batch(batch_size)
+                    feed_dict[x_batch] = X_train
+                    feed_dict[y_batch] = y_train
 
-                return tf_output_dict["classes"]
+                    tf_outputs = sess.run(
+                        fetches=fetch_nodes[:-2],
+                        feed_dict=feed_dict)
+                    tf_output_dict = tf_outputs[0]
+                    outs = tf_output_dict["classes"].tolist()
+                    finalOut += outs
+                return np.array(finalOut)
+
         except ValueError:
             print ("Mismatched shapes of tensors leading to error at evaluation time. ")
             self.dead = True
@@ -236,8 +252,14 @@ class Block(Mate, Mutate):
 
 
     def evaluate(self, block_inputs, labels_all, validation_pair):
+
         self.resetEvalAttr()
         self.findActive()
+        #print("Active nodes", self.active_nodes)
+        for active_node in self.active_nodes:
+            fn = self[active_node]
+            print(fn)
+            print('function at: {} is: {}'.format(active_node, fn))
         if (self.learning_required) and (not self.has_learner):
             # didn't learn, zero fitness
             print("didn't learn, zero fitness")
@@ -248,7 +270,7 @@ class Block(Mate, Mutate):
             for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
                 if self.tensorblock_flag:
 #                    self.evaluated[-1*(i+1)] = input_
-                    print("self.evaluated: ", self.evaluated)
+                #    print("self.evaluated: ", self.evaluated)
 
                     # consider reading in the dataset with slices..."from_tensor_slices"
                     # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
@@ -311,11 +333,11 @@ class Block(Mate, Mutate):
                             # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             #                             logits,
                             #                             tf.cast(labels,dtype=tf.float32)))
-                            print("self[output_node]:", self[output_node])
-                            print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
+                        #    print("self[output_node]:", self[output_node])
+                        #    print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
                             # flatten input matrix to meet NN output size (numinstances, numclasses)
                             flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
-                            print(flattened)
+                        #    print(flattened)
                             labels = tf.placeholder(tf.int32, [None], name='y_batch')
                             logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
                             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
@@ -366,4 +388,6 @@ class Block(Mate, Mutate):
                 self.feed_dict = {}
                 self.fetch_nodes = []
                 self.evaluated = [None] * self.genome_count
+                self.clear_batch_structure()
+                tf.keras.backend.clear_session()
             gc.collect()

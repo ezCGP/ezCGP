@@ -113,7 +113,7 @@ x_train, x_test = x_train / 255.0, x_test / 255.0
 
 print(x_train.shape[0])
 # val_size = int(0.1 * x_train.shape[0]) # percentage of training data
-val_size = 5600 # exact value done so that x_train has a size multiple of batch_size
+val_size = 2000 # exact value done so that x_train has a size multiple of batch_size
 print(val_size)
 val_ind = np.random.choice(a=np.arange(x_train.shape[0]), size=val_size, \
     replace=False)
@@ -157,15 +157,15 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #operators.add_tensors: {'prob': 1},
         #operators.sub_tensors: {'prob': 1},
         #operators.mult_tensors: {'prob': 1},
-        operators.dense_layer: {'prob': 1},
-        # operators.conv_layer: {'prob': 1},
-        # operators.max_pool_layer: {'prob': 1},
-        # operators.avg_pool_layer: {'prob': 1},
+        #operators.dense_layer: {'prob': 1},
+        operators.conv_layer: {'prob': 1},
+        operators.max_pool_layer: {'prob': 1},
+        #operators.avg_pool_layer: {'prob': 1},
         # operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
         # operators.conv_block: {'prob': 1},
         # operators.res_block: {'prob': 1},
-        #operators.sqeeze_excitation_block: {'prob': 1},
+        # operators.sqeeze_excitation_block: {'prob': 1},
         # operators.identity_block: {'prob': 1},
     },
     'setup_dict_arg': {
