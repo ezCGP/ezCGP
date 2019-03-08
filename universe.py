@@ -14,6 +14,7 @@ from individual import Individual
 import problem
 import selections
 import gc
+import os
 
 
 def evaluator_queue():
@@ -87,7 +88,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     return population #, eval_queue
 
 
-def create_universe(input_data, labels, population_size=8, universe_seed=9, num_mutants=4, num_offpsring=2):
+def create_universe(input_data, labels, population_size=1, universe_seed=9, num_mutants=4, num_offpsring=2):
     np.random.seed(universe_seed)
 
     # initialize the population
@@ -111,6 +112,10 @@ def create_universe(input_data, labels, population_size=8, universe_seed=9, num_
     GENERATION_LIMIT = problem.generation_limit #199
     SCORE_MIN = problem.score_min #1e-1
     start_time = time.time()
+    newpath = r'outputs_mnist/'
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
+    file_generation = 'outputs_mnist/generation_number.npy'
     while (not converged) & (generation<=GENERATION_LIMIT):
         generation += 1
         population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
@@ -132,21 +137,10 @@ def create_universe(input_data, labels, population_size=8, universe_seed=9, num_
             sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
             try:
                 print(sample_best.genome_outputs[0])
-                #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
-                # print(problem.x_train)
-                # print(sample_best.genome_outputs)
-                # plt.figure()
-                # plt.plot(problem.x_train[1], problem.y_train, '.')
-                # #testY = solutions[run].testEvaluate()
-                # plt.plot(problem.x_train[1], sample_best.genome_outputs[0], '.')
-                # #plt.legend(['Weibull','Test Model Fit'])
-                # plt.legend(['log(x)','Test Model Fit'])
-                # #plt.show()
-                # Path('outputs').mkdir(parents=True, exist_ok=True) #should help work on all OS
-                # filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
-                # plt.savefig(filepath)
-                # plt.close()
             except:
                 import pdb
                 pdb.set_trace()
+        file_pop = 'outputs_mnist/gen%i_pop.npy' % (generation)
+        np.save(file_pop, population)
+        np.save(file_generation, generation)
     print("ending universe", time.time()-start_time)
