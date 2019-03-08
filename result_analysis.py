@@ -1,8 +1,6 @@
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
-
 
 def draw_analysis():
     file_generation = 'outputs_mnist/generation_number.npy'
