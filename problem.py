@@ -19,7 +19,7 @@ import mate_methods as mate
 generation_limit = 19
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
-'''
+
 # Helper to load in CIFAR-10
 def load_CIFAR_batch(filename):
     """ load single batch of cifar """
@@ -87,13 +87,18 @@ def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000):
 
 # Invoke the above function to get our data.
 x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
+# x_train = x_train.reshape(-1, 28, 28, 1)
+# x_test = x_test.reshape(-1, 28, 28, 1)
+x_train = np.array([x_train])
+x_test = np.array([x_test])
+
 print('Train data shape: ', x_train.shape)
 print('Train labels shape: ', y_train.shape)
 print('Validation data shape: ', x_val.shape)
 print('Validation labels shape: ', y_val.shape)
 print('Test data shape: ', x_test.shape)
 print('Test labels shape: ', y_test.shape)
-'''
+
 
 def scoreFunction(predict, actual):
     try:
@@ -106,31 +111,31 @@ def scoreFunction(predict, actual):
 
 # play with difference sizes, and different distribution
 
-mnist = tf.keras.datasets.mnist
-(x_train, y_train),(x_test, y_test) = mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
+# mnist = tf.keras.datasets.mnist
+# (x_train, y_train),(x_test, y_test) = mnist.load_data()
+# x_train, x_test = x_train / 255.0, x_test / 255.0
 
 
-print(x_train.shape[0])
-# val_size = int(0.1 * x_train.shape[0]) # percentage of training data
-val_size = 2000 # exact value done so that x_train has a size multiple of batch_size
-print(val_size)
-val_ind = np.random.choice(a=np.arange(x_train.shape[0]), size=val_size, \
-    replace=False)
-val_mask = np.zeros(x_train.shape[0], dtype=bool)
-val_mask[val_ind] = True
+# print(x_train.shape[0])
+# # val_size = int(0.1 * x_train.shape[0]) # percentage of training data
+# val_size = 2000 # exact value done so that x_train has a size multiple of batch_size
+# print(val_size)
+# val_ind = np.random.choice(a=np.arange(x_train.shape[0]), size=val_size, \
+#     replace=False)
+# val_mask = np.zeros(x_train.shape[0], dtype=bool)
+# val_mask[val_ind] = True
 
-x_train = x_train.reshape(-1, 28, 28, 1)
-x_test = x_test.reshape(-1, 28, 28, 1)
+# x_train = x_train.reshape(-1, 28, 28, 1)
+# x_test = x_test.reshape(-1, 28, 28, 1)
 
-x_val = x_train[val_mask]
-y_val = y_train[val_mask]
+# x_val = x_train[val_mask]
+# y_val = y_train[val_mask]
 
-x_train = x_train[~val_mask]
-y_train = y_train[~val_mask]
+# x_train = x_train[~val_mask]
+# y_train = y_train[~val_mask]
 
-x_train = [x_train]
-x_test = [x_test]
+# x_train = [x_train]
+# x_test = [x_test]
 
 
 
@@ -157,15 +162,15 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #operators.add_tensors: {'prob': 1},
         #operators.sub_tensors: {'prob': 1},
         #operators.mult_tensors: {'prob': 1},
-        #operators.dense_layer: {'prob': 1},
+        operators.dense_layer: {'prob': 1},
         operators.conv_layer: {'prob': 1},
         operators.max_pool_layer: {'prob': 1},
-        #operators.avg_pool_layer: {'prob': 1},
+        operators.avg_pool_layer: {'prob': 1},
         # operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
         # operators.conv_block: {'prob': 1},
         # operators.res_block: {'prob': 1},
-        # operators.sqeeze_excitation_block: {'prob': 1},
+        operators.sqeeze_excitation_block: {'prob': 1},
         # operators.identity_block: {'prob': 1},
     },
     'setup_dict_arg': {

@@ -88,7 +88,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     return population #, eval_queue
 
 
-def create_universe(input_data, labels, population_size=8, universe_seed=9, num_mutants=4, num_offpsring=2):
+def create_universe(input_data, labels, population_size=9, universe_seed=9, num_mutants=4, num_offpsring=2):
     np.random.seed(universe_seed)
 
     # initialize the population
@@ -112,10 +112,10 @@ def create_universe(input_data, labels, population_size=8, universe_seed=9, num_
     GENERATION_LIMIT = problem.generation_limit #199
     SCORE_MIN = problem.score_min #1e-1
     start_time = time.time()
-    newpath = r'outputs_mnist/'
+    newpath = r'outputs_cifar/'
     if not os.path.exists(newpath):
         os.makedirs(newpath)
-    file_generation = 'outputs_mnist/generation_number.npy'
+    file_generation = 'outputs_cifar/generation_number.npy'
     while (not converged) & (generation<=GENERATION_LIMIT):
         generation += 1
         population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
@@ -140,7 +140,7 @@ def create_universe(input_data, labels, population_size=8, universe_seed=9, num_
             except:
                 import pdb
                 pdb.set_trace()
-        file_pop = 'outputs_mnist/gen%i_pop.npy' % (generation)
+        file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
         np.save(file_pop, population)
         np.save(file_generation, generation)
     print("ending universe", time.time()-start_time)

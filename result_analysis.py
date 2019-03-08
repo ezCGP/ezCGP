@@ -3,12 +3,12 @@ import os
 import matplotlib.pyplot as plt
 
 def draw_analysis():
-    file_generation = 'outputs_mnist/generation_number.npy'
+    file_generation = 'outputs_cifar/generation_number.npy'
     generation = np.load(file_generation)
     fitness_score_list = []
     active_nodes_list = []
     for gen in range(0, generation+1):
-        file_pop = 'outputs_mnist/gen%i_pop.npy' % (gen)
+        file_pop = 'outputs_cifar/gen%i_pop.npy' % (gen)
         population = np.load(file_pop)
         scores = []
         for individual in population:
