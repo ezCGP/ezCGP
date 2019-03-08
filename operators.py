@@ -2,7 +2,7 @@
 
 import numpy as np
 import tensorflow as tf
-# # from tflearn.layers.conv import global_avg_pool
+# #from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
 operDict = {

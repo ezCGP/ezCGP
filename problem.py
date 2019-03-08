@@ -82,7 +82,7 @@ def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000):
     # X_val = X_val.reshape(num_validation, -1)
     # X_test = X_test.reshape(num_test, -1)
 
-    return X_train, y_train, X_val, y_val, X_test, y_test
+    return X_train/255.0, y_train, X_val/255.0, y_val, X_test/255.0, y_test
 
 
 # Invoke the above function to get our data.
@@ -166,12 +166,12 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         operators.conv_layer: {'prob': 1},
         operators.max_pool_layer: {'prob': 1},
         operators.avg_pool_layer: {'prob': 1},
-        # operators.concat_func: {'prob': 1},
+        operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
-        # operators.conv_block: {'prob': 1},
-        # operators.res_block: {'prob': 1},
-        operators.sqeeze_excitation_block: {'prob': 1},
-        # operators.identity_block: {'prob': 1},
+        operators.conv_block: {'prob': 1},
+        operators.res_block: {'prob': 1},
+        #operators.sqeeze_excitation_block: {'prob': 1},
+        #operators.identity_block: {'prob': 1},
     },
     'setup_dict_arg': {
         #if you have an 'arguments genome', declare which argument-datatypes should fill the argument genome
@@ -189,7 +189,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive
     'block_input_dtypes': [tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data
     'block_outputs_dtypes': [tf.Tensor],
-    'block_main_count': 15, #10 genes
+    'block_main_count': 23, #10 genes
     'block_arg_count': 2, #not used...no primitives require arguments
     'block_mut_prob': 1, #mutate genome with probability 1...always
     'block_mate_prob': 0 #mate with probability 0...never
