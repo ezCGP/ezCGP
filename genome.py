@@ -105,22 +105,30 @@ class Genome():
             exit()
 
 
-    def randomFtn(self, only_one=False, exclude=None):
+    def randomFtn(self, only_one=False, exclude=None, output_dtype=None):
         choices = self.ftn_methods
         weights = self.ftn_weights
         if exclude is not None:
+            delete = []
             for val in exclude:
                 # value == list doesn't work when the value is a function
-                delete = []
                 for c, choice in enumerate(choices):
                     if val==choice:
                         delete.append(c)
-                choices = np.delete(choices, delete)
-                weights = np.delete(weights, delete)
-            # normalize weights
-            weights /= weights.sum()
+            choices = np.delete(choices, delete)
+            weights = np.delete(weights, delete)
+            weights /= weights.sum() # normalize weights
         else:
             pass
+        if output_dtype is not None:
+            # force the selected function to have the output_dtype
+            delete = []
+            for c, choice in enumerate(choices):
+                if self.operator_dict[choice]["outputs"]!=output_dtype:
+                    delete.append(c)
+            choices = np.delete(choices, delete)
+            weights = np.delete(weights, delete)
+            weights /= weights.sum() # normalize weights
         if only_one:
             return np.random.choice(a=choices, size=1, p=weights)[0]
         else:
@@ -185,7 +193,7 @@ class Genome():
             pass
 
 
-    def fillGenome(self, operator_dict):
+    def fillGenome(self):
         # Genome - Main Nodes
         for node_index in range(self.genome_main_count):
             # randomly select all function, find a previous node with matching output_dtype matching our function input_dtype
@@ -193,7 +201,7 @@ class Genome():
             ftns = self.randomFtn()
             for ftn in ftns:
                 # connect to a previous node
-                input_dtypes = operator_dict[ftn]["inputs"]
+                input_dtypes = self.operator_dict[ftn]["inputs"]
                 input_nodes = [] # [None]*len(input_dtypes)
                 for input_dtype in input_dtypes:
                     input_nodes.append(self.randomInput(max_=node_index, dtype=input_dtype))
@@ -204,7 +212,7 @@ class Genome():
                     # go on to find args
                     pass
                 # connect to any required arguments
-                arg_dtypes = operator_dict[ftn]["args"]
+                arg_dtypes = self.operator_dict[ftn]["args"]
                 arg_nodes = []
                 for arg_dtype in arg_dtypes:
                     arg_nodes.append(self.randomArg(dtype=arg_dtype))

@@ -44,7 +44,7 @@ class Mutate(Genome):
                     if current_pointer == mutate_pointer:
                         # mutate this function
                         current_ftn = self[node_index]["ftn"]
-                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn])
+                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], output_dtype=self.operator_dict[current_ftn]['outputs'])
                         # see if we changed an active node
                         if node_index in self.active_nodes:
                             self.active_node_unchanged = False
@@ -162,7 +162,8 @@ class Mutate(Genome):
         self.active_node_unchanged = True
         while self.active_node_unchanged:
             node_index = np.random.choice(a=choices)
-            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[self[node_index]["ftn"]])
+            current_ftn = self[node_index]["ftn"]
+            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], output_dtype=self.operator_dict[current_ftn]['outputs'])
             # get all inputs to match new required datatype
             for input_index, input_node in enumerate(self[node_index]["inputs"]):
                 existing_dtype = self.getNodeType(input_node, output_dtype=True)
