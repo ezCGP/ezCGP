@@ -181,7 +181,7 @@ class Block(Mate, Mutate):
                 x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
                 y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
 
-                n_epochs = 1 # number of epochs to run for while training
+                n_epochs = 3 # number of epochs to run for while training
                 batch_size = self.batch_size # size of the batch
                 return_outputs = []
                 for epoch in range(n_epochs):
