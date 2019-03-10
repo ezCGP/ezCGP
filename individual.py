@@ -66,6 +66,14 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                                 block_arg_count=num_args)
         """
 
+
+    def __getitem__(self, block_index):
+        if (block_index=="input") or (block_index=="output"):
+            return self.skeleton[block_index]
+        else:
+            return self.skeleton[block_index]["block_object"]
+
+
     def need_evaluate(self):
         for i in range(1,self.num_blocks+1):
             if self.skeleton[i]["block_object"].need_evaluate:
@@ -73,7 +81,6 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             else:
                 pass
         return False
-
 
 
     def evaluate(self, data):
