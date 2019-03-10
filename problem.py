@@ -62,7 +62,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         mate.Mate.dont_mate: {'prob': 1, 'args': []}},
     'setup_dict_mut': {
         #declare which mutation methods are available to the genomes
-        mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},
+        #mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},
         #mut.Mutate.mutate_singleArg: {'prob': 1, 'args': []},
         mut.Mutate.mutate_singleFtn: {'prob': 1, 'args': []},},
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive

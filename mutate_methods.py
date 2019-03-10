@@ -385,7 +385,6 @@ class Mutate(Genome):
 
                     # check the function first
                     current_pointer += 1
-                    
                     if current_pointer == mutate_pointer:
                         # mutate this function
                         current_ftn = self.genome[node_index]["ftn"]
@@ -402,8 +401,8 @@ class Mutate(Genome):
                     else:
                         pass
 
+                    # check the inputs
                     current_pointer += len(self.genome[node_index]["inputs"])
-
                     if mutate_pointer <= current_pointer:
                         input_index = (len(self.genome[node_index]["inputs"]) - 1) - (current_pointer - mutate_pointer)
                         current_input = self.genome[node_index]["inputs"][input_index]
@@ -427,9 +426,8 @@ class Mutate(Genome):
                     else:
                         pass
                     
-
+                    # check the argument connections
                     current_pointer += len(self.genome[node_index]["args"])
-                    
                     if mutate_pointer <= current_pointer: # mutate the arg INDEX
                         arg_index = (len(self.genome[node_index]["args"]) - 1) - (current_pointer - mutate_pointer)
                         current_arg = self.genome[node_index]["args"][arg_index]
@@ -446,9 +444,8 @@ class Mutate(Genome):
                         pass
                         #haven't found, go to next node
 
-
+                    # check the argument values
                     current_pointer += len(self.genome[node_index]["args"])
-                    
                     if mutate_pointer <= current_pointer: # mutate the arg VALUE
                         arg_index = (len(self.genome[node_index]["args"]) - 1) - (current_pointer - mutate_pointer)
                         arg = self.genome[node_index]["args"][arg_index]

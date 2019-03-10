@@ -7,7 +7,7 @@ import numpy as np
 
 if __name__ == '__main__':
     # set the seed and import scripts
-    seed = 4
+    seed = 5
     np.random.seed(seed)
     import problem
     import universe

@@ -36,7 +36,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
             pass
     '''
     # mutate through the population
-    #print("    MUTATING")
+    print("    MUTATING")
     for i in range(len(population)): # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
@@ -50,7 +50,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
                 pass
 
     # evaluate the population
-    #print("    EVALUATING")
+    print("    EVALUATING")
     for individual in population:
         if individual.need_evaluate():
             # look up concurrent.futures and queue...
@@ -110,8 +110,8 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
             #import pdb; pdb.set_trace()
             sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
             #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
-            print(problem.x_train)
-            print(sample_best.genome_outputs)
+            #print(problem.x_train)
+            #print(sample_best.genome_outputs)
             plt.figure()
             plt.plot(problem.x_train[1], problem.y_train, '.')
             #testY = solutions[run].testEvaluate()
