@@ -20,9 +20,9 @@ operDict[add_ff2f] = {"inputs": [np.float64, np.float64],
 def add_fa2a(a,b):
     return np.add(a,b)
 #operDict[add_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-operDict[add_fa2a] = {"inputs": [np.ndarray, np.float64],
+operDict[add_fa2a] = {"inputs": [np.ndarray],
 						"outputs": np.ndarray,
-						"args": []
+						"args": ["argFloat"]
 						}
 """
 operDict[add_fa2a] = {"inputs": [np.ndarray],
@@ -54,9 +54,9 @@ operDict[sub_ff2f] = {"inputs": [np.float64, np.float64],
 def sub_fa2a(a,b):
     return np.subtract(a,b)
 #operDict[sub_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-operDict[sub_fa2a] = {"inputs": [np.float64, np.ndarray],
+operDict[sub_fa2a] = {"inputs": [np.ndarray],
 						"outputs": np.ndarray,
-						"args": []
+						"args": ["argFloat"]
 						}
 #operDict[sub_fa2a] = {"inputs": [np.ndarray],
 #						"outputs": np.ndarray,
@@ -86,9 +86,9 @@ operDict[mul_ff2f] = {"inputs": [np.float64, np.float64],
 def mul_fa2a(a,b):
     return np.multiply(a,b)
 #operDict[mul_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-operDict[mul_fa2a] = {"inputs": [np.float64, np.ndarray],
+operDict[mul_fa2a] = {"inputs": [np.ndarray],
 						"outputs": np.ndarray,
-						"args": []
+						"args": ["argFloat"]
 						}
 #operDict[mul_fa2a] = {"inputs": [np.ndarray],
 #						"outputs": np.ndarray,

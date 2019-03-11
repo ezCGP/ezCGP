@@ -112,17 +112,47 @@ class Mutate(Genome):
                     break
 
 
-    def mutate_singleArg(self):
-        choices = np.arange(self.genome_arg_count)
-        self.active_node_unchanged = True
-        while active_node_unchanged:
-            arg_index = np.random.choice(a=choices)
-            #self.mutate_argType(arg_index)
-            self.args[arg_index].mutate()
-            if arg_index in self.active_args:
-                self.active_node_unchanged = False
-            else:
+    def mutate_singleArgIndex(self):
+        if len(self.active_args) == 0:
+            pass
+        else:
+            # pick a different arg index value
+            choices = []
+            for node_index in range(self.genome_main_count):
+                if len(self[node_index]["args"]) > 0:
+                    choices.append(node_index)
+            if len(choices) == 0:
                 pass
+            else:
+                self.active_node_unchanged = True
+                while self.active_node_unchanged:
+                    node_index = np.random.choice(a=choices)
+                    arg_index = np.random.choice(a=np.arange(len(self[node_index]["args"])))
+                    current_arg = self[node_index]["args"][arg_index]
+                    arg_dtypes = self.getNodeType(node_index, arg_dtype=True)
+                    new_arg = self.randomArg(dtype=arg_dtypes[arg_index], exclude=[current_arg])
+                    self[node_index]["args"][arg_index] = new_arg
+                    if node_index in self.active_nodes:
+                        self.active_node_unchanged = False
+                    else:
+                        pass
+
+
+
+    def mutate_singleArgValue(self):
+        # make sure that there are active_args
+        if len(self.active_args) == 0:
+            pass
+        else:
+            choices = np.arange(self.args_count)
+            self.active_node_unchanged = True
+            while self.active_node_unchanged:
+                arg_index = np.random.choice(a=choices)
+                self.args[arg_index].mutate()
+                if arg_index in self.active_args:
+                    self.active_node_unchanged = False
+                else:
+                    pass
 
 
     def mutate_singleInput(self):
@@ -165,32 +195,40 @@ class Mutate(Genome):
             current_ftn = self[node_index]["ftn"]
             self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], output_dtype=self.operator_dict[current_ftn]['outputs'])
             # get all inputs to match new required datatype
+            # find which already connected inputs match with the required datatypes
+            required_dtypes = self.getNodeType(node_index, input_dtype=True)
+            new_inputs = [None]*len(required_dtypes)
             for input_index, input_node in enumerate(self[node_index]["inputs"]):
-                existing_dtype = self.getNodeType(input_node, output_dtype=True)
-                required_dtypes = self.getNodeType(node_index, input_dtype=True)
-                if existing_dtype!=required_dtypes[input_index]:
-                    self[node_index]["inputs"][input_index] = self.randomInput(dtype=required_dtypes[input_index], max_=node_index, exclude=None)
-                else:
-                    pass
+                current_dtype = self.getNodeType(input_node, output_dtype=True)
+                for i, dtype in enumerate(required_dtypes):
+                    if (current_dtype==dtype) and (new_inputs[i] is None):
+                        new_inputs[i] = input_node
+            # now see which input node was not filled in
+            for i, dtype in enumerate(required_dtypes):
+                if new_inputs[i] is None:
+                    new_inputs[i] = self.randomInput(dtype=dtype, max_=node_index, exclude=None)
+            self[node_index]["inputs"] = new_inputs
             # same for the args
+            required_dtypes = self.getNodeType(node_index, arg_dtype=True)
+            new_args = [None]*len(required_dtypes)
             for arg_index, arg_node in enumerate(self[node_index]["args"]):
-                existing_dtype = type(self.args[arg_node]).__name__ #I think this will work... TODO, verify that it works
-                required_dtypes = self.getNodeType(node_index, arg_dtype=True)
-                if existing_dtype!=required_dtypes[arg_index]:
-                    self[node_index]["args"][arg_index] = self.randomArg(dtype=required_dtypes[arg_index], exclude=None)
-                else:
-                    pass
+                current_dtype = type(self.args[arg_node]).__name__
+                for i, dtype in enumerate(required_dtypes):
+                    if (current_dtype==dtype) and (new_args[i] is None):
+                        new_args[i] = arg_node
+            # which has not been filled
+            for i, dtype in enumerate(required_dtypes):
+                if new_args[i] is None:
+                    new_args[i] = self.randomArg(dtype=dtype, exclude=None)
+            self[node_index]["args"] = new_args
+            # check if it's active
             if node_index in self.active_nodes:
                 self.active_node_unchanged = False
             else:
                 pass
 
 
-    def mutate_argType(self, arg_index):
-        """
-        each arg_dtype has it's own mutate method...call that here
-        """
-        pass
+
 
 
 

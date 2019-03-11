@@ -148,6 +148,9 @@ class Genome():
                 choices = np.delete(choices, np.where(choices==val))
         else:
             pass
+        if len(choices) == 0:
+            #nothing to choices from...very rare but very possible
+            return None
         possible_nodes = np.random.choice(a=choices, size=len(choices), replace=False)
         # iterate through each input until we find a datatype that matches dtype
         for poss_node in possible_nodes:
@@ -162,33 +165,35 @@ class Genome():
 
 
     def randomArg(self, dtype, exclude=None):
+        # have to assume here that each arg_dtype will have at least two in each self.args...or else when we mutate() we would get same arg
         choices = []
         for arg_index in range(self.args_count):
-            if arg_index in exclude:
-                continue
-            else:
-                pass
             arg_dtype = type(self.args[arg_index]).__name__
-            if dtpye == arg_dtype:
+            if arg_dtype == dtype:
+                if (exclude is not None) and (arg_index in exclude):
+                    continue
                 choices.append(arg_index)
         if len(choices) == 0:
-            print("UserInputError: A ftn was provided without having its required data type in the arguments")
+            print("UserInputError: A ftn was provided without having its required (or invalid) data type in the arguments")
             exit()
         else:
-            return np.random.choice(a=choices, size=1)
+            return np.random.choice(a=choices, size=1)[0]
 
 
     def fillArgs(self):
         start_point = 0
         end_point = 0
         for arg_index, arg_class in enumerate(self.arg_methods):
-            end_point += round(self.arg_weights[arg_index]*self.args_count)
+            end_point += int(self.arg_weights[arg_index]*self.args_count)
             for p in range(start_point,end_point):
                 self.args[p] = arg_class() # need some way to initialize the args here...call mutate?
             start_point = end_point
         if end_point != self.args_count:
-            # some wierd rounding error then...just go ahead and asign the last few with the previous batch
-            self.args[end_point:self.args_count] = arg_class() # ...use method from above
+            # some rounding-down remainders...fill these by sorting weights max->min
+            sorted_byweight = np.argsort(self.arg_weights)[::-1] #sorted then reversed
+            for i, idx in enumerate(range(end_point,self.args_count)):
+                arg_class = self.arg_methods[sorted_byweight[i]]
+                self.args[idx] = arg_class()
         else:
             pass
 

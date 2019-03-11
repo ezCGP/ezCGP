@@ -75,13 +75,19 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
 def create_universe(input_data, labels, population_size=100, universe_seed=9, num_mutants=4, num_offpsring=2):
     np.random.seed(universe_seed)
 
+    #ind1=Individual(skeleton=problem.skeleton_genome);ind2=Individual(skeleton=problem.skeleton_genome);import pdb;pdb.set_trace() # DEBUG
+
     # initialize the population
     population = []
     for i in range(population_size):
         individual = Individual(skeleton=problem.skeleton_genome)
         individual.evaluate(data=input_data)
         #individual.score_fitness(labels=labels)
-        individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
+        try:
+            individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
+        except:
+            import pdb;pdb.set_trace()
+
         population.append(individual)
         del individual
 
@@ -113,9 +119,9 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
             #print(problem.x_train)
             #print(sample_best.genome_outputs)
             plt.figure()
-            plt.plot(problem.x_train[1], problem.y_train, '.')
+            plt.plot(problem.x_train[0], problem.y_train, '.')
             #testY = solutions[run].testEvaluate()
-            plt.plot(problem.x_train[1], sample_best.genome_outputs[0], '.')
+            plt.plot(problem.x_train[0], sample_best.genome_outputs[0], '.')
             #plt.legend(['Weibull','Test Model Fit'])
             plt.legend(['log(x)','Test Model Fit'])
             #plt.show()
