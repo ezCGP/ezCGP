@@ -1,0 +1,3 @@
+create_universe(input_data, labels, population_size=9, universe_seed=9, num_mutants=4, num_offpsring=2) was used
+epochs was set to 3. 
+
