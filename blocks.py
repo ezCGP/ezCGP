@@ -255,7 +255,7 @@ class Block(Mate, Mutate):
 
         self.resetEvalAttr()
         self.findActive()
-        #print("Active nodes", self.active_nodes)
+        print("Active nodes", self.active_nodes)
         for active_node in self.active_nodes:
             fn = self[active_node]
             print(fn)
@@ -314,14 +314,21 @@ class Block(Mate, Mutate):
                     args.append(self.args[node_arg_index])
                 # and evaluate
                 try:
+                    # print(function)
+                    # print(args)
                     if self.tensorblock_flag:
+                        # added because the objects themselves were being sent in
+                        argnums = [arg.value if type(arg) is not int \
+                                else arg for arg in args]
                         with self.graph.as_default():
                             # really we are building the graph here; we need to evaluate after it is fully built
-                            self.evaluated[node_index] = function(*inputs, *args)
+                            self.evaluated[node_index] = function(*inputs, *argnums)
                     else:
                         self.evaluated[node_index] = function(*inputs, *args)
                 except Exception as e:
-                    #raise(e)
+                    # raise(e)
+                    # print('e1')
+                    print(e)
                     self.dead = True
                     break
             if not self.dead:
@@ -368,8 +375,9 @@ class Block(Mate, Mutate):
                         # now that the graph is built, we evaluate here
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
                     except Exception as e:
-                        raise(e)
-                        #print(e)
+                        # raise(e)
+                        # print('e2')
+                        print(e)
                         self.dead = True
                 else:
                     # if it's not tensorflow

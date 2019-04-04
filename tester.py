@@ -24,6 +24,7 @@ for i in range(1,individual.num_blocks+1):
         # print('Args are: ')
 
 individual.mutate()
+print('\n\nPOST MUTATE')
 for i in range(1,individual.num_blocks+1):
     curr_block = individual.skeleton[i]["block_object"]
     print('curr_block isDead = ', curr_block.dead)

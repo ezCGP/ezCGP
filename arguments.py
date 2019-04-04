@@ -155,8 +155,10 @@ class argPow2(object):
     def mutate(self):
         roll = r.random_integers(1, 9)
         self.value = int(2 ** roll)
+
     def __str__(self):
         return "{}".format(self.value)
+
     def __repr__(self):
         return str(self)
 arguments.append(argPow2)
@@ -174,8 +176,10 @@ class argFilterSize(object):
         sizes = [1, 3, 5, 7]
         size = r.random_integers(0, 3)
         self.value = int(sizes[size])
+
     def __str__(self):
         return "{}".format(self.value)
+
     def __repr__(self):
         return str(self)
 arguments.append(argFilterSize)
