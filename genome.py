@@ -105,22 +105,30 @@ class Genome():
             exit()
 
 
-    def randomFtn(self, only_one=False, exclude=None):
+    def randomFtn(self, only_one=False, exclude=None, output_dtype=None):
         choices = self.ftn_methods
         weights = self.ftn_weights
         if exclude is not None:
+            delete = []
             for val in exclude:
                 # value == list doesn't work when the value is a function
-                delete = []
                 for c, choice in enumerate(choices):
                     if val==choice:
                         delete.append(c)
-                choices = np.delete(choices, delete)
-                weights = np.delete(weights, delete)
-            # normalize weights
-            weights /= weights.sum()
+            choices = np.delete(choices, delete)
+            weights = np.delete(weights, delete)
+            weights /= weights.sum() # normalize weights
         else:
             pass
+        if output_dtype is not None:
+            # force the selected function to have the output_dtype
+            delete = []
+            for c, choice in enumerate(choices):
+                if self.operator_dict[choice]["outputs"]!=output_dtype:
+                    delete.append(c)
+            choices = np.delete(choices, delete)
+            weights = np.delete(weights, delete)
+            weights /= weights.sum() # normalize weights
         if only_one:
             return np.random.choice(a=choices, size=1, p=weights)[0]
         else:
@@ -140,8 +148,8 @@ class Genome():
                 choices = np.delete(choices, np.where(choices==val))
         else:
             pass
-        # fixes random choice empty list bug (main cannot evaluate empty list)
         if len(choices) == 0:
+            #nothing to choices from...very rare but very possible
             return None
         possible_nodes = np.random.choice(a=choices, size=len(choices), replace=False)
         # iterate through each input until we find a datatype that matches dtype
@@ -157,38 +165,40 @@ class Genome():
 
 
     def randomArg(self, dtype, exclude=None):
+        # have to assume here that each arg_dtype will have at least two in each self.args...or else when we mutate() we would get same arg
         choices = []
         for arg_index in range(self.args_count):
-            if arg_index in exclude:
-                continue
-            else:
-                pass
             arg_dtype = type(self.args[arg_index]).__name__
-            if dtpye == arg_dtype:
+            if arg_dtype == dtype:
+                if (exclude is not None) and (arg_index in exclude):
+                    continue
                 choices.append(arg_index)
         if len(choices) == 0:
-            print("UserInputError: A ftn was provided without having its required data type in the arguments")
+            print("UserInputError: A ftn was provided without having its required (or invalid) data type in the arguments")
             exit()
         else:
-            return np.random.choice(a=choices, size=1)
+            return np.random.choice(a=choices, size=1)[0]
 
 
     def fillArgs(self):
         start_point = 0
         end_point = 0
         for arg_index, arg_class in enumerate(self.arg_methods):
-            end_point += round(self.arg_weights[arg_index]*self.args_count)
+            end_point += int(self.arg_weights[arg_index]*self.args_count)
             for p in range(start_point,end_point):
                 self.args[p] = arg_class() # need some way to initialize the args here...call mutate?
             start_point = end_point
         if end_point != self.args_count:
-            # some wierd rounding error then...just go ahead and asign the last few with the previous batch
-            self.args[end_point:self.args_count] = arg_class() # ...use method from above
+            # some rounding-down remainders...fill these by sorting weights max->min
+            sorted_byweight = np.argsort(self.arg_weights)[::-1] #sorted then reversed
+            for i, idx in enumerate(range(end_point,self.args_count)):
+                arg_class = self.arg_methods[sorted_byweight[i]]
+                self.args[idx] = arg_class()
         else:
             pass
 
 
-    def fillGenome(self, operator_dict):
+    def fillGenome(self):
         # Genome - Main Nodes
         for node_index in range(self.genome_main_count):
             # randomly select all function, find a previous node with matching output_dtype matching our function input_dtype
@@ -196,7 +206,7 @@ class Genome():
             ftns = self.randomFtn()
             for ftn in ftns:
                 # connect to a previous node
-                input_dtypes = operator_dict[ftn]["inputs"]
+                input_dtypes = self.operator_dict[ftn]["inputs"]
                 input_nodes = [] # [None]*len(input_dtypes)
                 for input_dtype in input_dtypes:
                     input_nodes.append(self.randomInput(max_=node_index, dtype=input_dtype))
@@ -207,7 +217,7 @@ class Genome():
                     # go on to find args
                     pass
                 # connect to any required arguments
-                arg_dtypes = operator_dict[ftn]["args"]
+                arg_dtypes = self.operator_dict[ftn]["args"]
                 arg_nodes = []
                 for arg_dtype in arg_dtypes:
                     arg_nodes.append(self.randomArg(dtype=arg_dtype))

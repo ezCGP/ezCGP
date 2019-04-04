@@ -163,34 +163,37 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #operators.sub_tensors: {'prob': 1},
         #operators.mult_tensors: {'prob': 1},
         operators.dense_layer: {'prob': 1},
-        operators.conv_layer: {'prob': 1},
-        operators.max_pool_layer: {'prob': 1},
-        operators.avg_pool_layer: {'prob': 1},
-        operators.concat_func: {'prob': 1},
+        # operators.conv_layer: {'prob': 1},
+        # operators.max_pool_layer: {'prob': 1},
+        # operators.avg_pool_layer: {'prob': 1},
+        # operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
-        operators.conv_block: {'prob': 1},
-        operators.res_block: {'prob': 1},
+        # operators.conv_block: {'prob': 1},
+        # operators.res_block: {'prob': 1},
         #operators.sqeeze_excitation_block: {'prob': 1},
         #operators.identity_block: {'prob': 1},
     },
     'setup_dict_arg': {
         #if you have an 'arguments genome', declare which argument-datatypes should fill the argument genome
         #not used for now...arguments genome still needs to be tested
-        arguments.argInt: {'prob': 1}}, #arg count set to 0 though
+        # arguments.argInt: {'prob': 1}}, #arg count set to 0 though
+        arguments.argPow2: {'prob': 1},
+        arguments.argFilterSize: {'prob': 1}},
     'setup_dict_mate': {
         #declare which mating methods are available to genomes
         mate.Mate.dont_mate: {'prob': 1, 'args': []}},
     'setup_dict_mut': {
         #declare which mutation methods are available to the genomes
-        mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},
-        #mut.Mutate.mutate_singleArg: {'prob': 1, 'args': []},
+        # mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},
+        # mut.Mutate.mutate_singleArgValue: {'prob': 1, 'args': []},
+        mut.Mutate.mutate_singleArgIndex: {'prob': 1, 'args': []},
         # mut.Mutate.mutate_singleFtn: {'prob': 1, 'args': []},
     },
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive
     'block_input_dtypes': [tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data
     'block_outputs_dtypes': [tf.Tensor],
     'block_main_count': 23, #10 genes
-    'block_arg_count': 2, #not used...no primitives require arguments
+    'block_arg_count': 20, #not used...no primitives require arguments
     'block_mut_prob': 1, #mutate genome with probability 1...always
     'block_mate_prob': 0 #mate with probability 0...never
 }

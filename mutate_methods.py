@@ -29,7 +29,7 @@ class Mutate(Genome):
             gene_count += 1 #one function
             gene_count += len(self[node_index]["inputs"]) # number of inputs
             gene_count += len(self[node_index]["args"]) # number of arguments to mutate index
-            gene_count += len(self[node_index]["args"]) # and again for mutating values 
+            gene_count += len(self[node_index]["args"]) # and again for mutating values
         gene_count += numOutputs #number of outputs
         self.active_node_unchanged = True
         while self.active_node_unchanged:
@@ -44,7 +44,7 @@ class Mutate(Genome):
                     if current_pointer == mutate_pointer:
                         # mutate this function
                         current_ftn = self[node_index]["ftn"]
-                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn])
+                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], output_dtype=self.operator_dict[current_ftn]['outputs'])
                         # see if we changed an active node
                         if node_index in self.active_nodes:
                             self.active_node_unchanged = False
@@ -71,7 +71,7 @@ class Mutate(Genome):
                         break
                     else:
                         pass
-                    
+
                     current_pointer += len(self[node_index]["args"])
                     if mutate_pointer <= current_pointer: # mutate the arg INDEX
                         arg_index = (len(self[node_index]["args"]) - 1) - (current_pointer - mutate_pointer)
@@ -112,17 +112,47 @@ class Mutate(Genome):
                     break
 
 
-    def mutate_singleArg(self):
-        choices = np.arange(self.genome_arg_count)
-        self.active_node_unchanged = True
-        while active_node_unchanged:
-            arg_index = np.random.choice(a=choices)
-            #self.mutate_argType(arg_index)
-            self.args[arg_index].mutate()
-            if arg_index in self.active_args:
-                self.active_node_unchanged = False
-            else:
+    def mutate_singleArgIndex(self):
+        if len(self.active_args) == 0:
+            pass
+        else:
+            # pick a different arg index value
+            choices = []
+            for node_index in range(self.genome_main_count):
+                if len(self[node_index]["args"]) > 0:
+                    choices.append(node_index)
+            if len(choices) == 0:
                 pass
+            else:
+                self.active_node_unchanged = True
+                while self.active_node_unchanged:
+                    node_index = np.random.choice(a=choices)
+                    arg_index = np.random.choice(a=np.arange(len(self[node_index]["args"])))
+                    current_arg = self[node_index]["args"][arg_index]
+                    arg_dtypes = self.getNodeType(node_index, arg_dtype=True)
+                    new_arg = self.randomArg(dtype=arg_dtypes[arg_index], exclude=[current_arg])
+                    self[node_index]["args"][arg_index] = new_arg
+                    if node_index in self.active_nodes:
+                        self.active_node_unchanged = False
+                    else:
+                        pass
+
+
+
+    def mutate_singleArgValue(self):
+        # make sure that there are active_args
+        if len(self.active_args) == 0:
+            pass
+        else:
+            choices = np.arange(self.args_count)
+            self.active_node_unchanged = True
+            while self.active_node_unchanged:
+                arg_index = np.random.choice(a=choices)
+                self.args[arg_index].mutate()
+                if arg_index in self.active_args:
+                    self.active_node_unchanged = False
+                else:
+                    pass
 
 
     def mutate_singleInput(self):
@@ -162,34 +192,43 @@ class Mutate(Genome):
         self.active_node_unchanged = True
         while self.active_node_unchanged:
             node_index = np.random.choice(a=choices)
-            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[self[node_index]["ftn"]])
+            current_ftn = self[node_index]["ftn"]
+            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], output_dtype=self.operator_dict[current_ftn]['outputs'])
             # get all inputs to match new required datatype
+            # find which already connected inputs match with the required datatypes
+            required_dtypes = self.getNodeType(node_index, input_dtype=True)
+            new_inputs = [None]*len(required_dtypes)
             for input_index, input_node in enumerate(self[node_index]["inputs"]):
-                existing_dtype = self.getNodeType(input_node, output_dtype=True)
-                required_dtypes = self.getNodeType(node_index, input_dtype=True)
-                if existing_dtype!=required_dtypes[input_index]:
-                    self[node_index]["inputs"][input_index] = self.randomInput(dtype=required_dtypes[input_index], max_=node_index, exclude=None)
-                else:
-                    pass
+                current_dtype = self.getNodeType(input_node, output_dtype=True)
+                for i, dtype in enumerate(required_dtypes):
+                    if (current_dtype==dtype) and (new_inputs[i] is None):
+                        new_inputs[i] = input_node
+            # now see which input node was not filled in
+            for i, dtype in enumerate(required_dtypes):
+                if new_inputs[i] is None:
+                    new_inputs[i] = self.randomInput(dtype=dtype, max_=node_index, exclude=None)
+            self[node_index]["inputs"] = new_inputs
             # same for the args
+            required_dtypes = self.getNodeType(node_index, arg_dtype=True)
+            new_args = [None]*len(required_dtypes)
             for arg_index, arg_node in enumerate(self[node_index]["args"]):
-                existing_dtype = type(self.args[arg_node]).__name__ #I think this will work... TODO, verify that it works
-                required_dtypes = self.getNodeType(node_index, arg_dtype=True)
-                if existing_dtype!=required_dtypes[arg_index]:
-                    self[node_index]["args"][arg_index] = self.randomArg(dtype=required_dtypes[arg_index], exclude=None)
-                else:
-                    pass
+                current_dtype = type(self.args[arg_node]).__name__
+                for i, dtype in enumerate(required_dtypes):
+                    if (current_dtype==dtype) and (new_args[i] is None):
+                        new_args[i] = arg_node
+            # which has not been filled
+            for i, dtype in enumerate(required_dtypes):
+                if new_args[i] is None:
+                    new_args[i] = self.randomArg(dtype=dtype, exclude=None)
+            self[node_index]["args"] = new_args
+            # check if it's active
             if node_index in self.active_nodes:
                 self.active_node_unchanged = False
             else:
                 pass
 
 
-    def mutate_argType(self, arg_index):
-        """
-        each arg_dtype has it's own mutate method...call that here
-        """
-        pass
+
 
 
 
@@ -210,20 +249,20 @@ class Mutate(Genome):
         '''
         Now that we have the functions to mutate operator genes and input genes,
         we can define the larger mutation process below.
-        
+
         After a deep copy is created off a 'parent', we can mutate that copy and
         call it an offspring.
-        
+
         NOTE the different mutation processes.
-        
+
         SINGLE: doesn't mutate each gene with a fixed probability 'mut_rate',
         rather it picks a single gene at random. NOTE since our genes are tucked
         into lists within nodes that are in a list within genome, we have to get
         a count for total number of genes used in the Main Nodes and Output Nodes,
         to properly pick a gene at random. The process is not too clean imo but works.
-        
+
         SKIP + ACCUMULATE: mutate each gene with probability 'mut_rate'
-        
+
         NOTE that Main Nodes and Output Nodes are mutated seperately because
         their nodes are populated in different ways.
         After the genome is mutated, go to mutate the argument values
@@ -320,7 +359,7 @@ class Mutate(Genome):
                     pass
 
 
-                        
+
 
         # finish with the Output Nodes
         for node_index in range(numMain, numMain+numOutputs):
@@ -368,7 +407,7 @@ class Mutate(Genome):
             gene_count += 1 #one function
             gene_count += len(self.genome[node_index]["inputs"]) # number of inputs
             gene_count += len(self.genome[node_index]["args"]) # number of arguments to mutate index
-            gene_count += len(self.genome[node_index]["args"]) # and again for mutating values 
+            gene_count += len(self.genome[node_index]["args"]) # and again for mutating values
         gene_count += numOutputs #number of outputs
 
         while self.active_node_changed==False:
@@ -384,7 +423,6 @@ class Mutate(Genome):
 
                     # check the function first
                     current_pointer += 1
-                    
                     if current_pointer == mutate_pointer:
                         # mutate this function
                         current_ftn = self.genome[node_index]["ftn"]
@@ -401,8 +439,8 @@ class Mutate(Genome):
                     else:
                         pass
 
+                    # check the inputs
                     current_pointer += len(self.genome[node_index]["inputs"])
-
                     if mutate_pointer <= current_pointer:
                         input_index = (len(self.genome[node_index]["inputs"]) - 1) - (current_pointer - mutate_pointer)
                         current_input = self.genome[node_index]["inputs"][input_index]
@@ -425,10 +463,9 @@ class Mutate(Genome):
                         break
                     else:
                         pass
-                    
 
+                    # check the argument connections
                     current_pointer += len(self.genome[node_index]["args"])
-                    
                     if mutate_pointer <= current_pointer: # mutate the arg INDEX
                         arg_index = (len(self.genome[node_index]["args"]) - 1) - (current_pointer - mutate_pointer)
                         current_arg = self.genome[node_index]["args"][arg_index]
@@ -445,9 +482,8 @@ class Mutate(Genome):
                         pass
                         #haven't found, go to next node
 
-
+                    # check the argument values
                     current_pointer += len(self.genome[node_index]["args"])
-                    
                     if mutate_pointer <= current_pointer: # mutate the arg VALUE
                         arg_index = (len(self.genome[node_index]["args"]) - 1) - (current_pointer - mutate_pointer)
                         arg = self.genome[node_index]["args"][arg_index]

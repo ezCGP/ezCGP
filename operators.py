@@ -157,13 +157,18 @@ operDict[input_layer] = {"inputs": [tf.Tensor],
 					"args": []
 					}
 
-def conv_layer(input_tensor, filters=64, kernel_size=(3, 3)):
+def conv_layer(input_tensor, filters=64, kernel_size=3):
+    kernel_size = (kernel_size, kernel_size)
     # Convolutional Layer
     # Computes 32 features using a 5x5 filter with ReLU activation.
     # Padding is added to preserve width and height.
     return tf.layers.conv2d(inputs=input_tensor, filters=filters, \
         kernel_size=kernel_size, padding="same", activation=None, data_format = "channels_last")
 
+operDict[conv_layer] = {"inputs": [tf.Tensor],
+                            "args": ["argPow2", "argFilterSize"],
+                            "outputs": tf.Tensor,
+                            "name": 'convLayer'}
 
 def max_pool_layer(input_tensor):
     # Pooling Layer #1
@@ -174,13 +179,24 @@ def max_pool_layer(input_tensor):
     return tf.layers.max_pooling2d(inputs=input_tensor, pool_size=[2, 2], strides=2)
 #
 #
+operDict[max_pool_layer] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'maxPoolLayer'}
+
 def avg_pool_layer(input_tensor):
 #    avg_pool = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding="valid")(input_tensor)
     return tf.layers.average_pooling2d(inputs=input_tensor, pool_size=[2,2], strides=2)
 
 
+operDict[avg_pool_layer] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'avgPoolLayer'}
+
 def global_avg_pool_layer(input_tensor):
     return global_avg_pool(input_tensor)
+
 #
 #
 def dense_layer(input_tensor, num_units=128):
@@ -189,6 +205,11 @@ def dense_layer(input_tensor, num_units=128):
     # Densely connected layer with 1024 neurons
     logits = tf.layers.dense(inputs=pool2_flat, units=num_units, activation=tf.nn.relu)
     return logits
+
+operDict[dense_layer] = {"inputs": [tf.Tensor],
+                            "args": ["argPow2"],
+                            "outputs": tf.Tensor,
+                            "name": 'denseLayer'}
 
 """
 FUNCTIONS
@@ -222,6 +243,10 @@ def concat_func(data1, data2):
     else:
         return tf.concat([data1, data2], 3)
 
+operDict[concat_func] = {"inputs": [tf.Tensor, tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'concatFunc'}
 
 def sum_func(data1, data2):
     # Element-wise addition of two feature maps, channel by channel.
@@ -244,6 +269,10 @@ def sum_func(data1, data2):
         out = tf.add(data1, data2)
         return out
 
+operDict[sum_func] = {"inputs": [tf.Tensor, tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'sumFunc'}
 
 def sigmoid_func(input_tensor):
     return tf.nn.sigmoid(input_tensor)
@@ -256,73 +285,42 @@ BLOCKS
     3. SEBlock
 """
 
-def conv_block(input_tensor, filters=64, kernel_size=(3, 3)):
+def conv_block(input_tensor, filters=64, kernel_size=3):
     # Returns the result of one ConvBlock (convolutional layer + batch normalization + ReLu)
+    kernel_size = (kernel_size, kernel_size)
     return relu_func(norm_func(conv_layer(input_tensor, filters, kernel_size)))
 
+operDict[conv_block] = {"inputs": [tf.Tensor],
+                            "args": ["argPow2", "argFilterSize"],
+                            "outputs": tf.Tensor,
+                            "name": 'convBlock'}
 
-def res_block(input_tensor, number1=64, size1=(3,3), number2=128, size2=(3,3)):
+def res_block(input_tensor, number1=64, size1=3, number2=128, size2=3):
+    size1 = (size1, size1)
+    size2 = (size2, size2)
     # Returns the result of one ResBlock (ConvBlock + convolutional layer + batch normalization + summation + ReLu)
     return relu_func(sum_func(norm_func(conv_layer(conv_block(input_tensor, \
         number1, size1), number2, size2)), input_tensor))
 
+operDict[res_block] = {"inputs": [tf.Tensor],
+                            "args": ["argPow2", "argFilterSize", "argPow2", "argFilterSize"],
+                            "outputs": tf.Tensor,
+                            "name": 'resBlock'}
 
 def sqeeze_excitation_block(input_tensor):
     return sigmoid_func(dense_layer(relu_func(dense_layer(global_avg_pool_layer(input_tensor)))))
-
-
-def identity_block(input_tensor, filters=64, kernel_size=(3,3)):
-    return conv_block(conv_block(conv_block(input_tensor, filters, kernel_size)))
-
-
-operDict[dense_layer] = {"inputs": [tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'denseLayer'}
-
-operDict[conv_layer] = {"inputs": [tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'convLayer'}
-
-operDict[max_pool_layer] = {"inputs": [tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'maxPoolLayer'}
-
-operDict[avg_pool_layer] = {"inputs": [tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'avgPoolLayer'}
-
-operDict[concat_func] = {"inputs": [tf.Tensor, tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'concatFunc'}
-
-operDict[sum_func] = {"inputs": [tf.Tensor, tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'sumFunc'}
-
-operDict[conv_block] = {"inputs": [tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'convBlock'}
-
-
-operDict[res_block] = {"inputs": [tf.Tensor],
-                            "args": [],
-                            "outputs": tf.Tensor,
-                            "name": 'resBlock'}
 
 operDict[sqeeze_excitation_block] = {"inputs": [tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
                             "name": 'squeezeExcitationBlock'}
 
+def identity_block(input_tensor, filters=64, kernel_size=3):
+    kernel_size = (kernel_size, kernel_size)
+    return conv_block(conv_block(conv_block(input_tensor, filters, kernel_size)))
+
 operDict[identity_block] = {"inputs": [tf.Tensor],
-                            "args": [],
+                            "args": ["argPow2", "argFilterSize"],
                             "outputs": tf.Tensor,
                             "name": 'identityBlock'}
 

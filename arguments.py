@@ -142,3 +142,40 @@ class argInt(object):
             pass
         self.value = int(self.value)
 arguments.append(argInt)
+
+class argPow2(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        roll = r.random_integers(1, 9)
+        self.value = int(2 ** roll)
+    def __str__(self):
+        return "{}".format(self.value)
+    def __repr__(self):
+        return str(self)
+arguments.append(argPow2)
+
+class argFilterSize(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        sizes = [1, 3, 5, 7]
+        size = r.random_integers(0, 3)
+        self.value = int(sizes[size])
+    def __str__(self):
+        return "{}".format(self.value)
+    def __repr__(self):
+        return str(self)
+arguments.append(argFilterSize)
