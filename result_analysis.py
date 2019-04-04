@@ -33,7 +33,7 @@ def draw_analysis():
 def draw_analysis2():
     reference_point = (1, 1)
     hv = HyperVolume(reference_point)
-    root_dir = 'outputs_cifar_normed  '
+    root_dir = 'outputs_normed_cifar_more_generations'
     file_generation = '{}/generation_number.npy'.format(root_dir)
     generation = np.load(file_generation)
     accuracy_score_list = []

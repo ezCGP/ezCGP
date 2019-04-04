@@ -1,4 +1,4 @@
-# copy paste from original cgp for now 
+# copy paste from original cgp for now
 ### arguments.py
 
 # packages
@@ -54,7 +54,7 @@ def mut_normal(value):
             elif roll == 1:
                 self.value = #######
             ...
-    
+
     Once an Argument Class is defined, at it to the list of arguments.
     The argument skeleton is filled by sampling from this list so even if
     an Arg Class is defined but not added to the list, it will not be used.
@@ -114,7 +114,7 @@ arguments.append(argFloat)
 class argInt(object):
 
     def __init__(self, value=None):
-        if value is None:    
+        if value is None:
             roll = r.random_integers(0,2)
             if roll == 0:
                 self.value = 5

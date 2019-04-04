@@ -31,7 +31,7 @@ class Mate(Genome):
         '''
         offsprings = []
         numArgs=self.numArgs
-        
+
 
         if crossover=="uniform":
             '''
@@ -50,7 +50,7 @@ class Mate(Genome):
                 if random.random() <= .5:
                     #offspring.genome[node_index] = other.genome[node_index]
                     expected_types = operDict[offspring.genome[node_index]["ftn"]]["inputs"]
-                    #if 
+                    #if
 
                 else:
                     pass
@@ -72,7 +72,7 @@ class Mate(Genome):
             '''
             perform subgraph crossover as defined by Kalkreuth, Rudolph, Droschinsky
             '''
-            
+
             # collect the active nodes
             M1 = self.active_inputs
             M2 = other.active_inputs
