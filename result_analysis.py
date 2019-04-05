@@ -103,10 +103,21 @@ def display_genome(individual):
         curr_block = individual.skeleton[i]["block_object"]
         print('curr_block isDead = ', curr_block.dead)
         print(curr_block.active_nodes)
+        arg_values = np.array(curr_block.args)
         for active_node in curr_block.active_nodes:
             fn = curr_block[active_node]
-            # print(fn)
-            print('function at: {} is: {}'.format(active_node, fn))
+            if active_node < 0:
+                # nothing to evaluate at input nodes
+                print('function at: {} is: {}'\
+                    .format(active_node, fn))
+                continue
+            elif active_node >= curr_block.genome_main_count:
+                # nothing to evaluate at output nodes
+                print('function at: {} is: {} -> likely an output node'\
+                    .format(active_node, fn))
+                continue
+            print('function at: {} is: {} and has arguments: {}'\
+                    .format(active_node, fn, arg_values[fn['args']]))
 
 if __name__ == '__main__':
     draw_analysis2()
