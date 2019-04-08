@@ -30,7 +30,7 @@ class Block(Mate, Mutate):
                  setup_dict_ftn, setup_dict_arg, setup_dict_mate, setup_dict_mut,
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
                  block_mut_prob, block_mate_prob,
-                 tensorblock_flag=False, learning_required=False, num_classes=None, batch_size=None):
+                 tensorblock_flag=False, learning_required=False, num_classes=None, batch_size=None, n_epochs=1):
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
 
@@ -65,7 +65,7 @@ class Block(Mate, Mutate):
         self.num_classes = 10 # number of classes for what we are trying to classify...only relevant if there is supposed to be a learner
         self.need_evaluate = True # all new blocks need to be evaluated
         self.batch_size = batch_size # takes the batch_size from the block skeleton
-
+        self.n_epochs = n_epochs # takes the n_epochs from the block skeleton
         # Block - Argument List
         self.arg_methods = list(setup_dict_arg.keys())
         self.arg_weights = self.buildWeights('arg_methods', setup_dict_arg)
@@ -181,7 +181,7 @@ class Block(Mate, Mutate):
                 x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
                 y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
 
-                n_epochs = 1 # number of epochs to run for while training
+                #n_epochs is the number of epochs to run for while training
                 batch_size = self.batch_size # size of the batch
                 return_outputs = []
                 for epoch in range(n_epochs):
