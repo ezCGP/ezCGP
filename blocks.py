@@ -200,8 +200,8 @@ class Block(Mate, Mutate):
 
                         tf_output_dict = tf_outputs[0]
                         step_loss = tf_output_dict['loss']
-                        print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                               .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                        # print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                        #        .format(epoch, step, step * batch_size, self._num_examples, step_loss))
                         # print('step_loss: ', step_loss)
                         epoch_loss += step_loss
                         # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
@@ -256,10 +256,25 @@ class Block(Mate, Mutate):
         self.resetEvalAttr()
         self.findActive()
         print("Active nodes", self.active_nodes)
+        arg_values = np.array(self.args)
+        # for active_node in self.active_nodes:
+        #     fn = self[active_node]
+        #     print(fn)
+        #     print('function at: {} is: {}'.format(active_node, fn))
         for active_node in self.active_nodes:
             fn = self[active_node]
-            print(fn)
-            print('function at: {} is: {}'.format(active_node, fn))
+            if active_node < 0:
+                # nothing to evaluate at input nodes
+                print('function at: {} is: {}'\
+                    .format(active_node, fn))
+                continue
+            elif active_node >= self.genome_main_count:
+                # nothing to evaluate at output nodes
+                print('function at: {} is: {} -> likely an output node'\
+                    .format(active_node, fn))
+                continue
+            print('function at: {} is: {} and has arguments: {}'\
+                    .format(active_node, fn, arg_values[fn['args']]))
         if (self.learning_required) and (not self.has_learner):
             # didn't learn, zero fitness
             print("didn't learn, zero fitness")
