@@ -195,7 +195,7 @@ class Block(Mate, Mutate):
                        # print("num examples", self._num_examples)
                         for step in range(int(np.ceil(self._num_examples/batch_size))):
                             X_train, y_train = self.next_batch(batch_size)
-                            # print("shapes:", X_train.shape, y_train.shape)
+                            #print("shapes:", X_train.shape, y_train.shape)
                             feed_dict[x_batch] = X_train
                             feed_dict[y_batch] = y_train
                             tf_outputs = sess.run(
@@ -309,7 +309,8 @@ class Block(Mate, Mutate):
                         finalOut += outs
                     return np.array(finalOut)
 
-        except ValueError:
+        except ValueError as e:
+            raise(e)
             print ("Mismatched shapes of tensors leading to error at evaluation time. ")
             self.dead = True
             return tf_output_dict["classes"] # not really sure how to return properly after setting to dead... but this runs...
@@ -466,7 +467,7 @@ class Block(Mate, Mutate):
                     except Exception as e:
                         # raise(e)
                         # print('e2')
-                        print(e)
+                        # print(e)
                         self.dead = True
                 else:
                     # if it's not tensorflow

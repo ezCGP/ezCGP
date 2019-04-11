@@ -116,7 +116,8 @@ print('Validation labels shape: ', y_val.shape)
 print('Test data shape: ', x_test.shape)
 print('Test labels shape: ', y_test.shape)
 
-# x_train = y_train = np.array([])
+x_train = [np.arange(32*32*3).reshape((1, 32, 32, 3))]
+y_train = np.array([1])
 
 def scoreFunction(predict, actual):
     try:
