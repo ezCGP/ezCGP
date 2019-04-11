@@ -158,6 +158,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'tensorblock_flag': True,
     'batch_size': 128,
     'n_epochs': 1, #the number of epochs to run for while training
+    'large_dataset': None,
     'nickname': 'tensor_mnist_block',
     'setup_dict_ftn': {
         #declare which primitives are available to the genome,
