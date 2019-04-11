@@ -89,7 +89,12 @@ def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000):
 x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
 # x_train = x_train.reshape(-1, 28, 28, 1)
 # x_test = x_test.reshape(-1, 28, 28, 1)
-x_train = np.array([x_train])
+TRAIN_SIZE = 1000
+# TRAIN_SIZE = x_train.shape[0]
+
+x_train = np.array([x_train[:TRAIN_SIZE]])
+y_train = np.array(y_train[:TRAIN_SIZE])
+
 x_test = np.array([x_test])
 
 print('Train data shape: ', x_train.shape)
@@ -163,14 +168,14 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #operators.add_tensors: {'prob': 1},
         #operators.sub_tensors: {'prob': 1},
         #operators.mult_tensors: {'prob': 1},
-        operators.dense_layer: {'prob': 1},
+        # operators.dense_layer: {'prob': 1},
         # operators.conv_layer: {'prob': 1},
         # operators.max_pool_layer: {'prob': 1},
         # operators.avg_pool_layer: {'prob': 1},
         # operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
         # operators.conv_block: {'prob': 1},
-        # operators.res_block: {'prob': 1},
+        operators.res_block: {'prob': 1},
         #operators.sqeeze_excitation_block: {'prob': 1},
         #operators.identity_block: {'prob': 1},
     },
@@ -193,7 +198,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive
     'block_input_dtypes': [tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data
     'block_outputs_dtypes': [tf.Tensor],
-    'block_main_count': 23, #10 genes
+    'block_main_count': 4, #10 genes
     'block_arg_count': 20, #not used...no primitives require arguments
     'block_mut_prob': 1, #mutate genome with probability 1...always
     'block_mate_prob': 0 #mate with probability 0...never

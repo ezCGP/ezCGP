@@ -182,6 +182,7 @@ class Block(Mate, Mutate):
                 y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
 
                 #n_epochs is the number of epochs to run for while training
+                n_epochs = self.n_epochs
                 batch_size = self.batch_size # size of the batch
                 return_outputs = []
                 for epoch in range(n_epochs):
@@ -200,8 +201,8 @@ class Block(Mate, Mutate):
 
                         tf_output_dict = tf_outputs[0]
                         step_loss = tf_output_dict['loss']
-                        # print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                        #        .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                        print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                               .format(epoch, step, step * batch_size, self._num_examples, step_loss))
                         # print('step_loss: ', step_loss)
                         epoch_loss += step_loss
                         # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
