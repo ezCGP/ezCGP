@@ -171,7 +171,9 @@ class Block(Mate, Mutate):
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         large_dataset = self.large_dataset
         try:
-            if(large_dataset is None):
+            if (large_dataset is None):
+                # this implies that the data was passed in regularly and can be
+                # held in memory
                 # initialize variables needed for batch feeding
                 self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
                 x_val = data_pair["x_val"]
@@ -239,6 +241,8 @@ class Block(Mate, Mutate):
                         finalOut += outs
                     return np.array(finalOut)
             else:
+                # implies the dataset is too large to be completely stored in
+                # memory and should be loaded from each of the files mentioned
                 fnames, load_fname = large_dataset
                 # initialize variables needed for batch feeding
                 self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
@@ -310,7 +314,7 @@ class Block(Mate, Mutate):
                     return np.array(finalOut)
 
         except ValueError as e:
-            raise(e)
+            print(e)
             print ("Mismatched shapes of tensors leading to error at evaluation time. ")
             self.dead = True
             return tf_output_dict["classes"] # not really sure how to return properly after setting to dead... but this runs...

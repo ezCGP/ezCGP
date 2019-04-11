@@ -97,6 +97,12 @@ def get_cifar10_batch(filename):
         return X, Y
 
 
+def get_dummy_data(data_dimensions):
+    # function that returns dummy datapoints and label so that evaluate
+    # can properly build the tensorflow graph with knowledge of dimensions
+    # adding [1] for #block inputs
+    return (np.zeros([1] + data_dimensions), np.zeros(data_dimensions[0]))
+
 # Invoke the above function to get our data.
 x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
 # x_train = x_train.reshape(-1, 28, 28, 1)
@@ -116,8 +122,10 @@ print('Validation labels shape: ', y_val.shape)
 print('Test data shape: ', x_test.shape)
 print('Test labels shape: ', y_test.shape)
 
-x_train = [np.arange(32*32*3).reshape((1, 32, 32, 3))]
-y_train = np.array([1])
+# we make dummy data that is dimensionally representative of the data we will
+# feed in to the individual so that the evaluate method can accurately construct
+# the tensorflow graph
+x_train, y_train = get_dummy_data([1, 32, 32, 3])
 
 def scoreFunction(predict, actual):
     try:
@@ -174,7 +182,9 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'batch_size': 128,
     'n_epochs': 1, #the number of epochs to run for while training
     # 'large_dataset': None,
-    'large_dataset': (['cifar-10-batches-py/data_batch_1', 'cifar-10-batches-py/data_batch_2', 'cifar-10-batches-py/data_batch_3'], get_cifar10_batch),
+    'large_dataset': (['cifar-10-batches-py/data_batch_1', \
+        'cifar-10-batches-py/data_batch_2', \
+        'cifar-10-batches-py/data_batch_3'], get_cifar10_batch),
     'nickname': 'tensor_mnist_block',
     'setup_dict_ftn': {
         #declare which primitives are available to the genome,
