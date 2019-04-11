@@ -84,6 +84,18 @@ def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000):
 
     return X_train/255.0, y_train, X_val/255.0, y_val, X_test/255.0, y_test
 
+def get_cifar10_batch(filename):
+    with open(filename, 'rb') as f:
+        if six.PY2:
+            datadict = pickle.load(f)
+        elif six.PY3:
+            datadict = pickle.load(f, encoding='latin1')
+        X = datadict['data']
+        Y = datadict['labels']
+        X = X.reshape(10000, 3, 32, 32).transpose(0,2,3,1).astype("float")
+        Y = np.array(Y)
+        return X, Y
+
 
 # Invoke the above function to get our data.
 x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
@@ -104,6 +116,7 @@ print('Validation labels shape: ', y_val.shape)
 print('Test data shape: ', x_test.shape)
 print('Test labels shape: ', y_test.shape)
 
+# x_train = y_train = np.array([])
 
 def scoreFunction(predict, actual):
     try:
@@ -144,9 +157,9 @@ def scoreFunction(predict, actual):
 
 
 
-print('Train: X: {} y: {}'.format(x_train[0].shape, y_train.shape))
-print('Validation: X: {} y: {}'.format(x_val.shape, y_val.shape))
-print('Test: X: {} y: {}'.format(x_test[0].shape, y_test.shape))
+# print('Train: X: {} y: {}'.format(x_train[0].shape, y_train.shape))
+# print('Validation: X: {} y: {}'.format(x_val.shape, y_val.shape))
+# print('Test: X: {} y: {}'.format(x_test[0].shape, y_test.shape))
 
 # print('Loaded MNIST dataset. x_train: {} y_train: {} x_test: {} y_test: {}'
 #     .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
@@ -154,11 +167,13 @@ print('Test: X: {} y: {}'.format(x_test[0].shape, y_test.shape))
 # NOTE: a lot of this is hastily developed and I do hope to improve the 'initialization'
 #structure of the genome; please note your own ideas and we'll make that a 'project' on github soon
 
+
 skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'tensorblock_flag': True,
     'batch_size': 128,
     'n_epochs': 1, #the number of epochs to run for while training
-    'large_dataset': None,
+    # 'large_dataset': None,
+    'large_dataset': (['cifar-10-batches-py/data_batch_1', 'cifar-10-batches-py/data_batch_2', 'cifar-10-batches-py/data_batch_3'], get_cifar10_batch),
     'nickname': 'tensor_mnist_block',
     'setup_dict_ftn': {
         #declare which primitives are available to the genome,
@@ -169,14 +184,14 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #operators.add_tensors: {'prob': 1},
         #operators.sub_tensors: {'prob': 1},
         #operators.mult_tensors: {'prob': 1},
-        # operators.dense_layer: {'prob': 1},
+        operators.dense_layer: {'prob': 1},
         # operators.conv_layer: {'prob': 1},
         # operators.max_pool_layer: {'prob': 1},
         # operators.avg_pool_layer: {'prob': 1},
         # operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
         # operators.conv_block: {'prob': 1},
-        operators.res_block: {'prob': 1},
+        # operators.res_block: {'prob': 1},
         #operators.sqeeze_excitation_block: {'prob': 1},
         #operators.identity_block: {'prob': 1},
     },
