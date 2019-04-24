@@ -5,11 +5,13 @@ import time
 import shlex
 import subprocess
 import os
+import tempfile
+import gc
 
 # my scripts
 from mate_methods import Mate
 from mutate_methods import Mutate
-from fintess import Fitness
+#from fintess import Fitness
 import operators
 import arguments
 
@@ -36,15 +38,15 @@ class Block(Mate, Mutate):
         """
 
         # inherit Mate, Mutate
-        Mate.__init__(self, block_input_dtypes, block_output_dtypes,
+        Mate.__init__(self, block_input_dtypes, block_outputs_dtypes,
                             block_main_count, block_arg_count)
         self.mate_prob = block_mate_prob
         self.mate_methods = list(setup_dict_mate.keys())
         self.mate_weights = self.buildWeights('mate_methods', setup_dict_mate)
         self.mate_dict = setup_dict_mate
 
-        Mutate.__init__(self, genome_input_dtypes, genome_output_dtypes,
-                              genome_main_count, genome_arg_count)
+        Mutate.__init__(self, block_input_dtypes, block_outputs_dtypes,
+                              block_main_count, block_arg_count)
         self.mut_prob = block_mut_prob
         self.mut_methods = list(setup_dict_mut.keys())
         self.mut_weights = self.buildWeights('mut_methods', setup_dict_mut)
@@ -61,6 +63,7 @@ class Block(Mate, Mutate):
         self.need_evaluate = True # all new blocks need to be evaluated
 
         # Block - Argument List
+        # the key is to make sure that every single individual in the population has an a list for self.args where each index/element is the same datatype
         self.arg_methods = list(setup_dict_arg.keys())
         self.arg_weights = self.buildWeights('arg_methods', setup_dict_arg)
         self.fillArgs()
@@ -71,7 +74,7 @@ class Block(Mate, Mutate):
         self.ftn_methods = list(setup_dict_ftn.keys())
         self.ftn_weights = self.buildWeights('ftn_methods', setup_dict_ftn)
         self.operator_dict = operator_dict
-        self.fillGenome(operator_dict)
+        self.fillGenome()
         
         # Block - Evaluation
         self.resetEvalAttr()
@@ -88,9 +91,9 @@ class Block(Mate, Mutate):
 
     def mutate(self):
         roll = np.random.random()
-        if roll <= self.block_mut_prob:
+        if roll <= self.mut_prob:
             # then mutate
-            mutate_method = np.random.choice(a=self.mut_methods, size=1, p=self.mut_weights)
+            mutate_method = np.random.choice(a=self.mut_methods, size=1, p=self.mut_weights)[0]
             mutate_method(self, *self.mut_dict[mutate_method]['args'])
             # make sure in mutate_methods.py we have class Mutate() where we define all these methods
             self.need_evaluate = True
@@ -101,9 +104,9 @@ class Block(Mate, Mutate):
 
     def mate(self, other):
         roll = np.random.random()
-        if roll <= self.block_mate_prob:
+        if roll <= self.mate_prob:
             # then mate
-            mate_method = np.random.choice(a=self.mate_methods, size=1, p=self.mate_weights)
+            mate_method = np.random.choice(a=self.mate_methods, size=1, p=self.mate_weights)[0]
             offspring_list = mate_method(self, other, *self.mate_dict[mate_method]['args'])
             for offspring in offspring_list:
                 offspring.need_evaluate = True
@@ -161,7 +164,7 @@ class Block(Mate, Mutate):
             # didn't learn, zero fitness
             self.dead = True
         else:
-            for i, input_ in enumerate(self.genome_input_dtypes):
+            for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
                 if self.tensorblock_flag:
                     self.feed_dict[self.evaluated[-1*(i+1)]] = input_
                     # consider reading in the dataset with slices..."from_tensor_slices"
@@ -193,7 +196,7 @@ class Block(Mate, Mutate):
                 args = []
                 node_arg_indices = self[node_index]["args"]
                 for node_arg_index in node_arg_indices:
-                    args.append(self.args[node_arg_index])
+                    args.append(self.args[node_arg_index].value)
                 # and evaluate
                 try:
                     if self.tensorblock_flag:
@@ -209,7 +212,7 @@ class Block(Mate, Mutate):
                 if self.tensorblock_flag:
                     # final touches in the graph
                     with self.graph.as_default():
-                        for ouptput_node in range(self.genome_main_count: self.genome_main_count+self.genome_outputs_count):
+                        for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                             logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
                             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                                                         logits,
@@ -238,12 +241,12 @@ class Block(Mate, Mutate):
                     except:
                         self.dead = True
                 else:
-                    for ouptput_node in range(self.genome_main_count: self.genome_main_count+self.genome_outputs_count):
+                    for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                         referenced_node = self[output_node]
                         self.genome_output_values.append(self.evaluated[referenced_node])
             else:
                 pass
-            self.evaluated = None # clear up some space by deleting eval from memory
+            #self.evaluated = None # clear up some space by deleting eval from memory
             self.need_evaluate = False
             gc.collect()
 
