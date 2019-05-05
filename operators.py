@@ -114,7 +114,15 @@ def add_tensors(a,b):
 operDict[add_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
 						"args": []
-						}
+            }
+
+def sub_fa2a(a,b):
+    return np.subtract(a,b)
+#operDict[sub_fa2a] = [[np.float64,np.ndarray], np.ndarray]
+#operDict[sub_fa2a] = {"inputs": [np.ndarray],
+#						"outputs": np.ndarray,
+#						"args": ["argFloat"]
+#						}
 def sub_tensors(a,b):
     return tf.subtract(a,b)
 operDict[sub_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
@@ -335,3 +343,27 @@ operDict[identity_block] = {"inputs": [tf.Tensor],
 #                             "args": [argInt, argInt, argInt, argInt],
 #                             "outputs": tf.Tensor,
 #                             "name": 'resBlock'}
+
+def mul_fa2a(a,b):
+    return np.multiply(a,b)
+#operDict[mul_fa2a] = [[np.float64,np.ndarray], np.ndarray]
+#operDict[mul_fa2a] = {"inputs": [np.ndarray],
+#						"outputs": np.ndarray,
+#						"args": ["argFloat"]
+#						}
+#operDict[mul_fa2a] = {"inputs": [np.ndarray],
+#						"outputs": np.ndarray,
+#						"args": [FloatSmall],
+#						"num_args": 3}
+
+def mul_aa2a(a,b):
+    return np.multiply(a,b)
+#operDict[mul_aa2a] = [[np.ndarray,np.ndarray], np.ndarray]
+#operDict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
+#						"outputs": np.ndarray,
+#						"args": []
+#						}
+#operDict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
+#						"outputs": np.ndarray,
+#						"args": [],
+#						"num_args": 3}

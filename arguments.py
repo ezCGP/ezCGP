@@ -97,7 +97,7 @@ class argFloat(object):
             self.num_samples = 10
 
     def mutate(self):
-        roll = r.random_integers(0,2)
+        roll = r.random_integers(0,1)
         if roll == 0:
             self.value = mut_normal(self.value)
         elif roll == 1:
@@ -129,7 +129,7 @@ class argInt(object):
             self.num_samples = 10
 
     def mutate(self):
-        roll = r.random_integers(0,2)
+        roll = r.random_integers(0,1)
         if roll == 0:
             self.value = mut_normal(self.value)
         elif roll == 1:

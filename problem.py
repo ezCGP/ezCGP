@@ -204,7 +204,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         # operators.conv_block: {'prob': 1},
         # operators.res_block: {'prob': 1},
         #operators.sqeeze_excitation_block: {'prob': 1},
-        #operators.identity_block: {'prob': 1},
+        #operators.identity_block: {'prob': 1}, # TODO replace this with info from operator_dict?
     },
     'setup_dict_arg': {
         #if you have an 'arguments genome', declare which argument-datatypes should fill the argument genome
@@ -217,10 +217,10 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         mate.Mate.dont_mate: {'prob': 1, 'args': []}},
     'setup_dict_mut': {
         #declare which mutation methods are available to the genomes
-        # mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},
-        # mut.Mutate.mutate_singleArgValue: {'prob': 1, 'args': []},
+        mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},
+        mut.Mutate.mutate_singleArgValue: {'prob': 1, 'args': []},
         mut.Mutate.mutate_singleArgIndex: {'prob': 1, 'args': []},
-        # mut.Mutate.mutate_singleFtn: {'prob': 1, 'args': []},
+        mut.Mutate.mutate_singleFtn: {'prob': 1, 'args': []},
     },
     'operator_dict': operators.operDict, #further defines what datatypes what arguments are required for each primitive
     'block_input_dtypes': [tf.Tensor], #placeholder datatypes so that the genome can be built off datatypes instead of real data

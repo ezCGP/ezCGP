@@ -68,6 +68,7 @@ class Block(Mate, Mutate):
         self.n_epochs = n_epochs # takes the n_epochs from the block skeleton
         self.large_dataset = large_dataset
         # Block - Argument List
+        # the key is to make sure that every single individual in the population has an a list for self.args where each index/element is the same datatype
         self.arg_methods = list(setup_dict_arg.keys())
         self.arg_weights = self.buildWeights('arg_methods', setup_dict_arg)
         self.fillArgs()
@@ -405,7 +406,7 @@ class Block(Mate, Mutate):
                 args = []
                 node_arg_indices = self[node_index]["args"]
                 for node_arg_index in node_arg_indices:
-                    args.append(self.args[node_arg_index])
+                    args.append(self.args[node_arg_index].value)
                 # and evaluate
                 try:
                     # print(function)

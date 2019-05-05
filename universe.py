@@ -38,11 +38,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
             pass
     '''
     # mutate through the population
-    #print("    MUTATING")
-    # print("before mutation")
-    # for ind in population:
-    #     print(ind.skeleton[1]["block_object"].active_nodes)
-    print("population before mutation", len(population))
+    print("    MUTATING")
     for i in range(len(population)): # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
@@ -57,7 +53,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
                 pass
     print("population after mutation", len(population))
     # evaluate the population
-    #print("    EVALUATING")
+    print("    EVALUATING")
     for individual in population:
         if individual.need_evaluate():
             # look up concurrent.futures and queue...
@@ -91,6 +87,8 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
 def create_universe(input_data, labels, population_size=9, universe_seed=9, num_mutants=4, num_offpsring=2):
     np.random.seed(universe_seed)
 
+    #ind1=Individual(skeleton=problem.skeleton_genome);ind2=Individual(skeleton=problem.skeleton_genome);import pdb;pdb.set_trace() # DEBUG
+
     # initialize the population
     population = []
     for i in range(population_size):
@@ -99,10 +97,14 @@ def create_universe(input_data, labels, population_size=9, universe_seed=9, num_
             problem.y_val))
 
         #individual.score_fitness(labels=labels)
-        individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
-            predict=individual.genome_outputs)
-        print('Initialized individual has fitness: {}'\
-            .format(individual.fitness.values))
+        try:
+          individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
+              predict=individual.genome_outputs)
+          print('Initialized individual has fitness: {}'\
+              .format(individual.fitness.values))
+        except:
+            import pdb;pdb.set_trace()
+
         population.append(individual)
         del individual
 
@@ -140,7 +142,24 @@ def create_universe(input_data, labels, population_size=9, universe_seed=9, num_
             except:
                 import pdb
                 pdb.set_trace()
+            '''
+            #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
+            #print(problem.x_train)
+            #print(sample_best.genome_outputs)
+            plt.figure()
+            plt.plot(problem.x_train[0], problem.y_train, '.')
+            #testY = solutions[run].testEvaluate()
+            plt.plot(problem.x_train[0], sample_best.genome_outputs[0], '.')
+            #plt.legend(['Weibull','Test Model Fit'])
+            plt.legend(['log(x)','Test Model Fit'])
+            #plt.show()
+            Path('outputs').mkdir(parents=True, exist_ok=True) #should help work on all OS
+            filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
+            plt.savefig(filepath)
+            plt.close()
+            '''
         file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
         np.save(file_pop, population)
         np.save(file_generation, generation)
+
     print("ending universe", time.time()-start_time)
