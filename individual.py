@@ -83,9 +83,10 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         return False
 
 
-    def evaluate(self, data):
+    def evaluate(self, data, labels=None, validation_pair=None):
+        # added validation pair support external validation of labels/data in each block
         for i in range(1,self.num_blocks+1):
-            self.skeleton[i]["block_object"].evaluate(block_inputs=data)
+            self.skeleton[i]["block_object"].evaluate(block_inputs=data, labels_all=labels, validation_pair=validation_pair)
             data = self.skeleton[i]["block_object"].genome_output_values
         self.genome_outputs = data
         #return genome_outputs

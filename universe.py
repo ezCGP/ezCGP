@@ -13,6 +13,8 @@ from pathlib import Path
 from individual import Individual
 import problem
 import selections
+import gc
+import os
 
 
 def evaluator_queue():
@@ -40,7 +42,8 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     for i in range(len(population)): # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
-            mutant = deepcopy(individual)
+            mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
+            print("deepcopied")
             mutant.mutate(block)
             if mutant.need_evaluate:
                 # then it did for sure mutate
@@ -48,7 +51,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
             else:
                 # if mut_prob is < 1 there is a chancce it didn't mutate
                 pass
-
+    print("population after mutation", len(population))
     # evaluate the population
     print("    EVALUATING")
     for individual in population:
@@ -59,20 +62,29 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
             #
             # add to queue to evaluate individual
             # evaluate uses multithreading to send individuals to evaluate blocks
-            #eval_queue.put(individual)
-            individual.evaluate(input_data)
-            #individual.score_fitness(labels)
-            individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
+                problem.y_val))
+            individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
+                predict=individual.genome_outputs)
+            print('Muatated population individual has fitness: {}'\
+                .format(individual.fitness.values))
+    # print("after mutation")
+    # for ind in population:
+    #     print(ind.skeleton[1]["block_object"].active_nodes)
 
     # filter population down based off fitness
     # new population done: rank individuals in population and trim down
-    #print("prep for next pop")
     population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
+    print("population after selection ", len(population))
+    gc.collect()
+    # print("after selection")
+    # for ind in population:
+    #     print(ind.skeleton[1]["block_object"].active_nodes)
 
     return population #, eval_queue
 
 
-def create_universe(input_data, labels, population_size=100, universe_seed=9, num_mutants=4, num_offpsring=2):
+def create_universe(input_data, labels, population_size=9, universe_seed=9, num_mutants=4, num_offpsring=2):
     np.random.seed(universe_seed)
 
     #ind1=Individual(skeleton=problem.skeleton_genome);ind2=Individual(skeleton=problem.skeleton_genome);import pdb;pdb.set_trace() # DEBUG
@@ -81,10 +93,15 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
     population = []
     for i in range(population_size):
         individual = Individual(skeleton=problem.skeleton_genome)
-        individual.evaluate(data=input_data)
+        individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
+            problem.y_val))
+
         #individual.score_fitness(labels=labels)
         try:
-            individual.fitness.values = problem.scoreFunction(actual=labels, predict=individual.genome_outputs)
+          individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
+              predict=individual.genome_outputs)
+          print('Initialized individual has fitness: {}'\
+              .format(individual.fitness.values))
         except:
             import pdb;pdb.set_trace()
 
@@ -97,16 +114,21 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
     GENERATION_LIMIT = problem.generation_limit #199
     SCORE_MIN = problem.score_min #1e-1
     start_time = time.time()
+    newpath = r'outputs_cifar/'
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
+    file_generation = 'outputs_cifar/generation_number.npy'
     while (not converged) & (generation<=GENERATION_LIMIT):
         generation += 1
-        #population, eval_queue = run_universe(population, eval_queue num_mutants, num_offpsring)
         population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
-        # population multiobjective ranking here or right before it get's returned?
-
         scores = []
+        # print('printing genome_outputs')
         for individual in population:
             scores.append(individual.fitness.values[0])
+            # print(individual.fitness.values)
+        print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
         print(generation, np.min(scores))
+        # print(scores)
         if np.min(scores) < SCORE_MIN:
             converged = True
         else:
@@ -115,6 +137,12 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
             # plot
             #import pdb; pdb.set_trace()
             sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
+            try:
+                print(sample_best.genome_outputs[0])
+            except:
+                import pdb
+                pdb.set_trace()
+            '''
             #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
             #print(problem.x_train)
             #print(sample_best.genome_outputs)
@@ -129,4 +157,9 @@ def create_universe(input_data, labels, population_size=100, universe_seed=9, nu
             filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
             plt.savefig(filepath)
             plt.close()
+            '''
+        file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
+        np.save(file_pop, population)
+        np.save(file_generation, generation)
+
     print("ending universe", time.time()-start_time)

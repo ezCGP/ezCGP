@@ -29,7 +29,7 @@ class Mutate(Genome):
             gene_count += 1 #one function
             gene_count += len(self[node_index]["inputs"]) # number of inputs
             gene_count += len(self[node_index]["args"]) # number of arguments to mutate index
-            gene_count += len(self[node_index]["args"]) # and again for mutating values 
+            gene_count += len(self[node_index]["args"]) # and again for mutating values
         gene_count += numOutputs #number of outputs
         self.active_node_unchanged = True
         while self.active_node_unchanged:
@@ -71,7 +71,7 @@ class Mutate(Genome):
                         break
                     else:
                         pass
-                    
+
                     current_pointer += len(self[node_index]["args"])
                     if mutate_pointer <= current_pointer: # mutate the arg INDEX
                         arg_index = (len(self[node_index]["args"]) - 1) - (current_pointer - mutate_pointer)
@@ -249,20 +249,20 @@ class Mutate(Genome):
         '''
         Now that we have the functions to mutate operator genes and input genes,
         we can define the larger mutation process below.
-        
+
         After a deep copy is created off a 'parent', we can mutate that copy and
         call it an offspring.
-        
+
         NOTE the different mutation processes.
-        
+
         SINGLE: doesn't mutate each gene with a fixed probability 'mut_rate',
         rather it picks a single gene at random. NOTE since our genes are tucked
         into lists within nodes that are in a list within genome, we have to get
         a count for total number of genes used in the Main Nodes and Output Nodes,
         to properly pick a gene at random. The process is not too clean imo but works.
-        
+
         SKIP + ACCUMULATE: mutate each gene with probability 'mut_rate'
-        
+
         NOTE that Main Nodes and Output Nodes are mutated seperately because
         their nodes are populated in different ways.
         After the genome is mutated, go to mutate the argument values
@@ -359,7 +359,7 @@ class Mutate(Genome):
                     pass
 
 
-                        
+
 
         # finish with the Output Nodes
         for node_index in range(numMain, numMain+numOutputs):
@@ -407,7 +407,7 @@ class Mutate(Genome):
             gene_count += 1 #one function
             gene_count += len(self.genome[node_index]["inputs"]) # number of inputs
             gene_count += len(self.genome[node_index]["args"]) # number of arguments to mutate index
-            gene_count += len(self.genome[node_index]["args"]) # and again for mutating values 
+            gene_count += len(self.genome[node_index]["args"]) # and again for mutating values
         gene_count += numOutputs #number of outputs
 
         while self.active_node_changed==False:
@@ -463,7 +463,7 @@ class Mutate(Genome):
                         break
                     else:
                         pass
-                    
+
                     # check the argument connections
                     current_pointer += len(self.genome[node_index]["args"])
                     if mutate_pointer <= current_pointer: # mutate the arg INDEX
