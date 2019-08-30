@@ -169,8 +169,17 @@ class Block(Mate, Mutate):
         end = self._index_in_epoch
         return self._images[start:end], self._labels[start:end]
 
+    def tensorflow_preprocess(self, fetch_nodes, feed_dict, data_pair):
+        with tf.Session(graph=self.graph) as sess:
+            sess.run(tf.global_variables_initializer())
+            tf_outputs = sess.run(
+                fetches=fetch_nodes,
+                feed_dict=feed_dict)
+            return tf_outputs[0]
+
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         large_dataset = self.large_dataset
+        print(feed_dict)
         try:
             if (large_dataset is None):
                 # this implies that the data was passed in regularly and can be
@@ -207,6 +216,7 @@ class Block(Mate, Mutate):
 
                             tf_output_dict = tf_outputs[0]
                             step_loss = tf_output_dict['loss']
+                            print("tf output dict structure" + str(tf_output_dict))
                             print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                                    .format(epoch, step, step * batch_size, self._num_examples, step_loss))
                             # print('step_loss: ', step_loss)
@@ -430,50 +440,57 @@ class Block(Mate, Mutate):
                 if self.tensorblock_flag:
                     # final touches in the graph
                     with self.graph.as_default():
-                        for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
-                            # logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
-                            # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                            #                             logits,
-                            #                             tf.cast(labels,dtype=tf.float32)))
-                        #    print("self[output_node]:", self[output_node])
-                        #    print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
-                            # flatten input matrix to meet NN output size (numinstances, numclasses)
-                            flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
-                        #    print(flattened)
-                            labels = tf.placeholder(tf.int32, [None], name='y_batch')
-                            logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
-                            loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                                                        logits = logits,
-                                                        labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
-                            # predictions = tf.nn.softmax(logits=logits)
-                            # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
-                            tf.summary.tensor_summary("loss", loss)
-                            self.evaluated[output_node] = {
-                                "classes": tf.argmax(input=logits, axis=1),
-                                "probabilities": tf.nn.softmax(logits),
-                                "loss": loss}
-                            self.fetch_nodes.append(self.evaluated[output_node])
-                            tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
-                            tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
-                        optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
-                        step = tf.Variable(0, name='backprop_steps', trainable=False)
-                        train_step = optimizer.minimize(loss, global_step=step) #global_step)
-                        #tf.summary.scalar('loss', loss)
-                        #tf.summary.scalar('logits', logits)
-                        #tf.summary.scalar('results', results)
-                        merged_summary = tf.summary.merge_all()
-                        # print(loss)
-                    for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
-                        # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
-                        self.fetch_nodes.append(graph_metadata)
-                    try:
-                        # now that the graph is built, we evaluate here
-                        self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
-                    except Exception as e:
-                        # raise(e)
-                        # print('e2')
-                        # print(e)
-                        self.dead = True
+                        if self.learning_required:
+                            for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
+                                # logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
+                                # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                                #                             logits,
+                                #                             tf.cast(labels,dtype=tf.float32)))
+                            #    print("self[output_node]:", self[output_node])
+                            #    print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
+                                # flatten input matrix to meet NN output size (numinstances, numclasses)
+                                flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
+                            #    print(flattened)
+                                labels = tf.placeholder(tf.int32, [None], name='y_batch')
+                                logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
+                                loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                                                            logits = logits,
+                                                            labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
+                                # predictions = tf.nn.softmax(logits=logits)
+                                # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
+                                tf.summary.tensor_summary("loss", loss)
+                                self.evaluated[output_node] = {
+                                    "classes": tf.argmax(input=logits, axis=1),
+                                    "probabilities": tf.nn.softmax(logits),
+                                    "loss": loss}
+                                self.fetch_nodes.append(self.evaluated[output_node])
+                                tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
+                                tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
+                            optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
+                            step = tf.Variable(0, name='backprop_steps', trainable=False)
+                            train_step = optimizer.minimize(loss, global_step=step) #global_step)
+                            #tf.summary.scalar('loss', loss)
+                            #tf.summary.scalar('logits', logits)
+                            #tf.summary.scalar('results', results)
+                            merged_summary = tf.summary.merge_all()
+                            # print(loss)
+                            for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
+                                # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
+                                self.fetch_nodes.append(graph_metadata)
+                            try:
+                                # now that the graph is built, we evaluate here
+                                self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
+                            except Exception as e:
+                                # raise(e)
+                                # print('e2')
+                                # print(e)
+                                self.dead = True
+                        else:
+                            # if learning_required not true
+                            print("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
+                            print("this is all evaluated" + str(self.evaluated))
+                            self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
+                            self.genome_output_values = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
                 else:
                     # if it's not tensorflow
                     for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):

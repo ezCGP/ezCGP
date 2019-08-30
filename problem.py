@@ -125,7 +125,7 @@ print('Test labels shape: ', y_test.shape)
 # we make dummy data that is dimensionally representative of the data we will
 # feed in to the individual so that the evaluate method can accurately construct
 # the tensorflow graph
-x_train, y_train = get_dummy_data([1, 32, 32, 3])
+x_train, y_train = get_dummy_data([1000, 32, 32, 3])
 
 def scoreFunction(predict, actual):
     try:
@@ -179,6 +179,7 @@ def scoreFunction(predict, actual):
 
 skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     'tensorblock_flag': True,
+    'learning_required': False,
     'batch_size': 128,
     'n_epochs': 1, #the number of epochs to run for while training
     # 'large_dataset': None,
