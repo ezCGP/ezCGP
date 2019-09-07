@@ -255,10 +255,6 @@ class Genome():
                     self.active_args.update(self[node_index]["args"])
                 else: # no args to update
                     pass
-                if (not self.has_learner) and (self[node_index]["ftn"].__name__=="single_learner"):
-                    self.has_learner = True
-                else: # already learned or ftn isn't a learner
-                    pass
             else: # not an active node; don't care
                 pass
         self.active_nodes = sorted(list(self.active_nodes))

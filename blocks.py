@@ -122,7 +122,6 @@ class Block(Mate, Mutate):
 
     def resetEvalAttr(self):
         self.dead = False
-        self.has_learner = False
         self.evaluated = [None] * self.genome_count
         self.genome_output_values = []
         if self.tensorblock_flag:
