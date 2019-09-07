@@ -4,6 +4,7 @@ import scipy.stats as scst
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import tensorflow as tf
 import os
+import random
 import six
 from six.moves import cPickle as pickle
 import matplotlib.pyplot as plt
@@ -45,9 +46,9 @@ class DbManager():
             f = os.path.join(path, 'data_batch_%d' % (b,))
             data.append(self.load_data_from_path(f))
         x = np.concatenate([x[0] for x in data])
-        y = np.concatenate((x[1] for x in data))
-        train, test, val = self.split_data(x, y, config=self.db_conf)
-        return train, test
+        y = np.concatenate([x[1] for x in data])
+        train, test, val = self.split_data(x, y)
+        return train, test, val
 
     def load_cifar100(self):
         pass
@@ -64,8 +65,24 @@ class DbManager():
             Y = np.array(Y)
             return X, Y
 
-    def split_data(self, x, y, config: DbConfig) -> (DataSet, DataSet, DataSet):
-        pass
+    def split_data(self, x, y) -> (DataSet, DataSet, DataSet):
+        zipped = list(zip(x, y))
+        random.shuffle(zipped)
+        X = np.array([x[0] for x in zipped])
+        y = np.array([x[1] for x in zipped])
+
+        train_index = int(len(x) * self.db_conf.train_size_perc)
+        X_train = X[0:train_index]/255
+        y_train = y[0:train_index]
+
+        test_index = train_index + int(len(x) * self.db_conf.test_size_perc);
+        X_test = X[train_index:test_index]/255
+        y_test = y[train_index:test_index]
+
+        X_val = X[test_index:]/255
+        y_val = y[test_index:]
+
+        return (X_train, y_train), (X_test, y_test), (X_val, y_val)
 
     def get_train_data(self):
         return self.train_data_set

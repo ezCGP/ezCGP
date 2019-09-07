@@ -21,92 +21,25 @@ from DbManager import DbManager
 generation_limit = 19
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
+db_config = DbConfig()
+manager = DbManager(db_config)
 
-# Helper to load in CIFAR-10
-def load_CIFAR_batch(filename):
-    """ load single batch of cifar """
-    with open(filename, 'rb') as f:
-        if six.PY2:
-            datadict = pickle.load(f)
-        elif six.PY3:
-            datadict = pickle.load(f, encoding='latin1')
-        X = datadict['data']
-        Y = datadict['labels']
-        X = X.reshape(10000, 3, 32, 32).transpose(0,2,3,1).astype("float")
-        Y = np.array(Y)
-        return X, Y
-
-def load_CIFAR10(ROOT):
-    """ load all of cifar """
-    xs = []
-    ys = []
-    for b in range(1,6):
-        f = os.path.join(ROOT, 'data_batch_%d' % (b, ))
-        X, Y = load_CIFAR_batch(f)
-        xs.append(X)
-        ys.append(Y)
-    Xtr = np.concatenate(xs)
-    Ytr = np.concatenate(ys)
-    del X, Y
-    Xte, Yte = load_CIFAR_batch(os.path.join(ROOT, 'test_batch'))
-    return Xtr, Ytr, Xte, Yte
+#
+#
+# def get_dummy_data(data_dimensions):
+#     # function that returns dummy datapoints and label so that evaluate
+#     # can properly build the tensorflow graph with knowledge of dimensions
+#     # adding [1] for #block inputs
+#     return (np.zeros([1] + data_dimensions), np.zeros(data_dimensions[0]))
 
 
-def get_CIFAR10_data(num_training=49000, num_validation=1000, num_test=1000):
-    """
-    Load the CIFAR-10 dataset from disk and perform preprocessing to prepare
-    it for the two-layer neural net classifier.
-    """
-    # Load the raw CIFAR-10 data
-    cifar10_dir = './cifar-10-batches-py'
-    X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
-
-    # Subsample the data
-    mask = range(num_training, num_training + num_validation)
-    X_val = X_train[mask]
-    y_val = y_train[mask]
-    mask = range(num_training)
-    X_train = X_train[mask]
-    y_train = y_train[mask]
-    mask = range(num_test)
-    X_test = X_test[mask]
-    y_test = y_test[mask]
-
-    # Normalize the data: subtract the mean image
-    mean_image = np.mean(X_train, axis=0)
-
-    # X_train -= mean_image
-    # X_val -= mean_image
-    # X_test -= mean_image
-
-    # Reshape data to rows
-    # X_train = X_train.reshape(num_training, -1)
-    # X_val = X_val.reshape(num_validation, -1)
-    # X_test = X_test.reshape(num_test, -1)
-
-    return X_train/255.0, y_train, X_val/255.0, y_val, X_test/255.0, y_test
-
-def get_cifar10_batch(filename):
-    with open(filename, 'rb') as f:
-        if six.PY2:
-            datadict = pickle.load(f)
-        elif six.PY3:
-            datadict = pickle.load(f, encoding='latin1')
-        X = datadict['data']
-        Y = datadict['labels']
-        X = X.reshape(10000, 3, 32, 32).transpose(0,2,3,1).astype("float")
-        Y = np.array(Y)
-        return X, Y
-
-
-def get_dummy_data(data_dimensions):
-    # function that returns dummy datapoints and label so that evaluate
-    # can properly build the tensorflow graph with knowledge of dimensions
-    # adding [1] for #block inputs
-    return (np.zeros([1] + data_dimensions), np.zeros(data_dimensions[0]))
+train, test, val =  manager.load_CIFAR10()
+x_train, y_train = train
+x_test, y_test = test
+x_val, y_val = val
 
 # Invoke the above function to get our data.
-x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
+# x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
 # x_train = x_train.reshape(-1, 28, 28, 1)
 # x_test = x_test.reshape(-1, 28, 28, 1)
 TRAIN_SIZE = 1000
@@ -127,7 +60,7 @@ print('Test labels shape: ', y_test.shape)
 # we make dummy data that is dimensionally representative of the data we will
 # feed in to the individual so that the evaluate method can accurately construct
 # the tensorflow graph
-x_train, y_train = get_dummy_data([1, 32, 32, 3])
+#x_train, y_train = get_dummy_data([1, 32, 32, 3])
 
 def scoreFunction(predict, actual):
     try:
@@ -186,7 +119,7 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
     # 'large_dataset': None,
     'large_dataset': (['cifar-10-batches-py/data_batch_1', \
         'cifar-10-batches-py/data_batch_2', \
-        'cifar-10-batches-py/data_batch_3'], get_cifar10_batch),
+        'cifar-10-batches-py/data_batch_3'], manager.load_CIFAR_batch),
     'nickname': 'tensor_mnist_block',
     'setup_dict_ftn': {
         #declare which primitives are available to the genome,
