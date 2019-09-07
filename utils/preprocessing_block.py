@@ -4,7 +4,6 @@ import operators
 class PreprocessingBlock(SkeletonBlock):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.main_count = 30
         if "setup_dict_ftn" not in kwargs:
             # default layers
 

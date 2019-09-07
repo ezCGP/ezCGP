@@ -216,17 +216,17 @@ def dense_layer(input_tensor, num_units=128):
     return logits
 
 operDict[dense_layer] = {"inputs": [tf.Tensor],
-                         "args": [],
+                         "args": ["argPow2"],
                          "outputs": tf.Tensor,
-                         "name": 'identityLayer'}
+                         "name": 'denseLayer'}
 
 def identity_layer(input_tensor):
     return tf.identity(input_tensor)
 
 operDict[identity_layer] = {"inputs": [tf.Tensor],
-                         "args": ["argPow2"],
+                         "args": [],
                          "outputs": tf.Tensor,
-                         "name": 'denseLayer'}
+                         "name": 'identityLayer'}
 
 """
 FUNCTIONS

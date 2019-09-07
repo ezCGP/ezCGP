@@ -165,7 +165,7 @@ def scoreFunction(predict, actual):
 
 """
 
-training_block = TrainingBlock()
+training_block = TrainingBlock(main_count=30)
 print('training block: ', vars(training_block))
 
 preprocessing_block = PreprocessingBlock()
