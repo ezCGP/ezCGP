@@ -221,7 +221,10 @@ operDict[dense_layer] = {"inputs": [tf.Tensor],
                          "name": 'denseLayer'}
 
 def identity_layer(input_tensor):
-    return tf.identity(input_tensor)
+    print('before identity: ', input_tensor)
+    output_tensor = tf.identity(input_tensor)
+    print('after identity: ', output_tensor)
+    return output_tensor
 
 operDict[identity_layer] = {"inputs": [tf.Tensor],
                          "args": [],

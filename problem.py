@@ -164,18 +164,16 @@ def scoreFunction(predict, actual):
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 """
+preprocessing_block = PreprocessingBlock()
+#print('preprocessing block: ', vars(preprocessing_block))
 
 training_block = TrainingBlock(main_count=30)
-print('training block: ', vars(training_block))
-
-preprocessing_block = PreprocessingBlock()
-print('preprocessing block: ', vars(preprocessing_block))
-
+#print('training block: ', vars(training_block))
 
 skeleton_genome = { # this defines the WHOLE GENOME
     'input': [np.ndarray], # we don't pass in the labels since the labels are only used at evaluation and scoring time
     'output': [np.ndarray],
+    # vars converts the block object to a dictionary
     1: vars(preprocessing_block),
     2: vars(training_block)
 }
-
