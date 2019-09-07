@@ -365,149 +365,145 @@ class Block(Mate, Mutate):
                 continue
             print('function at: {} is: {} and has arguments: {}'\
                     .format(active_node, fn, arg_values[fn['args']]))
-        if (self.learning_required) and (not self.has_learner):
-            # didn't learn, zero fitness
-            print("didn't learn, zero fitness")
-            self.dead = True
-        else:
-            print('block_input: {}'.format(np.array(block_inputs).shape))
-            data_pair = {}
-            for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
-                if self.tensorblock_flag:
-#                    self.evaluated[-1*(i+1)] = input_
-                #    print("self.evaluated: ", self.evaluated)
 
-                    # consider reading in the dataset with slices..."from_tensor_slices"
-                    # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
-                    data_dimension = list(input_.shape)
-                    data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
-
-                    # print(data_dimension)
-                    with self.graph.as_default():
-                        batch_X = tf.placeholder(tf.float32, data_dimension, name='x_batch')
-                        self.evaluated[-1*(i+1)] = batch_X
-
-                    self.feed_dict[batch_X] = input_
-                    data_pair['x_train'] = input_
-                    data_pair['y_train'] = labels_all
-                    data_pair["x_val"] = validation_pair[0]
-                    data_pair["y_val"] = validation_pair[1]
-
-                else:
-                    self.evaluated[-1*(i+1)] = input_
-            for node_index in self.active_nodes:
-                if node_index < 0:
-                    # nothing to evaluate at input nodes
-                    continue
-                elif node_index >= self.genome_main_count:
-                    # nothing to evaluate at output nodes
-                    continue
-                else:
-                    # only thing left is main node...extract "ftn", "inputs", and "args" below
-                    pass
-                # get function to evaluate
-                function = self[node_index]["ftn"]
-                # get inputs to function to evaluate
-                inputs = []
-                node_input_indices = self[node_index]["inputs"]
-                for node_input_index in node_input_indices:
-                    inputs.append(self.evaluated[node_input_index])
-                # get arguments to function to evaluate
-                args = []
-                node_arg_indices = self[node_index]["args"]
-                for node_arg_index in node_arg_indices:
-                    args.append(self.args[node_arg_index].value)
-                # and evaluate
-                try:
-                    # print(function)
-                    # print(args)
-                    if self.tensorblock_flag:
-                        # added because the objects themselves were being sent in
-                        argnums = [arg.value if type(arg) is not int \
-                                else arg for arg in args]
-                        with self.graph.as_default():
-                            # really we are building the graph here; we need to evaluate after it is fully built
-                            self.evaluated[node_index] = function(*inputs, *argnums)
-                    else:
-                        self.evaluated[node_index] = function(*inputs, *args)
-                except Exception as e:
-                    # raise(e)
-                    # print('e1')
-                    print(e)
-                    self.dead = True
-                    break
-            if not self.dead:
-                if self.tensorblock_flag:
-                    # final touches in the graph
-                    with self.graph.as_default():
-                        if self.learning_required:
-                            for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
-                                # logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
-                                # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                                #                             logits,
-                                #                             tf.cast(labels,dtype=tf.float32)))
-                            #    print("self[output_node]:", self[output_node])
-                            #    print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
-                                # flatten input matrix to meet NN output size (numinstances, numclasses)
-                                flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
-                            #    print(flattened)
-                                labels = tf.placeholder(tf.int32, [None], name='y_batch')
-                                logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
-                                loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                                                            logits = logits,
-                                                            labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
-                                # predictions = tf.nn.softmax(logits=logits)
-                                # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
-                                tf.summary.tensor_summary("loss", loss)
-                                self.evaluated[output_node] = {
-                                    "classes": tf.argmax(input=logits, axis=1),
-                                    "probabilities": tf.nn.softmax(logits),
-                                    "loss": loss}
-                                self.fetch_nodes.append(self.evaluated[output_node])
-                                tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
-                                tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
-                            optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
-                            step = tf.Variable(0, name='backprop_steps', trainable=False)
-                            train_step = optimizer.minimize(loss, global_step=step) #global_step)
-                            #tf.summary.scalar('loss', loss)
-                            #tf.summary.scalar('logits', logits)
-                            #tf.summary.scalar('results', results)
-                            merged_summary = tf.summary.merge_all()
-                            # print(loss)
-                            for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
-                                # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
-                                self.fetch_nodes.append(graph_metadata)
-                            try:
-                                # now that the graph is built, we evaluate here
-                                self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
-                            except Exception as e:
-                                # raise(e)
-                                # print('e2')
-                                # print(e)
-                                self.dead = True
-                        else:
-                            # if learning_required not true
-                            print("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
-                            print("this is all evaluated" + str(self.evaluated))
-                            self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
-                            self.genome_output_values = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
-                else:
-                    # if it's not tensorflow
-                    for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
-                        referenced_node = self[output_node]
-                        self.genome_output_values.append(self.evaluated[referenced_node])
-            else:
-                pass
-            #self.evaluated = None # clear up some space by deleting eval from memory
-            self.need_evaluate = False
+        print('block_input: {}'.format(np.array(block_inputs).shape))
+        data_pair = {}
+        for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
             if self.tensorblock_flag:
-                # clean up all tensorflow variables so that individual can be deepcopied
-                # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
-                #     this fixes the universe.py run_universe deepcopy() bug
-                self.graph = None
-                self.feed_dict = {}
-                self.fetch_nodes = []
-                self.evaluated = [None] * self.genome_count
-                self.clear_batch_structure()
-                tf.keras.backend.clear_session()
-            gc.collect()
+#                    self.evaluated[-1*(i+1)] = input_
+            #    print("self.evaluated: ", self.evaluated)
+
+                # consider reading in the dataset with slices..."from_tensor_slices"
+                # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
+                data_dimension = list(input_.shape)
+                data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
+
+                # print(data_dimension)
+                with self.graph.as_default():
+                    batch_X = tf.placeholder(tf.float32, data_dimension, name='x_batch')
+                    self.evaluated[-1*(i+1)] = batch_X
+
+                self.feed_dict[batch_X] = input_
+                data_pair['x_train'] = input_
+                data_pair['y_train'] = labels_all
+                data_pair["x_val"] = validation_pair[0]
+                data_pair["y_val"] = validation_pair[1]
+
+            else:
+                self.evaluated[-1*(i+1)] = input_
+        for node_index in self.active_nodes:
+            if node_index < 0:
+                # nothing to evaluate at input nodes
+                continue
+            elif node_index >= self.genome_main_count:
+                # nothing to evaluate at output nodes
+                continue
+            else:
+                # only thing left is main node...extract "ftn", "inputs", and "args" below
+                pass
+            # get function to evaluate
+            function = self[node_index]["ftn"]
+            # get inputs to function to evaluate
+            inputs = []
+            node_input_indices = self[node_index]["inputs"]
+            for node_input_index in node_input_indices:
+                inputs.append(self.evaluated[node_input_index])
+            # get arguments to function to evaluate
+            args = []
+            node_arg_indices = self[node_index]["args"]
+            for node_arg_index in node_arg_indices:
+                args.append(self.args[node_arg_index].value)
+            # and evaluate
+            try:
+                # print(function)
+                # print(args)
+                if self.tensorblock_flag:
+                    # added because the objects themselves were being sent in
+                    argnums = [arg.value if type(arg) is not int \
+                            else arg for arg in args]
+                    with self.graph.as_default():
+                        # really we are building the graph here; we need to evaluate after it is fully built
+                        self.evaluated[node_index] = function(*inputs, *argnums)
+                else:
+                    self.evaluated[node_index] = function(*inputs, *args)
+            except Exception as e:
+                # raise(e)
+                # print('e1')
+                print(e)
+                self.dead = True
+                break
+        if not self.dead:
+            if self.tensorblock_flag:
+                # final touches in the graph
+                with self.graph.as_default():
+                    if self.learning_required:
+                        for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
+                            # logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
+                            # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                            #                             logits,
+                            #                             tf.cast(labels,dtype=tf.float32)))
+                        #    print("self[output_node]:", self[output_node])
+                        #    print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
+                            # flatten input matrix to meet NN output size (numinstances, numclasses)
+                            flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
+                        #    print(flattened)
+                            labels = tf.placeholder(tf.int32, [None], name='y_batch')
+                            logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
+                            loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                                                        logits = logits,
+                                                        labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
+                            # predictions = tf.nn.softmax(logits=logits)
+                            # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
+                            tf.summary.tensor_summary("loss", loss)
+                            self.evaluated[output_node] = {
+                                "classes": tf.argmax(input=logits, axis=1),
+                                "probabilities": tf.nn.softmax(logits),
+                                "loss": loss}
+                            self.fetch_nodes.append(self.evaluated[output_node])
+                            tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
+                            tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
+                        optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
+                        step = tf.Variable(0, name='backprop_steps', trainable=False)
+                        train_step = optimizer.minimize(loss, global_step=step) #global_step)
+                        #tf.summary.scalar('loss', loss)
+                        #tf.summary.scalar('logits', logits)
+                        #tf.summary.scalar('results', results)
+                        merged_summary = tf.summary.merge_all()
+                        # print(loss)
+                        for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
+                            # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
+                            self.fetch_nodes.append(graph_metadata)
+                        try:
+                            # now that the graph is built, we evaluate here
+                            self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
+                        except Exception as e:
+                            # raise(e)
+                            # print('e2')
+                            # print(e)
+                            self.dead = True
+                    else:
+                        # if learning_required not true
+                        print("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
+                        print("this is all evaluated" + str(self.evaluated))
+                        self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
+                        self.genome_output_values = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
+            else:
+                # if it's not tensorflow
+                for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
+                    referenced_node = self[output_node]
+                    self.genome_output_values.append(self.evaluated[referenced_node])
+        else:
+            pass
+        #self.evaluated = None # clear up some space by deleting eval from memory
+        self.need_evaluate = False
+        if self.tensorblock_flag:
+            # clean up all tensorflow variables so that individual can be deepcopied
+            # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
+            #     this fixes the universe.py run_universe deepcopy() bug
+            self.graph = None
+            self.feed_dict = {}
+            self.fetch_nodes = []
+            self.evaluated = [None] * self.genome_count
+            self.clear_batch_structure()
+            tf.keras.backend.clear_session()
+        gc.collect()

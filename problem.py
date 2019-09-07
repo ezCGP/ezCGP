@@ -167,7 +167,7 @@ def scoreFunction(predict, actual):
 preprocessing_block = PreprocessingBlock()
 #print('preprocessing block: ', vars(preprocessing_block))
 
-training_block = TrainingBlock(main_count=30)
+training_block = TrainingBlock(main_count=30,learning_required=True)
 #print('training block: ', vars(training_block))
 
 skeleton_genome = { # this defines the WHOLE GENOME

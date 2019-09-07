@@ -7,10 +7,9 @@ train_labels = problem.y_train
 
 individual = Individual(problem.skeleton_genome)
 individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val))
-print(individual.genome_outputs.shape)
 
-# individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=individual.genome_outputs)
-# print('individual has fitness: ', individual.fitness.values)
+individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=individual.genome_outputs)
+print('individual has fitness: ', individual.fitness.values)
 #
 # # print(individual.genome_outputs)
 # # print(individual.dead)
