@@ -178,3 +178,4 @@ skeleton_genome = { # this defines the WHOLE GENOME
     1: vars(preprocessing_block),
     2: vars(training_block)
 }
+
