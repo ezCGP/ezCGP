@@ -1,5 +1,6 @@
-from .skeleton_block import SkeletonBlock
+from utils import SkeletonBlock
 import operators
+
 
 class TrainingBlock(SkeletonBlock):
     def __init__(self, **kwargs):

@@ -4,7 +4,7 @@ import os
 import six
 from six.moves import cPickle as pickle
 
-from utils.training_block import TrainingBlock
+from utils import TrainingBlock
 generation_limit = 19
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
@@ -170,3 +170,4 @@ skeleton_genome = { # this defines the WHOLE GENOME
     'output': [np.ndarray],
     1: vars(training_block)
 }
+
