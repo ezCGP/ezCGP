@@ -178,8 +178,8 @@ def scoreFunction(predict, actual):
 
 
 skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
-    'tensorblock_flag': True,
-    'batch_size': 128,
+    'tensorblock_flag': True, # flag if it's input or a training block
+    'batch_size': 128, # split one image into group of 128 pixels
     'n_epochs': 1, #the number of epochs to run for while training
     # 'large_dataset': None,
     'large_dataset': (['cifar-10-batches-py/data_batch_1', \
@@ -196,8 +196,8 @@ skeleton_block = { #this skeleton defines a SINGLE BLOCK of a genome
         #operators.sub_tensors: {'prob': 1},
         #operators.mult_tensors: {'prob': 1},
         operators.dense_layer: {'prob': 1},
-        # operators.conv_layer: {'prob': 1},
-        # operators.max_pool_layer: {'prob': 1},
+        operators.conv_layer: {'prob': 1},
+        operators.max_pool_layer: {'prob': 1},
         # operators.avg_pool_layer: {'prob': 1},
         # operators.concat_func: {'prob': 1},
         # operators.sum_func: {'prob': 1},
@@ -236,3 +236,7 @@ skeleton_genome = { # this defines the WHOLE GENOME
     'output': [np.ndarray],
     1: skeleton_block
 }
+
+print("Data X, Y:")
+print(x_test)
+print(y_test)
