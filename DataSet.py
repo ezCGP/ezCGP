@@ -1,5 +1,9 @@
+import numpy as np
+
+
 class DataSet():
     def __init__(self, x, y):
+        super().__init__()
         self.__index_in_epoch = 0
         self._index_in_epoch = 0
         self._num_examples = len(x)
@@ -15,8 +19,7 @@ class DataSet():
         self._features = []
         self._labels = []
 
-    def next_batch(self, batch_size=128):
-        """Return the next `batch_size` examples from this data set."""
+    def next_batch(self, batch_size: int = 128):
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self._num_examples:
@@ -32,3 +35,6 @@ class DataSet():
                 return ret_image, ret_label
         end = self._index_in_epoch
         return self._features[start:end], self._labels[start:end]
+
+    def x_y_list(self) -> (list, list):
+        return list(self._features), list(self._labels)
