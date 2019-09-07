@@ -5,6 +5,8 @@ import six
 from six.moves import cPickle as pickle
 
 from utils.training_block import TrainingBlock
+from utils.preprocessing_block import PreprocessingBlock
+
 generation_limit = 19
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
@@ -164,9 +166,15 @@ def scoreFunction(predict, actual):
 """
 
 training_block = TrainingBlock()
+print('training block: ', vars(training_block))
+
+preprocessing_block = PreprocessingBlock()
+print('preprocessing block: ', vars(preprocessing_block))
+
 
 skeleton_genome = { # this defines the WHOLE GENOME
     'input': [np.ndarray], # we don't pass in the labels since the labels are only used at evaluation and scoring time
     'output': [np.ndarray],
-    1: vars(training_block)
+    1: vars(preprocessing_block),
+    2: vars(training_block)
 }
