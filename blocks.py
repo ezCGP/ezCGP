@@ -22,7 +22,6 @@ import tensorflow as tf
 class Block(Mate, Mutate):
     """
     Define the 'subclass' for a genome.
-
     Input nodes -> Block Instance -> Block Instance -> ... -> Output Nodes
     """
 
@@ -31,6 +30,8 @@ class Block(Mate, Mutate):
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
                  block_mut_prob, block_mate_prob,
                  tensorblock_flag=False, learning_required=False, num_classes=None, batch_size=None, n_epochs=1, large_dataset=None):
+        tf.keras.Sequential
+        tf.Session
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
 
@@ -340,8 +341,13 @@ class Block(Mate, Mutate):
         print("tensorbard killed")
 
 
-    def evaluate(self, block_inputs, labels_all, validation_pair):
 
+    def evaluate(self, block_inputs, labels_all, validation_pair):
+        """
+        :type block_inputs: object
+        :type labels_all: object
+        :type validation_pair: object
+        """
         self.resetEvalAttr()
         self.findActive()
         print("Active nodes", self.active_nodes)
