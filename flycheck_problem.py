@@ -13,6 +13,7 @@ from utils.DbManager import DbManager
 # testing a small commit
 # testing a small commit for both branches part 2
 
+
 generation_limit = 19
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
