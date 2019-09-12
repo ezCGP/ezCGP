@@ -17,7 +17,7 @@ import operators
 import arguments
 
 import tensorflow as tf
-
+from utils.DataSet import DataSet
 
 class Block(Mate, Mutate):
     """
@@ -85,6 +85,8 @@ class Block(Mate, Mutate):
         # Block - Evaluation
         self.resetEvalAttr()
 
+        self.dataset = DataSet([], []) #this is for feeding the data in batches
+
     def __setitem__(self, node_index, dict_):
         # NOTE, isn't a dict if updating output node but shouldn't matter
         self.genome[node_index] = dict_
@@ -135,39 +137,6 @@ class Block(Mate, Mutate):
         else:
             pass
 
-    def initialize_batch(self, x_train, y_train):
-        self.__index_in_epoch = 0
-        self._index_in_epoch = 0
-        self._num_examples = len(x_train)
-        self._epochs_completed = 0
-        self._images = x_train
-        self._labels = y_train
-
-    def clear_batch_structure(self):
-        self.__index_in_epoch = 0
-        self._index_in_epoch = 0
-        self._num_examples = 0
-        self._epochs_completed = 0
-        self._images = []
-        self._labels = []
-    "https://github.com/tensorflow/tensorflow/blob/7c36309c37b04843030664cdc64aca2bb7d6ecaa/tensorflow/contrib/learn/python/learn/datasets/mnist.py#L160"
-    """The method above shuffles. This one returns small batch sizes if index_in_epoch exceeds the num_example"""
-    def next_batch(self, batch_size):
-        """Return the next `batch_size` examples from this data set."""
-        start = self._index_in_epoch
-        self._index_in_epoch += batch_size
-        if self._index_in_epoch > self._num_examples:
-            self._epochs_completed += 1
-            assert batch_size <= self._num_examples
-            if self._index_in_epoch - batch_size == self._num_examples:
-                start = 0
-                self._index_in_epoch = batch_size
-            else:
-                ret_image, ret_label = self._images[self._index_in_epoch - batch_size:], self._labels[self._index_in_epoch - batch_size:]
-                self._index_in_epoch = 0
-                return ret_image, ret_label
-        end = self._index_in_epoch
-        return self._images[start:end], self._labels[start:end]
 
     def tensorflow_preprocess(self, fetch_nodes, feed_dict, data_pair):
         with tf.Session(graph=self.graph) as sess:
@@ -185,7 +154,7 @@ class Block(Mate, Mutate):
                 # this implies that the data was passed in regularly and can be
                 # held in memory
                 # initialize variables needed for batch feeding
-                self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+                self.dataset = DataSet(data_pair['x_train'], data_pair['y_train']) #replace initialize_batch
                 x_val = data_pair["x_val"]
                 y_val = data_pair["y_val"]
                 # final_outputs = []
@@ -205,8 +174,8 @@ class Block(Mate, Mutate):
                         # will hold predictions for training data at this epoch
                         epoch_outputs = []
                        # print("num examples", self._num_examples)
-                        for step in range(int(np.ceil(self._num_examples/batch_size))):
-                            X_train, y_train = self.next_batch(batch_size)
+                        for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                            X_train, y_train = self.dataset.next_batch(batch_size)
                             #print("shapes:", X_train.shape, y_train.shape)
                             feed_dict[x_batch] = X_train
                             feed_dict[y_batch] = y_train
@@ -218,7 +187,7 @@ class Block(Mate, Mutate):
                             step_loss = tf_output_dict['loss']
                             print("tf output dict structure" + str(tf_output_dict))
                             print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                                   .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                                   .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
                             # print('step_loss: ', step_loss)
                             epoch_loss += step_loss
                             # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
@@ -235,12 +204,11 @@ class Block(Mate, Mutate):
 
                     # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                     # the input data originally
-
-                    self.initialize_batch(x_val, y_val)
+                    self.dataset = DataSet(x_val, y_val)
                     batch_size = 256
                     finalOut = []
-                    for step in range(int(np.ceil(self._num_examples/batch_size))):
-                        X_train, y_train = self.next_batch(batch_size)
+                    for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                        X_train, y_train = self.dataset.next_batch(batch_size)
                         feed_dict[x_batch] = X_train
                         feed_dict[y_batch] = y_train
 
@@ -256,7 +224,7 @@ class Block(Mate, Mutate):
                 # memory and should be loaded from each of the files mentioned
                 fnames, load_fname = large_dataset
                 # initialize variables needed for batch feeding
-                self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+                self.dataset = DataSet(data_pair['x_train'], data_pair['y_train'])
                 x_val = data_pair["x_val"]
                 y_val = data_pair["y_val"]
                 # final_outputs = []
@@ -276,10 +244,10 @@ class Block(Mate, Mutate):
                         # will hold predictions for training data at this epoch
                         for fname in fnames:
                             X, y = load_fname(fname)
-                            self.initialize_batch(X, y)
+                            self.dataset = DataSet(X, y)
                            # print("num examples", self._num_examples)
-                            for step in range(int(np.ceil(self._num_examples/batch_size))):
-                                X_train, y_train = self.next_batch(batch_size)
+                            for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                                X_train, y_train = self.dataset.next_batch(batch_size)
                                 # print("shapes:", X_train.shape, y_train.shape)
                                 feed_dict[x_batch] = X_train
                                 feed_dict[y_batch] = y_train
@@ -290,7 +258,7 @@ class Block(Mate, Mutate):
                                 tf_output_dict = tf_outputs[0]
                                 step_loss = tf_output_dict['loss']
                                 print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                                       .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                                       .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
                                 # print('step_loss: ', step_loss)
                                 epoch_loss += step_loss
                                 # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
@@ -308,11 +276,11 @@ class Block(Mate, Mutate):
                     # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                     # the input data originally
 
-                    self.initialize_batch(x_val, y_val)
+                    self.dataset = Dataset(x_val, y_val)
                     batch_size = 256
                     finalOut = []
-                    for step in range(int(np.ceil(self._num_examples/batch_size))):
-                        X_train, y_train = self.next_batch(batch_size)
+                    for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                        X_train, y_train = self.dataset.next_batch(batch_size)
                         feed_dict[x_batch] = X_train
                         feed_dict[y_batch] = y_train
 
@@ -434,7 +402,7 @@ class Block(Mate, Mutate):
             except Exception as e:
                 # raise(e)
                 # print('e1')
-                print(e)
+                # print(e)
                 self.dead = True
                 break
         if not self.dead:
@@ -482,9 +450,9 @@ class Block(Mate, Mutate):
                             # now that the graph is built, we evaluate here
                             self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
                         except Exception as e:
-                            # raise(e)
-                            # print('e2')
-                            # print(e)
+                            #raise(e)
+                            #print('e2')
+                            #print(e)
                             self.dead = True
                     else:
                         # if learning_required not true
@@ -509,6 +477,7 @@ class Block(Mate, Mutate):
             self.feed_dict = {}
             self.fetch_nodes = []
             self.evaluated = [None] * self.genome_count
-            self.clear_batch_structure()
+            self.dataset.clear_batch()
+
             tf.keras.backend.clear_session()
         gc.collect()

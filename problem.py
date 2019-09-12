@@ -30,6 +30,11 @@ x_train, y_train = train
 x_test, y_test = test
 x_val, y_val = val
 
+x_train, y_train = np.array([x_train]), np.array(y_train) #this is such a weird shape requirement
+x_test, y_test = np.array([x_test]), np.array([y_test])
+x_val, y_val = np.array(x_val), np.array(y_val)
+#print(x_train.shape)
+
 # Invoke the above function to get our data.
 # x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
 # x_train = x_train.reshape(-1, 28, 28, 1)
@@ -40,7 +45,8 @@ x_val, y_val = val
 # x_train = np.array([x_train[:TRAIN_SIZE]])
 # y_train = np.array(y_train[:TRAIN_SIZE])
 
-x_test = np.array([x_test])
+#x_test = np.array([x_test])
+
 
 print('Train data shape: ', x_train.shape)
 print('Train labels shape: ', y_train.shape)
@@ -52,9 +58,13 @@ print('Test labels shape: ', y_test.shape)
 # we make dummy data that is dimensionally representative of the data we will
 # feed in to the individual so that the evaluate method can accurately construct
 # the tensorflow graph
-x_train, y_train = get_dummy_data([1000, 32, 32, 3])
+#x_train, y_train = get_dummy_data([1000, 32, 32, 3])
+# print(x_train.shape)
+# quit()
 
 def scoreFunction(predict, actual):
+    print(actual.shape)
+    print(np.array(predict).shape)
     try:
         acc_score = accuracy_score(actual, predict)
         avg_f1_score = f1_score(actual, predict, average='macro')
