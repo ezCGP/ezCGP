@@ -2,6 +2,7 @@
 
 import numpy as np
 import tensorflow as tf
+import cv2
 # #from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -142,6 +143,22 @@ operDict[mult_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 #     "output": [np.ndarray], # output labels
 #     "input": [np.ndarray] # input data
 # }
+
+
+"""
+OpenCV methods
+    1. GaussianBlur
+"""
+def gassuian_blur(input, kernel_size = 5):
+    output = []
+    for im in input:
+        output.append(cv2.GaussianBlur(im,(kernel_size,kernel_size),0))
+    return output
+
+operDict[gassuian_blur] = {"inputs": [np.ndarray],
+					"outputs": np.ndarray,
+					"args": []
+					}
 
 """
 LAYERS

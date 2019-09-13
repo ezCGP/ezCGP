@@ -110,7 +110,7 @@ def scoreFunction(predict, actual):
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 """
-preprocessing_block = PreprocessingBlock()
+preprocessing_block = PreprocessingBlock(tensorblock_flag=False)
 #print('preprocessing block: ', vars(preprocessing_block))
 
 training_block = TrainingBlock(main_count=30,learning_required=True)
