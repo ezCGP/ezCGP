@@ -2,6 +2,7 @@
 
 import numpy as np
 import tensorflow as tf
+import cv2
 # #from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -9,105 +10,6 @@ operDict = {
     "output": [np.ndarray],
     "input": [np.ndarray]
 }
-# #TODO this seems redundant; gotta clean this up
-
-# def add_ff2f(a,b):
-#     return np.add(a,b)
-# #operDict[add_ff2f] = [[np.float64, np.float64], np.float64]
-# operDict[add_ff2f] = {"inputs": [np.float64, np.float64],
-# 						"outputs": np.float64,
-# 						"args": []
-# 						}
-
-# def add_fa2a(a,b):
-#     return np.add(a,b)
-# #operDict[add_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-# operDict[add_fa2a] = {"inputs": [np.ndarray, np.float64],
-# 						"outputs": np.ndarray,
-# 						"args": []
-# 						}
-# """
-# operDict[add_fa2a] = {"inputs": [np.ndarray],
-# 						"outputs": np.ndarray,
-# 						"args": [FloatSmall],
-# 						"num_args": 3}
-# """
-
-# def add_aa2a(a,b):
-#     return np.add(a,b)
-# #operDict[add_aa2a] = [[np.ndarray,np.ndarray], np.ndarray]
-# operDict[add_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-# 						"outputs": np.ndarray,
-# 						"args": []
-# 						}
-# #operDict[add_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-# #						"outputs": np.ndarray,
-# #						"args": [],
-# #						"num_args": 3}
-
-# def sub_ff2f(a,b):
-#     return np.subtract(a,b)
-# #operDict[sub_ff2f] = [[np.float64, np.float64], np.float64]
-# operDict[sub_ff2f] = {"inputs": [np.float64, np.float64],
-# 						"outputs": np.float64,
-# 						"args": []
-# 						}
-
-# def sub_fa2a(a,b):
-#     return np.subtract(a,b)
-# #operDict[sub_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-# operDict[sub_fa2a] = {"inputs": [np.float64, np.ndarray],
-# 						"outputs": np.ndarray,
-# 						"args": []
-# 						}
-# #operDict[sub_fa2a] = {"inputs": [np.ndarray],
-# #						"outputs": np.ndarray,
-# #						"args": [FloatSmall],
-# #						"num_args": 3}
-
-# def sub_aa2a(a,b):
-#     return np.subtract(a,b)
-# #operDict[sub_aa2a] = [[np.ndarray,np.ndarray], np.ndarray]
-# operDict[sub_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-# 						"outputs": np.ndarray,
-# 						"args": []
-# 						}
-# #operDict[sub_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-# #						"outputs": np.ndarray,
-# #						"args": [],
-# #						"num_args": 3}
-
-# def mul_ff2f(a,b):
-#     return np.multiply(a,b)
-# #operDict[mul_ff2f] = [[np.float64, np.float64], np.float64]
-# operDict[mul_ff2f] = {"inputs": [np.float64, np.float64],
-# 						"outputs": np.float64,
-# 						"args": []
-# 						}
-
-# def mul_fa2a(a,b):
-#     return np.multiply(a,b)
-# #operDict[mul_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-# operDict[mul_fa2a] = {"inputs": [np.float64, np.ndarray],
-# 						"outputs": np.ndarray,
-# 						"args": []
-# 						}
-# #operDict[mul_fa2a] = {"inputs": [np.ndarray],
-# #						"outputs": np.ndarray,
-# #						"args": [FloatSmall],
-# #						"num_args": 3}
-
-# def mul_aa2a(a,b):
-#     return np.multiply(a,b)
-# #operDict[mul_aa2a] = [[np.ndarray,np.ndarray], np.ndarray]
-# operDict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-# 						"outputs": np.ndarray,
-# 						"args": []
-# 						}
-# #operDict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-# #						"outputs": np.ndarray,
-# #						"args": [],
-# #						"num_args": 3}
 
 def add_tensors(a,b):
     return tf.add(a,b)
@@ -143,6 +45,22 @@ operDict[mult_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 #     "input": [np.ndarray] # input data
 # }
 
+
+"""
+OpenCV methods
+    1. GaussianBlur
+"""
+def gassuian_blur(input, kernel_size = 5):
+    output = []
+    for im in input:
+        output.append(cv2.GaussianBlur(im,(kernel_size,kernel_size),0))
+    return output
+
+operDict[gassuian_blur] = {"inputs": [np.ndarray],
+					"outputs": np.ndarray,
+					"args": []
+					}
+
 """
 LAYERS
     1. Input
@@ -151,6 +69,7 @@ LAYERS
     4. Average Pooling
     5. Global Average Pooling
     6. Dense
+    7. Identity Layer
 """
 
 def input_layer(input_tensor):
@@ -161,9 +80,9 @@ def input_layer(input_tensor):
     return tf.reshape(input_tensor, data_shape)
 
 operDict[input_layer] = {"inputs": [tf.Tensor],
-					"outputs": tf.Tensor,
-					"args": []
-					}
+			 "outputs": tf.Tensor,
+			 "args": []
+}
 
 def conv_layer(input_tensor, filters=64, kernel_size=3):
     kernel_size = (kernel_size, kernel_size)
@@ -215,9 +134,20 @@ def dense_layer(input_tensor, num_units=128):
     return logits
 
 operDict[dense_layer] = {"inputs": [tf.Tensor],
-                            "args": ["argPow2"],
-                            "outputs": tf.Tensor,
-                            "name": 'denseLayer'}
+                         "args": ["argPow2"],
+                         "outputs": tf.Tensor,
+                         "name": 'denseLayer'}
+
+def identity_layer(input_tensor):
+    print('before identity: ', input_tensor)
+    output_tensor = tf.identity(input_tensor)
+    print('after identity: ', output_tensor)
+    return output_tensor
+
+operDict[identity_layer] = {"inputs": [tf.Tensor],
+                         "args": [],
+                         "outputs": tf.Tensor,
+                         "name": 'identityLayer'}
 
 """
 FUNCTIONS

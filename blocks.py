@@ -17,12 +17,11 @@ import operators
 import arguments
 
 import tensorflow as tf
-
+from utils.DataSet import DataSet
 
 class Block(Mate, Mutate):
     """
     Define the 'subclass' for a genome.
-
     Input nodes -> Block Instance -> Block Instance -> ... -> Output Nodes
     """
 
@@ -31,6 +30,8 @@ class Block(Mate, Mutate):
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
                  block_mut_prob, block_mate_prob,
                  tensorblock_flag=False, learning_required=False, num_classes=None, batch_size=None, n_epochs=1, large_dataset=None):
+        tf.keras.Sequential
+        tf.Session
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
 
@@ -84,6 +85,8 @@ class Block(Mate, Mutate):
         # Block - Evaluation
         self.resetEvalAttr()
 
+        self.dataset = DataSet([], []) #this is for feeding the data in batches
+
     def __setitem__(self, node_index, dict_):
         # NOTE, isn't a dict if updating output node but shouldn't matter
         self.genome[node_index] = dict_
@@ -122,7 +125,6 @@ class Block(Mate, Mutate):
 
     def resetEvalAttr(self):
         self.dead = False
-        self.has_learner = False
         self.evaluated = [None] * self.genome_count
         self.genome_output_values = []
         if self.tensorblock_flag:
@@ -135,48 +137,24 @@ class Block(Mate, Mutate):
         else:
             pass
 
-    def initialize_batch(self, x_train, y_train):
-        self.__index_in_epoch = 0
-        self._index_in_epoch = 0
-        self._num_examples = len(x_train)
-        self._epochs_completed = 0
-        self._images = x_train
-        self._labels = y_train
 
-    def clear_batch_structure(self):
-        self.__index_in_epoch = 0
-        self._index_in_epoch = 0
-        self._num_examples = 0
-        self._epochs_completed = 0
-        self._images = []
-        self._labels = []
-    "https://github.com/tensorflow/tensorflow/blob/7c36309c37b04843030664cdc64aca2bb7d6ecaa/tensorflow/contrib/learn/python/learn/datasets/mnist.py#L160"
-    """The method above shuffles. This one returns small batch sizes if index_in_epoch exceeds the num_example"""
-    def next_batch(self, batch_size):
-        """Return the next `batch_size` examples from this data set."""
-        start = self._index_in_epoch
-        self._index_in_epoch += batch_size
-        if self._index_in_epoch > self._num_examples:
-            self._epochs_completed += 1
-            assert batch_size <= self._num_examples
-            if self._index_in_epoch - batch_size == self._num_examples:
-                start = 0
-                self._index_in_epoch = batch_size
-            else:
-                ret_image, ret_label = self._images[self._index_in_epoch - batch_size:], self._labels[self._index_in_epoch - batch_size:]
-                self._index_in_epoch = 0
-                return ret_image, ret_label
-        end = self._index_in_epoch
-        return self._images[start:end], self._labels[start:end]
+    def tensorflow_preprocess(self, fetch_nodes, feed_dict, data_pair):
+        with tf.Session(graph=self.graph) as sess:
+            sess.run(tf.global_variables_initializer())
+            tf_outputs = sess.run(
+                fetches=fetch_nodes,
+                feed_dict=feed_dict)
+            return tf_outputs[0]
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         large_dataset = self.large_dataset
+        print(feed_dict)
         try:
             if (large_dataset is None):
                 # this implies that the data was passed in regularly and can be
                 # held in memory
                 # initialize variables needed for batch feeding
-                self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+                self.dataset = DataSet(data_pair['x_train'], data_pair['y_train']) #replace initialize_batch
                 x_val = data_pair["x_val"]
                 y_val = data_pair["y_val"]
                 # final_outputs = []
@@ -196,8 +174,8 @@ class Block(Mate, Mutate):
                         # will hold predictions for training data at this epoch
                         epoch_outputs = []
                        # print("num examples", self._num_examples)
-                        for step in range(int(np.ceil(self._num_examples/batch_size))):
-                            X_train, y_train = self.next_batch(batch_size)
+                        for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                            X_train, y_train = self.dataset.next_batch(batch_size)
                             #print("shapes:", X_train.shape, y_train.shape)
                             feed_dict[x_batch] = X_train
                             feed_dict[y_batch] = y_train
@@ -207,8 +185,9 @@ class Block(Mate, Mutate):
 
                             tf_output_dict = tf_outputs[0]
                             step_loss = tf_output_dict['loss']
+                            print("tf output dict structure" + str(tf_output_dict))
                             print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                                   .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                                   .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
                             # print('step_loss: ', step_loss)
                             epoch_loss += step_loss
                             # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
@@ -225,12 +204,11 @@ class Block(Mate, Mutate):
 
                     # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                     # the input data originally
-
-                    self.initialize_batch(x_val, y_val)
+                    self.dataset = DataSet(x_val, y_val)
                     batch_size = 256
                     finalOut = []
-                    for step in range(int(np.ceil(self._num_examples/batch_size))):
-                        X_train, y_train = self.next_batch(batch_size)
+                    for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                        X_train, y_train = self.dataset.next_batch(batch_size)
                         feed_dict[x_batch] = X_train
                         feed_dict[y_batch] = y_train
 
@@ -246,7 +224,7 @@ class Block(Mate, Mutate):
                 # memory and should be loaded from each of the files mentioned
                 fnames, load_fname = large_dataset
                 # initialize variables needed for batch feeding
-                self.initialize_batch(data_pair['x_train'], data_pair['y_train'])
+                self.dataset = DataSet(data_pair['x_train'], data_pair['y_train'])
                 x_val = data_pair["x_val"]
                 y_val = data_pair["y_val"]
                 # final_outputs = []
@@ -266,10 +244,10 @@ class Block(Mate, Mutate):
                         # will hold predictions for training data at this epoch
                         for fname in fnames:
                             X, y = load_fname(fname)
-                            self.initialize_batch(X, y)
+                            self.dataset = DataSet(X, y)
                            # print("num examples", self._num_examples)
-                            for step in range(int(np.ceil(self._num_examples/batch_size))):
-                                X_train, y_train = self.next_batch(batch_size)
+                            for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                                X_train, y_train = self.dataset.next_batch(batch_size)
                                 # print("shapes:", X_train.shape, y_train.shape)
                                 feed_dict[x_batch] = X_train
                                 feed_dict[y_batch] = y_train
@@ -280,7 +258,7 @@ class Block(Mate, Mutate):
                                 tf_output_dict = tf_outputs[0]
                                 step_loss = tf_output_dict['loss']
                                 print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                                       .format(epoch, step, step * batch_size, self._num_examples, step_loss))
+                                       .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
                                 # print('step_loss: ', step_loss)
                                 epoch_loss += step_loss
                                 # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
@@ -298,11 +276,11 @@ class Block(Mate, Mutate):
                     # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                     # the input data originally
 
-                    self.initialize_batch(x_val, y_val)
+                    self.dataset = Dataset(x_val, y_val)
                     batch_size = 256
                     finalOut = []
-                    for step in range(int(np.ceil(self._num_examples/batch_size))):
-                        X_train, y_train = self.next_batch(batch_size)
+                    for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                        X_train, y_train = self.dataset.next_batch(batch_size)
                         feed_dict[x_batch] = X_train
                         feed_dict[y_batch] = y_train
 
@@ -331,8 +309,13 @@ class Block(Mate, Mutate):
         print("tensorbard killed")
 
 
-    def evaluate(self, block_inputs, labels_all, validation_pair):
 
+    def evaluate(self, block_inputs, labels_all, validation_pair):
+        """
+        :type block_inputs: object
+        :type labels_all: object
+        :type validation_pair: object
+        """
         self.resetEvalAttr()
         self.findActive()
         print("Active nodes", self.active_nodes)
@@ -355,81 +338,78 @@ class Block(Mate, Mutate):
                 continue
             print('function at: {} is: {} and has arguments: {}'\
                     .format(active_node, fn, arg_values[fn['args']]))
-        if (self.learning_required) and (not self.has_learner):
-            # didn't learn, zero fitness
-            print("didn't learn, zero fitness")
-            self.dead = True
-        else:
-            print('block_input: {}'.format(np.array(block_inputs).shape))
-            data_pair = {}
-            for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
-                if self.tensorblock_flag:
+
+        print('block_input: {}'.format(np.array(block_inputs).shape))
+        data_pair = {}
+        for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
+            if self.tensorblock_flag:
 #                    self.evaluated[-1*(i+1)] = input_
-                #    print("self.evaluated: ", self.evaluated)
+            #    print("self.evaluated: ", self.evaluated)
 
-                    # consider reading in the dataset with slices..."from_tensor_slices"
-                    # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
-                    data_dimension = list(input_.shape)
-                    data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
+                # consider reading in the dataset with slices..."from_tensor_slices"
+                # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
+                data_dimension = list(input_.shape)
+                data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
 
-                    # print(data_dimension)
-                    with self.graph.as_default():
-                        batch_X = tf.placeholder(tf.float32, data_dimension, name='x_batch')
-                        self.evaluated[-1*(i+1)] = batch_X
+                # print(data_dimension)
+                with self.graph.as_default():
+                    batch_X = tf.placeholder(tf.float32, data_dimension, name='x_batch')
+                    self.evaluated[-1*(i+1)] = batch_X
 
-                    self.feed_dict[batch_X] = input_
-                    data_pair['x_train'] = input_
-                    data_pair['y_train'] = labels_all
-                    data_pair["x_val"] = validation_pair[0]
-                    data_pair["y_val"] = validation_pair[1]
+                self.feed_dict[batch_X] = input_
+                data_pair['x_train'] = input_
+                data_pair['y_train'] = labels_all
+                data_pair["x_val"] = validation_pair[0]
+                data_pair["y_val"] = validation_pair[1]
 
-                else:
-                    self.evaluated[-1*(i+1)] = input_
-            for node_index in self.active_nodes:
-                if node_index < 0:
-                    # nothing to evaluate at input nodes
-                    continue
-                elif node_index >= self.genome_main_count:
-                    # nothing to evaluate at output nodes
-                    continue
-                else:
-                    # only thing left is main node...extract "ftn", "inputs", and "args" below
-                    pass
-                # get function to evaluate
-                function = self[node_index]["ftn"]
-                # get inputs to function to evaluate
-                inputs = []
-                node_input_indices = self[node_index]["inputs"]
-                for node_input_index in node_input_indices:
-                    inputs.append(self.evaluated[node_input_index])
-                # get arguments to function to evaluate
-                args = []
-                node_arg_indices = self[node_index]["args"]
-                for node_arg_index in node_arg_indices:
-                    args.append(self.args[node_arg_index].value)
-                # and evaluate
-                try:
-                    # print(function)
-                    # print(args)
-                    if self.tensorblock_flag:
-                        # added because the objects themselves were being sent in
-                        argnums = [arg.value if type(arg) is not int \
-                                else arg for arg in args]
-                        with self.graph.as_default():
-                            # really we are building the graph here; we need to evaluate after it is fully built
-                            self.evaluated[node_index] = function(*inputs, *argnums)
-                    else:
-                        self.evaluated[node_index] = function(*inputs, *args)
-                except Exception as e:
-                    # raise(e)
-                    # print('e1')
-                    print(e)
-                    self.dead = True
-                    break
-            if not self.dead:
+            else:
+                self.evaluated[-1*(i+1)] = input_
+        for node_index in self.active_nodes:
+            if node_index < 0:
+                # nothing to evaluate at input nodes
+                continue
+            elif node_index >= self.genome_main_count:
+                # nothing to evaluate at output nodes
+                continue
+            else:
+                # only thing left is main node...extract "ftn", "inputs", and "args" below
+                pass
+            # get function to evaluate
+            function = self[node_index]["ftn"]
+            # get inputs to function to evaluate
+            inputs = []
+            node_input_indices = self[node_index]["inputs"]
+            for node_input_index in node_input_indices:
+                inputs.append(self.evaluated[node_input_index])
+            # get arguments to function to evaluate
+            args = []
+            node_arg_indices = self[node_index]["args"]
+            for node_arg_index in node_arg_indices:
+                args.append(self.args[node_arg_index].value)
+            # and evaluate
+            try:
+                # print(function)
+                # print(args)
                 if self.tensorblock_flag:
-                    # final touches in the graph
+                    # added because the objects themselves were being sent in
+                    argnums = [arg.value if type(arg) is not int \
+                            else arg for arg in args]
                     with self.graph.as_default():
+                        # really we are building the graph here; we need to evaluate after it is fully built
+                        self.evaluated[node_index] = function(*inputs, *argnums)
+                else:
+                    self.evaluated[node_index] = function(*inputs, *args)
+            except Exception as e:
+                # raise(e)
+                # print('e1')
+                # print(e)
+                self.dead = True
+                break
+        if not self.dead:
+            if self.tensorblock_flag:
+                # final touches in the graph
+                with self.graph.as_default():
+                    if self.learning_required:
                         for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                             # logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
                             # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
@@ -463,34 +443,41 @@ class Block(Mate, Mutate):
                         #tf.summary.scalar('results', results)
                         merged_summary = tf.summary.merge_all()
                         # print(loss)
-                    for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
-                        # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
-                        self.fetch_nodes.append(graph_metadata)
-                    try:
-                        # now that the graph is built, we evaluate here
-                        self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
-                    except Exception as e:
-                        # raise(e)
-                        # print('e2')
-                        # print(e)
-                        self.dead = True
-                else:
-                    # if it's not tensorflow
-                    for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
-                        referenced_node = self[output_node]
-                        self.genome_output_values.append(self.evaluated[referenced_node])
+                        for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
+                            # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
+                            self.fetch_nodes.append(graph_metadata)
+                        try:
+                            # now that the graph is built, we evaluate here
+                            self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
+                        except Exception as e:
+                            #raise(e)
+                            #print('e2')
+                            #print(e)
+                            self.dead = True
+                    else:
+                        # if learning_required not true
+                        print("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
+                        print("this is all evaluated" + str(self.evaluated))
+                        self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
+                        self.genome_output_values = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
             else:
-                pass
-            #self.evaluated = None # clear up some space by deleting eval from memory
-            self.need_evaluate = False
-            if self.tensorblock_flag:
-                # clean up all tensorflow variables so that individual can be deepcopied
-                # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
-                #     this fixes the universe.py run_universe deepcopy() bug
-                self.graph = None
-                self.feed_dict = {}
-                self.fetch_nodes = []
-                self.evaluated = [None] * self.genome_count
-                self.clear_batch_structure()
-                tf.keras.backend.clear_session()
-            gc.collect()
+                # if it's not tensorflow
+                for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
+                    referenced_node = self[output_node]
+                    self.genome_output_values.append(self.evaluated[referenced_node])
+        else:
+            pass
+        #self.evaluated = None # clear up some space by deleting eval from memory
+        self.need_evaluate = False
+        if self.tensorblock_flag:
+            # clean up all tensorflow variables so that individual can be deepcopied
+            # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
+            #     this fixes the universe.py run_universe deepcopy() bug
+            self.graph = None
+            self.feed_dict = {}
+            self.fetch_nodes = []
+            self.evaluated = [None] * self.genome_count
+            self.dataset.clear_batch()
+
+            tf.keras.backend.clear_session()
+        gc.collect()
