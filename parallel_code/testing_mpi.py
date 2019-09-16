@@ -18,4 +18,6 @@ data = comm.scatter(data, root=0)
 for i in range(len(data)):
     data[i] = data[i] * rank
 
+data = comm.gather(data, )
 print("CPU: " + str(rank), data)
+

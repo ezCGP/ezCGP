@@ -1,15 +1,9 @@
-### universe.py
-# a single instnace of a universe...unique 'state of the world'
+# RUN_UNIVERSE parallely
 
-# external packages
+
 import numpy as np
 from copy import deepcopy
-import queue
-import matplotlib.pyplot as plt
 import time
-from pathlib import Path
-
-# my scripts
 from individual import Individual
 import problem
 import selections
@@ -21,54 +15,94 @@ import mpi4py as MPI
 def evaluator_queue():
     pass
 
+def run_parallel(population,
+                 GENERATION_LIMIT,
+                 num_mutants,
+                 num_offspring,
+                 input_data,
+                 labels,
+                 block=None
+                 ):
+    converged = False
+    generation = 0
+    while (not converged) & (generation <= GENERATION_LIMIT):
+        scores = []
+        SCORE_MIN = problem.score_min
+        generation += 1
+        run_universe()
 
-def run_universe(population, num_mutants, num_offspring, input_data, labels, block=None):
-    pop_size = len(population)
+        for individual in population:
+            scores.append(individual.fitness.values[0])
 
-    print("    MUTATING")
-    for i in range(len(population)): # don't loop over population and add to population in the loop
-        individual = population[i]
-        for _ in range(num_mutants):
-            mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
-            print("deepcopied")
-            mutant.mutate(block)
-            if mutant.need_evaluate:
-                # then it did for sure mutate
-                population.append(mutant)
-            else:
-                # if mut_prob is < 1 there is a chancce it didn't mutate
-                pass
+        if np.min(scores) < SCORE_MIN:
+            converged = True
+
+        if (generation % 10) == 0 or converged:
+            sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]]
+            try:
+                print(sample_best.genome_outputs[0])
+            except:
+                import pdb
+                pdb.set_trace()
+
+    return population
+
+
+def evaluate_population(population):
     print("population after mutation", len(population))
-    # evaluate the population
     print("    EVALUATING")
     for individual in population:
         if individual.need_evaluate():
-            # look up concurrent.futures and queue...
-            #maybe make the queue thing a permanent part of universe in evaluating every individual
-            #then make solving each node customizable...gt computer nodes, locally on different processes, or on cloud compute service
-            #
-            # add to queue to evaluate individual
-            # evaluate uses multithreading to send individuals to evaluate blocks
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
-                                                                   problem.y_val))
-            individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
-                                                              predict=individual.genome_outputs)
-            print('Muatated population individual has fitness: {}' \
-                  .format(individual.fitness.values))
-    # print("after mutation")
-    # for ind in population:
-    #     print(ind.skeleton[1]["block_object"].active_nodes)
+            """
+            look up concurrent.futures and queue...
+            maybe make the queue thing a permanent part of universe in evaluating every individual
+            then make solving each node customizable...gt computer nodes, locally on different processes,
+            or on cloud compute service, add to queue to evaluate individual
+            evaluate uses multithreading to send individuals to evaluate blocks
+            """
 
-    # filter population down based off fitness
-    # new population done: rank individuals in population and trim down
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
+                                                                   problem.y_val))
+            individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
+                                                              predict=individual.genome_outputs)
+            print('Muatated population individual has fitness: {}'
+                  .format(individual.fitness.values))
+
+    """
+     print("after mutation")
+     for ind in population:
+         print(ind.skeleton[1]["block_object"].active_nodes)
+
+     filter population down based off fitness
+     new population done: rank individuals in population and trim down
+    """
+
     population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
     print("population after selection ", len(population))
     gc.collect()
-    # print("after selection")
-    # for ind in population:
-    #     print(ind.skeleton[1]["block_object"].active_nodes)
 
-    return population #, eval_queue
+    """
+    print("after selection")
+    for ind in population:
+    print(ind.skeleton[1]["block_object"].active_nodes)
+    """
+    return population
+
+
+def run_universe(sub_pop, num_mutants, num_offspring, input_data, labels, block=None):
+    print("    MUTATING")
+
+    for i in range(len(sub_pop)):
+        individual = sub_pop[i]
+        for _ in range(num_mutants):
+            mutant = deepcopy(individual)
+            print("deepcopied")
+            mutant.mutate(block)
+            if mutant.need_evaluate:
+                sub_pop.append(mutant)
+            else:
+                pass
+    return sub_pop
 
 
 def create_universe(input_data, labels, population_size=9, universe_seed=9, num_mutants=4, num_offpsring=2):
