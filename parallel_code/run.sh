@@ -1,1 +1,0 @@
-/usr/bin/mpiexec -n 4 python testing_mpi.py

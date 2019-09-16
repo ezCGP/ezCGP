@@ -9,17 +9,42 @@ import problem
 import selections
 import gc
 import os
-import mpi4py as MPI
+from mpi4py import MPI
 
-def run_universe(population, num_mutants, num_offspring, input_data, labels, block=None): # be able to select which block we want to evolve or randomly select
+
+def split_pop(pop, num_cpu):
+    pop_length = len(pop)
+    new_pop = []
+    bucket_size = int(pop_length / num_cpu)
+    left_over = []
+    for i in range(0, pop_length, bucket_size):
+        end = i + bucket_size
+        if end <= pop_length:
+            new_pop.append(
+                pop[i: end]
+            )
+        else:
+            left_over = pop[i:]
+
+    if len(left_over) > 0:
+        for i in range(len(left_over)):
+            new_pop[i].append(
+                left_over[i]
+            )
+    return new_pop
+
+
+def run_universe(population, num_mutants, num_offspring, input_data, labels,
+                 block=None):  # be able to select which block we want to evolve or randomly select
     # mate through the population
     pop_size = len(population)
     # mutate through the population
     print("    MUTATING")
-    for i in range(len(population)): # don't loop over population and add to population in the loop
+    for i in range(len(population)):  # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
-            mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
+            mutant = deepcopy(
+                individual)  # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
             print("deepcopied")
             mutant.mutate(block)
             if mutant.need_evaluate:
@@ -51,9 +76,16 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     print("population after selection ", len(population))
     gc.collect()
 
-    return population #, eval_queue
+    return population  # , eval_queue
+
 
 if __name__ == '__main__':
+
+    # Init MPI Communication and get CPU rank (ID)
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
     # set the seed and import scripts
     seed = 5
     np.random.seed(seed)
@@ -65,13 +97,13 @@ if __name__ == '__main__':
     train_data = problem.x_train
     train_labels = problem.y_train
 
-    final_populations = [] # one for each universe created
-    num_universes = 1#20
+    final_populations = []  # one for each universe created
+    num_universes = 1  # 20
     for i in range(num_universes):
         print("start new run %i" % i)
         start = time.time()
 
-        # ---------------------------------------------------CREATE UNIVERSE-----------------------------------------------------------
+        # -------------------------------CREATE UNIVERSE---------------------------------------
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
@@ -80,26 +112,42 @@ if __name__ == '__main__':
 
         np.random.seed(universe_seed)
 
-        # initialize the population
+        """
+        Population needs to contains num of Individual such that it divides num of CPU
+        Example:
+        3 CPU -> populations can contain 3, 6, or 9,.. number of elements
+        Each element can be a sub-population that each CPU will perform computation on
+        """
+        print("--------------------Scattering Population Start--------------------")
         population = []
-        for i in range(population_size):
-            individual = Individual(skeleton=problem.skeleton_genome)
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
-                                                                   problem.y_val))
+        if rank == 0:
+            buffer = []
+            for i in range(population_size):
+                individual = Individual(skeleton=problem.skeleton_genome)
+                individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
+                                                                       problem.y_val))
+                # individual.score_fitness(labels=labels)
+                try:
+                    individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
+                                                                      predict=individual.genome_outputs)
+                    print('Initialized individual has fitness: {}' \
+                          .format(individual.fitness.values))
+                except:
+                    import pdb
 
-            # individual.score_fitness(labels=labels)
-            try:
-                individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
-                                                                  predict=individual.genome_outputs)
-                print('Initialized individual has fitness: {}' \
-                      .format(individual.fitness.values))
-            except:
-                import pdb;
+                    pdb.set_trace()
+                buffer.append(individual)
+                del individual
 
-                pdb.set_trace()
+            population = split_pop(buffer, size)
 
-            population.append(individual)
-            del individual
+        """
+        Scatter population across all slave CPU
+        """
+        population = comm.scatter(population, root=0)
+
+        print("Rank: {} Length: {}".format(rank, len(population)))
+        print("--------------------Scattering Population End--------------------")
 
         # eval_queue = queue.Queue()
         generation = -1
@@ -112,16 +160,16 @@ if __name__ == '__main__':
             os.makedirs(newpath)
         file_generation = 'outputs_cifar/generation_number.npy'
         while (not converged) & (generation <= GENERATION_LIMIT):
+            """
+            Scatter population
+            """
             generation += 1
             population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
             scores = []
-            # print('printing genome_outputs')
             for individual in population:
                 scores.append(individual.fitness.values[0])
-                # print(individual.fitness.values)
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
             print(generation, np.min(scores))
-            # print(scores)
             if np.min(scores) < SCORE_MIN:
                 converged = True
             else:
