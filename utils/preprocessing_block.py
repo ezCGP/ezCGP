@@ -1,9 +1,14 @@
 from utils.skeleton_block import SkeletonBlock
 import operators
+import numpy as np
 
 class PreprocessingBlock(SkeletonBlock):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        if "input_dtype" not in kwargs:
+            self.block_input_dtypes = [np.ndarray]
+        if "output_dtype" not in kwargs:
+            self.block_outputs_dtypes = [np.ndarray]
         if "setup_dict_ftn" not in kwargs:
             # default layers
 
