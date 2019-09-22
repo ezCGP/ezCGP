@@ -107,6 +107,7 @@ class Genome():
 
     def randomFtn(self, only_one=False, exclude=None, output_dtype=None):
         choices = self.ftn_methods
+
         weights = self.ftn_weights
         if exclude is not None:
             delete = []
@@ -115,9 +116,13 @@ class Genome():
                 for c, choice in enumerate(choices):
                     if val==choice:
                         delete.append(c)
-            choices = np.delete(choices, delete)
-            weights = np.delete(weights, delete)
-            weights /= weights.sum() # normalize weights
+        
+            if len(choices) != 1:
+                print("Should not call mutate since only one function available. Returning original function")
+
+                choices = np.delete(choices, delete)
+                weights = np.delete(weights, delete)
+                weights /= weights.sum() # normalize weights
         else:
             pass
         if output_dtype is not None:
