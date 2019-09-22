@@ -23,7 +23,7 @@ if __name__ == '__main__':
     for i in range(num_universes):
         print("start new run %i" % i)
         start = time.time()
-        converged_solution = universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i, population_size=500)
+        converged_solution = universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i, population_size=4)
         final_populations.append(converged_solution)
         print("time of generation", time.time() - start)
         # post processing step for that run

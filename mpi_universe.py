@@ -114,7 +114,6 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
 
     # filter population down based off fitness
     # new population done: rank individuals in population and trim down
-    population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
     print("population after selection ", len(population))
     gc.collect()
 
@@ -253,6 +252,21 @@ if __name__ == '__main__':
             file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
             np.save(file_pop, population)
             np.save(file_generation, generation)
+
+            converged_list = None
+            generation_list = None
+
+            if rank == 0:
+                converged_list = [converged for i in range(size)]
+                generation_list = [generation for i in range(size)]
+
+            converged = comm.scatter(converged_list, root=0)
+            generation = comm.scatter(generation_list, root=0)
+
+            population = comm.gather(population, root=0)
+
+            if rank == 0:
+                population, _ = selections.selNSGA2(population, k=population_size, nd='standard')
 
         print("ending universe", time.time() - start_time)
         # ---------------------------------------------------END UNIVERSE-----------------------------------------------------------
