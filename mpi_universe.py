@@ -11,13 +11,48 @@ import gc
 import os, sys
 from mpi4py import MPI
 
+
 # Disable
 def blockPrint():
     sys.stdout = open(os.devnull, 'w')
 
+
 # Restore
 def enablePrint():
     sys.stdout = sys.__stdout__
+
+
+def create_universe(labels, pop_sz=20, seed=9, mutatn_sz=4, offspring_sz=2, comm=None, size=None, rank=None):
+    np.random.seed(seed)
+
+    if rank == 0:
+        population = [Individual(skeleton=problem.skeleton_genome) for i in range(pop_sz)]
+        population = split_pop(population, size)
+    else:
+        population = None
+
+    population = comm.scatter(population, root=0)
+
+    print("CReATE UNIVERSE SCATTER POP")
+    print(population)
+    # parallelize
+    for i in range(len(population)):
+        individual = population[i]
+        individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
+                                                               problem.y_val))
+        # individual.score_fitness(labels=labels)
+        try:
+            individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
+                                                              predict=individual.genome_outputs)
+            print('Initialized individual has fitness: {}'
+                  .format(individual.fitness.values))
+        except:
+            import pdb
+            pdb.set_trace()
+
+    population = comm.gather(population, root=0)
+    return population
+
 
 def split_pop(pop, num_cpu):
     pop_length = len(pop)
@@ -106,52 +141,57 @@ if __name__ == '__main__':
 
     final_populations = []  # one for each universe created
     num_universes = 1  # 20
-    blockPrint()
     for i in range(num_universes):
         print("start new run %i" % i)
         start = time.time()
 
         # -------------------------------CREATE UNIVERSE---------------------------------------
+        print("--------------------CREATE UNIVERSE--------------------")
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 500
+        population_size = 2
         num_mutants, num_offpsring = 4, 2
 
         np.random.seed(universe_seed)
 
-        """
-        Population needs to contains num of Individual such that it divides num of CPU
-        Example:
-        3 CPU -> populations can contain 3, 6, or 9,.. number of elements
-        Each element can be a sub-population that each CPU will perform computation on
-        """
-        print("--------------------Scattering Population Start--------------------")
-        population = []
         if rank == 0:
-            buffer = []
+            population = []
             for i in range(population_size):
-                individual = Individual(skeleton=problem.skeleton_genome)
-                individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
-                                                                       problem.y_val))
-                # individual.score_fitness(labels=labels)
-                try:
-                    individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
-                                                                      predict=individual.genome_outputs)
-                    print('Initialized individual has fitness: {}' \
-                          .format(individual.fitness.values))
-                except:
-                    import pdb
+                ind = Individual(skeleton=problem.skeleton_genome)
+                ind.clear_rec()
+                ind = deepcopy(ind)
+                population.append(ind)
+            population = split_pop(population, size)
+            print("Pop length", len(population))
+            for p in population:
+                print("Sub pop", len(p))
+        else:
+            population = None
 
-                    pdb.set_trace()
-                buffer.append(individual)
-                del individual
+        population = comm.scatter(population, root=0)
 
-            population = split_pop(buffer, size)
+        print("CReATE UNIVERSE SCATTER POP")
+        print(population)
+        # parallelize
+        for i in range(len(population)):
+            individual = population[i]
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
+                                                                   problem.y_val))
+            # individual.score_fitness(labels=labels)
+            try:
+                individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
+                                                                  predict=individual.genome_outputs)
+                print('Initialized individual has fitness: {}'
+                      .format(individual.fitness.values))
+            except:
+                import pdb
 
-        enablePrint()
+                pdb.set_trace()
 
-        print("EVOLUTION BEGINS")
+        population = comm.gather(population, root=0)
+
+        print("--------------------END CREATE UNIVERSE--------------------")
 
         # eval_queue = queue.Queue()
         generation = -1
@@ -211,20 +251,6 @@ if __name__ == '__main__':
                 plt.close()
                 '''
             file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
-
-            """
-            MASTER SCATTER CONVERGED AND GENERATION COUNT CONDITION
-            """
-            converged_list = [converged for i in range(size)]
-            generation_list = [generation for i in range(size)]
-            converged = comm.scatter(converged_list, root=0)
-            generation = comm.scatter(generation_list, root=0)
-
-            """
-            GATHER EVALUATED POPULATION BACK TO MASTER NODE
-            """
-            population = comm.gather(population, root=0)
-
             np.save(file_pop, population)
             np.save(file_generation, generation)
 

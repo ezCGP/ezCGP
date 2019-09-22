@@ -473,11 +473,14 @@ class Block(Mate, Mutate):
             # clean up all tensorflow variables so that individual can be deepcopied
             # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
             #     this fixes the universe.py run_universe deepcopy() bug
-            self.graph = None
-            self.feed_dict = {}
-            self.fetch_nodes = []
-            self.evaluated = [None] * self.genome_count
-            self.dataset.clear_batch()
-
-            tf.keras.backend.clear_session()
+            self.rec_clear()
         gc.collect()
+
+    def rec_clear(self):
+        self.graph = None
+        self.feed_dict = {}
+        self.fetch_nodes = []
+        self.evaluated = [None] * self.genome_count
+        self.dataset.clear_batch()
+
+        tf.keras.backend.clear_session()

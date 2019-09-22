@@ -82,6 +82,10 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                 pass
         return False
 
+    def clear_rec(self):
+        for i in range(1,self.num_blocks+1):
+            block = self.skeleton[i]["block_object"]
+            block.rec_clear()
 
     def evaluate(self, data, labels=None, validation_pair=None):
         # added validation pair support external validation of labels/data in each block
