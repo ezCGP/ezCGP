@@ -111,7 +111,7 @@ def scoreFunction(predict, actual):
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 """
-preprocessing_block = PreprocessingBlock(tensorblock_flag=True, apply_to_val = True, input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
+preprocessing_block = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 #print('preprocessing block: ', vars(preprocessing_block))
 
 training_block = TrainingBlock(main_count=30,learning_required=True, apply_to_val = False)

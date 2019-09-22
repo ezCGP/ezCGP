@@ -147,14 +147,14 @@ class Block(Mate, Mutate):
             tf_outputs = sess.run(
                 fetches=fetch_nodes,
                 feed_dict=feed_dict)
-            val_outputs = []
+            val_outputs = None
             if self.apply_to_val:
                 x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
                 feed_dict[x_batch] = data_pair["x_val"]
                 val_outputs = sess.run(
                 fetches=fetch_nodes,
-                feed_dict=feed_dict)
-            return tf_outputs[0], val_outputs[0]
+                feed_dict=feed_dict)[0]
+            return tf_outputs[0], val_outputs
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         large_dataset = self.large_dataset
