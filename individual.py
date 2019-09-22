@@ -96,6 +96,8 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             block = self.skeleton[i]["block_object"]
             block.evaluate(block_inputs=data, labels_all=labels, validation_pair=validation_pair)
             data = self.skeleton[i]["block_object"].genome_output_values
+            if block.apply_to_val:
+                validation_pair = self.skeleton[i]["block_object"].validation_pair_output
 
             # after running enumerate in individual.evaluate(), data strips down one dimension, so add back the dimension
             if block.tensorblock_flag and i != self.num_blocks:

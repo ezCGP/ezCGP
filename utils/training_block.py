@@ -4,6 +4,9 @@ import operators
 class TrainingBlock(SkeletonBlock):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        if "apply_to_val" not in kwargs:
+            self.apply_to_val = False
+
         if "setup_dict_ftn" not in kwargs:
             # default layers
 

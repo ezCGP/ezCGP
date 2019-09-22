@@ -29,7 +29,7 @@ class Block(Mate, Mutate):
                  setup_dict_ftn, setup_dict_arg, setup_dict_mate, setup_dict_mut,
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
                  block_mut_prob, block_mate_prob,
-                 tensorblock_flag=False, learning_required=False, num_classes=None, batch_size=None, n_epochs=1, large_dataset=None):
+                 tensorblock_flag=False, learning_required=False, apply_to_val = True, num_classes=None, batch_size=None, n_epochs=1, large_dataset=None):
         tf.keras.Sequential
         tf.Session
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
@@ -61,6 +61,7 @@ class Block(Mate, Mutate):
         # Block - MetaData
         self.name = nickname
         self.tensorblock_flag = tensorblock_flag
+        self.apply_to_val = apply_to_val
         self.logs_path = tempfile.mkdtemp()
         self.learning_required = learning_required #
         self.num_classes = 10 # number of classes for what we are trying to classify...only relevant if there is supposed to be a learner
@@ -126,7 +127,9 @@ class Block(Mate, Mutate):
     def resetEvalAttr(self):
         self.dead = False
         self.evaluated = [None] * self.genome_count
+        self.val_evaluated = [None] * self.genome_count
         self.genome_output_values = []
+        self.validation_pair_output = None
         if self.tensorblock_flag:
             self.graph = tf.Graph()
             self.feed_dict = {}
@@ -144,7 +147,14 @@ class Block(Mate, Mutate):
             tf_outputs = sess.run(
                 fetches=fetch_nodes,
                 feed_dict=feed_dict)
-            return tf_outputs[0]
+            val_outputs = []
+            if self.apply_to_val:
+                x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+                feed_dict[x_batch] = data_pair["x_val"]
+                val_outputs = sess.run(
+                fetches=fetch_nodes,
+                feed_dict=feed_dict)
+            return tf_outputs[0], val_outputs[0]
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         large_dataset = self.large_dataset
@@ -359,10 +369,12 @@ class Block(Mate, Mutate):
                 self.feed_dict[batch_X] = input_
                 data_pair['x_train'] = input_
                 data_pair['y_train'] = labels_all
+                print("validation pair", validation_pair)
                 data_pair["x_val"] = validation_pair[0]
                 data_pair["y_val"] = validation_pair[1]
 
             else:
+                self.val_evaluated[-1*(i+1)] = validation_pair[0]
                 self.evaluated[-1*(i+1)] = input_
         for node_index in self.active_nodes:
             if node_index < 0:
@@ -378,9 +390,11 @@ class Block(Mate, Mutate):
             function = self[node_index]["ftn"]
             # get inputs to function to evaluate
             inputs = []
+            val_inputs = []
             node_input_indices = self[node_index]["inputs"]
             for node_input_index in node_input_indices:
                 inputs.append(self.evaluated[node_input_index])
+                val_inputs.append(self.val_evaluated[node_input_index])
             # get arguments to function to evaluate
             args = []
             node_arg_indices = self[node_index]["args"]
@@ -398,6 +412,10 @@ class Block(Mate, Mutate):
                         # really we are building the graph here; we need to evaluate after it is fully built
                         self.evaluated[node_index] = function(*inputs, *argnums)
                 else:
+                    if self.apply_to_val:
+                        self.val_evaluated[node_index] = function(*val_inputs, *args)
+                        # print("val eval", self.val_evaluated[node_index])
+                        # quit()
                     self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
                 # raise(e)
@@ -459,11 +477,15 @@ class Block(Mate, Mutate):
                         print("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
                         print("this is all evaluated" + str(self.evaluated))
                         self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
-                        self.genome_output_values = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
+                        self.genome_output_values, val_train = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
+                        if self.apply_to_val:
+                            self.validation_pair_output = (val_train, validation_pair[1])
             else:
                 # if it's not tensorflow
                 for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                     referenced_node = self[output_node]
+                    if self.apply_to_val:
+                        self.validation_pair_output = (self.val_evaluated[referenced_node], validation_pair[1])
                     self.genome_output_values.append(self.evaluated[referenced_node])
         else:
             pass
