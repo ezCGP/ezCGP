@@ -1,6 +1,4 @@
-# RUN_UNIVERSE parallely
-
-
+# RUN_UNIVERSE parallelly
 import numpy as np
 from copy import deepcopy
 import time
@@ -10,6 +8,40 @@ import selections
 import gc
 import os
 from mpi4py import MPI
+
+
+def create_universe(labels, pop_sz=20, seed=9, mutatn_sz=4, offspring_sz=2):
+    np.random.seed(seed)
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    sub_pop = []
+    if rank == 0:
+        pop = [Individual(skeleton=problem.skeleton_genome) for i in range(pop_sz)]
+        sub_pop = split_pop(pop, size)
+
+    population = comm.scatter(sub_pop, root=0)
+
+    # parallelize
+    for i in range(len(population)):
+        individual = population[i]
+        individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
+                                                               problem.y_val))
+        # individual.score_fitness(labels=labels)
+        try:
+            individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
+                                                              predict=individual.genome_outputs)
+            print('Initialized individual has fitness: {}'
+                  .format(individual.fitness.values))
+        except:
+            import pdb
+            pdb.set_trace()
+
+    population = comm.gather(population, root=0)
+    print(population)
+    return population
 
 
 def split_pop(pop, num_cpu):
@@ -112,42 +144,8 @@ if __name__ == '__main__':
 
         np.random.seed(universe_seed)
 
-        """
-        Population needs to contains num of Individual such that it divides num of CPU
-        Example:
-        3 CPU -> populations can contain 3, 6, or 9,.. number of elements
-        Each element can be a sub-population that each CPU will perform computation on
-        """
-        print("--------------------Scattering Population Start--------------------")
-        population = []
-        if rank == 0:
-            buffer = []
-            for i in range(population_size):
-                individual = Individual(skeleton=problem.skeleton_genome)
-                individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
-                                                                       problem.y_val))
-                # individual.score_fitness(labels=labels)
-                try:
-                    individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
-                                                                      predict=individual.genome_outputs)
-                    print('Initialized individual has fitness: {}' \
-                          .format(individual.fitness.values))
-                except:
-                    import pdb
-
-                    pdb.set_trace()
-                buffer.append(individual)
-                del individual
-
-            population = split_pop(buffer, size)
-
-        """
-        Scatter population across all slave CPU
-        """
-        population = comm.scatter(population, root=0)
-
-        print("Rank: {} Length: {}".format(rank, len(population)))
-        print("--------------------Scattering Population End--------------------")
+        print("--------------------CREATE UNIVERSE--------------------")
+        population = create_universe(labels, population_size, universe_seed, num_mutants, num_offpsring)
 
         # eval_queue = queue.Queue()
         generation = -1
