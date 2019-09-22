@@ -8,9 +8,16 @@ from individual import Individual
 import problem
 import selections
 import gc
-import os
+import os, sys
 from mpi4py import MPI
 
+# Disable
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+
+# Restore
+def enablePrint():
+    sys.stdout = sys.__stdout__
 
 def split_pop(pop, num_cpu):
     pop_length = len(pop)
@@ -99,6 +106,7 @@ if __name__ == '__main__':
 
     final_populations = []  # one for each universe created
     num_universes = 1  # 20
+    blockPrint()
     for i in range(num_universes):
         print("start new run %i" % i)
         start = time.time()
@@ -141,13 +149,9 @@ if __name__ == '__main__':
 
             population = split_pop(buffer, size)
 
-        """
-        Scatter population across all slave CPU
-        """
-        population = comm.scatter(population, root=0)
+        enablePrint()
 
-        print("Rank: {} Length: {}".format(rank, len(population)))
-        print("--------------------Scattering Population End--------------------")
+        print("EVOLUTION BEGINS")
 
         # eval_queue = queue.Queue()
         generation = -1
@@ -161,8 +165,14 @@ if __name__ == '__main__':
         file_generation = 'outputs_cifar/generation_number.npy'
         while (not converged) & (generation <= GENERATION_LIMIT):
             """
-            Scatter population
+            
+            SCATTER POPULATION ACROSS ALL SLAVE CPU
+            
             """
+            population = comm.scatter(population, root=0)
+            print("Rank: {} Length: {}".format(rank, len(population)))
+            print("--------------------Scattering Population End--------------------")
+
             generation += 1
             population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
             scores = []
@@ -201,6 +211,20 @@ if __name__ == '__main__':
                 plt.close()
                 '''
             file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
+
+            """
+            MASTER SCATTER CONVERGED AND GENERATION COUNT CONDITION
+            """
+            converged_list = [converged for i in range(size)]
+            generation_list = [generation for i in range(size)]
+            converged = comm.scatter(converged_list, root=0)
+            generation = comm.scatter(generation_list, root=0)
+
+            """
+            GATHER EVALUATED POPULATION BACK TO MASTER NODE
+            """
+            population = comm.gather(population, root=0)
+
             np.save(file_pop, population)
             np.save(file_generation, generation)
 
