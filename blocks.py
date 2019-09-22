@@ -129,7 +129,7 @@ class Block(Mate, Mutate):
         self.evaluated = [None] * self.genome_count
         self.val_evaluated = [None] * self.genome_count
         self.genome_output_values = []
-        self.validation_pair_output = []
+        self.validation_pair_output = None
         if self.tensorblock_flag:
             self.graph = tf.Graph()
             self.feed_dict = {}
@@ -147,7 +147,14 @@ class Block(Mate, Mutate):
             tf_outputs = sess.run(
                 fetches=fetch_nodes,
                 feed_dict=feed_dict)
-            return tf_outputs[0]
+            val_outputs = []
+            if self.apply_to_val:
+                x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+                feed_dict[x_batch] = data_pair["x_val"][0]
+                val_outputs = sess.run(
+                fetches=fetch_nodes,
+                feed_dict=feed_dict)
+            return tf_outputs[0], val_outputs[0]
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         large_dataset = self.large_dataset
@@ -470,13 +477,15 @@ class Block(Mate, Mutate):
                         print("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
                         print("this is all evaluated" + str(self.evaluated))
                         self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
-                        self.genome_output_values = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
+                        self.genome_output_values, val_train = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
+                        if self.apply_to_val:
+                            self.validation_pair_output = (val_train, validation_pair[1])
             else:
                 # if it's not tensorflow
                 for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                     referenced_node = self[output_node]
                     if self.apply_to_val:
-                        self.validation_pair_output.append((self.val_evaluated[referenced_node], validation_pair[1]))
+                        self.validation_pair_output = (self.val_evaluated[referenced_node], validation_pair[1])
                     self.genome_output_values.append(self.evaluated[referenced_node])
         else:
             pass
