@@ -10,6 +10,7 @@ class SkeletonBlock:
     def __init__(self,
                  tensorblock_flag=True,
                  learning_required=False,
+                 apply_to_val = True,
                  batch_size=128,
                  n_epochs=1,
                  large_dataset=None,
@@ -36,6 +37,7 @@ class SkeletonBlock:
 
         self.tensorblock_flag = tensorblock_flag
         self.learning_required = learning_required
+        self.apply_to_val = apply_to_val
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.large_dataset = large_dataset

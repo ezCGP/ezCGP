@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import os
 import six
+import tensorflow as tf
 from six.moves import cPickle as pickle
 
 from utils.training_block import TrainingBlock
@@ -110,10 +111,10 @@ def scoreFunction(predict, actual):
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 """
-preprocessing_block = PreprocessingBlock(tensorblock_flag=False)
+preprocessing_block = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 #print('preprocessing block: ', vars(preprocessing_block))
 
-training_block = TrainingBlock(main_count=30,learning_required=True)
+training_block = TrainingBlock(main_count=30,learning_required=True, apply_to_val = False)
 #print('training block: ', vars(training_block))
 
 skeleton_genome = { # this defines the WHOLE GENOME
