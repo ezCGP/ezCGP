@@ -15,37 +15,23 @@ def add_tensors(a,b):
     return tf.add(a,b)
 operDict[add_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
-						"args": []
-            }
+						"args": []}
 
 def sub_fa2a(a,b):
     return np.subtract(a,b)
-#operDict[sub_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-#operDict[sub_fa2a] = {"inputs": [np.ndarray],
-#						"outputs": np.ndarray,
-#						"args": ["argFloat"]
-#						}
+
 def sub_tensors(a,b):
     return tf.subtract(a,b)
 operDict[sub_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
-						"args": []
-						}
+						"args": []}
 def mult_tensors(a,b):
     return tf.multiply(a,b)
 operDict[mult_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
-						"args": []
-						}
+						"args": []}
 
 ########################## TENSORFLOW OPERATORS ###############################
-
-# operDict = {
-#     "output": [np.ndarray], # output labels
-#     "input": [np.ndarray] # input data
-# }
-
-
 """
 OpenCV methods
     1. GaussianBlur
@@ -59,8 +45,7 @@ def gassuian_blur(input):
 
 operDict[gassuian_blur] = {"inputs": [np.ndarray],
 					"outputs": np.ndarray,
-					"args": []
-					}
+					"args": []}
 
 """
 LAYERS
@@ -82,8 +67,7 @@ def input_layer(input_tensor):
 
 operDict[input_layer] = {"inputs": [tf.Tensor],
 			 "outputs": tf.Tensor,
-			 "args": []
-}
+			 "args": []}
 
 def conv_layer(input_tensor, filters=64, kernel_size=3):
     kernel_size = (kernel_size, kernel_size)
@@ -125,8 +109,6 @@ operDict[avg_pool_layer] = {"inputs": [tf.Tensor],
 def global_avg_pool_layer(input_tensor):
     return global_avg_pool(input_tensor)
 
-#
-#
 def dense_layer(input_tensor, num_units=128):
     # Flatten tensor into a batch of vectors
     pool2_flat = tf.layers.Flatten()(input_tensor)
@@ -158,7 +140,6 @@ FUNCTIONS
     4. Summation
     5. Sigmoid
 """
-
 
 def norm_func(input_tensor):
     # Batch Normalization
@@ -262,39 +243,3 @@ operDict[identity_block] = {"inputs": [tf.Tensor],
                             "args": ["argPow2", "argFilterSize"],
                             "outputs": tf.Tensor,
                             "name": 'identityBlock'}
-
-'''Commented and left until args are checked'''
-
-# operDict[conv_block] = {"inputs": [tf.Tensor],
-#                             "args": [argInt, argInt],
-#                             "outputs": tf.Tensor,
-#                             "name": 'convBlock'}
-
-# operDict[res_block] = {"inputs": [tf.Tensor],
-#                             "args": [argInt, argInt, argInt, argInt],
-#                             "outputs": tf.Tensor,
-#                             "name": 'resBlock'}
-
-def mul_fa2a(a,b):
-    return np.multiply(a,b)
-#operDict[mul_fa2a] = [[np.float64,np.ndarray], np.ndarray]
-#operDict[mul_fa2a] = {"inputs": [np.ndarray],
-#						"outputs": np.ndarray,
-#						"args": ["argFloat"]
-#						}
-#operDict[mul_fa2a] = {"inputs": [np.ndarray],
-#						"outputs": np.ndarray,
-#						"args": [FloatSmall],
-#						"num_args": 3}
-
-def mul_aa2a(a,b):
-    return np.multiply(a,b)
-#operDict[mul_aa2a] = [[np.ndarray,np.ndarray], np.ndarray]
-#operDict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-#						"outputs": np.ndarray,
-#						"args": []
-#						}
-#operDict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
-#						"outputs": np.ndarray,
-#						"args": [],
-#						"num_args": 3}

@@ -51,14 +51,14 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
             else:
                 # if mut_prob is < 1 there is a chancce it didn't mutate
                 pass
-    print("population after mutation", len(population))
+    
     # evaluate the population
     print("    EVALUATING")
     for individual in population:
         if individual.need_evaluate():
             # look up concurrent.futures and queue...
-            #maybe make the queue thing a permanent part of universe in evaluating every individual
-            #then make solving each node customizable...gt computer nodes, locally on different processes, or on cloud compute service
+            # maybe make the queue thing a permanent part of universe in evaluating every individual
+            # then make solving each node customizable...gt computer nodes, locally on different processes, or on cloud compute service
             #
             # add to queue to evaluate individual
             # evaluate uses multithreading to send individuals to evaluate blocks
@@ -68,18 +68,12 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
                 predict=individual.genome_outputs)
             print('Muatated population individual has fitness: {}'\
                 .format(individual.fitness.values))
-    # print("after mutation")
-    # for ind in population:
-    #     print(ind.skeleton[1]["block_object"].active_nodes)
 
     # filter population down based off fitness
     # new population done: rank individuals in population and trim down
     population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
     print("population after selection ", len(population))
     gc.collect()
-    # print("after selection")
-    # for ind in population:
-    #     print(ind.skeleton[1]["block_object"].active_nodes)
 
     return population #, eval_queue
 
@@ -118,17 +112,18 @@ def create_universe(input_data, labels, population_size=9, universe_seed=9, num_
     if not os.path.exists(newpath):
         os.makedirs(newpath)
     file_generation = 'outputs_cifar/generation_number.npy'
+
     while (not converged) & (generation<=GENERATION_LIMIT):
         generation += 1
         population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
         scores = []
-        # print('printing genome_outputs')
+
         for individual in population:
             scores.append(individual.fitness.values[0])
-            # print(individual.fitness.values)
+
         print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
         print(generation, np.min(scores))
-        # print(scores)
+
         if np.min(scores) < SCORE_MIN:
             converged = True
         else:

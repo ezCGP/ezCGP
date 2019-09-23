@@ -22,7 +22,7 @@ class TrainingBlock(SkeletonBlock):
                 # operators.conv_block: {'prob': 1},	
                 # operators.res_block: {'prob': 1},	
                 # operators.sqeeze_excitation_block: {'prob': 1},	
-                #operators.identity_block: {'prob': 1}, # TODO replace this with info from operator_dict?
+                # operators.identity_block: {'prob': 1}, # TODO replace this with info from operator_dict?
             }
         else:
             # specific layers

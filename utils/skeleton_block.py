@@ -32,8 +32,8 @@ class SkeletonBlock:
                  main_count=4,
                  arg_count=20,
                  mut_prob=1,
-                 mate_prob=0
-                 ):
+                 mate_prob=0):
+
         self.tensorblock_flag = tensorblock_flag
         self.learning_required = learning_required
         self.batch_size = batch_size
@@ -51,5 +51,3 @@ class SkeletonBlock:
         self.block_arg_count = arg_count
         self.block_mut_prob = mut_prob
         self.block_mate_prob = mate_prob
-
-

@@ -148,7 +148,6 @@ class Block(Mate, Mutate):
 
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
         large_dataset = self.large_dataset
-        print(feed_dict)
         try:
             if (large_dataset is None):
                 # this implies that the data was passed in regularly and can be
@@ -173,10 +172,8 @@ class Block(Mate, Mutate):
                         epoch_loss = 0 # holds cumulative loss over the epoch
                         # will hold predictions for training data at this epoch
                         epoch_outputs = []
-                       # print("num examples", self._num_examples)
                         for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
                             X_train, y_train = self.dataset.next_batch(batch_size)
-                            #print("shapes:", X_train.shape, y_train.shape)
                             feed_dict[x_batch] = X_train
                             feed_dict[y_batch] = y_train
                             tf_outputs = sess.run(
@@ -185,9 +182,9 @@ class Block(Mate, Mutate):
 
                             tf_output_dict = tf_outputs[0]
                             step_loss = tf_output_dict['loss']
-                            print("tf output dict structure" + str(tf_output_dict))
-                            print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                                   .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
+                            #print("tf output dict structure" + str(tf_output_dict))
+                            #print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                            #       .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
                             # print('step_loss: ', step_loss)
                             epoch_loss += step_loss
                             # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
@@ -245,10 +242,8 @@ class Block(Mate, Mutate):
                         for fname in fnames:
                             X, y = load_fname(fname)
                             self.dataset = DataSet(X, y)
-                           # print("num examples", self._num_examples)
                             for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
                                 X_train, y_train = self.dataset.next_batch(batch_size)
-                                # print("shapes:", X_train.shape, y_train.shape)
                                 feed_dict[x_batch] = X_train
                                 feed_dict[y_batch] = y_train
                                 tf_outputs = sess.run(
@@ -320,10 +315,6 @@ class Block(Mate, Mutate):
         self.findActive()
         print("Active nodes", self.active_nodes)
         arg_values = np.array(self.args)
-        # for active_node in self.active_nodes:
-        #     fn = self[active_node]
-        #     print(fn)
-        #     print('function at: {} is: {}'.format(active_node, fn))
         for active_node in self.active_nodes:
             fn = self[active_node]
             if active_node < 0:
@@ -343,9 +334,6 @@ class Block(Mate, Mutate):
         data_pair = {}
         for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
             if self.tensorblock_flag:
-#                    self.evaluated[-1*(i+1)] = input_
-            #    print("self.evaluated: ", self.evaluated)
-
                 # consider reading in the dataset with slices..."from_tensor_slices"
                 # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
                 data_dimension = list(input_.shape)
@@ -388,8 +376,6 @@ class Block(Mate, Mutate):
                 args.append(self.args[node_arg_index].value)
             # and evaluate
             try:
-                # print(function)
-                # print(args)
                 if self.tensorblock_flag:
                     # added because the objects themselves were being sent in
                     argnums = [arg.value if type(arg) is not int \
@@ -400,9 +386,6 @@ class Block(Mate, Mutate):
                 else:
                     self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
-                # raise(e)
-                # print('e1')
-                # print(e)
                 self.dead = True
                 break
         if not self.dead:
@@ -415,11 +398,9 @@ class Block(Mate, Mutate):
                             # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                             #                             logits,
                             #                             tf.cast(labels,dtype=tf.float32)))
-                        #    print("self[output_node]:", self[output_node])
-                        #    print("self.evaluated[self[output_node]]:", self.evaluated[self[output_node]])
+
                             # flatten input matrix to meet NN output size (numinstances, numclasses)
                             flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
-                        #    print(flattened)
                             labels = tf.placeholder(tf.int32, [None], name='y_batch')
                             logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
                             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
@@ -442,7 +423,6 @@ class Block(Mate, Mutate):
                         #tf.summary.scalar('logits', logits)
                         #tf.summary.scalar('results', results)
                         merged_summary = tf.summary.merge_all()
-                        # print(loss)
                         for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
                             # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
                             self.fetch_nodes.append(graph_metadata)

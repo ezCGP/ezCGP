@@ -10,7 +10,7 @@ individual.evaluate(problem.x_train, problem.y_train, (problem.x_test, problem.y
 
 individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=individual.genome_outputs)
 print('individual has fitness: ', individual.fitness.values)
-#
+
 # # print(individual.genome_outputs)
 # # print(individual.dead)
 # for i in range(1,individual.num_blocks+1):
@@ -58,7 +58,7 @@ print('individual has fitness: ', individual.fitness.values)
 #         print('function at: {} is: {} and has arguments: {}'\
 #                 .format(active_node, fn, arg_values[fn['args']]))
 #
-# # print('labels: {} have shape: {}\ngenome_outputs: {} have shape: {}'\
-# #     .format(train_labels, train_labels.shape, individual.genome_outputs, individual.genome_outputs.shape))
-# # individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=individual.genome_outputs)
-# # print('individual has fitness: ', individual.fitness.values)
+# print('labels: {} have shape: {}\ngenome_outputs: {} have shape: {}'\
+#      .format(train_labels, train_labels.shape, individual.genome_outputs, individual.genome_outputs.shape))
+# individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=individual.genome_outputs)
+# print('individual has fitness: ', individual.fitness.values)
