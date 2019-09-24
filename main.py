@@ -1,9 +1,10 @@
 ### main.py
-
+import utils.LogSetup 
 # external packages
 from copy import deepcopy
 import numpy as np
 import time
+import logging
 
 
 if __name__ == '__main__':

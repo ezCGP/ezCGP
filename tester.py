@@ -1,7 +1,7 @@
+import utils.LogSetup #import this first
 from individual import Individual
 import problem
 import numpy as np
-
 train_data = problem.x_train
 train_labels = problem.y_train
 

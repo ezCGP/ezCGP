@@ -11,6 +11,7 @@ from pathlib import Path
 
 # my scripts
 from individual import Individual
+import logging
 import problem
 import selections
 import gc
@@ -23,6 +24,7 @@ def evaluator_queue():
 
 def run_universe(population, num_mutants, num_offspring, input_data, labels, block=None): # be able to select which block we want to evolve or randomly select
     # mate through the population
+
     pop_size = len(population)
     '''
     mating_list = tournamentSelection(population, k=len(population)) #double check that k works
@@ -80,7 +82,6 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
 
 def create_universe(input_data, labels, population_size=9, universe_seed=9, num_mutants=4, num_offpsring=2):
     np.random.seed(universe_seed)
-
     #ind1=Individual(skeleton=problem.skeleton_genome);ind2=Individual(skeleton=problem.skeleton_genome);import pdb;pdb.set_trace() # DEBUG
 
     # initialize the population
