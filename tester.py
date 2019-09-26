@@ -9,11 +9,11 @@ individual = Individual(problem.skeleton_genome)
 individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val))
 
 individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=individual.genome_outputs)
-print('individual has fitness: ', individual.fitness.values)
+print('individual has fitness: {}'.format(individual.fitness.values))
 
 # # print(individual.genome_outputs)
 # # print(individual.dead)
-# for i in range(1,individual.num_blocks+1):
+# for i in range(1,individual.num_blocks+1):zfg
 #     curr_block = individual.skeleton[i]["block_object"]
 #     # print('curr_block: {}'.format(curr_block))
 #     arg_values = np.array(curr_block.args)

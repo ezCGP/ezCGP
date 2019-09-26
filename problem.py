@@ -125,6 +125,7 @@ skeleton_genome = { # this defines the WHOLE GENOME
     2: vars(training_block)
 }
 
+
 logging.info(("Data X, Y:"))
 logging.info(x_test)
 logging.info(y_test)
