@@ -47,6 +47,17 @@ operDict[gassuian_blur] = {"inputs": [np.ndarray],
 			   "outputs": np.ndarray,
 			   "args": ['argKernelSize']}
 
+
+"""
+Normalization methods
+"""
+def ceil_greyscale_norm(input):
+    return input/255
+
+operDict[ceil_greyscale_norm] = {"inputs": [np.ndarray],
+                            "outputs": [np.ndarray],
+                            "args": []
+                        }
 """
 LAYERS
     1. Input

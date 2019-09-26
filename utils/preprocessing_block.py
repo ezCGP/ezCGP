@@ -19,6 +19,7 @@ class PreprocessingBlock(SkeletonBlock):
             self.setup_dict_ftn = {
             #    operators.identity_layer: {"prob": 1}
                  operators.gassuian_blur: {'prob': 1},
+                 operators.ceil_greyscale_norm: {'prob': 1}
             }
         else:
             # specific layers
