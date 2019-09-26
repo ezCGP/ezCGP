@@ -80,7 +80,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     return population #, eval_queue
 
 
-def create_universe(input_data, labels, population_size=9, universe_seed=9, num_mutants=4, num_offpsring=2):
+def create_universe(input_data, labels, population_size=2, universe_seed=9, num_mutants=2, num_offpsring=2):
     np.random.seed(universe_seed)
     #ind1=Individual(skeleton=problem.skeleton_genome);ind2=Individual(skeleton=problem.skeleton_genome);import pdb;pdb.set_trace() # DEBUG
 

@@ -12,9 +12,10 @@ import gc
 from mate_methods import Mate
 from mutate_methods import Mutate
 import tensorflow as tf
-#from fintess import Fitness
+
 import operators
 import arguments
+import logging
 
 import tensorflow as tf
 from utils.DataSet import DataSet
@@ -192,22 +193,22 @@ class Block(Mate, Mutate):
 
                             tf_output_dict = tf_outputs[0]
                             step_loss = tf_output_dict['loss']
-                            #print("tf output dict structure" + str(tf_output_dict))
-                            #print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                            #logging.info("tf output dict structure" + str(tf_output_dict))
+                            #logging.info("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                             #       .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
-                            # print('step_loss: ', step_loss)
+                            #logging.info('step_loss: ', step_loss)
                             epoch_loss += step_loss
-                            # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
+                            # logging.info('at step: {} received tf_outputs with keys: {} and loss: {}'\
                                 #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
-                            # print the class predictions for this run
-                            # print('predictions have type: {} shape: {} and are: {}'\
+                            # logging.info the class predictions for this run
+                            # logging.info('predictions have type: {} shape: {} and are: {}'\
                                 #     .format(type(tf_output_dict['classes']),\
                                 #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
                             # final_outputs = tf_output_dict['classes']
                             # epoch_outputs += final_outputs.tolist()
 
                         # return_outputs = epoch_outputs # holds the outputs of the latest epochs
-                        print('Epoch completed. epoch_loss: ', epoch_loss)
+                        logging.info('Epoch completed. epoch_loss: ', epoch_loss)
 
                     # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                     # the input data originally
@@ -262,21 +263,21 @@ class Block(Mate, Mutate):
 
                                 tf_output_dict = tf_outputs[0]
                                 step_loss = tf_output_dict['loss']
-                                print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                                logging.info("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                                        .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
-                                # print('step_loss: ', step_loss)
+                                # logging.info('step_loss: ', step_loss)
                                 epoch_loss += step_loss
-                                # print('at step: {} received tf_outputs with keys: {} and loss: {}'\
+                                # logging.info('at step: {} received tf_outputs with keys: {} and loss: {}'\
                                     #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
-                                # print the class predictions for this run
-                                # print('predictions have type: {} shape: {} and are: {}'\
+                                # logging.info the class predictions for this run
+                                # logging.info('predictions have type: {} shape: {} and are: {}'\
                                     #     .format(type(tf_output_dict['classes']),\
                                     #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
                                 # final_outputs = tf_output_dict['classes']
                                 # epoch_outputs += final_outputs.tolist()
 
                             # return_outputs = epoch_outputs # holds the outputs of the latest epochs
-                            print('Epoch completed. epoch_loss: ', epoch_loss)
+                            logging.info('Epoch completed. epoch_loss: ', epoch_loss)
 
                     # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                     # the input data originally
@@ -298,8 +299,8 @@ class Block(Mate, Mutate):
                     return np.array(finalOut)
 
         except ValueError as e:
-            print(e)
-            print ("Mismatched shapes of tensors leading to error at evaluation time. ")
+            logging.info(e)
+            logging.info ("Mismatched shapes of tensors leading to error at evaluation time. ")
             self.dead = True
             return tf_output_dict["classes"] # not really sure how to return properly after setting to dead... but this runs...
 
@@ -308,10 +309,10 @@ class Block(Mate, Mutate):
         cmd = "tensorboard --log_dir=%s" % self.logs_path
         args = shelx.split(cmd)
         p = subprocess.Popen(args)
-        print("tensorboard link created for %iseconds" % wait_seconds)
+        logging.info("tensorboard link created for %iseconds" % wait_seconds)
         time.sleep(wait_seconds)
         p.terminate() # or p.kill()
-        print("tensorbard killed")
+        logging.info("tensorbard killed")
 
 
 
@@ -323,24 +324,24 @@ class Block(Mate, Mutate):
         """
         self.resetEvalAttr()
         self.findActive()
-        print("Active nodes", self.active_nodes)
+        logging.info("Active nodes", self.active_nodes)
         arg_values = np.array(self.args)
         for active_node in self.active_nodes:
             fn = self[active_node]
             if active_node < 0:
                 # nothing to evaluate at input nodes
-                print('function at: {} is: {}'\
+                logging.info('function at: {} is: {}'\
                     .format(active_node, fn))
                 continue
             elif active_node >= self.genome_main_count:
                 # nothing to evaluate at output nodes
-                print('function at: {} is: {} -> likely an output node'\
+                logging.info('function at: {} is: {} -> likely an output node'\
                     .format(active_node, fn))
                 continue
-            print('function at: {} is: {} and has arguments: {}'\
+            logging.info('function at: {} is: {} and has arguments: {}'\
                     .format(active_node, fn, arg_values[fn['args']]))
 
-        print('block_input: {}'.format(np.array(block_inputs).shape))
+        logging.info('block_input: {}'.format(np.array(block_inputs).shape))
         data_pair = {}
         for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
             if self.tensorblock_flag:
@@ -349,7 +350,7 @@ class Block(Mate, Mutate):
                 data_dimension = list(input_.shape)
                 data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
 
-                # print(data_dimension)
+                # logging.info(data_dimension)
                 with self.graph.as_default():
                     batch_X = tf.placeholder(tf.float32, data_dimension, name='x_batch')
                     self.evaluated[-1*(i+1)] = batch_X
@@ -357,7 +358,7 @@ class Block(Mate, Mutate):
                 self.feed_dict[batch_X] = input_
                 data_pair['x_train'] = input_
                 data_pair['y_train'] = labels_all
-                print("validation pair", validation_pair)
+                logging.info("validation pair", validation_pair)
                 data_pair["x_val"] = validation_pair[0]
                 data_pair["y_val"] = validation_pair[1]
 
@@ -400,7 +401,7 @@ class Block(Mate, Mutate):
                 else:
                     if self.apply_to_val:
                         self.val_evaluated[node_index] = function(*val_inputs, *args)
-                        # print("val eval", self.val_evaluated[node_index])
+                        # logging.info("val eval", self.val_evaluated[node_index])
                         # quit()
                     self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
@@ -449,13 +450,13 @@ class Block(Mate, Mutate):
                             self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
                         except Exception as e:
                             #raise(e)
-                            #print('e2')
-                            #print(e)
+                            #logging.info('e2')
+                            #logging.info(e)
                             self.dead = True
                     else:
                         # if learning_required not true
-                        print("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
-                        print("this is all evaluated" + str(self.evaluated))
+                        logging.info("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
+                        logging.info("this is all evaluated" + str(self.evaluated))
                         self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
                         self.genome_output_values, val_train = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
                         if self.apply_to_val:
