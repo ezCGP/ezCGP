@@ -5,7 +5,6 @@ import numpy as np
 from copy import deepcopy
 import time
 from individual import Individual
-import problem
 import selections
 import gc
 import os, sys
@@ -158,8 +157,8 @@ if __name__ == '__main__':
             population = []
             for i in range(population_size):
                 ind = Individual(skeleton=problem.skeleton_genome)
-                ind.clear_rec()
-                ind = deepcopy(ind)
+                ind.clear_rec() #clear rec to allow deepcopy to work
+                ind = deepcopy(ind) #need to deepcopy individual so that the dataset does not cause pickling error
                 population.append(ind)
             population = split_pop(population, size)
             print("Pop length", len(population))
@@ -204,14 +203,13 @@ if __name__ == '__main__':
         file_generation = 'outputs_cifar/generation_number.npy'
         while (not converged) & (generation <= GENERATION_LIMIT):
             """
-            
+
             SCATTER POPULATION ACROSS ALL SLAVE CPU
-            
+
             """
             population = comm.scatter(population, root=0)
             print("Rank: {} Length: {}".format(rank, len(population)))
             print("--------------------Scattering Population End--------------------")
-
             generation += 1
             population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
             scores = []
@@ -249,9 +247,9 @@ if __name__ == '__main__':
                 plt.savefig(filepath)
                 plt.close()
                 '''
-            file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
-            np.save(file_pop, population)
-            np.save(file_generation, generation)
+            # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
+            # np.save(file_pop, population)
+            # np.save(file_generation, generation)
 
             converged_list = None
             generation_list = None
@@ -260,13 +258,22 @@ if __name__ == '__main__':
                 converged_list = [converged for i in range(size)]
                 generation_list = [generation for i in range(size)]
 
-            converged = comm.scatter(converged_list, root=0)
-            generation = comm.scatter(generation_list, root=0)
+            print("Converged: " , converged)
+            print("Generation: " , generation)
 
+            print("Length: " , sys.getsizeof(population[0]))
+            # if rank != 0:
+            #     comm.send(population[0], dest=0, tag=11)
+            # if rank == 0:
+            #     for i in range(size):
+            #         population = comm.recv(i, tag=11)
             population = comm.gather(population, root=0)
 
             if rank == 0:
                 population, _ = selections.selNSGA2(population, k=population_size, nd='standard')
+
+            converged = comm.scatter(converged_list, root=0)
+            generation = comm.scatter(generation_list, root=0)
 
         print("ending universe", time.time() - start_time)
         # ---------------------------------------------------END UNIVERSE-----------------------------------------------------------
