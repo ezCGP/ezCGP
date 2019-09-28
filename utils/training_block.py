@@ -15,9 +15,9 @@ class TrainingBlock(SkeletonBlock):
             #prob: float btwn 0 and 1 -> assigns that prob to that primitive...the sum can't be more than 1	
             #prob: 1 -> equally distribute the remaining probability amoung all those remaining (hard to explain, sorry)	
             self.setup_dict_ftn = {
-                operators.dense_layer: {'prob': 1},
+                #operators.dense_layer: {'prob': 1},
                 # operators.input_layer: {'prob': 1},	
-                # operators.conv_layer: {'prob': 1},	
+                operators.conv_layer: {'prob': 1},	
                 # operators.max_pool_layer: {'prob': 1},	
                 # operators.avg_pool_layer: {'prob': 1},	
                 # operators.concat_func: {'prob': 1},	
@@ -25,7 +25,7 @@ class TrainingBlock(SkeletonBlock):
                 # operators.conv_block: {'prob': 1},	
                 # operators.res_block: {'prob': 1},	
                 # operators.sqeeze_excitation_block: {'prob': 1},	
-                #operators.identity_block: {'prob': 1}, # TODO replace this with info from operator_dict?
+                # operators.identity_block: {'prob': 1}, # TODO replace this with info from operator_dict?
             }
         else:
             # specific layers

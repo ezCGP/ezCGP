@@ -10,7 +10,7 @@ from utils.preprocessing_block import PreprocessingBlock
 
 from utils.DbConfig import DbConfig
 from utils.DbManager import DbManager
-
+import logging
 generation_limit = 19
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
@@ -49,12 +49,12 @@ x_val, y_val = np.array(x_val), np.array(y_val)
 #x_test = np.array([x_test])
 
 
-print('Train data shape: ', x_train.shape)
-print('Train labels shape: ', y_train.shape)
-print('Validation data shape: ', x_val.shape)
-print('Validation labels shape: ', y_val.shape)
-print('Test data shape: ', x_test.shape)
-print('Test labels shape: ', y_test.shape)
+logging.info('Train data shape: '+ str(x_train.shape))
+logging.info('Train labels shape: '+ str(y_train.shape))
+logging.info('Validation data shape: '+ str(x_val.shape))
+logging.info('Validation labels shape: '+ str(y_val.shape))
+logging.info('Test data shape: '+ str(x_test.shape))
+logging.info('Test labels shape: '+ str(y_test.shape))
 
 # we make dummy data that is dimensionally representative of the data we will
 # feed in to the individual so that the evaluate method can accurately construct
@@ -111,7 +111,7 @@ def scoreFunction(predict, actual):
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 """
-preprocessing_block = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
+preprocessing_block = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False, main_count=40) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 #print('preprocessing block: ', vars(preprocessing_block))
 
 training_block = TrainingBlock(main_count=30,learning_required=True, apply_to_val = False)
@@ -125,6 +125,7 @@ skeleton_genome = { # this defines the WHOLE GENOME
     2: vars(training_block)
 }
 
-print("Data X, Y:")
-print(x_test)
-print(y_test)
+
+# logging.info(("Data X, Y:"))
+# logging.info(x_test)
+# logging.info(y_test)

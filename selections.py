@@ -118,7 +118,7 @@ def sortNondominated(individuals, k, first_front_only=False):
         # a negative mate_rate is okay...just means that it won't mate
     else:
         mate_rate = set_mate_rate
-    print("    front size:", len(fronts[-1]))#, mate_rate)
+    print("front size:", len(fronts[-1]))#, mate_rate)
 
 
     # Rank the next front until all individuals are sorted or

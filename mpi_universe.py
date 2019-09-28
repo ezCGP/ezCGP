@@ -9,6 +9,7 @@ import selections
 import gc
 import os, sys
 from mpi4py import MPI
+import logging
 
 
 # Disable
@@ -33,7 +34,6 @@ def create_universe(labels, pop_sz=20, seed=9, mutatn_sz=4, offspring_sz=2, comm
     population = comm.scatter(population, root=0)
 
     print("CReATE UNIVERSE SCATTER POP")
-    print(population)
     # parallelize
     for i in range(len(population)):
         individual = population[i]
@@ -157,8 +157,8 @@ if __name__ == '__main__':
             population = []
             for i in range(population_size):
                 ind = Individual(skeleton=problem.skeleton_genome)
-                ind.clear_rec() #clear rec to allow deepcopy to work
-                ind = deepcopy(ind) #need to deepcopy individual so that the dataset does not cause pickling error
+                ind.clear_rec()  # clear rec to allow deepcopy to work
+                ind = deepcopy(ind)  # need to deepcopy individual so that the dataset does not cause pickling error
                 population.append(ind)
             population = split_pop(population, size)
             print("Pop length", len(population))
@@ -258,10 +258,10 @@ if __name__ == '__main__':
                 converged_list = [converged for i in range(size)]
                 generation_list = [generation for i in range(size)]
 
-            print("Converged: " , converged)
-            print("Generation: " , generation)
+            print("Converged: ", converged)
+            print("Generation: ", generation)
 
-            print("Length: " , sys.getsizeof(population[0]))
+            print("Length: ", sys.getsizeof(population[0]))
             # if rank != 0:
             #     comm.send(population[0], dest=0, tag=11)
             # if rank == 0:

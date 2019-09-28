@@ -159,9 +159,6 @@ class HyperVolume:
         # build a list of tuples of (point[i], node)
         decorated = [(node.cargo[i], node) for node in nodes]
         # sort by this value
-        #print(decorated[0:1])
-        # ERROR IN SORT() MAYBE BECAUSE PYTHON 2->3 CONVERSION
-        #decorated.sort()
         decorated = sorted(decorated, key=lambda x:x[0])
         # write back to original list
         nodes[:] = [node for (_, node) in decorated]
@@ -276,11 +273,8 @@ class MultiList:
             node.next[i].prev[i] = node
             if bounds[i] > node.cargo[i]:
                 bounds[i] = node.cargo[i]
-            
-
 
 if __name__ == "__main__":
-
     # Example:
     referencePoint = [2, 2, 2]
     hv = HyperVolume(referencePoint)

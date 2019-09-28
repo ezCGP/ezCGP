@@ -72,14 +72,14 @@ class DbManager():
         y = np.array([x[1] for x in zipped])
 
         train_index = int(len(x) * self.db_conf.train_size_perc)
-        X_train = X[0:train_index]/255
+        X_train = X[0:train_index]
         y_train = y[0:train_index]
 
         test_index = train_index + int(len(x) * self.db_conf.test_size_perc);
-        X_test = X[train_index:test_index]/255
+        X_test = X[train_index:test_index]
         y_test = y[train_index:test_index]
 
-        X_val = X[test_index:]/255
+        X_val = X[test_index:]
         y_val = y[test_index:]
 
         return (X_train, y_train), (X_test, y_test), (X_val, y_val)

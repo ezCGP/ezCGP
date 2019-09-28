@@ -5,6 +5,9 @@ outputs/*
 flycheck_operators.py
 
 # Byte-compiled / optimized / DLL files
+.idea/*
+
+test_mpi.py
 __pycache__/
 *.py[cod]
 *$py.class

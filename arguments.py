@@ -76,6 +76,7 @@ class argBool(object):
     def mutate(self):
         self.value = r.choice([True, False])
         # or should i force it to pick whatever it isn't...true-->false, false-->true?
+
 arguments.append(argBool)
 
 
@@ -108,6 +109,7 @@ class argFloat(object):
             self.value *= -1
         else:
             pass
+
 arguments.append(argFloat)
 
 
@@ -141,6 +143,7 @@ class argInt(object):
         else:
             pass
         self.value = int(self.value)
+
 arguments.append(argInt)
 
 class argPow2(object):
@@ -161,6 +164,7 @@ class argPow2(object):
 
     def __repr__(self):
         return str(self)
+
 arguments.append(argPow2)
 
 class argFilterSize(object):
@@ -182,4 +186,26 @@ class argFilterSize(object):
 
     def __repr__(self):
         return str(self)
+
+arguments.append(argFilterSize)
+
+class argKernelSize(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        kernel_size = r.random_integers(1, 3) * 2 + 1 # must be odd kernel size
+        self.value = kernel_size
+
+    def __str__(self):
+        return "{}".format(self.value)
+
+    def __repr__(self):
+        return str(self)
+
 arguments.append(argFilterSize)

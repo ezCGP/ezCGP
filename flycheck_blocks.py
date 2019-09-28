@@ -208,7 +208,7 @@ class Block(Mate, Mutate):
                             # epoch_outputs += final_outputs.tolist()
 
                         # return_outputs = epoch_outputs # holds the outputs of the latest epochs
-                        logging.info('Epoch completed. epoch_loss: {}'.format(epoch_loss))
+                        logging.info('Epoch completed. epoch_loss: {}', epoch_loss)
 
                     # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
                     # the input data originally
@@ -476,14 +476,11 @@ class Block(Mate, Mutate):
             # clean up all tensorflow variables so that individual can be deepcopied
             # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
             #     this fixes the universe.py run_universe deepcopy() bug
-            self.rec_clear()
+            self.graph = None
+            self.feed_dict = {}
+            self.fetch_nodes = []
+            self.evaluated = [None] * self.genome_count
+            self.dataset.clear_batch()
+
+            tf.keras.backend.clear_session()
         gc.collect()
-
-    def rec_clear(self):
-        self.graph = None
-        self.feed_dict = {}
-        self.fetch_nodes = []
-        self.evaluated = [None] * self.genome_count
-        self.dataset.clear_batch()
-
-        tf.keras.backend.clear_session()
