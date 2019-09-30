@@ -273,25 +273,20 @@ class Block(Mate, Mutate):
 
     def calculate_func_args_inputs(self):
         for node_index in self.active_nodes:
-            if node_index < 0:
-                # nothing to evaluate at input nodes
-                continue
-            elif node_index >= self.genome_main_count:
-                # nothing to evaluate at output nodes
+            if node_index < 0 or node_index >= self.genome_main_count:
+                # nothing to evaluate at input/output nodes
                 continue
             else:
-                # only thing left is main node...extract "ftn", "inputs", and "args" below
+                # calculate on main nodes
                 pass
-            # get function to evaluate
+            # get functioin, inputs, arguments to evaluate
             function = self[node_index]["ftn"]
-            # get inputs to function to evaluate
             inputs = []
             val_inputs = []
             node_input_indices = self[node_index]["inputs"]
             for node_input_index in node_input_indices:
                 inputs.append(self.evaluated[node_input_index])
                 val_inputs.append(self.val_evaluated[node_input_index])
-            # get arguments to function to evaluate
             args = []
             node_arg_indices = self[node_index]["args"]
             for node_arg_index in node_arg_indices:
@@ -314,9 +309,7 @@ class Block(Mate, Mutate):
 
     def tensorflow_evaluate(self, block_inputs, labels_all, validation_pair):
         data_pair = {}
-        for i, input_ in enumerate(block_inputs): #self.genome_input_dtypes):
-            # consider reading in the dataset with slices..."from_tensor_slices"
-            # then dataset.shuffle.repate.batch and dataset.make_one_shot_iterator
+        for i, input_ in enumerate(block_inputs):
             data_dimension = list(input_.shape)
             data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
             with self.graph.as_default():
