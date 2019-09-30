@@ -18,7 +18,7 @@ class PreprocessingBlock(SkeletonBlock):
             #prob: 1 -> equally distribute the remaining probability amoung all those remaining (hard to explain, sorry)
             self.setup_dict_ftn = {
             #    operators.identity_layer: {"prob": 1}
-                 operators.gassuian_blur: {'prob': 1},
+            #     operators.gassuian_blur: {'prob': 1},
                  operators.ceil_greyscale_norm: {'prob': 1}
             }
         else:

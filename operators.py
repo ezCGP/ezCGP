@@ -55,7 +55,7 @@ def ceil_greyscale_norm(input):
     return input/255
 
 operDict[ceil_greyscale_norm] = {"inputs": [np.ndarray],
-                            "outputs": [np.ndarray],
+                            "outputs": np.ndarray,
                             "args": []
                         }
 """
