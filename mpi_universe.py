@@ -125,6 +125,7 @@ if __name__ == '__main__':
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
+    print("Start MPI Universe")
 
     # set the seed and import scripts
     seed = 5
@@ -132,6 +133,7 @@ if __name__ == '__main__':
     # keep these imports after the seed is set for numpy
     import problem
     import universe
+
 
     # Read in Data
     train_data = problem.x_train
@@ -156,6 +158,7 @@ if __name__ == '__main__':
         if rank == 0:
             population = []
             for i in range(population_size):
+                print("Indivilual ", i)
                 ind = Individual(skeleton=problem.skeleton_genome)
                 ind.clear_rec()  # clear rec to allow deepcopy to work
                 ind = deepcopy(ind)  # need to deepcopy individual so that the dataset does not cause pickling error
@@ -169,8 +172,7 @@ if __name__ == '__main__':
 
         population = comm.scatter(population, root=0)
 
-        print("CReATE UNIVERSE SCATTER POP")
-        print(population)
+        print("CREATE UNIVERSE SCATTER POP")
         # parallelize
         for i in range(len(population)):
             individual = population[i]
@@ -229,8 +231,8 @@ if __name__ == '__main__':
                     print(sample_best.genome_outputs[0])
                 except:
                     import pdb
-
                     pdb.set_trace()
+
                 '''
                 #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
                 #print(problem.x_train)

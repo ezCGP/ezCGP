@@ -358,7 +358,7 @@ class Block(Mate, Mutate):
                 self.feed_dict[batch_X] = input_
                 data_pair['x_train'] = input_
                 data_pair['y_train'] = labels_all
-                logging.info("validation pair", validation_pair)
+                logging.info("validation pair {}".format(validation_pair))
                 data_pair["x_val"] = validation_pair[0]
                 data_pair["y_val"] = validation_pair[1]
 
