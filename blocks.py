@@ -265,16 +265,7 @@ class Block(Mate, Mutate):
                                 step_loss = tf_output_dict['loss']
                                 logging.info("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                                        .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
-                                # logging.info('step_loss: ', step_loss)
                                 epoch_loss += step_loss
-                                # logging.info('at step: {} received tf_outputs with keys: {} and loss: {}'\
-                                    #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
-                                # logging.info the class predictions for this run
-                                # logging.info('predictions have type: {} shape: {} and are: {}'\
-                                    #     .format(type(tf_output_dict['classes']),\
-                                    #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
-                                # final_outputs = tf_output_dict['classes']
-                                # epoch_outputs += final_outputs.tolist()
 
                             # return_outputs = epoch_outputs # holds the outputs of the latest epochs
                             logging.info('Epoch completed. epoch_loss: {}'.format(epoch_loss))
@@ -314,22 +305,14 @@ class Block(Mate, Mutate):
         p.terminate() # or p.kill()
         logging.info("tensorbard killed")
 
-    def tensorflow_optimizer_loss_layers(self):
+    def tensorflow_add_optimizer_loss_layers(self):
         for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
-            # logits = tf.layers.dense(inputs=self.evaluated[self[output_node]], units=self.num_classes) # logits layer
-            # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-            #                             logits,
-            #                             tf.cast(labels,dtype=tf.float32)))
-
-            # flatten input matrix to meet NN output size (numinstances, numclasses)
             flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
             labels = tf.placeholder(tf.int32, [None], name='y_batch')
             logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
             loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
                                         logits = logits,
                                         labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
-            # predictions = tf.nn.softmax(logits=logits)
-            # or tf.losses.sparse_softmax_cross_entropy ...didn't put a lot of thought in this really
             tf.summary.tensor_summary("loss", loss)
             self.evaluated[output_node] = {
                 "classes": tf.argmax(input=logits, axis=1),
@@ -349,7 +332,7 @@ class Block(Mate, Mutate):
             # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
             self.fetch_nodes.append(graph_metadata)
 
-    def extract_func_args_inputs(self):
+    def calculate_func_args_inputs(self):
         for node_index in self.active_nodes:
             if node_index < 0:
                 # nothing to evaluate at input nodes
@@ -374,7 +357,6 @@ class Block(Mate, Mutate):
             node_arg_indices = self[node_index]["args"]
             for node_arg_index in node_arg_indices:
                 args.append(self.args[node_arg_index].value)
-            # and evaluate
             try:
                 if self.tensorblock_flag:
                     # added because the objects themselves were being sent in
@@ -406,11 +388,11 @@ class Block(Mate, Mutate):
             data_pair['y_train'] = labels_all
             data_pair["x_val"] = validation_pair[0]
             data_pair["y_val"] = validation_pair[1]
-        self.extract_func_args_inputs()
+        self.calculate_func_args_inputs()
         if not self.dead:
             with self.graph.as_default():
                 if self.learning_required:
-                    self.tensorflow_optimizer_loss_layers()
+                    self.tensorflow_add_optimizer_loss_layers()
                     try:
                         # now that the graph is built, we evaluate here
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
@@ -443,7 +425,7 @@ class Block(Mate, Mutate):
         for i, input_ in enumerate(block_inputs):
             self.val_evaluated[-1*(i+1)] = validation_pair[0]
             self.evaluated[-1*(i+1)] = input_
-        self.extract_func_args_inputs()
+        self.calculate_func_args_inputs()
         if not self.dead:
             for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                 referenced_node = self[output_node]

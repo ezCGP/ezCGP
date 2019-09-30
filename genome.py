@@ -1,6 +1,7 @@
 ### genome.py
 
 import numpy as np
+import logging
 
 class Genome():
 
@@ -90,7 +91,11 @@ class Genome():
         else:
             # then it's a Block Main Node
             pass
-        ftn = self[node_index]["ftn"]
+        try:
+            ftn = self[node_index]["ftn"]
+        except TypeError:
+            logging.info('Input/output dtype is incompatible with operator functions')
+            quit()
         ftn_dict = self.operator_dict[ftn]
         if input_dtype:
             # get the required input data types for this function
@@ -116,7 +121,7 @@ class Genome():
                 for c, choice in enumerate(choices):
                     if val==choice:
                         delete.append(c)
-        
+
             if len(choices) != 1:
                 print("Should not call mutate since only one function available. Returning original function")
 
