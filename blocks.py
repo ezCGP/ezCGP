@@ -304,6 +304,7 @@ class Block(Mate, Mutate):
                         self.val_evaluated[node_index] = function(*val_inputs, *args)
                     self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
+                raise(e)
                 self.dead = True
                 break
 

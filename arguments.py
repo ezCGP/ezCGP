@@ -209,3 +209,21 @@ class argKernelSize(object):
         return str(self)
 
 arguments.append(argFilterSize)
+
+class percentage(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        self.value = np.random.rand()
+
+    def __str__(self):
+        return "{}".format(self.value)
+
+    def __repr__(self):
+        return str(self)
