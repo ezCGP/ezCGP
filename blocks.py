@@ -157,32 +157,44 @@ class Block(Mate, Mutate):
                 feed_dict=feed_dict)[0]
             return tf_outputs[0], val_outputs
 
+
     def tensorblock_evaluate(self, fetch_nodes, feed_dict, data_pair):
+        '''
+        fetch_nodes: output nodes
+        feed_dict: block input
+        returns finalOut, which is validation class predictions
+        '''
+        # large_dataset implies the dataset is too large to be completely stored
+        # in memory and should be loaded from each of the files mentioned
         large_dataset = self.large_dataset
         try:
             if (large_dataset is None):
-                # this implies that the data was passed in regularly and can be
-                # held in memory
-                # initialize variables needed for batch feeding
-                self.dataset = DataSet(data_pair['x_train'], data_pair['y_train']) #replace initialize_batch
-                x_val = data_pair["x_val"]
-                y_val = data_pair["y_val"]
-                # final_outputs = []
-                with tf.Session(graph=self.graph) as sess:
-                    sess.run(tf.global_variables_initializer())
+                fnames = ["not_large"]
+            else:
+                fnames, load_fname = large_dataset
+            # initialize variables needed for batch feeding
+            self.dataset = DataSet(data_pair['x_train'], data_pair['y_train'])
+            x_val = data_pair["x_val"]
+            y_val = data_pair["y_val"]
+            with tf.Session(graph=self.graph) as sess:
+                sess.run(tf.global_variables_initializer())
 
-                    # get placeholder nodes that will be fed to
-                    x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
-                    y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
+                # get placeholder nodes that will be fed to
+                x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
+                y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
 
-                    #n_epochs is the number of epochs to run for while training
-                    n_epochs = self.n_epochs
-                    batch_size = self.batch_size # size of the batch
-                    return_outputs = []
-                    for epoch in range(n_epochs):
-                        epoch_loss = 0 # holds cumulative loss over the epoch
-                        # will hold predictions for training data at this epoch
-                        epoch_outputs = []
+                # n_epochs: number of epochs to run for while training
+                # batch_size: size of the batch
+                n_epochs = self.n_epochs
+                batch_size = self.batch_size
+                return_outputs = []
+                # training on (X_train, y_train) dataset
+                for epoch in range(n_epochs):
+                    epoch_loss = 0
+                    for fname in fnames:
+                        if large_dataset:
+                            X, y = load_fname(fname)
+                            self.dataset = DataSet(X, y)
                         for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
                             X_train, y_train = self.dataset.next_batch(batch_size)
                             feed_dict[x_batch] = X_train
@@ -193,102 +205,29 @@ class Block(Mate, Mutate):
 
                             tf_output_dict = tf_outputs[0]
                             step_loss = tf_output_dict['loss']
-                            #logging.info("tf output dict structure" + str(tf_output_dict))
-                            #logging.info("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
-                            #       .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
-                            #logging.info('step_loss: ', step_loss)
-                            epoch_loss += step_loss
-                            # logging.info('at step: {} received tf_outputs with keys: {} and loss: {}'\
-                                #     .format(step, tf_output_dict.keys(), tf_output_dict['loss']))
-                            # logging.info the class predictions for this run
-                            # logging.info('predictions have type: {} shape: {} and are: {}'\
-                                #     .format(type(tf_output_dict['classes']),\
-                                #     tf_output_dict['classes'].shape, tf_output_dict['classes']))
-                            # final_outputs = tf_output_dict['classes']
-                            # epoch_outputs += final_outputs.tolist()
-
-                        # return_outputs = epoch_outputs # holds the outputs of the latest epochs
-                        logging.info('Epoch completed. epoch_loss: {}'.format(epoch_loss))
-
-                    # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
-                    # the input data originally
-                    self.dataset = DataSet(x_val, y_val)
-                    batch_size = 256
-                    finalOut = []
-                    for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
-                        X_train, y_train = self.dataset.next_batch(batch_size)
-                        feed_dict[x_batch] = X_train
-                        feed_dict[y_batch] = y_train
-
-                        tf_outputs = sess.run(
-                            fetches=fetch_nodes[:-2],
-                            feed_dict=feed_dict)
-                        tf_output_dict = tf_outputs[0]
-                        outs = tf_output_dict["classes"].tolist()
-                        finalOut += outs
-                    return np.array(finalOut)
-            else:
-                # implies the dataset is too large to be completely stored in
-                # memory and should be loaded from each of the files mentioned
-                fnames, load_fname = large_dataset
-                # initialize variables needed for batch feeding
-                self.dataset = DataSet(data_pair['x_train'], data_pair['y_train'])
-                x_val = data_pair["x_val"]
-                y_val = data_pair["y_val"]
-                # final_outputs = []
-                with tf.Session(graph=self.graph) as sess:
-                    sess.run(tf.global_variables_initializer())
-
-                    # get placeholder nodes that will be fed to
-                    x_batch = tf.get_default_graph().get_operation_by_name('x_batch').outputs[0]
-                    y_batch = tf.get_default_graph().get_operation_by_name('y_batch').outputs[0]
-
-                    #n_epochs is the number of epochs to run for while training
-                    n_epochs = self.n_epochs
-                    batch_size = self.batch_size # size of the batch
-                    return_outputs = []
-                    for epoch in range(n_epochs):
-                        epoch_loss = 0 # holds cumulative loss over the epoch
-                        # will hold predictions for training data at this epoch
-                        for fname in fnames:
-                            X, y = load_fname(fname)
-                            self.dataset = DataSet(X, y)
-                            for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
-                                X_train, y_train = self.dataset.next_batch(batch_size)
-                                feed_dict[x_batch] = X_train
-                                feed_dict[y_batch] = y_train
-                                tf_outputs = sess.run(
-                                    fetches=fetch_nodes,
-                                    feed_dict=feed_dict)
-
-                                tf_output_dict = tf_outputs[0]
-                                step_loss = tf_output_dict['loss']
+                            if large_dataset:
                                 logging.info("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                                        .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
-                                epoch_loss += step_loss
+                            epoch_loss += step_loss
 
-                            # return_outputs = epoch_outputs # holds the outputs of the latest epochs
-                            logging.info('Epoch completed. epoch_loss: {}'.format(epoch_loss))
+                        logging.info('Epoch completed. epoch_loss: {}'.format(epoch_loss))
 
-                    # set the feed_dict as pairs of labels/data, includes external validation from tester.py as well, not just
-                    # the input data originally
+                # Test on validation dataset from tester.py
+                self.dataset = DataSet(x_val, y_val)
+                batch_size = 256
+                finalOut = []
+                for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
+                    X_train, y_train = self.dataset.next_batch(batch_size)
+                    feed_dict[x_batch] = X_train
+                    feed_dict[y_batch] = y_train
 
-                    self.dataset = Dataset(x_val, y_val)
-                    batch_size = 256
-                    finalOut = []
-                    for step in range(int(np.ceil(self.dataset._num_examples/batch_size))):
-                        X_train, y_train = self.dataset.next_batch(batch_size)
-                        feed_dict[x_batch] = X_train
-                        feed_dict[y_batch] = y_train
-
-                        tf_outputs = sess.run(
-                            fetches=fetch_nodes[:-2],
-                            feed_dict=feed_dict)
-                        tf_output_dict = tf_outputs[0]
-                        outs = tf_output_dict["classes"].tolist()
-                        finalOut += outs
-                    return np.array(finalOut)
-
+                    tf_outputs = sess.run(
+                        fetches=fetch_nodes[:-2],
+                        feed_dict=feed_dict)
+                    tf_output_dict = tf_outputs[0]
+                    outs = tf_output_dict["classes"].tolist()
+                    finalOut += outs
+                return np.array(finalOut)
         except ValueError as e:
             logging.info(e)
             logging.info ("Mismatched shapes of tensors leading to error at evaluation time. ")
@@ -305,7 +244,7 @@ class Block(Mate, Mutate):
         p.terminate() # or p.kill()
         logging.info("tensorbard killed")
 
-    def tensorflow_add_optimizer_loss_layers(self):
+    def tensorflow_add_optimizer_loss_layer(self):
         for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
             flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
             labels = tf.placeholder(tf.int32, [None], name='y_batch')
@@ -392,7 +331,7 @@ class Block(Mate, Mutate):
         if not self.dead:
             with self.graph.as_default():
                 if self.learning_required:
-                    self.tensorflow_add_optimizer_loss_layers()
+                    self.tensorflow_add_optimizer_loss_layer()
                     try:
                         # now that the graph is built, we evaluate here
                         self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
@@ -402,9 +341,6 @@ class Block(Mate, Mutate):
                         logging.info(e)
                         self.dead = True
                 else:
-                    # if learning_required not true
-                    logging.info("hey this is last main genome" + str(self.evaluated[self.active_nodes[-self.genome_output_count-1]]))
-                    logging.info("this is all evaluated" + str(self.evaluated))
                     self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
                     self.genome_output_values, val_train = self.tensorflow_preprocess(self.fetch_nodes, self.feed_dict, data_pair)
                     if self.apply_to_val:
