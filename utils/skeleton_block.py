@@ -19,7 +19,8 @@ class SkeletonBlock:
                  args={
                      arguments.argPow2: {'prob': 1},
                      arguments.argFilterSize: {'prob': 1},
-                     arguments.argKernelSize: {'prob': 1}
+                     arguments.argKernelSize: {'prob': 1},
+                     arguments.percentage: {'prob': 1}
                  },
                  mate={mate.Mate.dont_mate: {'prob': 1, 'args': []}},
                  mut={
