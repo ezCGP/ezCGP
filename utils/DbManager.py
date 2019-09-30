@@ -42,7 +42,7 @@ class DbManager():
         """ load all of cifar """
         path = './cifar-10-batches-py'
         data = []
-        for b in range(1, 4):
+        for b in range(1, 2):
             f = os.path.join(path, 'data_batch_%d' % (b,))
             data.append(self.load_data_from_path(f))
         x = np.concatenate([x[0] for x in data])

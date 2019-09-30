@@ -2,7 +2,9 @@
 
 import numpy as np
 import tensorflow as tf
+import random
 import cv2
+import skimage as sk
 # #from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -58,6 +60,26 @@ operDict[ceil_greyscale_norm] = {"inputs": [np.ndarray],
                             "outputs": np.ndarray,
                             "args": []
                         }
+"""
+see https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
+for data augmentation ideas
+"""
+def random_rotation(input, percentage = .25): #add random_degree to the arguments
+    sampleSize =  int(len(input) * percentage)
+    sample_idxs = np.random.choice(len(input), sampleSize)
+    output = []
+    for idx in sample_idxs:
+        image_array = input[idx]
+        # pick a random degree of rotation between 25% on the left and 25% on the right
+        random_degree = random.uniform(-20, 20)
+        output.append(sk.transform.rotate(image_array, random_degree))
+    output = np.array(output)
+    return np.append(input, output, axis = 0)
+
+operDict[random_rotation] = {"inputs": [np.ndarray],
+                            "outputs": np.ndarray,
+                            "args": ['percentage']}
+
 """
 LAYERS
     1. Input
