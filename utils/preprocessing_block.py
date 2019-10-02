@@ -1,6 +1,7 @@
 from utils.skeleton_block import SkeletonBlock
 import operators
 import numpy as np
+import tensorflow as tf
 
 class PreprocessingBlock(SkeletonBlock):
     def __init__(self, **kwargs):
@@ -9,6 +10,9 @@ class PreprocessingBlock(SkeletonBlock):
             self.block_input_dtypes = [np.ndarray]
         if "output_dtypes" not in kwargs:
             self.block_outputs_dtypes = [np.ndarray]
+        if "tensorblock_flag" in kwargs and kwargs["tensorblock_flag"]:
+            self.block_input_dtypes = [tf.Tensor]
+            self.block_outputs_dtypes = [tf.Tensor]
         if "setup_dict_ftn" not in kwargs:
             # default layers
 
@@ -24,7 +28,7 @@ class PreprocessingBlock(SkeletonBlock):
             #      operators.gassuian_blur: {'prob': 1},
 #                  operators.ceil_greyscale_norm: {'prob': 1}
             #    operators.identity_layer: {"prob": 1}
-            #     operators.gassuian_blur: {'prob': 1},
+                 operators.gassuian_blur: {'prob': 1},
                  operators.ceil_greyscale_norm: {'prob': 1}
             #     operators.random_rotation: {'prob':1}
             }

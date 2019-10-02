@@ -13,6 +13,10 @@ import logging
 stdout = True
 toFile = True #set to true if you want it to be redirected to File
 
+#logging does not work on parrot os distr unless i do this
+logging.root.setLevel(logging.NOTSET)
+logging.basicConfig(level=logging.NOTSET)
+
 #logging params
 maxSize = 1.5 * 10 **7
 rolloverSize = 1
