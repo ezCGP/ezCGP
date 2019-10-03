@@ -5,6 +5,7 @@ import tensorflow as tf
 import random
 import cv2
 import skimage as sk
+import logging
 # #from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -17,7 +18,8 @@ def add_tensors(a,b):
     return tf.add(a,b)
 operDict[add_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
-						"args": []}
+						"args": [],
+                        "include_labels": False}
 
 def sub_fa2a(a,b):
     return np.subtract(a,b)
@@ -26,12 +28,14 @@ def sub_tensors(a,b):
     return tf.subtract(a,b)
 operDict[sub_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
-						"args": []}
+						"args": [],
+                        "include_labels": False}
 def mult_tensors(a,b):
     return tf.multiply(a,b)
 operDict[mult_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 						"outputs": tf.Tensor,
-						"args": []}
+						"args": [],
+                        "include_labels": False}
 
 ########################## TENSORFLOW OPERATORS ###############################
 """
@@ -47,7 +51,8 @@ def gassuian_blur(input, kernel_size=5):
 
 operDict[gassuian_blur] = {"inputs": [np.ndarray],
 			   "outputs": np.ndarray,
-			   "args": ['argKernelSize']}
+			   "args": ['argKernelSize'],
+               "include_labels": False}
 
 
 """
@@ -58,27 +63,33 @@ def ceil_greyscale_norm(input):
 
 operDict[ceil_greyscale_norm] = {"inputs": [np.ndarray],
                             "outputs": np.ndarray,
-                            "args": []
+                            "args": [],
+                            "include_labels": False
                         }
 """
 see https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
 for data augmentation ideas
 """
-def random_rotation(input, percentage = .25): #add random_degree to the arguments
+def random_rotation(input, labels, percentage = .25): #add random_degree to the arguments
     sampleSize =  int(len(input) * percentage)
     sample_idxs = np.random.choice(len(input), sampleSize)
     output = []
+    outputLabels = []
     for idx in sample_idxs:
         image_array = input[idx]
+        label = labels[idx]
         # pick a random degree of rotation between 25% on the left and 25% on the right
         random_degree = random.uniform(-20, 20)
         output.append(sk.transform.rotate(image_array, random_degree))
+        outputLabels.append(label)
     output = np.array(output)
-    return np.append(input, output, axis = 0)
+    outputLabels = np.array(outputLabels)
+    return np.append(input, output, axis = 0), np.append(labels, outputLabels, axis = 0)
 
 operDict[random_rotation] = {"inputs": [np.ndarray],
                             "outputs": np.ndarray,
-                            "args": ['percentage']}
+                            "args": ['percentage'],
+                            "include_labels": True}
 
 """
 LAYERS
@@ -100,7 +111,8 @@ def input_layer(input_tensor):
 
 operDict[input_layer] = {"inputs": [tf.Tensor],
 			 "outputs": tf.Tensor,
-			 "args": []}
+			 "args": [],
+             "include_labels": False}
 
 def conv_layer(input_tensor, filters=64, kernel_size=3):
     kernel_size = (kernel_size, kernel_size)
@@ -113,8 +125,9 @@ def conv_layer(input_tensor, filters=64, kernel_size=3):
 operDict[conv_layer] = {"inputs": [tf.Tensor],
                             "args": ["argPow2", "argFilterSize"],
                             "outputs": tf.Tensor,
-                            "name": 'convLayer'}
-
+                            "name": 'convLayer',
+                            "include_labels": False
+                        }
 def max_pool_layer(input_tensor):
     # Pooling Layer #1
     # First max pooling layer with a 2x2 filter and stride of 2
@@ -127,7 +140,8 @@ def max_pool_layer(input_tensor):
 operDict[max_pool_layer] = {"inputs": [tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
-                            "name": 'maxPoolLayer'}
+                            "name": 'maxPoolLayer',
+                            "include_labels": False}
 
 def avg_pool_layer(input_tensor):
 #    avg_pool = tf.keras.layers.MaxPool2D(pool_size=[2, 2], strides=2, padding="valid")(input_tensor)
@@ -137,7 +151,8 @@ def avg_pool_layer(input_tensor):
 operDict[avg_pool_layer] = {"inputs": [tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
-                            "name": 'avgPoolLayer'}
+                            "name": 'avgPoolLayer',
+                            "include_labels": False}
 
 def global_avg_pool_layer(input_tensor):
     return global_avg_pool(input_tensor)
@@ -152,7 +167,8 @@ def dense_layer(input_tensor, num_units=128):
 operDict[dense_layer] = {"inputs": [tf.Tensor],
                          "args": ["argPow2"],
                          "outputs": tf.Tensor,
-                         "name": 'denseLayer'}
+                         "name": 'denseLayer',
+                         "include_labels": False}
 
 def identity_layer(input_tensor):
     print('before identity: ', input_tensor)
@@ -163,7 +179,8 @@ def identity_layer(input_tensor):
 operDict[identity_layer] = {"inputs": [tf.Tensor],
                          "args": [],
                          "outputs": tf.Tensor,
-                         "name": 'identityLayer'}
+                         "name": 'identityLayer',
+                         "include_labels": False}
 
 """
 FUNCTIONS
@@ -199,7 +216,8 @@ def concat_func(data1, data2):
 operDict[concat_func] = {"inputs": [tf.Tensor, tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
-                            "name": 'concatFunc'}
+                            "name": 'concatFunc',
+                            "include_labels": False}
 
 def sum_func(data1, data2):
     # Element-wise addition of two feature maps, channel by channel.
@@ -225,7 +243,8 @@ def sum_func(data1, data2):
 operDict[sum_func] = {"inputs": [tf.Tensor, tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
-                            "name": 'sumFunc'}
+                            "name": 'sumFunc',
+                            "include_labels": False}
 
 def sigmoid_func(input_tensor):
     return tf.nn.sigmoid(input_tensor)
@@ -246,7 +265,8 @@ def conv_block(input_tensor, filters=64, kernel_size=3):
 operDict[conv_block] = {"inputs": [tf.Tensor],
                             "args": ["argPow2", "argFilterSize"],
                             "outputs": tf.Tensor,
-                            "name": 'convBlock'}
+                            "name": 'convBlock',
+                            "include_labels": False}
 
 def res_block(input_tensor, number1=64, size1=3, number2=128, size2=3):
     # size1 = (size1, size1)
@@ -258,7 +278,8 @@ def res_block(input_tensor, number1=64, size1=3, number2=128, size2=3):
 operDict[res_block] = {"inputs": [tf.Tensor],
                             "args": ["argPow2", "argFilterSize", "argPow2", "argFilterSize"],
                             "outputs": tf.Tensor,
-                            "name": 'resBlock'}
+                            "name": 'resBlock',
+                            "include_labels": False}
 
 def sqeeze_excitation_block(input_tensor):
     return sigmoid_func(dense_layer(relu_func(dense_layer(global_avg_pool_layer(input_tensor)))))
@@ -266,7 +287,8 @@ def sqeeze_excitation_block(input_tensor):
 operDict[sqeeze_excitation_block] = {"inputs": [tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
-                            "name": 'squeezeExcitationBlock'}
+                            "name": 'squeezeExcitationBlock',
+                            "include_labels": False}
 
 def identity_block(input_tensor, filters=64, kernel_size=3):
     # kernel_size = (kernel_size, kernel_size)
@@ -275,4 +297,5 @@ def identity_block(input_tensor, filters=64, kernel_size=3):
 operDict[identity_block] = {"inputs": [tf.Tensor],
                             "args": ["argPow2", "argFilterSize"],
                             "outputs": tf.Tensor,
-                            "name": 'identityBlock'}
+                            "name": 'identityBlock',
+                            "include_labels": False}

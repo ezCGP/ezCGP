@@ -293,6 +293,8 @@ class Block(Mate, Mutate):
                 args.append(self.args[node_arg_index].value)
             try:
                 if self.tensorblock_flag:
+                    if self.operator_dict[function]["include_labels"]:
+                        raise(Exception("Tensorflow operators should not include labels"))
                     # added because the objects themselves were being sent in
                     argnums = [arg.value if type(arg) is not int \
                             else arg for arg in args]
@@ -301,8 +303,14 @@ class Block(Mate, Mutate):
                         self.evaluated[node_index] = function(*inputs, *argnums)
                 else:
                     if self.apply_to_val:
-                        self.val_evaluated[node_index] = function(*val_inputs, *args)
-                    self.evaluated[node_index] = function(*inputs, *args)
+                        if self.operator_dict[function]["include_labels"]:
+                            raise(Exception("Should not include labels in apply_to_val function")) #self.dead?
+                        else:
+                            self.val_evaluated[node_index] = function(*val_inputs, *args) #self.labels remains unchanged
+                    if self.operator_dict[function]["include_labels"]:
+                        self.evaluated[node_index], self.labels = function(*inputs, self.labels, *args)
+                    else:
+                        self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
                 raise(e)
                 self.dead = True
@@ -310,7 +318,8 @@ class Block(Mate, Mutate):
 
     def tensorflow_evaluate(self, block_inputs, labels_all, validation_pair):
         data_pair = {}
-        for i, input_ in enumerate(block_inputs):
+        for i, input_ in enumerate(block_inputs): # wont there only be one block input?
+            logging.debug(i)
             data_dimension = list(input_.shape)
             data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
             with self.graph.as_default():
@@ -328,7 +337,7 @@ class Block(Mate, Mutate):
                     self.tensorflow_add_optimizer_loss_layer()
                     try:
                         # now that the graph is built, we evaluate here
-                        self.genome_output_values = self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair)
+                        self.genome_output_values = [self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair), None]
                     except Exception as e:
                         raise(e)
                         logging.info('e2')
@@ -347,7 +356,8 @@ class Block(Mate, Mutate):
         self.feed_dict = {}
         self.fetch_nodes = []
         self.evaluated = [None] * self.genome_count
-        self.dataset.clear_batch()
+        self.labels = [] #passing labels into here allows for possible augmentation of the labels by a non tensorflow block
+        self.dataset.clear_batch() #for batch updates
         tf.keras.backend.clear_session()
         gc.collect()
 
@@ -360,9 +370,10 @@ class Block(Mate, Mutate):
             for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
                 referenced_node = self[output_node]
                 if self.apply_to_val:
-                    self.validation_pair_output = (self.val_evaluated[referenced_node], validation_pair[1])
-                self.genome_output_values.append(self.evaluated[referenced_node])
-        self.need_evaluate = False
+                    self.validation_pair_output = (self.val_evaluated[referenced_node], validation_pair[1]) #reall this should be append
+                logging.info(self.labels)
+                self.genome_output_values = (self.evaluated[referenced_node], self.labels) #Is there ever a time we have multiple multiple_genome_output_values
+        self.need_evaluate = False #taking away append will break something
         gc.collect()
 
 
@@ -374,6 +385,9 @@ class Block(Mate, Mutate):
         """
         self.resetEvalAttr()
         self.findActive()
+        self.labels = labels_all
+        logging.debug("evaluate shape")
+        logging.debug(self.labels.shape)
         logging.info("Active nodes {}".format(self.active_nodes))
         arg_values = np.array(self.args)
         for active_node in self.active_nodes:

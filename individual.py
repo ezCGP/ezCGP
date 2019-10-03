@@ -3,6 +3,7 @@
 # external packages
 import numpy as np
 from copy import deepcopy
+import logging
 
 # my scripts
 from blocks import Block
@@ -86,21 +87,18 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
     def evaluate(self, data, labels=None, validation_pair=None):
         # added validation pair support external validation of labels/data in each block
         for i in range(1,self.num_blocks+1):
-            print('block number ', i)
-
-            # evaluate the block
             block = self.skeleton[i]["block_object"]
             block.evaluate(block_inputs=data, labels_all=labels, validation_pair=validation_pair)
-            data = self.skeleton[i]["block_object"].genome_output_values
+            data = self.skeleton[i]["block_object"].genome_output_values[0] #last genome output val should be classifications making labels none
+            labels =  self.skeleton[i]["block_object"].genome_output_values[1] 
             if block.apply_to_val:
                 validation_pair = self.skeleton[i]["block_object"].validation_pair_output
 
-            # after running enumerate in individual.evaluate(), data strips down one dimension, so add back the dimension
-            if block.tensorblock_flag and i != self.num_blocks:
+            #after running enumerate in individual.evaluate(), data strips down one dimension, so add back the dimension
+            if i != self.num_blocks: 
                 new_shape = (1,) + data.shape
                 data = data.reshape(new_shape)
         self.genome_outputs = data
-        #return genome_outputs
 
     def score_fitness(self, labels):
         #self.fitness =
