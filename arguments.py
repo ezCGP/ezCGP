@@ -227,3 +227,21 @@ class percentage(object):
 
     def __repr__(self):
         return str(self)
+
+class rotRange(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        self.value = np.random.randint(10, 50)
+
+    def __str__(self):
+        return "{}".format(self.value)
+
+    def __repr__(self):
+        return str(self)

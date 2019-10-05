@@ -70,7 +70,26 @@ operDict[ceil_greyscale_norm] = {"inputs": [np.ndarray],
 see https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
 for data augmentation ideas
 """
-def random_rotation(input, labels, percentage = .25): #add random_degree to the arguments
+def random_rotation(input, labels, percentage = .25, rotRange = 25): #add random_degree to the arguments
+    uniform = random.uniform
+    function = lambda x: sk.transform.rotate(x, uniform(-rotRange, rotRange))
+    return apply_augmentation(input, labels, percentage, function)
+
+operDict[random_rotation] = {"inputs": [np.ndarray],
+                            "outputs": np.ndarray,
+                            "args": ['percentage', 'rotRange'],
+                            "include_labels": True}
+
+
+def apply_augmentation(input, labels,  percentage, function, *args):
+    """
+    :param input: list of training x data
+    :param labels: list of training y data
+    :param function: function to apply
+    :param percentage: percentage of the dataset to apply function to
+    :param args:
+    :return: augmented dataset and labels
+    """
     sampleSize =  int(len(input) * percentage)
     sample_idxs = np.random.choice(len(input), sampleSize)
     output = []
@@ -79,17 +98,36 @@ def random_rotation(input, labels, percentage = .25): #add random_degree to the 
         image_array = input[idx]
         label = labels[idx]
         # pick a random degree of rotation between 25% on the left and 25% on the right
-        random_degree = random.uniform(-20, 20)
-        output.append(sk.transform.rotate(image_array, random_degree))
+        output.append(function(image_array, *args))
         outputLabels.append(label)
     output = np.array(output)
     outputLabels = np.array(outputLabels)
     return np.append(input, output, axis = 0), np.append(labels, outputLabels, axis = 0)
 
-operDict[random_rotation] = {"inputs": [np.ndarray],
+
+def random_noise(input, labels, percentage = .25):
+    #https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
+    sampleSize =  int(len(input) * percentage)
+    sample_idxs = np.random.choice(len(input), sampleSize)
+    output = []
+    outputLabels = []
+    for idx in sample_idxs:
+        image_array = input[idx]
+        label = labels[idx]
+        # pick a random degree of rotation between 25% on the left and 25% on the right
+        output.append(sk.util.random_noise(image_array))
+        outputLabels.append(label)
+    output = np.array(output)
+    outputLabels = np.array(outputLabels)
+    return np.append(input, output, axis = 0), np.append(labels, outputLabels, axis = 0)
+    # add random noise to the image
+
+operDict[random_noise] = {"inputs": [np.ndarray],
                             "outputs": np.ndarray,
                             "args": ['percentage'],
                             "include_labels": True}
+# def scale_in(input, mode = True):
+
 
 """
 LAYERS
