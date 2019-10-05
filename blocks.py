@@ -486,5 +486,7 @@ class Block(Mate, Mutate):
         self.fetch_nodes = []
         self.evaluated = [None] * self.genome_count
         self.dataset.clear_batch()
+        self.genome_output_values = []
+        self.validation_pair_output = []
 
         tf.keras.backend.clear_session()

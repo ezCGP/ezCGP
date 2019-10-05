@@ -54,6 +54,11 @@ def create_universe(labels, pop_sz=20, seed=9, mutatn_sz=4, offspring_sz=2, comm
 
 
 def split_pop(pop, num_cpu):
+    """
+    :param pop:
+    :param num_cpu:
+    :return:
+    """
     pop_length = len(pop)
     new_pop = []
     bucket_size = int(pop_length / num_cpu)
@@ -145,13 +150,12 @@ if __name__ == '__main__':
         print("start new run %i" % i)
         start = time.time()
 
-        # -------------------------------CREATE UNIVERSE---------------------------------------
         print("--------------------CREATE UNIVERSE--------------------")
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
         population_size = 2
-        num_mutants, num_offpsring = 4, 2
+        num_mutants, num_offspring = 4, 2
 
         np.random.seed(universe_seed)
 
@@ -163,6 +167,7 @@ if __name__ == '__main__':
                 ind.clear_rec()  # clear rec to allow deepcopy to work
                 ind = deepcopy(ind)  # need to deepcopy individual so that the dataset does not cause pickling error
                 population.append(ind)
+
             population = split_pop(population, size)
             print("Pop length", len(population))
             for p in population:
@@ -173,7 +178,11 @@ if __name__ == '__main__':
         population = comm.scatter(population, root=0)
 
         print("CREATE UNIVERSE SCATTER POP")
-        # parallelize
+
+        """
+        START PARALLEL INDIVIDUAL EVALUATE
+        """
+
         for i in range(len(population)):
             individual = population[i]
             individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
@@ -189,6 +198,12 @@ if __name__ == '__main__':
 
                 pdb.set_trace()
 
+        """
+        END PARALLEL INDIVIDUAL EVALUATE
+        """
+        print("Length: ", len(population))
+        for p in population:
+            print(p)
         population = comm.gather(population, root=0)
 
         print("--------------------END CREATE UNIVERSE--------------------")
@@ -203,79 +218,65 @@ if __name__ == '__main__':
         if not os.path.exists(newpath):
             os.makedirs(newpath)
         file_generation = 'outputs_cifar/generation_number.npy'
+
         while (not converged) & (generation <= GENERATION_LIMIT):
             """
-
             SCATTER POPULATION ACROSS ALL SLAVE CPU
-
             """
             population = comm.scatter(population, root=0)
             print("Rank: {} Length: {}".format(rank, len(population)))
             print("--------------------Scattering Population End--------------------")
-            generation += 1
-            population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
-            scores = []
-            for individual in population:
-                scores.append(individual.fitness.values[0])
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
-            print(generation, np.min(scores))
-            if np.min(scores) < SCORE_MIN:
-                converged = True
-            else:
-                pass
-            if (generation % 10 == 0) or (converged):
-                # plot
-                # import pdb; pdb.set_trace()
-                sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]]
-                try:
-                    print(sample_best.genome_outputs[0])
-                except:
-                    import pdb
-                    pdb.set_trace()
 
-                '''
-                #sample_best = population[np.where(np.min(scores)==scores)[0][0]]
-                #print(problem.x_train)
-                #print(sample_best.genome_outputs)
-                plt.figure()
-                plt.plot(problem.x_train[0], problem.y_train, '.')
-                #testY = solutions[run].testEvaluate()
-                plt.plot(problem.x_train[0], sample_best.genome_outputs[0], '.')
-                #plt.legend(['Weibull','Test Model Fit'])
-                plt.legend(['log(x)','Test Model Fit'])
-                #plt.show()
-                Path('outputs').mkdir(parents=True, exist_ok=True) #should help work on all OS
-                filepath = 'outputs/seed%i_gen%i.png' % (universe_seed, generation)
-                plt.savefig(filepath)
-                plt.close()
-                '''
+            generation += 1
+            population = run_universe(population, num_mutants, num_offspring, input_data, labels)
+
+            """
+            Gather scores
+            """
+
+            for ind in population:
+                ind.clear_rec()  # clear rec to allow deepcopy to work
+            population = comm.gather(population, root=0)
+
+            generation_list = []
+            converged_list = []
+            if rank == 0:
+                new_pop = []
+                for subpop in population:
+                    for individual in subpop:
+                        new_pop.append(individual)
+
+                population, _ = selections.selNSGA2(new_pop, k=population_size, nd='standard')
+                scores = []
+
+                for individual in population:
+                    scores.append(individual.fitness.values[0])
+
+                if np.min(scores) < SCORE_MIN:
+                    converged = True
+                else:
+                    pass
+                if (generation % 10 == 0) or converged:
+                    # plot
+                    # import pdb; pdb.set_trace()
+                    sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]]
+                    try:
+                        print(sample_best.genome_outputs[0])
+                    except:
+                        import pdb
+                        pdb.set_trace()
+
             # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
             # np.save(file_pop, population)
             # np.save(file_generation, generation)
 
-            converged_list = None
-            generation_list = None
+            # print("Converged: ", converged)
+            # print("Generation: ", generation)
+            # print("Length: ", sys.getsizeof(population[0]))
 
-            if rank == 0:
-                converged_list = [converged for i in range(size)]
-                generation_list = [generation for i in range(size)]
-
-            print("Converged: ", converged)
-            print("Generation: ", generation)
-
-            print("Length: ", sys.getsizeof(population[0]))
-            # if rank != 0:
-            #     comm.send(population[0], dest=0, tag=11)
-            # if rank == 0:
-            #     for i in range(size):
-            #         population = comm.recv(i, tag=11)
-            population = comm.gather(population, root=0)
-
-            if rank == 0:
-                population, _ = selections.selNSGA2(population, k=population_size, nd='standard')
-
-            converged = comm.scatter(converged_list, root=0)
-            generation = comm.scatter(generation_list, root=0)
+            converged = comm.bcast(converged, root=0)
+            generation = comm.bcast(generation, root=0)
 
         print("ending universe", time.time() - start_time)
         # ---------------------------------------------------END UNIVERSE-----------------------------------------------------------
