@@ -66,23 +66,10 @@ operDict[ceil_greyscale_norm] = {"inputs": [np.ndarray],
                             "args": [],
                             "include_labels": False
                         }
-"""
-see https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
-for data augmentation ideas
-"""
-def random_rotation(input, labels, percentage = .25, rotRange = 25): #add random_degree to the arguments
-    uniform = random.uniform
-    function = lambda x: sk.transform.rotate(x, uniform(-rotRange, rotRange))
-    return apply_augmentation(input, labels, percentage, function)
-
-operDict[random_rotation] = {"inputs": [np.ndarray],
-                            "outputs": np.ndarray,
-                            "args": ['percentage', 'rotRange'],
-                            "include_labels": True}
-
 
 def apply_augmentation(input, labels,  percentage, function, *args):
     """
+    This function is the general wrapper for data augmentation methods
     :param input: list of training x data
     :param labels: list of training y data
     :param function: function to apply
@@ -104,6 +91,20 @@ def apply_augmentation(input, labels,  percentage, function, *args):
     outputLabels = np.array(outputLabels)
     return np.append(input, output, axis = 0), np.append(labels, outputLabels, axis = 0)
 
+"""
+see https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
+for data augmentation ideas
+"""
+def random_rotation(input, labels, percentage = .25, rotRange = 25): #add random_degree to the arguments
+    uniform = random.uniform
+    function = lambda x: sk.transform.rotate(x, uniform(-rotRange, rotRange))
+    return apply_augmentation(input, labels, percentage, function)
+
+operDict[random_rotation] = {"inputs": [np.ndarray],
+                            "outputs": np.ndarray,
+                            "args": ['percentage', 'rotRange'],
+                            "include_labels": True}
+
 
 def random_noise(input, labels, percentage = .25):
     function = sk.util.random_noise
@@ -114,6 +115,73 @@ operDict[random_noise] = {"inputs": [np.ndarray],
                             "outputs": np.ndarray,
                             "args": ['percentage'],
                             "include_labels": True}
+"""
+see https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
+for data augmentation ideas
+"""
+def random_horizontal_flip(input, labels, percentage = .25): #add random_degree to the arguments
+    function = lambda x: x[:, ::-1]
+    return apply_augmentation(input, labels, percentage, function)
+
+operDict[random_horizontal_flip] = {"inputs": [np.ndarray],
+                            "outputs": np.ndarray,
+                            "args": ['percentage'],
+                            "include_labels": True}
+
+def add_gausian_noise_to_one_image(image_array):
+    mean = 0
+    var = 0.1
+    sigma = var**0.5
+    row, col, ch = image_array.shape
+    gauss = np.random.normal(mean,sigma,(row,col,ch))
+    gauss = gauss.reshape(row,col,ch)
+    gaussian_img = image_array + gauss
+    return gaussian_img
+
+"""
+see https://medium.com/ymedialabs-innovation/data-augmentation-techniques-in-cnn-using-tensorflow-371ae43d5be9#2f4a
+https://stackoverflow.com/questions/22937589/how-to-add-noise-gaussian-salt-and-pepper-etc-to-image-in-python-with-opencv
+Add gausian noise to change lighting condition
+for data augmentation
+"""
+def add_gausian_noise(input, labels, percentage = .25): #add random_degree to the arguments
+    function = add_gausian_noise_to_one_image
+    return apply_augmentation(input, labels, percentage, function)
+
+operDict[add_gausian_noise] = {"inputs": [np.ndarray],
+                            "outputs": np.ndarray,
+                            "args": ['percentage'],
+                            "include_labels": True}
+
+def add_salt_pepper_noise_to_one_image(image):
+    image_array = image.copy()
+    salt_vs_pepper = 0.2
+    amount = 0.004
+    row, col, _ = image_array.shape
+    num_salt = np.ceil(amount * image_array.size * salt_vs_pepper)
+    num_pepper = np.ceil(amount * image_array.size * (1.0 - salt_vs_pepper))
+    # Add Salt noise
+    coords = [np.random.randint(0, i - 1, int(num_salt)) for i in image_array.shape]
+    image_array[coords[0], coords[1], :] = 1
+    # Add Pepper noise
+    coords = [np.random.randint(0, i - 1, int(num_pepper)) for i in image_array.shape]
+    image_array[coords[0], coords[1], :] = 0
+    return image_array
+
+"""
+see https://medium.com/ymedialabs-innovation/data-augmentation-techniques-in-cnn-using-tensorflow-371ae43d5be9#2f4a
+Add salt and pepper noise
+for data augmentation
+"""
+def add_salt_pepper_noise(input, labels, percentage = .25): #add random_degree to the arguments
+    function = add_salt_pepper_noise_to_one_image
+    return apply_augmentation(input, labels, percentage, function)
+
+operDict[add_salt_pepper_noise] = {"inputs": [np.ndarray],
+                            "outputs": np.ndarray,
+                            "args": ['percentage'],
+                            "include_labels": True}
+
 # def scale_in(input, mode = True):
 
 
