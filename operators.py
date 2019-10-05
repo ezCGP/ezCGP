@@ -106,20 +106,8 @@ def apply_augmentation(input, labels,  percentage, function, *args):
 
 
 def random_noise(input, labels, percentage = .25):
-    #https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
-    sampleSize =  int(len(input) * percentage)
-    sample_idxs = np.random.choice(len(input), sampleSize)
-    output = []
-    outputLabels = []
-    for idx in sample_idxs:
-        image_array = input[idx]
-        label = labels[idx]
-        # pick a random degree of rotation between 25% on the left and 25% on the right
-        output.append(sk.util.random_noise(image_array))
-        outputLabels.append(label)
-    output = np.array(output)
-    outputLabels = np.array(outputLabels)
-    return np.append(input, output, axis = 0), np.append(labels, outputLabels, axis = 0)
+    function = sk.util.random_noise
+    return apply_augmentation(input, labels, percentage, function)
     # add random noise to the image
 
 operDict[random_noise] = {"inputs": [np.ndarray],
