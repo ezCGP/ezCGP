@@ -13,7 +13,7 @@ class PreprocessingBlock(SkeletonBlock):
         if "tensorblock_flag" in kwargs and kwargs["tensorblock_flag"]:
             self.block_input_dtypes = [tf.Tensor]
             self.block_outputs_dtypes = [tf.Tensor]
-        if "setup_dict_ftn" not in kwargs:
+        if "primitives" not in kwargs:
             # default layers
 
             #declare which primitives are available to the genome,
@@ -30,11 +30,11 @@ class PreprocessingBlock(SkeletonBlock):
             #    operators.identity_layer: {"prob": 1}
             #     operators.gassuian_blur: {'prob': 1},
              #   operators.ceil_greyscale_norm: {'prob': 1}
-             #    operators.random_rotation: {'prob':1},
-                # operators.random_noise: {'prob': 1},
-                # operators.random_horizontal_flip: {'prob': 1},
-                # operators.add_gausian_noise: {'prob': 1},
-                operators.add_salt_pepper_noise: {'prob': 1}
+                 operators.random_rotation: {'prob':1},
+                 operators.random_noise: {'prob': 1},
+                 operators.random_horizontal_flip: {'prob': 1},
+                 operators.add_gausian_noise: {'prob': 1},
+                 operators.add_salt_pepper_noise: {'prob': 1}
             }
         else:
             # specific layers

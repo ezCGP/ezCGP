@@ -220,7 +220,7 @@ class percentage(object):
             self.num_samples = 10
 
     def mutate(self):
-        self.value = np.random.rand()
+        self.value = np.random.rand()/5
 
     def __str__(self):
         return "{}".format(self.value)
