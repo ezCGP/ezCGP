@@ -59,8 +59,10 @@ def split_pop(pop, num_cpu):
     :param num_cpu:
     :return:
     """
+    # num_cpu -= 1
     pop_length = len(pop)
     new_pop = []
+    # new_pop.append([])
     bucket_size = int(pop_length / num_cpu)
     left_over = []
     for i in range(0, pop_length, bucket_size):
@@ -154,7 +156,7 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 2
+        population_size = 3
         num_mutants, num_offspring = 4, 2
 
         np.random.seed(universe_seed)
@@ -170,11 +172,11 @@ if __name__ == '__main__':
 
             population = split_pop(population, size)
             print("Pop length", len(population))
+            print("Len pop: ", len(population))
             for p in population:
                 print("Sub pop", len(p))
         else:
             population = None
-
         population = comm.scatter(population, root=0)
 
         print("CREATE UNIVERSE SCATTER POP")
@@ -202,8 +204,8 @@ if __name__ == '__main__':
         END PARALLEL INDIVIDUAL EVALUATE
         """
         print("Length: ", len(population))
-        for p in population:
-            print(p)
+        for i in population:
+            i.clear_rec()
         population = comm.gather(population, root=0)
 
         print("--------------------END CREATE UNIVERSE--------------------")
@@ -228,8 +230,9 @@ if __name__ == '__main__':
             print("--------------------Scattering Population End--------------------")
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
 
-            generation += 1
+            print("Len before run universe: ", len(population))
             population = run_universe(population, num_mutants, num_offspring, input_data, labels)
+            print("Len after run universe: ", len(population))
 
             """
             Gather scores
@@ -242,6 +245,7 @@ if __name__ == '__main__':
             generation_list = []
             converged_list = []
             if rank == 0:
+                generation += 1
                 new_pop = []
                 for subpop in population:
                     for individual in subpop:
@@ -266,10 +270,15 @@ if __name__ == '__main__':
                     except:
                         import pdb
                         pdb.set_trace()
+                print("Len pop before split: ", len(population))
+                # pdb.set_trace()
 
-            # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
-            # np.save(file_pop, population)
-            # np.save(file_generation, generation)
+                file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
+                np.save(file_pop, population)
+                np.save(file_generation, generation)
+
+                population = split_pop(population, size)
+
 
             # print("Converged: ", converged)
             # print("Generation: ", generation)
