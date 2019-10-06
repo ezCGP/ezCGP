@@ -59,10 +59,10 @@ def split_pop(pop, num_cpu):
     :param num_cpu:
     :return:
     """
-    # num_cpu -= 1
+    num_cpu -= 1
     pop_length = len(pop)
     new_pop = []
-    # new_pop.append([])
+    new_pop.append([])
     bucket_size = int(pop_length / num_cpu)
     left_over = []
     for i in range(0, pop_length, bucket_size):
@@ -156,8 +156,8 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 3
-        num_mutants, num_offspring = 4, 2
+        population_size = 64
+        num_mutants, num_offspring = 1, 2
 
         np.random.seed(universe_seed)
 
@@ -261,15 +261,15 @@ if __name__ == '__main__':
                     converged = True
                 else:
                     pass
-                if (generation % 10 == 0) or converged:
-                    # plot
-                    # import pdb; pdb.set_trace()
-                    sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]]
-                    try:
-                        print(sample_best.genome_outputs[0])
-                    except:
-                        import pdb
-                        pdb.set_trace()
+                # if (generation % 10 == 0) or converged:
+                #     # plot
+                #     # import pdb; pdb.set_trace()
+                #     sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]]
+                #     try:
+                #         print(sample_best.genome_outputs[0])
+                #     except:
+                #         import pdb
+                #         pdb.set_trace()
                 print("Len pop before split: ", len(population))
                 # pdb.set_trace()
 
