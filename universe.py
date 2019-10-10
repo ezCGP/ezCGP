@@ -93,7 +93,7 @@ def create_universe(input_data,
                     labels,
                     population_size=2,
                     universe_seed=9,
-                    num_mutants=2,
+                    num_mutants=4,
                     num_offpsring=2):
     np.random.seed(universe_seed)
 
@@ -120,10 +120,10 @@ def create_universe(input_data,
     GENERATION_LIMIT = problem.generation_limit
     SCORE_MIN = problem.score_min
     start_time = time.time()
-    newpath = r'outputs_cifar/'
+    newpath = r'outputs_cifar_augment/'
     if not os.path.exists(newpath):
         os.makedirs(newpath)
-    file_generation = 'outputs_cifar/generation_number.npy'
+    file_generation = 'outputs_cifar_augment/generation_number.npy'
 
     while (not converged) & (generation <= GENERATION_LIMIT):
         generation += 1

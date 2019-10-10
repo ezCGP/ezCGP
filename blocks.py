@@ -352,14 +352,10 @@ class Block(Mate, Mutate):
         # clean up all tensorflow variables so that individual can be deepcopied
         # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
         # this fixes the universe.py run_universe deepcopy() bug
-        self.graph = None
-        self.feed_dict = {}
-        self.fetch_nodes = []
-        self.evaluated = [None] * self.genome_count
-        self.labels = [] #passing labels into here allows for possible augmentation of the labels by a non tensorflow block
-        self.dataset.clear_batch() #for batch updates
-        tf.keras.backend.clear_session()
+        self.rec_clear()
         gc.collect()
+
+   
 
     def non_tensorflow_evaluate(self, block_inputs, validation_pair):
         for i, input_ in enumerate(block_inputs):
@@ -374,6 +370,7 @@ class Block(Mate, Mutate):
                 logging.info(self.labels)
                 self.genome_output_values = (self.evaluated[referenced_node], self.labels) #Is there ever a time we have multiple multiple_genome_output_values
         self.need_evaluate = False #taking away append will break something
+        self.rec_clear()
         gc.collect()
 
 
@@ -410,3 +407,18 @@ class Block(Mate, Mutate):
             self.tensorflow_evaluate(block_inputs, labels_all, validation_pair)
         else:
             self.non_tensorflow_evaluate(block_inputs, validation_pair)
+        self.rec_clear()
+        gc.collect()
+    def rec_clear(self):
+        self.graph = None
+        self.feed_dict = {}
+        self.fetch_nodes = []
+        self.evaluated = [None] * self.genome_count
+        self.dataset.clear_batch()
+    #    self.genome_output_values = []
+    #    self.validation_pair_output = []
+        self.labels = []
+        self.evaluated = [None] * self.genome_count
+        self.val_evaluated = [None] * self.genome_count
+        self.dataset.clear_batch() #for batch updates    
+        tf.keras.backend.clear_session()

@@ -89,10 +89,13 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         for i in range(1,self.num_blocks+1):
             block = self.skeleton[i]["block_object"]
             block.evaluate(block_inputs=data, labels_all=labels, validation_pair=validation_pair)
+            
             data = self.skeleton[i]["block_object"].genome_output_values[0] #last genome output val should be classifications making labels none
             labels =  self.skeleton[i]["block_object"].genome_output_values[1] 
+            self.skeleton[i]["block_object"].genome_output_values = []
             if block.apply_to_val:
                 validation_pair = self.skeleton[i]["block_object"].validation_pair_output
+                self.skeleton[i]["block_object"].validation_pair_output = []
 
             #after running enumerate in individual.evaluate(), data strips down one dimension, so add back the dimension
             if i != self.num_blocks: 

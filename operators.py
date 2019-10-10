@@ -245,11 +245,11 @@ def avg_pool_layer(input_tensor):
 operDict[avg_pool_layer] = {"inputs": [tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
-                            "name": 'avgPoolLayer',
+                            "name": 'avg_pool_layer',
                             "include_labels": False}
 
 def global_avg_pool_layer(input_tensor):
-    return global_avg_pool(input_tensor)
+    return avg_pool_layer(input_tensor)
 
 def dense_layer(input_tensor, num_units=128):
     # Flatten tensor into a batch of vectors

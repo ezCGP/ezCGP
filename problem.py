@@ -12,7 +12,7 @@ from utils.preprocessing_block import PreprocessingBlock
 from utils.DbConfig import DbConfig
 from utils.DbManager import DbManager
 import logging
-generation_limit = 19
+generation_limit = 25
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
 db_config = DbConfig()
@@ -115,14 +115,11 @@ def scoreFunction(predict, actual):
 # preprocessing_block1 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False, main_count=2,
 #                                           setup_dict_ftn = {operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-preprocessing_block1 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False, main_count=20)
+preprocessing_block1 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False, main_count=15)
 preprocessing_block2 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = True, main_count=2,
                                           primitives = {operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-#print('preprocessing block: ', vars(preprocessing_block))
-
-training_block = TrainingBlock(main_count=10,learning_required=True, apply_to_val = False)
-#print('training block: ', vars(training_block))
+training_block = TrainingBlock(main_count=25,learning_required=True, apply_to_val = False,  n_epochs = 1)
 
 skeleton_genome = { # this defines the WHOLE GENOME
     'input': [np.ndarray], # we don't pass in the labels since the labels are only used at evaluation and scoring time
