@@ -3,6 +3,7 @@ import utils.LogSetup as logging
 # external packages
 from copy import deepcopy
 import numpy as np
+import random
 import time
 import logging
 
@@ -10,6 +11,7 @@ if __name__ == '__main__':
     # set the seed and import scripts
     seed = 5
     np.random.seed(seed)
+    random.seed(seed) #set both random seeds to same thin
     # keep these imports after the seed is set for numpy
     import problem
     import universe

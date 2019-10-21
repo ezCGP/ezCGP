@@ -18,7 +18,7 @@ def draw_analysis():
         sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
         # print('Generation: {}'.format(gen))
         # display_genome(sample_best)
-        active_nodes = sample_best.skeleton[1]["block_object"].active_nodes
+        active_nodes = sample_best.skeleton[sample_best.num_blocks]["block_object"].active_nodes
         fitness_score_list.append(1 - sample_best.fitness.values[0])
         active_nodes_list.append(len(active_nodes))
     plt.subplot(2, 1, 1)
@@ -52,7 +52,7 @@ def draw_analysis2():
         sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
         # print('Generation: {}'.format(gen))
         # display_genome(sample_best)
-        active_nodes = sample_best.skeleton[1]["block_object"].active_nodes
+        active_nodes = sample_best.skeleton[sample_best.num_blocks]["block_object"].active_nodes
         accuracy_score_list.append(1 - sample_best.fitness.values[0])
         f1_score_list.append(1 - sample_best.fitness.values[1])
         active_nodes_list.append(len(active_nodes))

@@ -10,6 +10,11 @@
     More information about python logging can be found at https://docs.python.org/3/library/logging.html
 """
 import logging
+import tensorflow as tf
+tf.get_logger().setLevel('INFO')
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #disables tf log outs
+
+
 stdout = True
 toFile = True #set to true if you want it to be redirected to File
 
