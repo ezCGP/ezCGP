@@ -22,36 +22,6 @@ def enablePrint():
     sys.stdout = sys.__stdout__
 
 
-def create_universe(labels, pop_sz=20, seed=9, mutatn_sz=4, offspring_sz=2, comm=None, size=None, rank=None):
-    np.random.seed(seed)
-
-    if rank == 0:
-        population = [Individual(skeleton=problem.skeleton_genome) for i in range(pop_sz)]
-        population = split_pop(population, size)
-    else:
-        population = None
-
-    population = comm.scatter(population, root=0)
-
-    print("CReATE UNIVERSE SCATTER POP")
-    # parallelize
-    for i in range(len(population)):
-        individual = population[i]
-        individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
-                                                               problem.y_val))
-        # individual.score_fitness(labels=labels)
-        try:
-            individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
-                                                              predict=individual.genome_outputs)
-            print('Initialized individual has fitness: {}'
-                  .format(individual.fitness.values))
-        except:
-            import pdb
-            pdb.set_trace()
-
-    population = comm.gather(population, root=0)
-    return population
-
 
 def split_pop(pop, num_cpu):
     """
@@ -111,8 +81,9 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
             # then make solving each node customizable...gt computer nodes, locally on different processes, or on cloud compute service
             # add to queue to evaluate individual
             # evaluate uses multithreading to send individuals to evaluate blocks
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
-                                                                   problem.y_val))
+
+            individual.evaluate2(comm=None, size=None, rank=None) #so that the individuals can access the broadcast data from their respective cpus?
+
             individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
                                                               predict=individual.genome_outputs)
             print('Muatated population individual has fitness: {}' \
@@ -134,6 +105,7 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
     print("Start MPI Universe")
 
+
     # set the seed and import scripts
     seed = 5
     np.random.seed(seed)
@@ -141,8 +113,13 @@ if __name__ == '__main__':
     import problem
     import universe
 
+    if rank == 0: 
+        data_shared =  problem.x_train, problem.y_train, (problem.x_val, problem.y_val) #Each cpu gets its own dataset
+    else: 
+        data_shared = None # data will be broadcast to other cpus
 
-    # Read in Data
+    data_shared = comm.bcast(data_shared, root=0)
+
     train_data = problem.x_train
     train_labels = problem.y_train
 
@@ -177,6 +154,7 @@ if __name__ == '__main__':
                 print("Sub pop", len(p))
         else:
             population = None
+
         population = comm.scatter(population, root=0)
 
         print("CREATE UNIVERSE SCATTER POP")
@@ -187,12 +165,11 @@ if __name__ == '__main__':
 
         for i in range(len(population)):
             individual = population[i]
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
-                                                                   problem.y_val))
-            # individual.score_fitness(labels=labels)
+            individual.evaluateMPI(comm=comm, size=2, rank=rank, data_shared = data_shared) #This probably works. Or it does not. Seems to. Or print statements are broken
+
             try:
-                individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
-                                                                  predict=individual.genome_outputs)
+                individual.fitness.values = [-1, -1] #problem.scoreFunction(actual=problem.y_val, #This is commented because it is. I think you can uncomment it!
+                                                           #       predict=individual.genome_outputs)
                 print('Initialized individual has fitness: {}'
                       .format(individual.fitness.values))
             except:

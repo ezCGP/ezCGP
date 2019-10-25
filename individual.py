@@ -3,6 +3,8 @@
 # external packages
 import numpy as np
 from copy import deepcopy
+from mpi4py import MPI
+import logging
 
 # my scripts
 from blocks import Block
@@ -87,7 +89,21 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             block = self.skeleton[i]["block_object"]
             block.rec_clear()
 
+    def evaluateMPI(self, comm=None, size=None, rank=None, data_shared =None):
+
+        logging.debug("rank{}".format(rank, data_shared[0].shape)) #
+        
+        data, labels, validation_pair = data_shared
+
+        return self.evaluate(data, labels, validation_pair)
+
+
     def evaluate(self, data, labels=None, validation_pair=None):
+        # test = 0
+        # initcomm = MPI.Comm.Get_parent()
+        # initcomm.Bcast(test, root=0)
+
+       # print("LOOK HERE", test)
         # added validation pair support external validation of labels/data in each block
         for i in range(1,self.num_blocks+1):
             print('block number ', i)
