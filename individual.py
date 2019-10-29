@@ -68,8 +68,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                                 block_arg_count=num_args)
         """
 
-<<<<<<< Updated upstream
-=======
+
     def get_genome_list(self):
         genome_list = []
         for i in range(1,self.num_blocks+1):
@@ -80,7 +79,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             genome_list.append(block.genome)
         genome_list.append((1, 1))
         return genome_list
->>>>>>> Stashed changes
+
 
     def __getitem__(self, block_index):
         if (block_index=="input") or (block_index=="output"):
@@ -102,13 +101,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             block = self.skeleton[i]["block_object"]
             block.rec_clear()
 
-    def evaluateMPI(self, comm=None, size=None, rank=None, data_shared =None):
 
-        logging.debug("rank{}".format(rank, data_shared[0].shape)) #
-        
-        data, labels, validation_pair = data_shared
-
-        return self.evaluate(data, labels, validation_pair)
 
 
     def evaluate(self, data, labels=None, validation_pair=None):
@@ -194,8 +187,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             # 'self' must be at least as good as 'other' for all objective fnts (np.all(a>=b))
             # and strictly better in at least one (np.any(a>b))
             return np.any(a < b) and np.all(a <= b)
-<<<<<<< Updated upstream
-=======
+
 
 def create_individual_from_genome_list(skeleton_genome, genome_list):
     individual = Individual(skeleton_genome)
@@ -204,4 +196,3 @@ def create_individual_from_genome_list(skeleton_genome, genome_list):
         individual.skeleton[i]["block_object"].genome = genome_list[i-1]
 
     return individual
->>>>>>> Stashed changes

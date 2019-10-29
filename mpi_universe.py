@@ -4,7 +4,7 @@
 import numpy as np
 from copy import deepcopy
 import time
-from individual import Individual
+from individual import Individual, create_individual_from_genome_list
 import selections
 import gc
 import os, sys
@@ -113,12 +113,8 @@ if __name__ == '__main__':
     import problem
     import universe
 
-    if rank == 0: 
-        data_shared =  problem.x_train, problem.y_train, (problem.x_val, problem.y_val) #Each cpu gets its own dataset
-    else: 
-        data_shared = None # data will be broadcast to other cpus
 
-    data_shared = comm.bcast(data_shared, root=0)
+   # data_shared = comm.bcast(data_shared, root=0)
 
     train_data = problem.x_train
     train_labels = problem.y_train
@@ -145,7 +141,7 @@ if __name__ == '__main__':
                 ind = Individual(skeleton=problem.skeleton_genome)
                 ind.clear_rec()  # clear rec to allow deepcopy to work
                 ind = deepcopy(ind)  # need to deepcopy individual so that the dataset does not cause pickling error
-                population.append(ind)
+                population.append(ind.get_genome_list())
 
             population = split_pop(population, size)
             print("Pop length", len(population))
@@ -164,18 +160,14 @@ if __name__ == '__main__':
         """
 
         for i in range(len(population)):
-            individual = population[i]
-            individual.evaluateMPI(comm=comm, size=2, rank=rank, data_shared = data_shared) #This probably works. Or it does not. Seems to. Or print statements are broken
-
+            individual = create_individual_from_genome_list(problem.skeleton_genome, 
+                                                    population[i])
+            individual.evaluate(problem.x_train, problem.x_test, (problem.x_val, problem.y_val)) #This probably works. Or it does not. Seems to. Or print statements are broken
             try:
-<<<<<<< Updated upstream
-                individual.fitness.values = [-1, -1] #problem.scoreFunction(actual=problem.y_val, #This is commented because it is. I think you can uncomment it!
-                                                           #       predict=individual.genome_outputs)
-=======
+
                 individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
                                                                   predict=individual.genome_outputs)
                 population[i][-1] = individual.fitness.values
->>>>>>> Stashed changes
                 print('Initialized individual has fitness: {}'
                       .format(individual.fitness.values))
             except:
