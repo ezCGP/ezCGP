@@ -168,8 +168,14 @@ if __name__ == '__main__':
             individual.evaluateMPI(comm=comm, size=2, rank=rank, data_shared = data_shared) #This probably works. Or it does not. Seems to. Or print statements are broken
 
             try:
+<<<<<<< Updated upstream
                 individual.fitness.values = [-1, -1] #problem.scoreFunction(actual=problem.y_val, #This is commented because it is. I think you can uncomment it!
                                                            #       predict=individual.genome_outputs)
+=======
+                individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
+                                                                  predict=individual.genome_outputs)
+                population[i][-1] = individual.fitness.values
+>>>>>>> Stashed changes
                 print('Initialized individual has fitness: {}'
                       .format(individual.fitness.values))
             except:
