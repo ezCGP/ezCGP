@@ -129,7 +129,7 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 64
+        population_size = 20
         num_mutants, num_offspring = 1, 2
 
         np.random.seed(universe_seed)
@@ -150,7 +150,7 @@ if __name__ == '__main__':
                 print("Sub pop", len(p))
         else:
             population = None
-
+        start = time.time()
         population = comm.scatter(population, root=0)
 
         print("CREATE UNIVERSE SCATTER POP")
@@ -162,7 +162,7 @@ if __name__ == '__main__':
         for i in range(len(population)):
             individual = create_individual_from_genome_list(problem.skeleton_genome, 
                                                     population[i])
-            individual.evaluate(problem.x_train, problem.x_test, (problem.x_val, problem.y_val)) #This probably works. Or it does not. Seems to. Or print statements are broken
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val)) #This probably works. Or it does not. Seems to. Or print statements are broken
             try:
 
                 individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
@@ -179,10 +179,8 @@ if __name__ == '__main__':
         END PARALLEL INDIVIDUAL EVALUATE
         """
         print("Length: ", len(population))
-        for i in population:
-            i.clear_rec()
         population = comm.gather(population, root=0)
-
+        print("Total Time", time.time() - start)
         print("--------------------END CREATE UNIVERSE--------------------")
 
         # eval_queue = queue.Queue()

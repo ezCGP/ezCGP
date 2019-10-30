@@ -12,7 +12,7 @@ class SkeletonBlock:
                  learning_required=False,
                  apply_to_val = True,
                  batch_size=128,
-                 n_epochs=1000,
+                 n_epochs=1,
                  large_dataset=None,
                  nickname='tensor_mnist_block',
                  primitives={},
