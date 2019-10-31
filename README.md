@@ -11,6 +11,13 @@ https://docs.google.com/document/d/1X8jGDXHAKkMBgOCYCtgT5v-wSqSLjVhxtZnGqr2hwz4/
 * `python main.py`
 
 #### To run parallel, with MPI
+Get the MPI implementation in C on your machine first.  
+
+Linux: Run `sudo apt install mpich`  
+Windows: https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi?redirectedfrom=MSDN   
+Mac: Run `brew install mpich`  
+
+Then, install the python wrapper for MPI
 * Install mpi4py by running
 `pip install mpi4py`
 * To run mpi, locate where `mpiexec` is, and run this command
