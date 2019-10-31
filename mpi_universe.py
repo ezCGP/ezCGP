@@ -129,7 +129,7 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 20
+        population_size = 64
         num_mutants, num_offspring = 1, 2
 
         np.random.seed(universe_seed)
