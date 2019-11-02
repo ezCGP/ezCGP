@@ -29,27 +29,17 @@ def split_pop(pop, num_cpu):
     :param num_cpu:
     :return:
     """
-    num_cpu -= 1
-    pop_length = len(pop)
     new_pop = []
-    new_pop.append([])
-    bucket_size = int(pop_length / num_cpu)
-    left_over = []
-    for i in range(0, pop_length, bucket_size):
-        end = i + bucket_size
-        if end <= pop_length:
-            new_pop.append(
-                pop[i: end]
-            )
-        else:
-            left_over = pop[i:]
+    for i in range(num_cpu):
+        new_pop.append([])
 
-    if len(left_over) > 0:
-        for i in range(len(left_over)):
-            new_pop[i].append(
-                left_over[i]
-            )
+    len_pop = len(pop)
+    for i in range(len_pop):
+        indx = i % len(new_pop)
+        new_pop[indx].append(pop[i])
+
     return new_pop
+
 
 
 def run_universe(population, num_mutants, num_offspring, input_data, labels,
@@ -81,9 +71,8 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
             # then make solving each node customizable...gt computer nodes, locally on different processes, or on cloud compute service
             # add to queue to evaluate individual
             # evaluate uses multithreading to send individuals to evaluate blocks
-
-            individual.evaluate2(comm=None, size=None, rank=None) #so that the individuals can access the broadcast data from their respective cpus?
-
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
+                                                                   problem.y_val))
             individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
                                                               predict=individual.genome_outputs)
             print('Muatated population individual has fitness: {}' \
@@ -94,7 +83,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
     print("population after selection ", len(population))
     gc.collect()
 
-    return population  # , eval_queue
+    return population # , eval_queue
 
 
 if __name__ == '__main__':
@@ -129,7 +118,7 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 64
+        population_size = 4
         num_mutants, num_offspring = 1, 2
 
         np.random.seed(universe_seed)
@@ -140,7 +129,7 @@ if __name__ == '__main__':
                 print("Indivilual ", i)
                 ind = Individual(skeleton=problem.skeleton_genome)
                 ind.clear_rec()  # clear rec to allow deepcopy to work
-                ind = deepcopy(ind)  # need to deepcopy individual so that the dataset does not cause pickling error
+                ind = deepcopy(ind)  # probably no need to deepcopy
                 population.append(ind.get_genome_list())
 
             population = split_pop(population, size)
@@ -167,7 +156,7 @@ if __name__ == '__main__':
 
                 individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
                                                                   predict=individual.genome_outputs)
-                population[i][-1] = individual.fitness.values
+                population[i][-1] = individual.fitness.values #better fix?
                 print('Initialized individual has fitness: {}'
                       .format(individual.fitness.values))
             except:
@@ -202,9 +191,13 @@ if __name__ == '__main__':
             print("Rank: {} Length: {}".format(rank, len(population)))
             print("--------------------Scattering Population End--------------------")
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
-
+            print("Genome 1", population[0])
+            indPopulation = [create_individual_from_genome_list(deepcopy(problem.skeleton_genome), genome) 
+                                 for genome in population]
             print("Len before run universe: ", len(population))
-            population = run_universe(population, num_mutants, num_offspring, input_data, labels)
+            indPopulation = run_universe(indPopulation, num_mutants, num_offspring, input_data, labels)
+            population = [ind.get_genome_list() for ind in indPopulation]
+
             print("Len after run universe: ", len(population))
 
             """
@@ -221,14 +214,16 @@ if __name__ == '__main__':
                 generation += 1
                 new_pop = []
                 for subpop in population:
-                    for individual in subpop:
-                        new_pop.append(individual)
-
-                population, _ = selections.selNSGA2(new_pop, k=population_size, nd='standard')
+                    for genome_list in subpop:
+                        new_pop.append(genome_list)
+                indPopulation = [create_individual_from_genome_list(problem.skeleton_genome, genome) 
+                                    for genome in new_pop]
+                indPopulation, _ = selections.selNSGA2(indPopulation, k=population_size, nd='standard')
+                population = [ind.get_genome_list() for ind in indPopulation]
                 scores = []
 
-                for individual in population:
-                    scores.append(individual.fitness.values[0])
+                for genome_list in population:
+                    scores.append(genome_list[-1])
 
                 if np.min(scores) < SCORE_MIN:
                     converged = True
