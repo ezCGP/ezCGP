@@ -11,7 +11,7 @@ from utils.preprocessing_block import PreprocessingBlock
 from utils.DbConfig import DbConfig
 from utils.DbManager import DbManager
 import logging
-generation_limit = 19
+generation_limit = 1
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
 db_config = DbConfig()

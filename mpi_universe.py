@@ -51,10 +51,13 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
     for i in range(len(population)):  # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
-            mutant = deepcopy(
-                individual)  # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
+            mutant = create_individual_from_genome_list(problem.skeleton_genome, individual.get_genome_list())
+            
+            # mutant = deepcopy(
+            #     individual)  # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
             print("deepcopied")
-            mutant.mutate(block)
+            mutant.mutate()
+
             if mutant.need_evaluate:
                 # then it did for sure mutate
                 population.append(mutant)
@@ -192,20 +195,19 @@ if __name__ == '__main__':
             print("--------------------Scattering Population End--------------------")
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
             print("Genome 1", population[0])
-            indPopulation = [create_individual_from_genome_list(deepcopy(problem.skeleton_genome), genome) 
+            indPopulation = [create_individual_from_genome_list(deepcopy(problem.skeleton_genome), deepcopy(genome)) 
                                  for genome in population]
             print("Len before run universe: ", len(population))
             indPopulation = run_universe(indPopulation, num_mutants, num_offspring, input_data, labels)
             population = [ind.get_genome_list() for ind in indPopulation]
-
             print("Len after run universe: ", len(population))
 
             """
             Gather scores
             """
 
-            for ind in population:
-                ind.clear_rec()  # clear rec to allow deepcopy to work
+            # for ind in population:
+            #     ind.clear_rec()  # clear rec to allow deepcopy to work
             population = comm.gather(population, root=0)
 
             generation_list = []
@@ -216,12 +218,12 @@ if __name__ == '__main__':
                 for subpop in population:
                     for genome_list in subpop:
                         new_pop.append(genome_list)
-                indPopulation = [create_individual_from_genome_list(problem.skeleton_genome, genome) 
-                                    for genome in new_pop]
+                indPopulation = [create_individual_from_genome_list(problem.skeleton_genome, genome_list) 
+                                    for genome_list in new_pop]
                 indPopulation, _ = selections.selNSGA2(indPopulation, k=population_size, nd='standard')
                 population = [ind.get_genome_list() for ind in indPopulation]
                 scores = []
-
+                print(population[0])
                 for genome_list in population:
                     scores.append(genome_list[-1])
 

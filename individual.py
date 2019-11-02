@@ -195,5 +195,6 @@ def create_individual_from_genome_list(skeleton_genome, genome_list):
     for i in range(1,individual.num_blocks+1):
         # replace with genome
         individual.skeleton[i]["block_object"].genome = genome_list[i-1]
-
+        individual.skeleton[i]["block_object"].findActive()
+    individual.fitness.values  = genome_list[-1]
     return individual
