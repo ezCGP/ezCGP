@@ -14,7 +14,6 @@ import logging
 import problem
 import selections
 
-
 def evaluator_queue():
     pass
 
@@ -114,6 +113,7 @@ def create_universe(input_data,
 
         population.append(individual)
         del individual
+        gc.collect()
 
     generation = -1
     converged = False
