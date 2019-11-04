@@ -92,7 +92,7 @@ def run_universe(population,
     new population done: rank individuals in population and trim down
     '''
     population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
-    logging.info("Population after selection ", str(len(population)))
+    logging.info("Population after selection " + str(len(population)))
     gc.collect()
 
     return population
@@ -144,7 +144,7 @@ def create_universe(input_data,
             scores.append(individual.fitness.values[0])
 
         logging.info("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
-        logging.info(str(generation), str(np.min(scores)))
+        logging.info(str(generation) + str(np.min(scores)))
 
         if np.min(scores) < SCORE_MIN:
             converged = True
@@ -159,7 +159,7 @@ def create_universe(input_data,
             sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0],
                                                       size=1)[0]]
             try:
-                logging.info(sample_best.genome_outputs[0])
+                logging.info("best " + str(sample_best.genome_outputs[0]))
 
             except:
                 import pdb
@@ -188,4 +188,4 @@ def create_universe(input_data,
         np.save(file_pop, population)
         np.save(file_generation, generation)
 
-    logging.info("ending universe", str(time.time() - start_time))
+    logging.info("ending universe" + str(time.time() - start_time))
