@@ -10,6 +10,7 @@ import gc
 import os, sys
 from mpi4py import MPI
 import logging
+import tracemalloc
 
 
 # Disable
@@ -20,7 +21,6 @@ def blockPrint():
 # Restore
 def enablePrint():
     sys.stdout = sys.__stdout__
-
 
 
 def split_pop(pop, num_cpu):
@@ -41,7 +41,6 @@ def split_pop(pop, num_cpu):
     return new_pop
 
 
-
 def run_universe(population, num_mutants, num_offspring, input_data, labels,
                  block=None):  # be able to select which block we want to evolve or randomly select
     # mate through the population
@@ -52,7 +51,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
         individual = population[i]
         for _ in range(num_mutants):
             mutant = create_individual_from_genome_list(problem.skeleton_genome, individual.get_genome_list())
-            
+
             # mutant = deepcopy(
             #     individual)  # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
             print("deepcopied")
@@ -86,17 +85,17 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
     print("population after selection ", len(population))
     gc.collect()
 
-    return population # , eval_queue
+    return population  # , eval_queue
 
 
 if __name__ == '__main__':
+    tracemalloc.start()
 
     # Init MPI Communication and get CPU rank (ID)
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
     print("Start MPI Universe")
-
 
     # set the seed and import scripts
     seed = 5
@@ -105,8 +104,7 @@ if __name__ == '__main__':
     import problem
     import universe
 
-
-   # data_shared = comm.bcast(data_shared, root=0)
+    # data_shared = comm.bcast(data_shared, root=0)
 
     train_data = problem.x_train
     train_labels = problem.y_train
@@ -131,8 +129,8 @@ if __name__ == '__main__':
             for i in range(population_size):
                 print("Indivilual ", i)
                 ind = Individual(skeleton=problem.skeleton_genome)
-                ind.clear_rec()  # clear rec to allow deepcopy to work
-                ind = deepcopy(ind)  # probably no need to deepcopy
+                # ind.clear_rec()  # clear rec to allow deepcopy to work
+                # ind = deepcopy(ind)  # probably no need to deepcopy
                 population.append(ind.get_genome_list())
 
             population = split_pop(population, size)
@@ -152,14 +150,15 @@ if __name__ == '__main__':
         """
 
         for i in range(len(population)):
-            individual = create_individual_from_genome_list(problem.skeleton_genome, 
-                                                    population[i])
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val)) #This probably works. Or it does not. Seems to. Or print statements are broken
+            individual = create_individual_from_genome_list(problem.skeleton_genome,
+                                                            population[i])
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
+                                                                   problem.y_val))  # This probably works. Or it does not. Seems to. Or print statements are broken
             try:
 
                 individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
                                                                   predict=individual.genome_outputs)
-                population[i][-1] = individual.fitness.values #better fix?
+                population[i][-1] = individual.fitness.values  # better fix?
                 print('Initialized individual has fitness: {}'
                       .format(individual.fitness.values))
             except:
@@ -195,12 +194,10 @@ if __name__ == '__main__':
             print("--------------------Scattering Population End--------------------")
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
             print("Genome 1", population[0])
-            indPopulation = [create_individual_from_genome_list(deepcopy(problem.skeleton_genome), deepcopy(genome)) 
-                                 for genome in population]
-            print("Len before run universe: ", len(population))
+            indPopulation = [create_individual_from_genome_list(deepcopy(problem.skeleton_genome), deepcopy(genome))
+                             for genome in population]
             indPopulation = run_universe(indPopulation, num_mutants, num_offspring, input_data, labels)
             population = [ind.get_genome_list() for ind in indPopulation]
-            print("Len after run universe: ", len(population))
 
             """
             Gather scores
@@ -218,8 +215,8 @@ if __name__ == '__main__':
                 for subpop in population:
                     for genome_list in subpop:
                         new_pop.append(genome_list)
-                indPopulation = [create_individual_from_genome_list(problem.skeleton_genome, genome_list) 
-                                    for genome_list in new_pop]
+                indPopulation = [create_individual_from_genome_list(problem.skeleton_genome, genome_list)
+                                 for genome_list in new_pop]
                 indPopulation, _ = selections.selNSGA2(indPopulation, k=population_size, nd='standard')
                 population = [ind.get_genome_list() for ind in indPopulation]
                 scores = []
@@ -249,7 +246,6 @@ if __name__ == '__main__':
 
                 population = split_pop(population, size)
 
-
             # print("Converged: ", converged)
             # print("Generation: ", generation)
             # print("Length: ", sys.getsizeof(population[0]))
@@ -259,5 +255,10 @@ if __name__ == '__main__':
 
         print("ending universe", time.time() - start_time)
         # ---------------------------------------------------END UNIVERSE-----------------------------------------------------------
-
         print("time of generation", time.time() - start)
+
+    snapshot = tracemalloc.take_snapshot()
+    top = snapshot.statistics('lineno')
+
+    for stat in top[:20]:
+        print(stat)
