@@ -13,6 +13,7 @@ from individual import Individual
 import logging
 import problem
 import selections
+from mating import Mate
 
 def evaluator_queue():
     pass
@@ -41,23 +42,32 @@ def run_universe(population,
             pass
     '''
 
-    logging.info("    MUTATING")
 
-    for i in range(len(population)):
-        individual = population[i]
-        for _ in range(num_mutants):
-            '''
-            Can cause recursive copying issues with tensor blocks,
-            so we empty them in blocks.py evaluate() bottom
-            '''
-            mutant = deepcopy(individual)
-            mutant.mutate(block)
-            if mutant.need_evaluate:
-                population.append(mutant)
-            else:
-                # if mut_prob is < 1 there is a chance it didn't mutate
-                pass
-    
+    logging.info("    MATING")
+    mate_obj = Mate(population, problem.skeleton_genome)
+    mate_list = mate_obj.whole_block_swapping()
+    for mate in mate_list:
+        if mate.need_evaluate:
+            population.append(mate)
+        else:
+            pass
+
+    # logging.info("    MUTATING")
+    # for i in range(len(population)):
+    #     individual = population[i]
+    #     for _ in range(num_mutants):
+    #         '''
+    #         Can cause recursive copying issues with tensor blocks,
+    #         so we empty them in blocks.py evaluate() bottom
+    #         '''
+    #         mutant = deepcopy(individual)
+    #         mutant.mutate(block)
+    #         if mutant.need_evaluate:
+    #             population.append(mutant)
+    #         else:
+    #             # if mut_prob is < 1 there is a chance it didn't mutate
+    #             pass
+
     logging.info("    EVALUATING")
     for individual in population:
         if individual.need_evaluate():
@@ -82,7 +92,7 @@ def run_universe(population,
     new population done: rank individuals in population and trim down
     '''
     population, _ = selections.selNSGA2(population, k=pop_size, nd='standard')
-    logging.info("Population after selection ", len(population))
+    logging.info("Population after selection ", str(len(population)))
     gc.collect()
 
     return population
@@ -90,7 +100,7 @@ def run_universe(population,
 
 def create_universe(input_data,
                     labels,
-                    population_size=2,
+                    population_size=8,
                     universe_seed=9,
                     num_mutants=4,
                     num_offpsring=2):
@@ -134,7 +144,7 @@ def create_universe(input_data,
             scores.append(individual.fitness.values[0])
 
         logging.info("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
-        logging.info(generation, np.min(scores))
+        logging.info(str(generation), str(np.min(scores)))
 
         if np.min(scores) < SCORE_MIN:
             converged = True
@@ -171,8 +181,11 @@ def create_universe(input_data,
             plt.close()
             '''
 
+        path = r'outputs_cifar/'
+        if not os.path.exists(path):
+            os.makedirs(path)
         file_pop = 'outputs_cifar/gen%i_pop.npy' % generation
         np.save(file_pop, population)
         np.save(file_generation, generation)
 
-    logging.info("ending universe", time.time() - start_time)
+    logging.info("ending universe", str(time.time() - start_time))
