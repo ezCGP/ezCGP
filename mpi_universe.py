@@ -119,7 +119,7 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 4
+        population_size = 64
         num_mutants, num_offspring = 1, 2
 
         np.random.seed(universe_seed)
@@ -134,8 +134,6 @@ if __name__ == '__main__':
                 population.append(ind.get_genome_list())
 
             population = split_pop(population, size)
-            print("Pop length", len(population))
-            print("Len pop: ", len(population))
             for p in population:
                 print("Sub pop", len(p))
         else:

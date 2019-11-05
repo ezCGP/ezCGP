@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 # my scripts
-from individual import Individual
+from individual import Individual, create_individual_from_genome_list
 import logging
 import problem
 import selections
@@ -44,7 +44,8 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
     for i in range(len(population)): # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
-            mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
+            mutant = create_individual_from_genome_list(problem.skeleton_genome, individual.get_genome_list())
+            # mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
             print("deepcopied")
             mutant.mutate(block)
             if mutant.need_evaluate:

@@ -473,11 +473,11 @@ class Block(Mate, Mutate):
             pass
         #self.evaluated = None # clear up some space by deleting eval from memory
         self.need_evaluate = False
-        if self.tensorblock_flag:
+        # if self.tensorblock_flag:
             # clean up all tensorflow variables so that individual can be deepcopied
             # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
             #     this fixes the universe.py run_universe deepcopy() bug
-            self.rec_clear()
+        self.rec_clear()
         gc.collect()
 
     def rec_clear(self):
@@ -486,7 +486,7 @@ class Block(Mate, Mutate):
         self.fetch_nodes = []
         self.evaluated = [None] * self.genome_count
         self.dataset.clear_batch()
-        #self.genome_output_values = []
-        #self.validation_pair_output = []
+#        self.genome_output_values = []
+#        self.validation_pair_output = []
 
         tf.keras.backend.clear_session()
