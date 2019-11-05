@@ -20,9 +20,12 @@ from utils import DbConfig
 
 class DbManager():
     def __init__(self, config: DbConfig):
-        self.train_data_set: DataSet = None
-        self.test_data_set: DataSet = None
-        self.db_conf: DbConfig = config
+        # self.train_data_set: DataSet = None
+        # self.test_data_set: DataSet = None
+        # self.db_conf: DbConfig = config
+        self.train_data_set = None
+        self.test_data_set = None
+        self.db_conf = config
         pass
 
     def load_CIFAR_batch(filename):

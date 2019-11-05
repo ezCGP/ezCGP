@@ -39,10 +39,10 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         ]
         """
         self.skeleton = deepcopy(skeleton) # needs deepcopy or else it will add 'block_object' to the dictionary
-        self.blocks = list(self.skeleton.keys())
-        self.blocks.remove('input')
-        self.blocks.remove('output')
-        self.num_blocks = len(self.blocks)
+        self.blocks_indices = list(self.skeleton.keys())
+        self.blocks_indices.remove('input')
+        self.blocks_indices.remove('output')
+        self.num_blocks = len(self.blocks_indices)
         # verify that the number of blocks matches the dictionary
         for i in range(1,self.num_blocks+1):
             if i not in skeleton.keys():
