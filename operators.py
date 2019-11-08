@@ -5,6 +5,10 @@ import tensorflow as tf
 import random
 import cv2
 import skimage as sk
+import os
+# import mkl
+# mkl.set_num_threads(1)
+# os.environ["OMP_NUM_THREADS"] = "1"
 # #from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators

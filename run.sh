@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
-mpiexec -n 4 ~/anaconda3/envs/ezCGP/bin/python mpi_universe.py
-#mpiexec -n 2 ~/anaconda3/envs/ezCGP/bin/python test_mpi.py
+#mpiexec -n 1 ~/anaconda3/envs/ezCGP/bin/python mpi_universe.py
+OMP_NUM_THREADS=1 KMP_WARNING=OFF mpiexec.mpich -n 20 ~/anaconda3/envs/vip-hpc/bin/python mpi_universe.py
+#OMP_NUM_THREADS=6 KMP_WARNING=OFF mpiexec -n 20 ~/anaconda3/envs/ezCGP/bin/python mpi_universe.py
+#OMP_NUM_THREADS=8 KMP_WARNING=OFF mpiexec -n 20 ~/anaconda3/envs/ezCGP/bin/python mpi_universe.py
+#python main.py
+

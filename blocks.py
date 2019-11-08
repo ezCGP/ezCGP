@@ -17,8 +17,10 @@ import operators
 import arguments
 import logging
 
-import tensorflow as tf
 from utils.DataSet import DataSet
+# import mkl
+# mkl.set_num_threads(1)
+# os.environ["OMP_NUM_THREADS"] = "1"
 
 class Block(Mate, Mutate):
     """
@@ -31,8 +33,6 @@ class Block(Mate, Mutate):
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
                  block_mut_prob, block_mate_prob,
                  tensorblock_flag=False, learning_required=False, apply_to_val = True, num_classes=None, batch_size=None, n_epochs=1, large_dataset=None):
-        tf.keras.Sequential
-        tf.Session
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
 
@@ -143,6 +143,11 @@ class Block(Mate, Mutate):
 
 
     def tensorflow_preprocess(self, fetch_nodes, feed_dict, data_pair):
+        # config = tf.ConfigProto(intra_op_parallelism_threads=1,
+        #                         inter_op_parallelism_threads=1,
+        #                         allow_soft_placement=True,
+        #                         device_count={'CPU': 1})
+        # with tf.Session(graph=self.graph, config=config) as sess:
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
             tf_outputs = sess.run(
@@ -168,6 +173,11 @@ class Block(Mate, Mutate):
                 x_val = data_pair["x_val"]
                 y_val = data_pair["y_val"]
                 # final_outputs = []
+                # config = tf.ConfigProto(intra_op_parallelism_threads=1,
+                #                         inter_op_parallelism_threads=1,
+                #                         allow_soft_placement=True,
+                #                         device_count={'CPU': 1})
+                # with tf.Session(graph=self.graph, config=config) as sess:
                 with tf.Session(graph=self.graph) as sess:
                     sess.run(tf.global_variables_initializer())
 
@@ -236,6 +246,11 @@ class Block(Mate, Mutate):
                 x_val = data_pair["x_val"]
                 y_val = data_pair["y_val"]
                 # final_outputs = []
+                # config = tf.ConfigProto(intra_op_parallelism_threads=1,
+                #                         inter_op_parallelism_threads=1,
+                #                         allow_soft_placement=True,
+                #                         device_count={'CPU': 1})
+                # with tf.Session(graph=self.graph, config=config) as sess:
                 with tf.Session(graph=self.graph) as sess:
                     sess.run(tf.global_variables_initializer())
 

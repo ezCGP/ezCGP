@@ -9,6 +9,7 @@ import selections
 import gc
 import os, sys
 from mpi4py import MPI
+import threading
 import logging
 import tracemalloc
 
@@ -44,17 +45,12 @@ def split_pop(pop, num_cpu):
 def run_universe(population, num_mutants, num_offspring, input_data, labels,
                  block=None):  # be able to select which block we want to evolve or randomly select
     # mate through the population
-    pop_size = len(population)
     # mutate through the population
     print("    MUTATING")
     for i in range(len(population)):  # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
             mutant = create_individual_from_genome_list(problem.skeleton_genome, individual.get_genome_list())
-
-            # mutant = deepcopy(
-            #     individual)  # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
-            print("deepcopied")
             mutant.mutate()
 
             if mutant.need_evaluate:
@@ -89,7 +85,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
 
 
 if __name__ == '__main__':
-    tracemalloc.start()
+    # tracemalloc.start()
 
     # Init MPI Communication and get CPU rank (ID)
     comm = MPI.COMM_WORLD
@@ -102,9 +98,6 @@ if __name__ == '__main__':
     np.random.seed(seed)
     # keep these imports after the seed is set for numpy
     import problem
-    import universe
-
-    # data_shared = comm.bcast(data_shared, root=0)
 
     train_data = problem.x_train
     train_labels = problem.y_train
@@ -119,60 +112,46 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 64
+        population_size = 40  # Should be multiple of num of CPUs
         num_mutants, num_offspring = 1, 2
 
         np.random.seed(universe_seed)
 
-        if rank == 0:
-            population = []
-            for i in range(population_size):
-                print("Indivilual ", i)
-                ind = Individual(skeleton=problem.skeleton_genome)
-                # ind.clear_rec()  # clear rec to allow deepcopy to work
-                # ind = deepcopy(ind)  # probably no need to deepcopy
-                population.append(ind.get_genome_list())
-
-            population = split_pop(population, size)
-            for p in population:
-                print("Sub pop", len(p))
-        else:
-            population = None
-        start = time.time()
-        population = comm.scatter(population, root=0)
-
-        print("CREATE UNIVERSE SCATTER POP")
-
         """
-        START PARALLEL INDIVIDUAL EVALUATE
+        Each CPU initialize its own subpopulation
         """
+        population = []
+        for i in range(int(population_size / size)):
+            ind = Individual(skeleton=problem.skeleton_genome)
+            population.append(ind.get_genome_list())
 
         for i in range(len(population)):
+            print("CPU %i CREATE INDIVIDUAL" % rank)
             individual = create_individual_from_genome_list(problem.skeleton_genome,
                                                             population[i])
+            print("CPU %i EVALUATE INDIVIDUAL" % rank)
             individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
                                                                    problem.y_val))  # This probably works. Or it does not. Seems to. Or print statements are broken
             try:
 
+                print("CPU %i Scoring INDIVIDUAL" % rank)
                 individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
                                                                   predict=individual.genome_outputs)
                 population[i][-1] = individual.fitness.values  # better fix?
-                print('Initialized individual has fitness: {}'
-                      .format(individual.fitness.values))
+                print('CPU {}: Initialized individual has fitness {}'
+                      .format(rank, individual.fitness.values))
             except:
                 import pdb
 
                 pdb.set_trace()
 
         """
-        END PARALLEL INDIVIDUAL EVALUATE
+        Gather initialized population back to Master CPU
         """
-        print("Length: ", len(population))
+        comm.Barrier()
         population = comm.gather(population, root=0)
-        print("Total Time", time.time() - start)
         print("--------------------END CREATE UNIVERSE--------------------")
 
-        # eval_queue = queue.Queue()
         generation = -1
         converged = False
         GENERATION_LIMIT = problem.generation_limit  # 199
@@ -183,30 +162,45 @@ if __name__ == '__main__':
             os.makedirs(newpath)
         file_generation = 'outputs_cifar/generation_number.npy'
 
+        """
+        Parallel GP ezCGP starts here
+        """
         while (not converged) & (generation <= GENERATION_LIMIT):
             """
-            SCATTER POPULATION ACROSS ALL SLAVE CPU
+            Scatter population across all slave cpu
             """
+            comm.Barrier()
+            scatter_start = time.time()
             population = comm.scatter(population, root=0)
+            scatter_end = time.time()
+
             print("Rank: {} Length: {}".format(rank, len(population)))
-            print("--------------------Scattering Population End--------------------")
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
-            print("Genome 1", population[0])
             indPopulation = [create_individual_from_genome_list(deepcopy(problem.skeleton_genome), deepcopy(genome))
                              for genome in population]
+            run_start = time.time()
             indPopulation = run_universe(indPopulation, num_mutants, num_offspring, input_data, labels)
+            run_end = time.time()
             population = [ind.get_genome_list() for ind in indPopulation]
 
             """
-            Gather scores
+            Gather genomes lists back to Master CPU
             """
-
-            # for ind in population:
-            #     ind.clear_rec()  # clear rec to allow deepcopy to work
+            comm.Barrier()
+            gather_start = time.time()
             population = comm.gather(population, root=0)
+            gather_end = time.time()
 
             generation_list = []
             converged_list = []
+
+            """
+            Master CPU job is
+                - Generate invidividuals from the gathered Genome List
+                - to select the best candidates for the next generation
+            """
+            comm.Barrier()
+            select_start = time.time()
             if rank == 0:
                 generation += 1
                 new_pop = []
@@ -218,7 +212,7 @@ if __name__ == '__main__':
                 indPopulation, _ = selections.selNSGA2(indPopulation, k=population_size, nd='standard')
                 population = [ind.get_genome_list() for ind in indPopulation]
                 scores = []
-                print(population[0])
+                # print(population[0])
                 for genome_list in population:
                     scores.append(genome_list[-1])
 
@@ -226,37 +220,40 @@ if __name__ == '__main__':
                     converged = True
                 else:
                     pass
-                # if (generation % 10 == 0) or converged:
-                #     # plot
-                #     # import pdb; pdb.set_trace()
-                #     sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]]
-                #     try:
-                #         print(sample_best.genome_outputs[0])
-                #     except:
-                #         import pdb
-                #         pdb.set_trace()
-                print("Len pop before split: ", len(population))
-                # pdb.set_trace()
 
-                file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
-                np.save(file_pop, population)
-                np.save(file_generation, generation)
+                # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
+                # np.save(file_pop, population)
+                # np.save(file_generation, generation)
 
                 population = split_pop(population, size)
+            select_end = time.time()
+            with open("cpu_%i.txt" % rank, "a") as f:
+                f.write("Gen %i Scatter: %f, Gather: %f, Run: %f, Select: %f\n" %
+                        (
+                            generation, (scatter_end - scatter_start), (gather_end - gather_start),
+                            (run_end - run_start), (select_end - select_start)
+                        )
+                        )
 
-            # print("Converged: ", converged)
-            # print("Generation: ", generation)
-            # print("Length: ", sys.getsizeof(population[0]))
+            conditions = []
+            if rank == 0:
+                conditions = [converged, generation]
 
-            converged = comm.bcast(converged, root=0)
-            generation = comm.bcast(generation, root=0)
+            comm.Barrier()
+            conditions = comm.bcast(conditions, root=0)
+            converged = conditions[0]
+            generation = conditions[1]
 
         print("ending universe", time.time() - start_time)
         # ---------------------------------------------------END UNIVERSE-----------------------------------------------------------
-        print("time of generation", time.time() - start)
+        time_complete = time.time() - start
+        print("time of generation", time_complete)
+        if rank == 0:
+            with open("run_time.txt", "a") as f:
+                f.write("%f \n" % time_complete)
 
-    snapshot = tracemalloc.take_snapshot()
-    top = snapshot.statistics('lineno')
+    # snapshot = tracemalloc.take_snapshot()
+    # top = snapshot.statistics('lineno')
 
-    for stat in top[:20]:
-        print(stat)
+    # for stat in top[:20]:
+    #     print(stat)

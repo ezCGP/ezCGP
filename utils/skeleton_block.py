@@ -3,6 +3,11 @@ import mate_methods as mate
 import mutate_methods as mut
 import operators
 import tensorflow as tf
+import os
+
+# import mkl
+# mkl.set_num_threads(1)
+# os.environ["OMP_NUM_THREADS"] = "1"
 
 
 class SkeletonBlock:
@@ -12,7 +17,7 @@ class SkeletonBlock:
                  learning_required=False,
                  apply_to_val = True,
                  batch_size=128,
-                 n_epochs=20,
+                 n_epochs=50,
                  large_dataset=None,
                  nickname='tensor_mnist_block',
                  primitives={},

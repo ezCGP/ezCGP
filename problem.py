@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import os
 import six
-import tensorflow as tf
 from six.moves import cPickle as pickle
 
 from utils.training_block import TrainingBlock

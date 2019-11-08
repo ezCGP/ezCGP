@@ -72,7 +72,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
     def get_genome_list(self):
         genome_list = []
         for i in range(1,self.num_blocks+1):
-            print('block number ', i)
+            # print('block number ', i)
 
             # evaluate the block
             block = self.skeleton[i]["block_object"]
@@ -112,7 +112,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
        # print("LOOK HERE", test)
         # added validation pair support external validation of labels/data in each block
         for i in range(1,self.num_blocks+1):
-            print('block number ', i)
+            # print('block number ', i)
 
             # evaluate the block
             block = self.skeleton[i]["block_object"]
