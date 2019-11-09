@@ -139,6 +139,7 @@ def create_universe(input_data,
         generation += 1
         population = run_universe(population, num_mutants, num_offpsring, input_data, labels)
         scores = []
+        list_best_sample = []
 
         for individual in population:
             scores.append(individual.fitness.values[0])
@@ -158,6 +159,9 @@ def create_universe(input_data,
 
             sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0],
                                                       size=1)[0]]
+
+            list_best_sample.append(vars(sample_best))
+
             try:
                 logging.info("best " + str(sample_best.genome_outputs[0]))
 
@@ -188,4 +192,10 @@ def create_universe(input_data,
         np.save(file_pop, population)
         np.save(file_generation, generation)
 
+        #Save best individuals of each generation
+        pathV = r'outputs_visualization/'
+        if not os.path.exists(pathV):
+            os.makedirs(pathV)
+        file_best_sample = 'outputs_visualization/gen%i_pop.npy' % generation
+        np.save(file_best_sample, list_best_sample)
     logging.info("ending universe" + str(time.time() - start_time))
