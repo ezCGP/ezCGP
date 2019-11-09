@@ -21,5 +21,5 @@ Then, install the python wrapper for MPI
 * Install mpi4py by running
 `pip install mpi4py`
 * To run mpi, locate where `mpiexec` is, and run this command
-`mpiexec -n 4 python mpi_universe.py`   
+`sh run.sh`   
 The number `4` in the command above indicates how many CPUs you want to use, and `mpi_universe.py` is our parallelized version of `main.py`
