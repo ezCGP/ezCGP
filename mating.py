@@ -2,6 +2,7 @@ import numbers
 import gc
 import numpy as np
 from copy import deepcopy
+from individual import Individual, build_individual
 
 class Mate():
     def __init__(self, population, skeleton_genome):
@@ -13,16 +14,8 @@ class Mate():
         parent_1, parent_2 = np.random.choice(a=self.population, size=2, p=None)
         
         # copy paernts to new individuals before swapping
-        ind_1 = deepcopy(parent_1)
-        ind_2 = deepcopy(parent_2)
-
-        # clear out both new individuals' blocks' genome_outputs to avoid memory leak
-        # genome_outputs are typically large, esp after training/evaluation
-        for block_index in ind_1.blocks_indices:
-            ind_1.skeleton[block_index]['block_object'].genome_output_values = []
-
-        for block_index in ind_2.blocks_indices:
-            ind_2.skeleton[block_index]['block_object'].genome_output_values = []
+        ind_1 = parent_1.copy()
+        ind_2 = parent_2.copy()
 
         # select two random blocks in the individuals
         block_index = np.random.choice(a=ind_1.blocks_indices, size=1, p=None)[0]

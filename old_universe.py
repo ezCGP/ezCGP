@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 # my scripts
-from individual import Individual, create_individual_from_genome_list
+from individual import Individual, build_individual
 import logging
 import problem
 import selections
@@ -46,7 +46,7 @@ def run_universe(population,
     for i in range(len(population)): # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
-            mutant = create_individual_from_genome_list(problem.skeleton_genome, individual.get_genome_list())
+            mutant = build_individual(problem.skeleton_genome, individual.get_genome_list())
             # mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
             print("deepcopied")
             mutant.mutate(block)

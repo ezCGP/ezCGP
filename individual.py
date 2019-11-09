@@ -162,6 +162,9 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                                     other.skeleton[i]["block_object"])
         return offspring_list
 
+    def copy(self):
+        # copy without memory leaks (remove genome_output)
+        return build_individual(self.skeleton, self.get_genome_list())
 
     class Fitness(object):
         '''
@@ -182,8 +185,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             # and strictly better in at least one (np.any(a>b))
             return np.any(a < b) and np.all(a <= b)
 
-
-def create_individual_from_genome_list(skeleton_genome, genome_list):
+def build_individual(skeleton_genome, genome_list):
     individual = Individual(skeleton_genome)
     for i in range(1,individual.num_blocks+1):
         # replace with genome

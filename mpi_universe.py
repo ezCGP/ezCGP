@@ -4,14 +4,16 @@
 import numpy as np
 from copy import deepcopy
 import time
-from individual import Individual, create_individual_from_genome_list
+
 import selections
 import gc
 import os, sys
-from mpi4py import MPI
 import threading
 import logging
-import tracemalloc
+
+from individual import Individual, build_individual
+from mpi4py import MPI
+from mating import Mate
 
 
 # Disable
@@ -61,7 +63,7 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
     for i in range(len(population)):  # don't loop over population and add to population in the loop
         individual = population[i]
         for _ in range(num_mutants):
-            mutant = create_individual_from_genome_list(problem.skeleton_genome, individual.get_genome_list())
+            mutant = build_individual(problem.skeleton_genome, individual.get_genome_list())
             mutant.mutate()
 
             if mutant.need_evaluate:
@@ -138,7 +140,7 @@ if __name__ == '__main__':
 
         for i in range(len(population)):
             print("CPU %i CREATE INDIVIDUAL" % rank)
-            individual = create_individual_from_genome_list(problem.skeleton_genome,
+            individual = build_individual(problem.skeleton_genome,
                                                             population[i])
             print("CPU %i EVALUATE INDIVIDUAL" % rank)
             individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
@@ -187,7 +189,7 @@ if __name__ == '__main__':
 
             print("Rank: {} Length: {}".format(rank, len(population)))
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
-            indPopulation = [create_individual_from_genome_list(deepcopy(problem.skeleton_genome), deepcopy(genome))
+            indPopulation = [build_individual(deepcopy(problem.skeleton_genome), deepcopy(genome))
                              for genome in population]
             run_start = time.time()
             indPopulation = run_universe(indPopulation, num_mutants, num_offspring, input_data, labels)
@@ -218,7 +220,7 @@ if __name__ == '__main__':
                 for subpop in population:
                     for genome_list in subpop:
                         new_pop.append(genome_list)
-                indPopulation = [create_individual_from_genome_list(problem.skeleton_genome, genome_list)
+                indPopulation = [build_individual(problem.skeleton_genome, genome_list)
                                  for genome_list in new_pop]
                 indPopulation, _ = selections.selNSGA2(indPopulation, k=population_size, nd='standard')
                 population = [ind.get_genome_list() for ind in indPopulation]
