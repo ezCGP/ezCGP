@@ -17,8 +17,10 @@ import operators
 import arguments
 import logging
 
-import tensorflow as tf
 from utils.DataSet import DataSet
+# import mkl
+# mkl.set_num_threads(1)
+# os.environ["OMP_NUM_THREADS"] = "1"
 
 class Block(Mate, Mutate):
     """
@@ -31,8 +33,6 @@ class Block(Mate, Mutate):
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
                  block_mut_prob, block_mate_prob,
                  tensorblock_flag=False, learning_required=False, apply_to_val = True, num_classes=None, batch_size=None, n_epochs=1, large_dataset=None):
-        tf.keras.Sequential
-        tf.Session
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
 
@@ -135,14 +135,19 @@ class Block(Mate, Mutate):
             self.graph = tf.Graph()
             self.feed_dict = {}
             self.fetch_nodes = []
-#            with self.graph.as_default():
- #               saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
+            # with self.graph.as_default():
+            #      saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=1)
 
         else:
             pass
 
 
     def tensorflow_preprocess(self, fetch_nodes, feed_dict, data_pair):
+        # config = tf.ConfigProto(intra_op_parallelism_threads=1,
+        #                         inter_op_parallelism_threads=1,
+        #                         allow_soft_placement=True,
+        #                         device_count={'CPU': 1})
+        # with tf.Session(graph=self.graph, config=config) as sess:
         with tf.Session(graph=self.graph) as sess:
             sess.run(tf.global_variables_initializer())
             tf_outputs = sess.run(
@@ -205,6 +210,7 @@ class Block(Mate, Mutate):
 
                             tf_output_dict = tf_outputs[0]
                             step_loss = tf_output_dict['loss']
+
                             if large_dataset:
                                 logging.info("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                                        .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
@@ -349,6 +355,7 @@ class Block(Mate, Mutate):
                     if self.apply_to_val:
                         self.validation_pair_output = (val_train, validation_pair[1])
         self.need_evaluate = False
+
         # clean up all tensorflow variables so that individual can be deepcopied
         # tensorflow values need not be deepcopy-ed because they're regenerated in evaluate anyway
         # this fixes the universe.py run_universe deepcopy() bug
@@ -409,14 +416,13 @@ class Block(Mate, Mutate):
             self.non_tensorflow_evaluate(block_inputs, validation_pair)
         self.rec_clear()
         gc.collect()
+
     def rec_clear(self):
         self.graph = None
         self.feed_dict = {}
         self.fetch_nodes = []
         self.evaluated = [None] * self.genome_count
         self.dataset.clear_batch()
-    #    self.genome_output_values = []
-    #    self.validation_pair_output = []
         self.labels = []
         self.evaluated = [None] * self.genome_count
         self.val_evaluated = [None] * self.genome_count

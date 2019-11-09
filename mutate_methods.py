@@ -375,6 +375,7 @@ class Mutate(Genome):
         if self.fitness.dominates(mutant.fitness):
             # new mutant is strictly worse
             self = deepcopy(previous_mutant)
+            del previous_mutant
         else:
             self = deepcopy(mutant)
         del mutant

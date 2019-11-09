@@ -2,7 +2,6 @@ import numpy as np
 # from scipy.stats import weibull_min
 import scipy.stats as scst
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
-import tensorflow as tf
 import os
 import random
 import six

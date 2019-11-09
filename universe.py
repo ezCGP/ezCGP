@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 # my scripts
-from individual import Individual
+from individual import Individual, create_individual_from_genome_list
 import logging
 import problem
 import selections
@@ -41,34 +41,25 @@ def run_universe(population,
             # if mate_prob < 1 there is a chance that it didn't mate and return None
             pass
     '''
+    # mutate through the population
+    print("    MUTATING")
+    for i in range(len(population)): # don't loop over population and add to population in the loop
+        individual = population[i]
+        for _ in range(num_mutants):
+            mutant = create_individual_from_genome_list(problem.skeleton_genome, individual.get_genome_list())
+            # mutant = deepcopy(individual) # can cause recursive copying issues with tensor blocks, so we empty them in blocks.py evaluate() bottom
+            print("deepcopied")
+            mutant.mutate(block)
+            if mutant.need_evaluate:
+                # then it did for sure mutate
+                population.append(mutant)
+            else:
+                # if mut_prob is < 1 there is a chancce it didn't mutate
+                pass
+    
+    # evaluate the population
+    print("    EVALUATING")
 
-
-    logging.info("    MATING")
-    mate_obj = Mate(population, problem.skeleton_genome)
-    mate_list = mate_obj.whole_block_swapping()
-    for mate in mate_list:
-        if mate.need_evaluate:
-            population.append(mate)
-        else:
-            pass
-
-    # logging.info("    MUTATING")
-    # for i in range(len(population)):
-    #     individual = population[i]
-    #     for _ in range(num_mutants):
-    #         '''
-    #         Can cause recursive copying issues with tensor blocks,
-    #         so we empty them in blocks.py evaluate() bottom
-    #         '''
-    #         mutant = deepcopy(individual)
-    #         mutant.mutate(block)
-    #         if mutant.need_evaluate:
-    #             population.append(mutant)
-    #         else:
-    #             # if mut_prob is < 1 there is a chance it didn't mutate
-    #             pass
-
-    logging.info("    EVALUATING")
     for individual in population:
         if individual.need_evaluate():
             '''
@@ -97,13 +88,13 @@ def run_universe(population,
 
     return population
 
-
 def create_universe(input_data,
                     labels,
-                    population_size=8,
+                    population_size=2,
                     universe_seed=9,
-                    num_mutants=4,
+                    num_mutants=1,
                     num_offpsring=2):
+
     np.random.seed(universe_seed)
 
     '''Initialize the population'''

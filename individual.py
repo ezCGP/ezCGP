@@ -68,6 +68,18 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         """
 
 
+    def get_genome_list(self):
+        genome_list = []
+        for i in range(1,self.num_blocks+1):
+            # print('block number ', i)
+
+            # evaluate the block
+            block = self.skeleton[i]["block_object"]
+            genome_list.append(block.genome)
+        genome_list.append(self.fitness.values)
+        return genome_list
+
+
     def __getitem__(self, block_index):
         if (block_index=="input") or (block_index=="output"):
             return self.skeleton[block_index]
@@ -83,6 +95,13 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                 pass
         return False
 
+    def clear_rec(self):
+        for i in range(1,self.num_blocks+1):
+            block = self.skeleton[i]["block_object"]
+            block.rec_clear()
+
+
+
 
     def evaluate(self, data, labels=None, validation_pair=None):
         # added validation pair support external validation of labels/data in each block
@@ -92,7 +111,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             
             data = self.skeleton[i]["block_object"].genome_output_values[0] #last genome output val should be classifications making labels none
             labels =  self.skeleton[i]["block_object"].genome_output_values[1] 
-            self.skeleton[i]["block_object"].genome_output_values = []
+            self.skeleton[i]["block_object"].genome_output_values = [] # clear out to avoid mem leak
             if block.apply_to_val:
                 validation_pair = self.skeleton[i]["block_object"].validation_pair_output
                 self.skeleton[i]["block_object"].validation_pair_output = []
@@ -162,3 +181,13 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             # 'self' must be at least as good as 'other' for all objective fnts (np.all(a>=b))
             # and strictly better in at least one (np.any(a>b))
             return np.any(a < b) and np.all(a <= b)
+
+
+def create_individual_from_genome_list(skeleton_genome, genome_list):
+    individual = Individual(skeleton_genome)
+    for i in range(1,individual.num_blocks+1):
+        # replace with genome
+        individual.skeleton[i]["block_object"].genome = genome_list[i-1]
+        individual.skeleton[i]["block_object"].findActive()
+    individual.fitness.values  = genome_list[-1]
+    return individual

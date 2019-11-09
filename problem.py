@@ -3,7 +3,6 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import operators
 import os
 import six
-import tensorflow as tf
 from six.moves import cPickle as pickle
 
 from utils.training_block import TrainingBlock
@@ -12,7 +11,8 @@ from utils.preprocessing_block import PreprocessingBlock
 from utils.DbConfig import DbConfig
 from utils.DbManager import DbManager
 import logging
-generation_limit = 25
+generation_limit = 5
+
 score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
 db_config = DbConfig()

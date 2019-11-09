@@ -25,7 +25,10 @@ if __name__ == '__main__':
     for i in range(num_universes):
         logging.info('start new run {}'.format(i))
         start = time.time()
-        converged_solution = universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i, population_size=9)
+        converged_solution = universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i, population_size=40)
         final_populations.append(converged_solution)
+        time_complete = time.time() - start
         logging.info('time of generation: {}'.format(time.time() - start))
+        with open("sequential_run_time.txt", "a") as f:
+            f.write("%f\n" % time_complete)
         # post processing step for that run
