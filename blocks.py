@@ -318,7 +318,6 @@ class Block(Mate, Mutate):
                     else:
                         self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
-                raise(e)
                 self.dead = True
                 break
 
@@ -345,7 +344,6 @@ class Block(Mate, Mutate):
                         # now that the graph is built, we evaluate here
                         self.genome_output_values = [self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair), None]
                     except Exception as e:
-                        raise(e)
                         logging.info('e2')
                         logging.info(e)
                         self.dead = True
