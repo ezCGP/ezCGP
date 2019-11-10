@@ -65,8 +65,6 @@ logging.info('Test labels shape: '+ str(y_test.shape))
 # quit()
 
 def scoreFunction(predict, actual):
-    print(actual.shape)
-    print(np.array(predict).shape)
     try:
         acc_score = accuracy_score(actual, predict)
         avg_f1_score = f1_score(actual, predict, average='macro')
