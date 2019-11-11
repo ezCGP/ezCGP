@@ -44,7 +44,7 @@ class DbManager():
         """ load all of cifar """
         path = './cifar-10-batches-py'
         data = []
-        for b in range(1, 2):
+        for b in range(1, 6):
             f = os.path.join(path, 'data_batch_%d' % (b,))
             data.append(self.load_data_from_path(f))
         x = np.concatenate([x[0] for x in data])
@@ -69,7 +69,11 @@ class DbManager():
 
     def split_data(self, x, y):
         zipped = list(zip(x, y))
-        random.shuffle(zipped)
+        seed = 5
+	np.random.seed(seed)
+    	random.seed(seed) #set both random seeds to same thin
+
+	random.shuffle(zipped)
         X = np.array([x[0] for x in zipped])
         y = np.array([x[1] for x in zipped])
 
