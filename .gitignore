@@ -5,7 +5,6 @@ outputs/*
 flycheck_operators.py
 
 # Byte-compiled / optimized / DLL files
-.idea/*
 
 test_mpi.py
 __pycache__/
@@ -16,7 +15,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-.idea/
 .Python
 build/
 develop-eggs/
@@ -34,7 +32,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-.idea/
+.idea
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
