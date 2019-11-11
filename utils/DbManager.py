@@ -70,10 +70,10 @@ class DbManager():
     def split_data(self, x, y):
         zipped = list(zip(x, y))
         seed = 5
-	np.random.seed(seed)
-    	random.seed(seed) #set both random seeds to same thin
+        np.random.seed(seed)
+        random.seed(seed) #set both random seeds to same thin
 
-	random.shuffle(zipped)
+        random.shuffle(zipped)
         X = np.array([x[0] for x in zipped])
         y = np.array([x[1] for x in zipped])
 

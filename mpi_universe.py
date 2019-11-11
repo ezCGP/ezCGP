@@ -43,13 +43,14 @@ def split_pop(pop, num_cpu):
 
     return new_pop
 
-
-def run_universe(population, num_mutants, num_offspring, input_data, labels,
-                 block=None):  # be able to select which block we want to evolve or randomly select
-    # TODO: Integrate mating into mutation and overall run
-    
-    # mate through the population
+def mate_population(population):
+    # mate through population before evaluating and selecting
     logging.info("    MATING")
+    print(population)
+    logging.info("    flattening population")
+    np.array(population.reshape(-1)) # flatten without copying
+    print(population)
+    
     mate_obj = Mate(population, problem.skeleton_genome)
     mate_list = mate_obj.whole_block_swapping()
     for mate in mate_list:
@@ -57,7 +58,13 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
             population.append(mate)
         else:
             pass
+        
+    return population
 
+def run_universe(population, num_mutants, num_offspring, input_data, labels,
+                 block=None):  # be able to select which block we want to evolve or randomly select
+    # TODO: Integrate mating into mutation and overall run
+    
     # mutate through the population
     print("    MUTATING")
     for i in range(len(population)):  # don't loop over population and add to population in the loop
@@ -93,6 +100,16 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
     # new population done: rank individuals in population and trim down
     print("population after selection ", len(population))
     gc.collect()
+
+    # mate through the population
+    # logging.info("    MATING")
+    # mate_obj = Mate(population, problem.skeleton_genome)
+    # mate_list = mate_obj.whole_block_swapping()
+    # for mate in mate_list:
+    #     if mate.need_evaluate:
+    #         population.append(mate)
+    #     else:
+    #         pass
 
     return population  # , eval_queue
 
@@ -238,7 +255,12 @@ if __name__ == '__main__':
                 # np.save(file_pop, population)
                 # np.save(file_generation, generation)
 
+                # mate individuals and insert into next population
+                print('population: ', population)
+                population = mate_population(population)
+
                 population = split_pop(population, size)
+
             select_end = time.time()
             with open("cpu_%i.txt" % rank, "a") as f:
                 f.write("Gen %i Scatter: %f, Gather: %f, Run: %f, Select: %f\n" %
