@@ -157,6 +157,8 @@ class Mutate(Genome):
 
 
     def mutate_singleInput(self):
+        if self.genome_main_count == 1:
+            return # cannot swap gene if only one
         choices = np.arange(self.genome_main_count+self.genome_output_count)
         self.active_node_unchanged = True
         while self.active_node_unchanged:
