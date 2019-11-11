@@ -1,0 +1,3 @@
+Gen -1 Scatter: 0.005412, Gather: 0.003743, Run: 518.455056, Select: 0.000002
+Gen -1 Scatter: 0.006630, Gather: 0.002960, Run: 479.900097, Select: 0.000001
+Gen -1 Scatter: 0.004747, Gather: 0.001745, Run: 496.118935, Select: 0.000001

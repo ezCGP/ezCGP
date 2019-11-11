@@ -48,7 +48,7 @@ def mate_population(population):
     logging.info("    MATING")
     print(population)
     logging.info("    flattening population")
-    np.array(population.reshape(-1)) # flatten without copying
+    np.array(population).reshape(-1) # flatten without copying
     print(population)
     
     mate_obj = Mate(population, problem.skeleton_genome)
@@ -198,7 +198,14 @@ if __name__ == '__main__':
         while (not converged) & (generation <= GENERATION_LIMIT):
             """
             Scatter population across all slave cpu
+            Mate (1D)
+            Scatter (2D)
+            Gather
             """
+            # mate individuals and insert into next population
+            print('population: ', population)
+            population = mate_population(population) # needs to be 1D to mate
+            
             comm.Barrier()
             scatter_start = time.time()
             population = comm.scatter(population, root=0)
@@ -254,11 +261,6 @@ if __name__ == '__main__':
                 # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
                 # np.save(file_pop, population)
                 # np.save(file_generation, generation)
-
-                # mate individuals and insert into next population
-                print('population: ', population)
-                population = mate_population(population)
-
                 population = split_pop(population, size)
 
             select_end = time.time()
