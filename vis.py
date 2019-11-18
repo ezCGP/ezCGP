@@ -17,7 +17,7 @@ class Visualizer():
             for node in curr_block.active_nodes:
                 #TODO seperate input/middle/output nodes
                 block_fn = curr_block[node]
-                row.append('{}'.format(block_fn))
+                row.append('{}'.format(block_fn).replace(',','|'))
             csv_rows.append(row)
         self.write_file(csv_rows, output_path)
 
@@ -33,5 +33,5 @@ class Visualizer():
 
     def get_args(self, block):
         #TODO this should definitely be in the block itself
-        #TODO actually get the arguments in a nice way
-        return '{}'.format(block.args)
+        args = '{}'.format(block.args)
+        return args.replace(',','|')
