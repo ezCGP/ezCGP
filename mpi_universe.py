@@ -46,11 +46,11 @@ def split_pop(pop, num_cpu):
 def mate_population(population):
     # mate through population before evaluating and selecting
     logging.info("    MATING")
-    print(population)
-    logging.info("    flattening population")
-    np.array(population).reshape(-1) # flatten without copying
-    print(population)
-    
+    # build individuals from genome list (genome_output_values)
+    # then (back external) limit the number of total population size to be a multiple of # cpu cores
+    # for Jinghua will focus on inside Mating
+    # for Sam will focus on converting genome list to list of indivs, and after (end of this function)
+    # convert individuals to genome values for multiprocessing
     mate_obj = Mate(population, problem.skeleton_genome)
     mate_list = mate_obj.whole_block_swapping()
     for mate in mate_list:
@@ -142,7 +142,7 @@ if __name__ == '__main__':
         input_data = train_data
         labels = train_labels
         universe_seed = seed + i
-        population_size = 40  # Should be multiple of num of CPUs
+        population_size = 4  # Should be multiple of num of CPUs
         num_mutants, num_offspring = 1, 2
 
         np.random.seed(universe_seed)
@@ -179,8 +179,13 @@ if __name__ == '__main__':
         Gather initialized population back to Master CPU
         """
         comm.Barrier()
-        population = comm.gather(population, root=0)
+        new_pop = comm.gather(population, root=0)
         print("--------------------END CREATE UNIVERSE--------------------")
+        # converting 2D initial genome output list pop into 1D for first mating
+        population = []
+        for subpop in new_pop:
+            for genome_list in subpop:
+                population.append(genome_list)
 
         generation = -1
         converged = False
@@ -200,12 +205,16 @@ if __name__ == '__main__':
             Scatter population across all slave cpu
             Mate (1D)
             Scatter (2D)
-            Gather
+            Gather (Merge into 1D)
             """
+            # 1D population (genome list) array after each iteration of the loop
             # mate individuals and insert into next population
-            print('population: ', population)
+            print('pre mating should be geome list:', population[0])
             population = mate_population(population) # needs to be 1D to mate
-            
+
+            # split pop
+            population = split_pop(population, size) # becomes 2D
+
             comm.Barrier()
             scatter_start = time.time()
             population = comm.scatter(population, root=0)
@@ -247,7 +256,7 @@ if __name__ == '__main__':
                 indPopulation = [build_individual(problem.skeleton_genome, genome_list)
                                  for genome_list in new_pop]
                 indPopulation, _ = selections.selNSGA2(indPopulation, k=population_size, nd='standard')
-                population = [ind.get_genome_list() for ind in indPopulation]
+                population = [ind.get_genome_list() for ind in indPopulation] # 1D gathering after best selection
                 scores = []
                 # print(population[0])
                 for genome_list in population:
@@ -261,7 +270,7 @@ if __name__ == '__main__':
                 # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
                 # np.save(file_pop, population)
                 # np.save(file_generation, generation)
-                population = split_pop(population, size)
+
 
             select_end = time.time()
             with open("cpu_%i.txt" % rank, "a") as f:
