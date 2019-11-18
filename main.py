@@ -7,6 +7,7 @@ import random
 import time
 import logging
 
+
 if __name__ == '__main__':
     # set the seed and import scripts
     seed = 5
@@ -14,7 +15,7 @@ if __name__ == '__main__':
     random.seed(seed) #set both random seeds to same thin
     # keep these imports after the seed is set for numpy
     import problem
-    import universe
+    import old_universe
 
     # Read in Data
     train_data = problem.x_train
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     for i in range(num_universes):
         logging.info('start new run {}'.format(i))
         start = time.time()
-        converged_solution = universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i, population_size=40)
+        converged_solution = old_universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i, population_size=40)
         final_populations.append(converged_solution)
         time_complete = time.time() - start
         logging.info('time of generation: {}'.format(time.time() - start))
