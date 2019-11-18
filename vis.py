@@ -6,6 +6,7 @@ Use: Instantiate object, then pass an individual to create_csv
 '''
 class Visualizer():
     def __init__(self):
+        pass
 
     def create_csv(self, individual, output_path='vis.csv'):
         csv_rows = []
@@ -16,8 +17,9 @@ class Visualizer():
             for node in curr_block.active_nodes:
                 #TODO seperate input/middle/output nodes
                 block_fn = curr_block[node]
-                row.append('{}'.format(fn))
+                row.append('{}'.format(block_fn))
             csv_rows.append(row)
+        self.write_file(csv_rows, output_path)
 
     def write_file(self, csv_rows, output_path):
         csv = open(output_path, 'w')
@@ -32,4 +34,4 @@ class Visualizer():
     def get_args(self, block):
         #TODO this should definitely be in the block itself
         #TODO actually get the arguments in a nice way
-        return block.arg_values
+        return '{}'.format(block.args)
