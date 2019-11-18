@@ -1,0 +1,5 @@
+id,name,styletype, fill, stroke, refs
+1,Cell A,style1,,,"2,3,4"
+2,Cell B,style2,,,"3,4"
+3,Cell C,style3,#D5E8D4,#82B366,"1"
+4,Cell D,style3,#F8CECC,#B85450,"1"
