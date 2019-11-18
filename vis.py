@@ -24,10 +24,14 @@ class Visualizer():
     def write_file(self, csv_rows, output_path):
         csv = open(output_path, 'w')
         #TODO label the columns and add colors and stuff idk
-        for row in csv_rows:
-            for item in row:
-                csv.write(item+',')
-            csv.write('\n')
+        for i,row in enumerate(csv_rows):
+            for j,item in enumerate(row):
+                csv.write(item)
+                if j < len(row)-1:
+                    csv.write(',')
+
+            if i < len(csv_rows)-1:
+                csv.write('\n')
         csv.close()
 
 
