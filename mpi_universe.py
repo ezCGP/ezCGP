@@ -51,7 +51,16 @@ def mate_population(population):
     # for Jinghua will focus on inside Mating
     # for Sam will focus on converting genome list to list of indivs, and after (end of this function)
     # convert individuals to genome values for multiprocessing
+
+    # convert population of genome lists into individuals
+    population = [build_individual(deepcopy(problem.skeleton_genome), deepcopy(genome))
+                     for genome in population]
+
+    # initialize mate wrapper
     mate_obj = Mate(population, problem.skeleton_genome)
+
+    # mate and produce two random offspring
+    # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
     mate_list = mate_obj.whole_block_swapping()
     for mate in mate_list:
         if mate.need_evaluate:
@@ -59,6 +68,8 @@ def mate_population(population):
         else:
             pass
         
+    # convert population back to genome list for simpler processing
+    population = [population.append(genome_list) for subpop in population for genome_list in subpop]
     return population
 
 def run_universe(population, num_mutants, num_offspring, input_data, labels,
@@ -209,7 +220,6 @@ if __name__ == '__main__':
             """
             # 1D population (genome list) array after each iteration of the loop
             # mate individuals and insert into next population
-            print('pre mating should be geome list:', population[0])
             population = mate_population(population) # needs to be 1D to mate
 
             # split pop
