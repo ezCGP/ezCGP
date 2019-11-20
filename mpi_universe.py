@@ -67,15 +67,16 @@ def mate_population(population):
             population.append(mate)
         else:
             pass
-        
+
     # convert population back to genome list for simpler processing
-    population = [population.append(genome_list) for subpop in population for genome_list in subpop]
+    # population = [population.append(genome_list) for subpop in population for genome_list in subpop]
+    population = [ind.get_genome_list() for ind in population]
     return population
 
 def run_universe(population, num_mutants, num_offspring, input_data, labels,
                  block=None):  # be able to select which block we want to evolve or randomly select
     # TODO: Integrate mating into mutation and overall run
-    
+
     # mutate through the population
     print("    MUTATING")
     for i in range(len(population)):  # don't loop over population and add to population in the loop
@@ -111,16 +112,6 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels,
     # new population done: rank individuals in population and trim down
     print("population after selection ", len(population))
     gc.collect()
-
-    # mate through the population
-    # logging.info("    MATING")
-    # mate_obj = Mate(population, problem.skeleton_genome)
-    # mate_list = mate_obj.whole_block_swapping()
-    # for mate in mate_list:
-    #     if mate.need_evaluate:
-    #         population.append(mate)
-    #     else:
-    #         pass
 
     return population  # , eval_queue
 
