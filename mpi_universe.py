@@ -180,14 +180,17 @@ if __name__ == '__main__':
         """
         Gather initialized population back to Master CPU
         """
-        comm.Barrier()
-        new_pop = comm.gather(population, root=0)
-        print("--------------------END CREATE UNIVERSE--------------------")
-        # converting 2D initial genome output list pop into 1D for first mating
-        population = []
-        for subpop in new_pop:
-            for genome_list in subpop:
-                population.append(genome_list)
+        print(population)
+        if rank == 0:
+            comm.Barrier()
+            new_pop = comm.gather(population, root=0)
+            print(new_pop)
+            print("--------------------END CREATE UNIVERSE--------------------")
+            # converting 2D initial genome output list pop into 1D for first mating
+            population = []
+            for subpop in new_pop:
+                for genome_list in subpop:
+                    population.append(genome_list)
 
         generation = -1
         converged = False
