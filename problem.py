@@ -11,31 +11,45 @@ from utils.preprocessing_block import PreprocessingBlock
 from utils.DbConfig import DbConfig
 from utils.DbManager import DbManager
 import logging
-generation_limit = 5
 
-score_min = 0.00 # terminate immediately when 100% accuracy is achieved
 
+"""PARAMETERS"""
+GEN_LIMIT = 5
+POP_SIZE = 4
+N_EPOCHS = 1
+SEED = 5
+N_UNIVERSE = 1
+
+N_MUTANTS = 1
+N_OFFSPRING = 2
+
+MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
+
+"""DBMANAGER"""
 db_config = DbConfig()
 manager = DbManager(db_config)
 
-#
-#
+
 def get_dummy_data(data_dimensions):
-    # function that returns dummy datapoints and label so that evaluate
-    # can properly build the tensorflow graph with knowledge of dimensions
-    # adding [1] for #block inputs
-    return (np.zeros([1] + data_dimensions), np.zeros(data_dimensions[0]))
+    """
+    Function that returns dummy datapoints and label so that evaluate
+    can properly build the tensorflow graph with knowledge of dimensions
+    adding [1] for #block inputs
+    :param data_dimensions:
+    :return:
+    """
+    return np.zeros([1] + data_dimensions), np.zeros(data_dimensions[0])
 
 
-train, test, val =  manager.load_CIFAR10()
+train, test, val = manager.load_CIFAR10()
 x_train, y_train = train
 x_test, y_test = test
 x_val, y_val = val
 
-x_train, y_train = np.array([x_train]), np.array(y_train) #this is such a weird shape requirement
+x_train, y_train = np.array([x_train]), np.array(y_train)  # this is such a weird shape requirement
 x_test, y_test = np.array([x_test]), np.array([y_test])
 x_val, y_val = np.array(x_val), np.array(y_val)
-#print(x_train.shape)
+# print(x_train.shape)
 
 # Invoke the above function to get our data.
 # x_train, y_train, x_val, y_val, x_test, y_test = get_CIFAR10_data()
@@ -47,20 +61,21 @@ x_val, y_val = np.array(x_val), np.array(y_val)
 # x_train = np.array([x_train[:TRAIN_SIZE]])
 # y_train = np.array(y_train[:TRAIN_SIZE])
 
-#x_test = np.array([x_test])
+# x_test = np.array([x_test])
 
 
-logging.info('Train data shape: '+ str(x_train.shape))
-logging.info('Train labels shape: '+ str(y_train.shape))
-logging.info('Validation data shape: '+ str(x_val.shape))
-logging.info('Validation labels shape: '+ str(y_val.shape))
-logging.info('Test data shape: '+ str(x_test.shape))
-logging.info('Test labels shape: '+ str(y_test.shape))
+logging.info('Train data shape: ' + str(x_train.shape))
+logging.info('Train labels shape: ' + str(y_train.shape))
+logging.info('Validation data shape: ' + str(x_val.shape))
+logging.info('Validation labels shape: ' + str(y_val.shape))
+logging.info('Test data shape: ' + str(x_test.shape))
+logging.info('Test labels shape: ' + str(y_test.shape))
+
 
 # we make dummy data that is dimensionally representative of the data we will
 # feed in to the individual so that the evaluate method can accurately construct
 # the tensorflow graph
-#x_train, y_train = get_dummy_data([1000, 32, 32, 3])
+# x_train, y_train = get_dummy_data([1000, 32, 32, 3])
 # print(x_train.shape)
 # quit()
 
@@ -71,7 +86,8 @@ def scoreFunction(predict, actual):
         return 1 - acc_score, 1 - avg_f1_score
     except ValueError:
         print('Malformed predictions passed in. Setting worst fitness')
-        return 1, 1 # 0 acc_score and avg f1_score b/c we want this indiv ignored
+        return 1, 1  # 0 acc_score and avg f1_score b/c we want this indiv ignored
+
 
 """
     Play with difference sizes, and different distribution
@@ -111,16 +127,17 @@ def scoreFunction(predict, actual):
 
 """
 # preprocessing_block1 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False, main_count=2,
-#                                           setup_dict_ftn = {operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
+#                                           setup_dict_ftn={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-preprocessing_block1 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = False, main_count=2)
+preprocessing_block1 = PreprocessingBlock(tensorblock_flag=False, apply_to_val=False, main_count=2)
 # preprocessing_block2 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = True, main_count=2,
-#                                           primitives = {operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
+#                                           primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-training_block = TrainingBlock(main_count=2,learning_required=True, apply_to_val = False,  n_epochs = 1)
+training_block = TrainingBlock(main_count=2, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
 
-skeleton_genome = { # this defines the WHOLE GENOME
-    'input': [np.ndarray], # we don't pass in the labels since the labels are only used at evaluation and scoring time
+# Defines the whole genome
+skeleton_genome = {
+    'input': [np.ndarray],  # we don't pass in the labels since the labels are only used at evaluation and scoring time
     'output': [np.ndarray],
     # vars converts the block object to a dictionary
     1: vars(preprocessing_block1),

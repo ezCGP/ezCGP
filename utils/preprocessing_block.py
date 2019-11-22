@@ -29,12 +29,12 @@ class PreprocessingBlock(SkeletonBlock):
 #                  operators.ceil_greyscale_norm: {'prob': 1}
             #    operators.identity_layer: {"prob": 1}
             #     operators.gassuian_blur: {'prob': 1},
-             #   operators.ceil_greyscale_norm: {'prob': 1}
-                 operators.random_rotation: {'prob':1},
-                 operators.random_noise: {'prob': 1},
-                 operators.random_horizontal_flip: {'prob': 1},
-                 operators.add_gausian_noise: {'prob': 1},
-                 operators.add_salt_pepper_noise: {'prob': 1}
+               operators.ceil_greyscale_norm: {'prob': 1}
+             #     operators.random_rotation: {'prob':1},
+             #     operators.random_noise: {'prob': 1},
+             #     operators.random_horizontal_flip: {'prob': 1},
+             #     operators.add_gausian_noise: {'prob': 1},
+             #     operators.add_salt_pepper_noise: {'prob': 1}
             }
         else:
             # specific layers
