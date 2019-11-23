@@ -360,7 +360,7 @@ class Block(Mate, Mutate):
         self.rec_clear()
         gc.collect()
 
-   
+
 
     def non_tensorflow_evaluate(self, block_inputs, validation_pair):
         for i, input_ in enumerate(block_inputs):
@@ -409,8 +409,10 @@ class Block(Mate, Mutate):
 
         logging.info('block_input: {}'.format(np.array(block_inputs).shape))
         if self.tensorblock_flag:
+            print("tensorflow_evaluate")
             self.tensorflow_evaluate(block_inputs, labels_all, validation_pair)
         else:
+            print("non_tensorflow_evaluate")
             self.non_tensorflow_evaluate(block_inputs, validation_pair)
         self.rec_clear()
         gc.collect()
@@ -424,5 +426,5 @@ class Block(Mate, Mutate):
         self.labels = []
         self.evaluated = [None] * self.genome_count
         self.val_evaluated = [None] * self.genome_count
-        self.dataset.clear_batch() #for batch updates    
+        self.dataset.clear_batch() #for batch updates
         tf.keras.backend.clear_session()
