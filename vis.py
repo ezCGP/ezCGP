@@ -6,23 +6,48 @@ Use: Instantiate object, then pass an individual to create_csv
 '''
 import numpy as np
 
+# curr_block[active_node] = InputPlaceholder
+# 
+
+
 class Visualizer():
     def __init__(self):
         pass
 
     def create_csv(self, individual, output_path='vis.csv'):
+        header = "## Hello World\n# label: %step%\n# style: shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=#000000\n# namespace: csvimport-\n# connect: {\"from\":\"refs\", \"to\":\"id\", \"invert\":true, \"style\":\"curved=0;endArrow=blockThin;endFill=1;\"}\n# width: auto\n# height: auto\n# padding: 10\n# ignore: id,fill,refs\n# nodespacing: 10\n# levelspacing: 30\n# edgespacing: 40\n# layout: horizontalflow\n## CSV starts under this line\nid,step,fill, refs"
         csv_rows = []
-        for i in range(1,2):
+        for x in header.split("\n"):
+            csv_rows.append(x)
+        csv_rows.append("")
+        # csv_rows.append(header.split("\n"))
+        shift = 'a'
+        color = ['#dae8fc', '#f8cecc', '#ffe6cc']
+        c = 0
+        prev_output = ""
+        for i in range(1,individual.num_blocks+1):
             row = []
             curr_block = individual.skeleton[i]["block_object"]
             arg_values = np.array(curr_block.args)
             for active_node in curr_block.active_nodes:
                 fn = curr_block[active_node]
-                out = "{}, {}, {}".format(active_node, fn['ftn'], fn['inputs'])
-                if 0 < active_node < curr_block.genome_main_count:
-                    out += ", {}".format( arg_values[fn['args']])
-                csv_rows.append(out + " |")
-            # csv_rows.append(row)
+                id = str(active_node) + shift
+                if active_node < 0:
+                    if c > 0:
+                        out = "{},{},{},\"{}\"".format(id,fn,color[c],prev_output)
+                    else:
+                        out = "{},{},{},".format(id,fn,color[c])
+                elif active_node >= curr_block.genome_main_count:
+                    out = "{},output,{},\"{}\"".format(id,color[c],str(fn)+shift)
+                    prev_output = id
+                else:
+                    out = "{},{},{},\"{}\"".format(id, fn['ftn'].__name__, color[c], ','.join(map(str,[str(x) + shift for x in fn['inputs']])))
+                # if 0 < active_node < curr_block.genome_main_count:
+                    # out += ", {}".format( arg_values[fn['args']])
+                csv_rows.append(out + "")
+            c += 1
+            shift = chr(ord(shift) + 1) 
+            csv_rows.append("")
         self.write_file(csv_rows, output_path)
 
     def write_file(self, csv_rows, output_path):
