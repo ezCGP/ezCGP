@@ -7,6 +7,7 @@ import random
 import time
 import logging
 
+
 if __name__ == '__main__':
     # set the seed and import scripts
     seed = 5

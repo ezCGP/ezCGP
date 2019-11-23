@@ -1,6 +1,5 @@
 # RUN_UNIVERSE parallely
 
-
 import numpy as np
 from copy import deepcopy
 import time
@@ -16,13 +15,13 @@ from mpi4py import MPI
 from mating import Mate
 
 
-# Disable
 def blockPrint():
+    """Disable"""
     sys.stdout = open(os.devnull, 'w')
 
 
-# Restore
 def enablePrint():
+    """Restore"""
     sys.stdout = sys.__stdout__
 
 
@@ -36,86 +35,102 @@ def split_pop(pop, num_cpu):
     for i in range(num_cpu):
         new_pop.append([])
 
-    len_pop = len(pop)
-    for i in range(len_pop):
-        indx = i % len(new_pop)
-        new_pop[indx].append(pop[i])
+    for i in range(len(pop)):
+        new_pop[i % len(new_pop)].append(pop[i])
 
     return new_pop
 
+
+def merge_pop(pop):
+    new_pop = []
+    for subpop in pop:
+        for genome_list in subpop:
+            new_pop.append(genome_list)
+    return new_pop
+
+
 def mate_population(population):
-    # mate through population before evaluating and selecting
+    """
+    Mate through population before evaluating and selecting
+    Build individuals from genome list (genome_output_values)
+    then (back external) limit the number of total population size to be a multiple of # cpu cores
+    for Jinghua will focus on inside Mating
+    for Sam will focus on converting genome list to list of indivs, and after (end of this function)
+    convert individuals to genome values for multiprocessing
+    convert population of genome lists into individuals
+    :param population:
+    :return:
+    """
     logging.info("    MATING")
-    # build individuals from genome list (genome_output_values)
-    # then (back external) limit the number of total population size to be a multiple of # cpu cores
-    # for Jinghua will focus on inside Mating
-    # for Sam will focus on converting genome list to list of indivs, and after (end of this function)
-    # convert individuals to genome values for multiprocessing
+    population = [build_individual(problem.skeleton_genome, genome)
+                  for genome in population]
+
+    # Initialize mate wrapper
     mate_obj = Mate(population, problem.skeleton_genome)
+
+    # Mate and produce two random offspring
+    # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
     mate_list = mate_obj.whole_block_swapping()
     for mate in mate_list:
         if mate.need_evaluate:
             population.append(mate)
         else:
             pass
-        
-    return population
 
-def run_universe(population, num_mutants, num_offspring, input_data, labels,
-                 block=None):  # be able to select which block we want to evolve or randomly select
+    return [ind.get_genome_list() for ind in population]
+
+
+def run_universe(population, num_mutants, num_offspring, input_data, labels, block=None):
+    """
+    # Be able to select which block we want to evolve or randomly select
     # TODO: Integrate mating into mutation and overall run
-    
-    # mutate through the population
+    :param population:
+    :param num_mutants:
+    :param num_offspring:
+    :param input_data:
+    :param labels:
+    :param block:
+    :return:
+    """
     print("    MUTATING")
-    for i in range(len(population)):  # don't loop over population and add to population in the loop
-        individual = population[i]
+    for i in range(len(population)):
+        individual = population[i].get_genome_list()
         for _ in range(num_mutants):
-            mutant = build_individual(problem.skeleton_genome, individual.get_genome_list())
+            mutant = build_individual(problem.skeleton_genome, individual)
             mutant.mutate()
 
+            # Check if mutant needs to be evaluated
+            # If mut_prob is < 1 there is a chance it didn't mutate
             if mutant.need_evaluate:
-                # then it did for sure mutate
                 population.append(mutant)
             else:
-                # if mut_prob is < 1 there is a chancce it didn't mutate
                 pass
-    print("population after mutation", len(population))
-    # evaluate the population
+
+    print("Population after mutation", len(population))
+
     print("    EVALUATING")
     for individual in population:
         if individual.need_evaluate():
-            # look up concurrent.futures and queue...
-            # maybe make the queue thing a permanent part of universe in evaluating every individual
-            # then make solving each node customizable...gt computer nodes, locally on different processes, or on cloud compute service
-            # add to queue to evaluate individual
-            # evaluate uses multithreading to send individuals to evaluate blocks
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, \
-                                                                   problem.y_val))
-            individual.fitness.values = problem.scoreFunction(actual=problem.y_val, \
+            """
+            Look up concurrent.futures and queue...
+            Maybe make the queue thing a permanent part of universe in evaluating every individual
+            then make solving each node customizable...gt computer nodes, locally on different processes,
+            or on cloud compute service
+            Add to queue to evaluate individual
+            Evaluate uses multithreading to send individuals to evaluate blocks
+            """
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val))
+            individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
                                                               predict=individual.genome_outputs)
-            print('Muatated population individual has fitness: {}' \
-                  .format(individual.fitness.values))
 
-    # filter population down based off fitness
-    # new population done: rank individuals in population and trim down
-    print("population after selection ", len(population))
+            print('Mutated population individual has fitness: {}'.format(individual.fitness.values))
+
     gc.collect()
-
-    # mate through the population
-    # logging.info("    MATING")
-    # mate_obj = Mate(population, problem.skeleton_genome)
-    # mate_list = mate_obj.whole_block_swapping()
-    # for mate in mate_list:
-    #     if mate.need_evaluate:
-    #         population.append(mate)
-    #     else:
-    #         pass
 
     return population  # , eval_queue
 
 
 if __name__ == '__main__':
-    # tracemalloc.start()
 
     # Init MPI Communication and get CPU rank (ID)
     comm = MPI.COMM_WORLD
@@ -123,29 +138,25 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
     print("Start MPI Universe")
 
-    # set the seed and import scripts
-    seed = 5
+    import problem
+    seed = problem.SEED
     np.random.seed(seed)
     # keep these imports after the seed is set for numpy
-    import problem
 
     train_data = problem.x_train
     train_labels = problem.y_train
 
     final_populations = []  # one for each universe created
-    num_universes = 1  # 20
-    for i in range(num_universes):
-        print("start new run %i" % i)
+    for i in range(problem.N_UNIVERSE):
+        print("===== STARTING UNIVERSE: ", i)
         start = time.time()
 
         print("--------------------CREATE UNIVERSE--------------------")
         input_data = train_data
         labels = train_labels
-        universe_seed = seed + i
-        population_size = 4  # Should be multiple of num of CPUs
-        num_mutants, num_offspring = 1, 2
+        population_size = problem.POP_SIZE  # Should be multiple of num of CPUs
 
-        np.random.seed(universe_seed)
+        np.random.seed(seed + i)
 
         """
         Each CPU initialize its own subpopulation
@@ -157,11 +168,9 @@ if __name__ == '__main__':
 
         for i in range(len(population)):
             print("CPU %i CREATE INDIVIDUAL" % rank)
-            individual = build_individual(problem.skeleton_genome,
-                                                            population[i])
+            individual = build_individual(problem.skeleton_genome, population[i])
             print("CPU %i EVALUATE INDIVIDUAL" % rank)
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val,
-                                                                   problem.y_val))  # This probably works. Or it does not. Seems to. Or print statements are broken
+            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val))
             try:
 
                 print("CPU %i Scoring INDIVIDUAL" % rank)
@@ -178,19 +187,13 @@ if __name__ == '__main__':
         """
         Gather initialized population back to Master CPU
         """
-        comm.Barrier()
-        new_pop = comm.gather(population, root=0)
-        print("--------------------END CREATE UNIVERSE--------------------")
-        # converting 2D initial genome output list pop into 1D for first mating
-        population = []
-        for subpop in new_pop:
-            for genome_list in subpop:
-                population.append(genome_list)
+        population = comm.gather(population, root=0)
+        if rank == 0:
+            # Converting 2D initial genome output list pop into 1D for first mating
+            population = merge_pop(population)
 
-        generation = -1
+        generation = 0
         converged = False
-        GENERATION_LIMIT = problem.generation_limit  # 199
-        SCORE_MIN = problem.score_min  # 1e-1
         start_time = time.time()
         newpath = r'outputs_cifar/'
         if not os.path.exists(newpath):
@@ -200,20 +203,21 @@ if __name__ == '__main__':
         """
         Parallel GP ezCGP starts here
         """
-        while (not converged) & (generation <= GENERATION_LIMIT):
+        while (not converged) & (generation < problem.GEN_LIMIT):
             """
             Scatter population across all slave cpu
             Mate (1D)
             Scatter (2D)
             Gather (Merge into 1D)
+            
+            1D population (genome list) array after each iteration of the loop
+            mate individuals and insert into next population
             """
-            # 1D population (genome list) array after each iteration of the loop
-            # mate individuals and insert into next population
-            print('pre mating should be geome list:', population[0])
-            population = mate_population(population) # needs to be 1D to mate
 
-            # split pop
-            population = split_pop(population, size) # becomes 2D
+            if rank == 0:
+                # population = mate_population(population)  # needs to be 1D to mate
+                population = split_pop(population, size)  # becomes 2D
+
 
             comm.Barrier()
             scatter_start = time.time()
@@ -222,10 +226,9 @@ if __name__ == '__main__':
 
             print("Rank: {} Length: {}".format(rank, len(population)))
             print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
-            indPopulation = [build_individual(deepcopy(problem.skeleton_genome), deepcopy(genome))
-                             for genome in population]
+            indPopulation = [build_individual(problem.skeleton_genome, genome) for genome in population]
             run_start = time.time()
-            indPopulation = run_universe(indPopulation, num_mutants, num_offspring, input_data, labels)
+            indPopulation = run_universe(indPopulation, problem.N_MUTANTS, problem.N_OFFSPRING, input_data, labels)
             run_end = time.time()
             population = [ind.get_genome_list() for ind in indPopulation]
 
@@ -249,20 +252,20 @@ if __name__ == '__main__':
             select_start = time.time()
             if rank == 0:
                 generation += 1
-                new_pop = []
-                for subpop in population:
-                    for genome_list in subpop:
-                        new_pop.append(genome_list)
+                new_pop = merge_pop(population)
                 indPopulation = [build_individual(problem.skeleton_genome, genome_list)
                                  for genome_list in new_pop]
+                """
+                Filter population down based off fitness
+                New population done: rank individuals in population and trim down
+                """
                 indPopulation, _ = selections.selNSGA2(indPopulation, k=population_size, nd='standard')
-                population = [ind.get_genome_list() for ind in indPopulation] # 1D gathering after best selection
+                population = [ind.get_genome_list() for ind in indPopulation]
                 scores = []
-                # print(population[0])
                 for genome_list in population:
                     scores.append(genome_list[-1])
 
-                if np.min(scores) < SCORE_MIN:
+                if np.min(scores) < problem.MIN_SCORE:
                     converged = True
                 else:
                     pass
@@ -270,7 +273,6 @@ if __name__ == '__main__':
                 # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
                 # np.save(file_pop, population)
                 # np.save(file_generation, generation)
-
 
             select_end = time.time()
             with open("cpu_%i.txt" % rank, "a") as f:
@@ -290,16 +292,11 @@ if __name__ == '__main__':
             converged = conditions[0]
             generation = conditions[1]
 
-        print("ending universe", time.time() - start_time)
-        # ---------------------------------------------------END UNIVERSE-----------------------------------------------------------
+        print("===== ENDING UNIVERSE ", i, "total time: ", time.time() - start_time)
+
+
         time_complete = time.time() - start
-        print("time of generation", time_complete)
+        print("Time of generation", time_complete)
         if rank == 0:
             with open("run_time.txt", "a") as f:
                 f.write("%f \n" % time_complete)
-
-    # snapshot = tracemalloc.take_snapshot()
-    # top = snapshot.statistics('lineno')
-
-    # for stat in top[:20]:
-    #     print(stat)

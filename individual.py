@@ -193,3 +193,4 @@ def build_individual(skeleton_genome, genome_list):
         individual.skeleton[i]["block_object"].findActive()
     individual.fitness.values  = genome_list[-1]
     return individual
+

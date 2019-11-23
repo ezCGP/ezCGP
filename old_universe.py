@@ -27,20 +27,18 @@ def run_universe(population,
                  block=None):
 
     pop_size = len(population)
-    '''
+
     logging.info("    MATING")
-    mating_list = tournamentSelection(population, k=len(population)) #double check that k works
-    for i in range(0,len(mating_list),2):
-        parent1 = deepcopy(mating_list[i])
-        parent2 = deepcopy(mating_list[i+1])
-        offspring_list = parent1.mate(parent2, block)
-        if offspring_list is not None:
-            for offspring in offspring_list:
-                population.append(offspring)
+    # initialize mate wrapper
+    mate_obj = Mate(population, problem.skeleton_genome)
+    # mate and produce two random offspring
+    mate_list = mate_obj.whole_block_swapping()
+    for mate in mate_list:
+        if mate.need_evaluate:
+            population.append(mate)
         else:
-            # if mate_prob < 1 there is a chance that it didn't mate and return None
             pass
-    '''
+
     # mutate through the population
     print("    MUTATING")
     for i in range(len(population)): # don't loop over population and add to population in the loop
@@ -56,7 +54,7 @@ def run_universe(population,
             else:
                 # if mut_prob is < 1 there is a chancce it didn't mutate
                 pass
-    
+
     # evaluate the population
     print("    EVALUATING")
 
