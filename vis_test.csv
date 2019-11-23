@@ -1,5 +1,27 @@
-id,name,styletype, fill, stroke, refs
-1,Cell A,style1,,,"2,3,4"
-2,Cell B,style2,,,"3,4"
-3,Cell C,style3,#D5E8D4,#82B366,"1"
-4,Cell D,style3,#F8CECC,#B85450,"1"
+## Hello World
+# label: %step%
+# style: shape=rectangle;fillColor=%fill%;strokeColor=%stroke%;
+# namespace: csvimport-
+# connect: {"from":"refs", "to":"id", "invert":true, "style":"curved=0;endArrow=blockThin;endFill=1;"}
+# width: auto
+# height: auto
+# padding: 15
+# ignore: id,shape,fill,stroke,refs
+# nodespacing: 40
+# levelspacing: 100
+# edgespacing: 40
+# layout: auto
+## CSV starts under this line
+id,step,fill,stroke,refs
+##1,Hello World,#dae8fc,#6c8ebf,rectangle,
+##2,Am I alive?,#fff2cc,#d6b656,rhombus,1
+##3,Yes,#d5e8d4,#82b366,ellipse,2
+##4,No,#f8cecc,#b85450,ellipse,2
+##5,,#fff2cc,#d6b656,mxgraph.basic.smiley,3
+
+1,InputPlaceholder,#dae8fc,#6c8ebf,""
+2,random_noise,#dae8fc,#6c8ebf,"1"
+3,add_gausian_noise,#dae8fc,#6c8ebf,"2"
+4,random_horizontal_flip,#F8CECC,#B85450,"3"
+5,random_rotation,#F8CECC,#B85450,"4"
+6,Output,#F8CECC,#B85450,"5"
