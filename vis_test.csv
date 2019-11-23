@@ -1,27 +1,35 @@
 ## Hello World
 # label: %step%
-# style: shape=rectangle;fillColor=%fill%;strokeColor=%stroke%;
+# style: shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=#000000
 # namespace: csvimport-
 # connect: {"from":"refs", "to":"id", "invert":true, "style":"curved=0;endArrow=blockThin;endFill=1;"}
 # width: auto
 # height: auto
-# padding: 15
-# ignore: id,shape,fill,stroke,refs
-# nodespacing: 40
-# levelspacing: 100
+# padding: 10
+# ignore: id,fill,refs
+# nodespacing: 10
+# levelspacing: 30
 # edgespacing: 40
-# layout: auto
+# layout: horizontalflow
 ## CSV starts under this line
-id,step,fill,stroke,refs
-##1,Hello World,#dae8fc,#6c8ebf,rectangle,
-##2,Am I alive?,#fff2cc,#d6b656,rhombus,1
-##3,Yes,#d5e8d4,#82b366,ellipse,2
-##4,No,#f8cecc,#b85450,ellipse,2
-##5,,#fff2cc,#d6b656,mxgraph.basic.smiley,3
+id,step,fill, refs
 
-1,InputPlaceholder,#dae8fc,#6c8ebf,""
-2,random_noise,#dae8fc,#6c8ebf,"1"
-3,add_gausian_noise,#dae8fc,#6c8ebf,"2"
-4,random_horizontal_flip,#F8CECC,#B85450,"3"
-5,random_rotation,#F8CECC,#B85450,"4"
-6,Output,#F8CECC,#B85450,"5"
+-1A,InputPlaceholder,#dae8fc,
+2A,random_noise,#dae8fc,"-1A"
+3A,add_gausian_noise,#dae8fc,"2A,-1A"
+4A,random_horizontal_flip,#dae8fc,"3A"
+5A,random_rotation,#dae8fc,"4A,2A"
+6A,Output,#dae8fc,"5A,3A"
+
+-1B,InputPlaceholder,#f8cecc,"6A"
+2B,random_noise,#f8cecc,"-1B"
+3B,add_gausian_noise,#f8cecc,"2B,-1B"
+4B,random_horizontal_flip,#f8cecc,"3B"
+5B,random_rotation,#f8cecc,"4B,2B"
+6B,Output,#f8cecc,"5B,3B"
+
+
+-1,Fitenss: .354, #ffe6cc,"6B"
+
+
+
