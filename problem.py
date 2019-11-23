@@ -15,7 +15,7 @@ import logging
 
 """PARAMETERS"""
 GEN_LIMIT = 5
-POP_SIZE = 4
+POP_SIZE = 8
 N_EPOCHS = 1
 SEED = 5
 N_UNIVERSE = 1
