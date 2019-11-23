@@ -61,7 +61,7 @@ def mate_population(population):
     :param population:
     :return:
     """
-    logging.info("    MATING")
+    print("    MATING")
     population = [build_individual(problem.skeleton_genome, genome)
                   for genome in population]
 
@@ -209,13 +209,13 @@ if __name__ == '__main__':
             Mate (1D)
             Scatter (2D)
             Gather (Merge into 1D)
-            
+
             1D population (genome list) array after each iteration of the loop
             mate individuals and insert into next population
             """
 
             if rank == 0:
-                # population = mate_population(population)  # needs to be 1D to mate
+                population = mate_population(population)  # needs to be 1D to mate
                 population = split_pop(population, size)  # becomes 2D
 
 

@@ -27,7 +27,7 @@ class TrainingBlock(SkeletonBlock):
                 # operators.sqeeze_excitation_block: {'prob': 1},
                 # operators.input_layer: {'prob': 1},
                 # operators.conv_layer: {'prob': 1},
-                # operators.max_pool_layer: {'prob': 1},
+                operators.max_pool_layer: {'prob': 1},
                 #operators.avg_pool_layer: {'prob': 1},
                 # operators.concat_func: {'prob': 1},
                 # operators.sum_func: {'prob': 1},
