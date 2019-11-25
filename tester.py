@@ -1,5 +1,5 @@
 import utils.LogSetup #import this first
-from vis import Visualizer
+from visualize import Visualizer
 from individual import Individual
 import problem
 import numpy as np
@@ -13,8 +13,7 @@ individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=
 print('individual has fitness: {}'.format(individual.fitness.values))
 
 print(individual.genome_outputs)
-visualizer = Visualizer()
-visualizer.create_csv(individual)
+Visualizer(individual, output_path="tester_individual.csv").create_csv()
 #print(individual.dead)
 for i in range(1,individual.num_blocks+1):
      curr_block = individual.skeleton[i]["block_object"]

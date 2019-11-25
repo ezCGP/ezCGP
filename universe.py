@@ -14,6 +14,7 @@ import logging
 import problem
 import selections
 from mating import Mate
+import visualize
 
 def evaluator_queue():
     pass
@@ -164,6 +165,7 @@ def create_universe(input_data,
 
             try:
                 logging.info("best " + str(sample_best.genome_outputs[0]))
+                visualize.Visualizer(sample_best, output_path="csv_individual_visualization/sample_best_{}.csv".format(generation)).create_csv()
 
             except:
                 import pdb
