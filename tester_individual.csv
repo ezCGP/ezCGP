@@ -1,8 +1,8 @@
 ## Hello World             
 # label: %step%<br><i style="color:gray;">%text%</i>             
-# style: html=1;shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=#000000             
+# style: html=1;shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=%arrow_color%             
 # namespace: csvimport-             
-# connect: {"from":"refs", "to":"id", "invert":true, "style":"curved=0;endArrow=blockThin;endFill=1;"}             
+# connect: {"from":"refs", "to":"id", "invert":true, "style":"curved=0;endArrow=blockThin;endFill=1;fillColor=%arrow_color%;strokeColor=%arrow_color%;"}             
 # width: auto             
 # height: auto             
 # padding: 10             
@@ -12,14 +12,14 @@
 # edgespacing: 40             
 # layout: horizontalflow             
 ## CSV starts under this line             
-id,step,text,fill,refs             
+id,step,text,fill,refs,arrow_color             
  
-a-1,InputPlaceholder,"batch_size Size= 128 <br>n_epochs= 1 <br>large_dataset= None <br>nickname= tensor_mnist_block",#dae8fc,""
-a0,random_noise,,#dae8fc,"a-1"
-a2,random_rotation,,#dae8fc,"a0"
-a4,random_rotation,,#dae8fc,"a2"
-a5,Output,,#dae8fc,"a4"
-b-1,InputPlaceholder,"batch_size Size= 128 <br>n_epochs= 1 <br>large_dataset= None <br>nickname= tensor_mnist_block",#f8cecc,"a5"
-b0,dense_layer,,#f8cecc,"b-1"
-b3,Output,,#f8cecc,"b0"
-END,"Fitness: (0.907, 0.9829826166514181)",,#ffe6cc,"b3"
+a-1,InputPlaceholder,"batch_size Size= 128 <br>n_epochs= 1 <br>large_dataset= None <br>nickname= tensor_mnist_block",#dae8fc,"",#1500ff
+a0,add_salt_pepper_noise,,#dae8fc,"a-1",#1500ff
+a1,random_horizontal_flip,,#dae8fc,"a0",#1500ff
+a4,random_horizontal_flip,,#dae8fc,"a1",#1500ff
+a5,Output,,#dae8fc,"a4",#1500ff
+b-1,InputPlaceholder,"batch_size Size= 128 <br>n_epochs= 1 <br>large_dataset= None <br>nickname= tensor_mnist_block",#f8cecc,"a5",#1500ff
+b0,dense_layer,,#f8cecc,"b-1",#1500ff
+b3,Output,,#f8cecc,"b0",#1500ff
+END,"Fitness: (0.8029999999999999, 0.8550525877478281)",,#ffe6cc,"b3",

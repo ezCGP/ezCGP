@@ -8,9 +8,9 @@ import random
 
 header = '## Hello World \
             \n# label: %step%<br><i style="color:gray;">%text%</i> \
-            \n# style: html=1;shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=#000000 \
+            \n# style: html=1;shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=%arrow_color% \
             \n# namespace: csvimport- \
-            \n# connect: {\"from\":\"refs\", \"to\":\"id\", \"invert\":true, \"style\":\"curved=0;endArrow=blockThin;endFill=1;\"} \
+            \n# connect: {\"from\":\"refs\", \"to\":\"id\", \"invert\":true, \"style\":\"curved=0;endArrow=blockThin;endFill=1;fillColor=%arrow_color%;strokeColor=%arrow_color%;\"} \
             \n# width: auto \
             \n# height: auto \
             \n# padding: 10 \
@@ -20,7 +20,7 @@ header = '## Hello World \
             \n# edgespacing: 40 \
             \n# layout: horizontalflow \
             \n## CSV starts under this line \
-            \nid,step,text,fill,refs \
+            \nid,step,text,fill,refs,arrow_color \
             \n '
 
 class Visualizer():
@@ -30,9 +30,11 @@ class Visualizer():
         self.output_path = output_path
         self.shifts = list(string.ascii_lowercase)
         self.colors = ['#dae8fc', '#f8cecc', "#d5e8d4"] * 9
+        self.header=header
+        self.arrow_color="#1500ff"
 
     def create_csv(self):
-        csv_rows = header.split("\n")
+        csv_rows = self.header.split("\n")
 
         prev_output = ""
         for block_num in range(self.individual.num_blocks):
@@ -47,15 +49,15 @@ class Visualizer():
                 if active_node < 0:  #Input
                     layer_info = "batch_size Size= {} <br>n_epochs= {} <br>large_dataset= {} <br>nickname= {}".format(
                                     block['batch_size'], block['n_epochs'], block['large_dataset'],block['nickname'])
-                    out = "{}{},{},\"{}\",{},\"{}\"".format(shift, active_node, fn, layer_info, color, prev_output)
+                    out = "{}{},{},\"{}\",{},\"{}\",{}".format(shift, active_node, fn, layer_info, color, prev_output,self.arrow_color)
                 elif active_node >= curr_block.genome_main_count:
-                    out = "{}{},Output,,{},\"{}\"".format(shift, active_node, color, shift + str(fn))
+                    out = "{}{},Output,,{},\"{}\",{}".format(shift, active_node, color, shift + str(fn), self.arrow_color)
                     prev_output = shift + str(active_node)
                 else:
-                    out = "{}{},{},,{},\"{}\"".format(shift, active_node, fn['ftn'].__name__, color, ','.join(map(lambda x: shift + str(x), fn['inputs'])))
+                    out = "{}{},{},,{},\"{}\",{}".format(shift, active_node, fn['ftn'].__name__, color, ','.join(map(lambda x: shift + str(x), fn['inputs'])), self.arrow_color)
                 csv_rows.append(out + "")
 
-        csv_rows.append("END,\"Fitness: {}\",,{},\"{}\"".format(self.individual.fitness.values, '#ffe6cc', prev_output))
+        csv_rows.append("END,\"Fitness: {}\",,{},\"{}\",".format(self.individual.fitness.values, '#ffe6cc', prev_output))
 
         with open(self.output_path, 'w') as csv:
             for row in csv_rows:
