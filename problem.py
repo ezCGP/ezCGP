@@ -134,8 +134,8 @@ def scoreFunction(predict, actual):
 #                                           setup_dict_ftn={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
 preprocessing_block1 = PreprocessingBlock(tensorblock_flag=False, apply_to_val=False, main_count=2)
-# preprocessing_block2 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = True, main_count=2,
-#                                           primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
+preprocessing_block2 = PreprocessingBlock(tensorblock_flag=False, apply_to_val = True, main_count=2,
+                                           primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
 training_block = TrainingBlock(main_count=2, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
 
@@ -145,6 +145,6 @@ skeleton_genome = {
     'output': [np.ndarray],
     # vars converts the block object to a dictionary
     1: vars(preprocessing_block1),
-    # 2: vars(preprocessing_block2),
-    2: vars(training_block)
+    2: vars(preprocessing_block2),
+    3: vars(training_block)
 }
