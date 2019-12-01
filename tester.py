@@ -1,5 +1,5 @@
 import utils.LogSetup #import this first
-from individual import Individual, create_individual_from_genome_list
+from individual import Individual, build_individual
 import problem
 import numpy as np
 train_data = problem.x_train
