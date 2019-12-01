@@ -8,9 +8,9 @@ import random
 
 header = '## Hello World \
             \n# label: %step%<br><i style="color:gray;">%text%</i> \
-            \n# style: html=1;shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=%arrow_color% \
+            \n# style: html=1;shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=%fill% \
             \n# namespace: csvimport- \
-            \n# connect: {\"from\":\"refs\", \"to\":\"id\", \"invert\":true, \"style\":\"curved=0;endArrow=blockThin;endFill=1;fillColor=%arrow_color%;strokeColor=%arrow_color%;\"} \
+            \n# connect: {\"from\":\"refs\", \"to\":\"id\", \"invert\":true, \"style\":\"curved=0;endArrow=blockThin;endFill=1;fillColor=#1500ff;strokeColor=#1500ff;\"} \
             \n# width: auto \
             \n# height: auto \
             \n# padding: 10 \
@@ -41,7 +41,6 @@ class Visualizer():
             block = self.individual.skeleton[block_num+1]
             curr_block = block["block_object"]
 
-            print("sadsadsadasd", block)
             shift = self.shifts[block_num]
             color = self.colors[block_num]
             for active_node in curr_block.active_nodes:
