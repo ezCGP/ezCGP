@@ -70,7 +70,7 @@ def mate_population(population):
 
     # Mate and produce two random offspring
     # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
-    mate_list = mate_obj.whole_block_swapping()
+    mate_list = mate_obj.whole_block_swapping() # creates two offspring
     for mate in mate_list:
         if mate.need_evaluate:
             population.append(mate)
@@ -124,6 +124,12 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
                                                               predict=individual.genome_outputs)
 
             print('Mutated population individual has fitness: {}'.format(individual.fitness.values))
+            print('Genome shape:') # replace with actual visualization code later
+            for i in range(1,parent_1.num_blocks+1):
+                curr_block = parent_1.skeleton[i]["block_object"]
+                for active_node in curr_block.active_nodes:
+                    print(curr_block[active_node])
+
 
     gc.collect()
 
