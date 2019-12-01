@@ -125,8 +125,8 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
 
             print('Mutated population individual has fitness: {}'.format(individual.fitness.values))
             print('Genome shape:') # replace with actual visualization code later
-            for i in range(1,parent_1.num_blocks+1):
-                curr_block = parent_1.skeleton[i]["block_object"]
+            for i in range(1,individual.num_blocks+1):
+                curr_block = individual.skeleton[i]["block_object"]
                 for active_node in curr_block.active_nodes:
                     print(curr_block[active_node])
 
