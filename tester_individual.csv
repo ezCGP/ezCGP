@@ -15,9 +15,9 @@
 id,step,text,fill,refs,arrow_color             
  
 a-1,InputPlaceholder,"batch_size Size= 128 <br>n_epochs= 1 <br>large_dataset= None <br>nickname= tensor_mnist_block",#dae8fc,"",#1500ff
-a4,random_horizontal_flip,,#dae8fc,"a-1",#1500ff
-a5,Output,,#dae8fc,"a4",#1500ff
+a2,random_rotation,,#dae8fc,"a-1",#1500ff
+a5,Output,,#dae8fc,"a2",#1500ff
 b-1,InputPlaceholder,"batch_size Size= 128 <br>n_epochs= 1 <br>large_dataset= None <br>nickname= tensor_mnist_block",#f8cecc,"a5",#1500ff
-b1,dense_layer,,#f8cecc,"b-1",#1500ff
-b3,Output,,#f8cecc,"b1",#1500ff
-END,"Fitness: (0.91, 0.9834862385321101)",,#ffe6cc,"b3",
+b2,dense_layer,,#f8cecc,"b-1",#1500ff
+b3,Output,,#f8cecc,"b2",#1500ff
+END,"Fitness: (0.878, 0.9203022001040834)",,#ffe6cc,"b3",
