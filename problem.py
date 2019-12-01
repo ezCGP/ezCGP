@@ -21,7 +21,7 @@ SEED = 5
 N_UNIVERSE = 1
 
 N_MUTANTS = 1
-N_OFFSPRING = 2
+N_OFFSPRING = 2 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
