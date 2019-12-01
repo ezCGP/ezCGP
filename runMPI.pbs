@@ -1,0 +1,20 @@
+# ezCGP pbs script
+#PBS -N ezcgp2
+#PBS -l nodes=6:ppn=2
+#PBS -l pmem= 10gb
+#PBS-l walltime=12:00:00
+#PBS -q pace-ice
+#PBS -j oe
+#PBS -o ezCGP2.out
+#PBS -m abe
+#PBS -M mjurado3@gatech.edu
+
+cd ~/data/ezCGP
+module load anaconda3
+source activate ezCGP
+echo "Started on `/bin/hostname`"               # prints the name of the node job started on
+module load java/1.8.0_25
+module load openmpi/2.1.1
+module load glib/2.40.0 
+module load gcc/4.9.0
+OMP_NUM_THREADS=1 KMP_WARNING=OFF OMP_PROC_BIND=FALSE mpiexec  -n 12 python  mpi_universe.py
