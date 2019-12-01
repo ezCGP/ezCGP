@@ -223,7 +223,7 @@ if __name__ == '__main__':
             """
 
             if rank == 0:
-                if len(population) == 0:
+                if len(population) != 0:
                     population = mate_population(population)  # needs to be 1D to mate
                     population = split_pop(population, size)  # becomes 2D
 
