@@ -278,9 +278,9 @@ if __name__ == '__main__':
                 else:
                     pass
 
-                # file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
-                # np.save(file_pop, population)
-                # np.save(file_generation, generation)
+                file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
+                np.save(file_pop, population)
+                np.save(file_generation, generation)
 
             select_end = time.time()
             with open("cpu_%i.txt" % rank, "a") as f:
