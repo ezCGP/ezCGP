@@ -170,7 +170,7 @@ if __name__ == '__main__':
         Each CPU initialize its own subpopulation
         """
         population = []
-        for i in range(int(population_size)):
+        for i in range(int(population_size / size)):
             ind = Individual(skeleton=problem.skeleton_genome)
             population.append(ind.get_genome_list())
 
