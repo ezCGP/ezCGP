@@ -1,6 +1,6 @@
 # ezCGP pbs script
 #PBS -N ezcgp3
-#PBS -l nodes=6:ppn=2
+#PBS -l nodes=1:ppn=12
 #PBS -l pmem= 10gb
 #PBS -l walltime=12:00:00
 #PBS -q pace-ice
