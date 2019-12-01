@@ -66,18 +66,18 @@ def mate_population(population):
     population = [build_individual(problem.skeleton_genome, genome)
                   for genome in population]
 
-    for i in range(problem.N_OFFSPRING):
-        # Initialize mate wrapper
-        mate_obj = Mate(population, problem.skeleton_genome)
+    #for i in range(problem.N_OFFSPRING):
+    # Initialize mate wrapper
+    mate_obj = Mate(population, problem.skeleton_genome)
     
-        # Mate and produce two random offspring
-        # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
-        mate_list = mate_obj.whole_block_swapping() # creates two offspring
-        for mate in mate_list:
-            if mate.need_evaluate:
-                population.append(mate)
-            else:
-                pass
+    # Mate and produce two random offspring
+    # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
+    mate_list = mate_obj.whole_block_swapping() # creates two offspring
+    for mate in mate_list:
+        if mate.need_evaluate:
+            population.append(mate)
+        else:
+            pass
 
     return [ind.get_genome_list() for ind in population]
 
