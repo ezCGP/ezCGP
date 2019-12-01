@@ -77,6 +77,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             block = self.skeleton[i]["block_object"]
             genome_list.append(block.genome)
         genome_list.append(self.fitness.values)
+        genome_list.append(self.need_evaluate())
         return genome_list
 
 
@@ -94,6 +95,10 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             else:
                 pass
         return False
+
+    def set_need_evaluate(self, flag=True):
+        for i in range(1,self.num_blocks+1):
+            self.skeleton[i]["block_object"].need_evaluate = flag
 
     def clear_rec(self):
         for i in range(1,self.num_blocks+1):
@@ -194,9 +199,13 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
 
 def build_individual(skeleton_genome, genome_list):
     individual = Individual(skeleton_genome)
+    need_evaluate = genome_list[-1]
     for i in range(1,individual.num_blocks+1):
         # replace with genome
         individual.skeleton[i]["block_object"].genome = genome_list[i-1]
         individual.skeleton[i]["block_object"].findActive()
-    individual.fitness.values  = genome_list[-1]
+        individual.skeleton[i]["block_object"].need_evaluate = need_evaluate
+    # individual structure:
+    # [block1, block2, ..., blockn, fitnessTuple, needEvaluated]
+    individual.fitness.values  = genome_list[-2]
     return individual

@@ -46,8 +46,10 @@ class Mate():
 
         # accessing dictionary since we're back to object, so add 1 back
         block_index += 1
-        ind_1.skeleton[block_index]['block_object'].need_evaluate = True
-        ind_2.skeleton[block_index]['block_object'].need_evaluate = True
+        ind_1.set_need_evaluate(flag=True) # set all need_evaluate block flags to True
+        ind_2.set_need_evaluate(flag=True)
+        #ind_1.skeleton[block_index]['block_object'].need_evaluate = True
+        #ind_2.skeleton[block_index]['block_object'].need_evaluate = True
         del temp_block
         gc.collect()
 

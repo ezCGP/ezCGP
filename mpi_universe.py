@@ -170,7 +170,7 @@ if __name__ == '__main__':
         Each CPU initialize its own subpopulation
         """
         population = []
-        for i in range(int(population_size / size)):
+        for i in range(int(population_size)):
             ind = Individual(skeleton=problem.skeleton_genome)
             population.append(ind.get_genome_list())
 
@@ -223,9 +223,9 @@ if __name__ == '__main__':
             """
 
             if rank == 0:
-                if len(population) != 0:
-                    population = mate_population(population)  # needs to be 1D to mate
-                    population = split_pop(population, size)  # becomes 2D
+                population = mate_population(population)  # needs to be 1D to mate
+                print(len(population))
+                population = split_pop(population, size)  # becomes 2D
 
 
             comm.Barrier()
