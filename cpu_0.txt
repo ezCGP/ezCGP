@@ -43,3 +43,6 @@ Gen 2 Scatter: 0.000797, Gather: 0.000719, Run: 90.828069, Select: 0.072954
 Gen 3 Scatter: 0.000444, Gather: 0.000441, Run: 88.862732, Select: 0.064236
 Gen 4 Scatter: 0.000544, Gather: 0.000714, Run: 78.070382, Select: 0.064012
 Gen 5 Scatter: 0.000438, Gather: 0.000450, Run: 111.216976, Select: 0.083127
+Gen 1 Scatter: 0.002393, Gather: 0.001082, Run: 148.431727, Select: 0.153649
+Gen 2 Scatter: 0.000819, Gather: 0.001058, Run: 173.583448, Select: 0.113448
+Gen 3 Scatter: 0.000748, Gather: 0.000941, Run: 199.040484, Select: 0.480132
