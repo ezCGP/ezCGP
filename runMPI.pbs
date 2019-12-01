@@ -2,14 +2,14 @@
 #PBS -N ezcgp3
 #PBS -l nodes=6:ppn=2
 #PBS -l pmem= 10gb
-#PBS-l walltime=12:00:00
+#PBS -l walltime=12:00:00
 #PBS -q pace-ice
 #PBS -j oe
 #PBS -o ezCGP3.out
 #PBS -m abe
 #PBS -M szhang460@gatech.edu
 
-cd ~/dezCGP
+cd ~/ezCGP
 echo "Started on `/bin/hostname`"               # prints the name of the node job started on
 module load java/1.8.0_25
 module load openmpi/2.1.1
