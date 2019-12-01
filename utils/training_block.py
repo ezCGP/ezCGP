@@ -18,7 +18,6 @@ class TrainingBlock(SkeletonBlock):
                 ##operators.dense_layer: {'prob': 1},
                 operators.input_layer: {'prob': 1},
                 operators.conv_layer: {'prob': 1},
-                operators.max_pool_layer: {'prob': 1},
                 operators.concat_func: {'prob': 1},
                 operators.res_block: {'prob': 1},
                 # operators.sqeeze_excitation_block: {'prob': 1},
