@@ -9,7 +9,15 @@ individual = Individual(problem.skeleton_genome)
 individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val))
 
 individual.fitness.values = problem.scoreFunction(actual=problem.y_val, predict=individual.genome_outputs)
+
+genome_list = individual.get_genome_list()
+indCopy = build_individual(problem.skeleton_genome, genome_list)
+
+assert indCopy.fitness.values[0] == individual.fitness.values[0]
+assert indCopy.need_evaluate() == individual.need_evaluate()
+
 print('individual has fitness: {}'.format(individual.fitness.values))
+
 
 # print(individual.genome_outputs)
 # print(individual.dead)
