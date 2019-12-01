@@ -13,6 +13,7 @@ import logging
 from individual import Individual, build_individual
 from mpi4py import MPI
 from mating import Mate
+import problem
 
 
 def blockPrint():
@@ -70,7 +71,6 @@ def mate_population(population):
 
     # Mate and produce two random offspring
     # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
-    import problem
     print(problem.N_OFFSPRING)
     for i in range(problem.N_OFFSPRING):
         mate_list = mate_obj.whole_block_swapping() # creates two offspring
@@ -147,7 +147,6 @@ if __name__ == '__main__':
     rank = comm.Get_rank()
     print("Start MPI Universe")
 
-    import problem
     seed = problem.SEED
     np.random.seed(seed)
     # keep these imports after the seed is set for numpy
