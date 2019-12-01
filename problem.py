@@ -15,13 +15,13 @@ import logging
 
 """PARAMETERS"""
 GEN_LIMIT = 5
-POP_SIZE = 8
+POP_SIZE = 6
 N_EPOCHS = 1
 SEED = 5
 N_UNIVERSE = 1
 
 N_MUTANTS = 1
-N_OFFSPRING = 2 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
+N_OFFSPRING = 3 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
