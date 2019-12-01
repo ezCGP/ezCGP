@@ -18,7 +18,7 @@ import logging
 # divide by num cores to find number of individuals per core
 # Create Universe: cpu cores == pop_size
 
-GEN_LIMIT = 5
+GEN_LIMIT = 50
 POP_SIZE = 12
 N_EPOCHS = 10
 SEED = 5
