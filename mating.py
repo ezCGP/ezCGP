@@ -14,16 +14,16 @@ class Mate():
         parent_1, parent_2 = np.random.choice(a=self.population, size=2, p=None)
 
         # print parents
-        print("parent1")
-        for i in range(1,parent_1.num_blocks+1):
-            curr_block = parent_1.skeleton[i]["block_object"]
-            for active_node in curr_block.active_nodes:
-                print(curr_block[active_node])
-        print("parent2")
-        for i in range(1,parent_2.num_blocks+1):
-            curr_block = parent_2.skeleton[i]["block_object"]
-            for active_node in curr_block.active_nodes:
-                print(curr_block[active_node])
+        # print("parent1")
+        # for i in range(1,parent_1.num_blocks+1):
+        #     curr_block = parent_1.skeleton[i]["block_object"]
+        #     for active_node in curr_block.active_nodes:
+        #         print(curr_block[active_node])
+        # print("parent2")
+        # for i in range(1,parent_2.num_blocks+1):
+        #     curr_block = parent_2.skeleton[i]["block_object"]
+        #     for active_node in curr_block.active_nodes:
+        #         print(curr_block[active_node])
 
         # copy paernts to new individuals before swapping
         ind_1_genome_list = parent_1.get_genome_list()
@@ -54,15 +54,15 @@ class Mate():
         gc.collect()
 
         # print out mated individuals
-        print("ind1")
-        for i in range(1,ind_1.num_blocks+1):
-            curr_block = ind_1.skeleton[i]["block_object"]
-            for active_node in curr_block.active_nodes:
-                print(curr_block[active_node])
-        print("ind2")
-        for i in range(1,ind_2.num_blocks+1):
-            curr_block = ind_2.skeleton[i]["block_object"]
-            for active_node in curr_block.active_nodes:
-                print(curr_block[active_node])
+        # print("ind1")
+        # for i in range(1,ind_1.num_blocks+1):
+        #     curr_block = ind_1.skeleton[i]["block_object"]
+        #     for active_node in curr_block.active_nodes:
+        #         print(curr_block[active_node])
+        # print("ind2")
+        # for i in range(1,ind_2.num_blocks+1):
+        #     curr_block = ind_2.skeleton[i]["block_object"]
+        #     for active_node in curr_block.active_nodes:
+        #         print(curr_block[active_node])
 
         return [ind_1, ind_2]
