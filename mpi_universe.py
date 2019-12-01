@@ -66,7 +66,6 @@ def mate_population(population):
     population = [build_individual(problem.skeleton_genome, genome)
                   for genome in population]
 
-    print(problem.N_OFFSPRING)
     for i in range(problem.N_OFFSPRING):
         # Initialize mate wrapper
         mate_obj = Mate(population, problem.skeleton_genome)
