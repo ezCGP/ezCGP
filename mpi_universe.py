@@ -70,7 +70,7 @@ def mate_population(population):
 
     # Mate and produce two random offspring
     # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
-    for i in range(N_OFFSPRING):
+    for i in range(problem.N_OFFSPRING):
         mate_list = mate_obj.whole_block_swapping() # creates two offspring
         for mate in mate_list:
             if mate.need_evaluate:
