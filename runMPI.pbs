@@ -16,5 +16,8 @@ echo "Started on `/bin/hostname`"               # prints the name of the node jo
 module load java/1.8.0_25
 module load openmpi/2.1.1
 module load glib/2.40.0 
-module load gcc/4.9.0
-OMP_NUM_THREADS=1 KMP_WARNING=OFF OMP_PROC_BIND=FALSE mpiexec  -n 12 python  mpi_universe.py
+module load gcc/4.8.0
+OMP_NUM_THREADS=1 
+KMP_WARNING=OFF
+OMP_PROC_BIND=FALSE 
+sh run.sh
