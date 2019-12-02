@@ -49,8 +49,8 @@ curr_block.n_epochs = epochs
 x_test = [problem.x_test]
 y_test = problem.y_test[0]
 
-x_train = np.vstack(problem.x_train, [problem.x_val], axis = 1)
-y_train = np.append(problem.y_train[0], problem.y_val, axis = 1)
+x_train = np.vstack(problem.x_train, [problem.x_val])
+y_train = np.append(problem.y_train[0], problem.y_val)
 
 print(x_test.shape)
 print(y_test.shape)

@@ -20,5 +20,5 @@ def convert(individuals):
 
 data = np.load('outputs_cifar/gen5_pop.npy', allow_pickle=True)
 s = convert(data)
-text_file = open("gen5_pop.txt", "w")
-text_file.write(s)
+#text_file = open("gen5_pop.txt", "w")
+#text_file.write(s)
