@@ -6,7 +6,6 @@ import problem
 # OTHERWISE IT WILL OVERWRITE!!!!!
 #
 # THIS IS NOT POLISHED CODE!!!!!!
-
 def convert(individuals):
     s = ''
     for ind_1 in individuals:
@@ -17,10 +16,12 @@ def convert(individuals):
             for active_node in curr_block.active_nodes:
                 print(curr_block[active_node])
                 s += str(curr_block[active_node])
-
     return s
 
 data = np.load('outputs_cifar/gen2_pop.npy', allow_pickle=True)
+=======
+data = np.load('outputs_cifar/gen1_pop.npy', allow_pickle=True)
+>>>>>>> 85efd119b0aaf581e079cfbff678092f818a53fe
 s = convert(data)
 text_file = open("gen1_pop.txt", "w")
 text_file.write(s)
