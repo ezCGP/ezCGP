@@ -14,7 +14,7 @@ def convert(individuals):
             curr_block = ind_1.skeleton[i]["block_object"]
             for active_node in curr_block.active_nodes:
                 print(curr_block[active_node])
-                s += curr_block[active_node]
+                s += str(curr_block[active_node])
 
     return s
 
