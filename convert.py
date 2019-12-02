@@ -1,6 +1,6 @@
 import numpy as np
 import individual
-
+import problem
 # convert from npy to txt file
 # YOU MUST CHANGE THE TXT FILE STRING AND SPECIFY WHICH GEN TO WRITE IN OUTPUTS
 # OTHERWISE IT WILL OVERWRITE!!!!!
@@ -10,6 +10,7 @@ import individual
 def convert(individuals):
     s = ''
     for ind_1 in individuals:
+        ind_1 = individual.build_individual(problem.skeleton_genome, ind_1)
         for i in range(1,ind_1.num_blocks+1):
             curr_block = ind_1.skeleton[i]["block_object"]
             for active_node in curr_block.active_nodes:
@@ -18,7 +19,7 @@ def convert(individuals):
 
     return s
 
-data = np.load('outputs_cifar/gen0_pop.npy', allow_pickle=True)
+data = np.load('outputs_cifar/gen1_pop.npy', allow_pickle=True)
 s = convert(data)
-text_file = open("gen0_pop.txt", "w")
+text_file = open("gen1_pop.txt", "w")
 text_file.write(s)
