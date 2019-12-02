@@ -16,6 +16,8 @@ def convert(individuals):
                 print(curr_block[active_node])
                 s += curr_block[active_node]
 
+    return s
+
 data = np.load('outputs_cifar/gen0_pop.npy', allow_pickle=True)
 s = convert(data)
 text_file = open("gen0_pop.txt", "w")
