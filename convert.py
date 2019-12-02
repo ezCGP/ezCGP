@@ -11,6 +11,7 @@ def convert(individuals):
     s = ''
     for ind_1 in individuals:
         ind_1 = individual.build_individual(problem.skeleton_genome, ind_1)
+        print("fitness", ind_1.fitness.values)
         for i in range(1,ind_1.num_blocks+1):
             curr_block = ind_1.skeleton[i]["block_object"]
             for active_node in curr_block.active_nodes:
@@ -19,7 +20,7 @@ def convert(individuals):
 
     return s
 
-data = np.load('outputs_cifar/gen1_pop.npy', allow_pickle=True)
+data = np.load('outputs_cifar/gen2_pop.npy', allow_pickle=True)
 s = convert(data)
 text_file = open("gen1_pop.txt", "w")
 text_file.write(s)
