@@ -94,7 +94,7 @@ class Genome():
         try:
             ftn = self[node_index]["ftn"]
         except TypeError:
-            logging.info('Input/output dtype is incompatible with operator functions')
+            print('Input/output dtype is incompatible with operator functions')
             quit()
         ftn_dict = self.operator_dict[ftn]
         if input_dtype:

@@ -212,11 +212,11 @@ class Block(Mate, Mutate):
                             step_loss = tf_output_dict['loss']
 
                             if large_dataset:
-                                logging.info("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
+                                print("epoch: {} loaded batch index: {}. Fed {}/{} samples. Step loss: {}"\
                                        .format(epoch, step, step * batch_size, self.dataset._num_examples, step_loss))
                             epoch_loss += step_loss
 
-                        logging.info('Epoch completed. epoch_loss: {}'.format(epoch_loss))
+                        print('Epoch completed. epoch_loss: {}'.format(epoch_loss))
 
                 # Test on validation dataset from tester.py
                 self.dataset = DataSet(x_val, y_val)
@@ -235,8 +235,8 @@ class Block(Mate, Mutate):
                     finalOut += outs
                 return np.array(finalOut)
         except ValueError as e:
-            logging.info(e)
-            logging.info ("Mismatched shapes of tensors leading to error at evaluation time. ")
+            print(e)
+            print("Mismatched shapes of tensors leading to error at evaluation time. ")
             self.dead = True
             return tf_output_dict["classes"] # not really sure how to return properly after setting to dead... but this runs...
 
@@ -245,10 +245,10 @@ class Block(Mate, Mutate):
         cmd = "tensorboard --log_dir=%s" % self.logs_path
         args = shelx.split(cmd)
         p = subprocess.Popen(args)
-        logging.info("tensorboard link created for %iseconds" % wait_seconds)
+        print("tensorboard link created for %iseconds" % wait_seconds)
         time.sleep(wait_seconds)
         p.terminate() # or p.kill()
-        logging.info("tensorbard killed")
+        print("tensorbard killed")
 
     def tensorflow_add_optimizer_loss_layer(self):
         for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
@@ -324,7 +324,7 @@ class Block(Mate, Mutate):
     def tensorflow_evaluate(self, block_inputs, labels_all, validation_pair):
         data_pair = {}
         for i, input_ in enumerate(block_inputs): # wont there only be one block input?
-            logging.debug(i)
+            #logging.debug(i)
             data_dimension = list(input_.shape)
             data_dimension[0] = None # variable input size, "how to tell tensorflow" to figure it out by def.
             with self.graph.as_default():
@@ -344,8 +344,8 @@ class Block(Mate, Mutate):
                         # now that the graph is built, we evaluate here
                         self.genome_output_values = [self.tensorblock_evaluate(self.fetch_nodes, self.feed_dict, data_pair), None]
                     except Exception as e:
-                        logging.info('e2')
-                        logging.info(e)
+                        print('e2')
+                        print(e)
                         self.dead = True
                 else:
                     self.fetch_nodes.append(self.evaluated[self.active_nodes[-self.genome_output_count-1]])
@@ -372,7 +372,7 @@ class Block(Mate, Mutate):
                 referenced_node = self[output_node]
                 if self.apply_to_val:
                     self.validation_pair_output = (self.val_evaluated[referenced_node], validation_pair[1]) #reall this should be append
-                logging.info(self.labels)
+                print(self.labels)
                 self.genome_output_values = (self.evaluated[referenced_node], self.labels) #Is there ever a time we have multiple multiple_genome_output_values
         self.need_evaluate = False #taking away append will break something
         self.rec_clear()
@@ -388,26 +388,26 @@ class Block(Mate, Mutate):
         self.resetEvalAttr()
         self.findActive()
         self.labels = labels_all
-        logging.debug("evaluate shape")
-        logging.debug(self.labels.shape)
-        logging.info("Active nodes {}".format(self.active_nodes))
+        #logging.debug("evaluate shape")
+        #logging.debug(self.labels.shape)
+        print("Active nodes {}".format(self.active_nodes))
         arg_values = np.array(self.args)
         for active_node in self.active_nodes:
             fn = self[active_node]
             if active_node < 0:
                 # nothing to evaluate at input nodes
-                logging.info('function at: {} is: {}'\
+                print('function at: {} is: {}'\
                     .format(active_node, fn))
                 continue
             elif active_node >= self.genome_main_count:
                 # nothing to evaluate at output nodes
-                logging.info('function at: {} is: {} -> likely an output node'\
+                print('function at: {} is: {} -> likely an output node'\
                     .format(active_node, fn))
                 continue
-            logging.info('function at: {} is: {} and has arguments: {}'\
+            print('function at: {} is: {} and has arguments: {}'\
                     .format(active_node, fn, arg_values[fn['args']]))
 
-        logging.info('block_input: {}'.format(np.array(block_inputs).shape))
+        print('block_input: {}'.format(np.array(block_inputs).shape))
         if self.tensorblock_flag:
             self.tensorflow_evaluate(block_inputs, labels_all, validation_pair)
         else:

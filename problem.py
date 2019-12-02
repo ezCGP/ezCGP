@@ -68,12 +68,12 @@ x_val, y_val = np.array(x_val), np.array(y_val)
 # x_test = np.array([x_test])
 
 
-logging.info('Train data shape: ' + str(x_train.shape))
-logging.info('Train labels shape: ' + str(y_train.shape))
-logging.info('Validation data shape: ' + str(x_val.shape))
-logging.info('Validation labels shape: ' + str(y_val.shape))
-logging.info('Test data shape: ' + str(x_test.shape))
-logging.info('Test labels shape: ' + str(y_test.shape))
+print('Train data shape: ' + str(x_train.shape))
+print('Train labels shape: ' + str(y_train.shape))
+print('Validation data shape: ' + str(x_val.shape))
+print('Validation labels shape: ' + str(y_val.shape))
+print('Test data shape: ' + str(x_test.shape))
+print('Test labels shape: ' + str(y_test.shape))
 
 
 # we make dummy data that is dimensionally representative of the data we will
