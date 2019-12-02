@@ -46,10 +46,16 @@ for i in range(1,individual.num_blocks+1):
 curr_block.n_epochs = epochs
 
 # Concatenate validation set and testing set
-x_test = np.vstack((problem.x_test[0], problem.x_val))
-y_test = np.append(problem.y_test[0], problem.y_val)
-x_train = problem.x_train
-y_train = problem.y_train
+x_test = [problem.x_test]
+y_test = problem.y_test[0]
+
+x_train = np.vstack(problem.x_train, [problem.x_val], axis = 1)
+y_train = np.append(problem.y_train[0], problem.y_val, axis = 1)
+
+print(x_test.shape)
+print(y_test.shape)
+print(x_train.shape)
+print(y_train.shape)
 
 start = time.time()
 individual.evaluate(x_train, y_train, (x_test, y_test)) # This will force genome_output_values to point to the test set
