@@ -21,7 +21,7 @@ import logging
 GEN_LIMIT = 50
 POP_SIZE = 12
 N_EPOCHS = 1
-SEED = 5
+SEED = 42
 N_UNIVERSE = 1
 
 N_MUTANTS = 1

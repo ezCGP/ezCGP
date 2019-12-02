@@ -1,10 +1,11 @@
 import problem
 import numpy as np
 from individual import Individual, build_individual
+import time
 
 #  Constants (you edit)
 root_dir = 'outputs_cifar'
-epochs = 2
+epochs = 1
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
 generation = np.load(file_generation)

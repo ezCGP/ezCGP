@@ -18,10 +18,7 @@ def convert(individuals):
                 s += str(curr_block[active_node])
     return s
 
-data = np.load('outputs_cifar/gen2_pop.npy', allow_pickle=True)
-=======
-data = np.load('outputs_cifar/gen1_pop.npy', allow_pickle=True)
->>>>>>> 85efd119b0aaf581e079cfbff678092f818a53fe
+data = np.load('outputs_cifar/gen5_pop.npy', allow_pickle=True)
 s = convert(data)
-text_file = open("gen1_pop.txt", "w")
+text_file = open("gen5_pop.txt", "w")
 text_file.write(s)
