@@ -50,8 +50,9 @@ y_test = np.append(problem.y_test[0], problem.y_val)
 x_train = problem.x_train
 y_train = problem.y_train
 
-
+start = time.time()
 individual.evaluate(x_train, y_train, (x_test, y_test)) # This will force genome_output_values to point to the test set
+print("Time to evaluate", time.time() - start)
 individual.fitness.values = problem.scoreFunction(actual=y_test, predict=individual.genome_outputs)
 
 print("final fitness", individual.fitness.values)
