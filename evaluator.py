@@ -8,7 +8,7 @@ root_dir = 'outputs_cifar'
 epochs = 1
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
-generation = np.load(file_generation)
+generation = 4#np.load(file_generation)
 
 file_pop = '{}/gen{}_pop.npy'.format(root_dir, generation)
 population = np.load(file_pop, allow_pickle = True)
@@ -46,16 +46,11 @@ for i in range(1,individual.num_blocks+1):
 curr_block.n_epochs = epochs
 
 # Concatenate validation set and testing set
-x_test = [problem.x_test]
+x_test = problem.x_test[0]
 y_test = problem.y_test[0]
 
-x_train = np.vstack(problem.x_train, [problem.x_val])
-y_train = np.append(problem.y_train[0], problem.y_val)
-
-print(x_test.shape)
-print(y_test.shape)
-print(x_train.shape)
-print(y_train.shape)
+x_train = np.array([np.vstack((problem.x_train[0], problem.x_val))])
+y_train = np.append(problem.y_train, problem.y_val)
 
 start = time.time()
 individual.evaluate(x_train, y_train, (x_test, y_test)) # This will force genome_output_values to point to the test set
