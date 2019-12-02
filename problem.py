@@ -20,7 +20,7 @@ import logging
 
 GEN_LIMIT = 50
 POP_SIZE = 12
-N_EPOCHS = 10
+N_EPOCHS = 3
 SEED = 5
 N_UNIVERSE = 1
 
