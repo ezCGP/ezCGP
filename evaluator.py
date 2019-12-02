@@ -5,10 +5,10 @@ import time
 
 #  Constants (you edit)
 root_dir = 'outputs_cifar'
-epochs = 1
+epochs = 100
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
-generation = 4#np.load(file_generation)
+generation = np.load(file_generation)
 
 file_pop = '{}/gen{}_pop.npy'.format(root_dir, generation)
 population = np.load(file_pop, allow_pickle = True)
