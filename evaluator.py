@@ -24,6 +24,7 @@ sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0
 #  Copied from tester.py
 print("Best Individual")
 individual = sample_best
+print('Original fitness: {} \n'.format(individual.fitness.values))
 for i in range(1,individual.num_blocks+1):
     curr_block = individual.skeleton[i]["block_object"]
     # print('curr_block: {}'.format(curr_block))
