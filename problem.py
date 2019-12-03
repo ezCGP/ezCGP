@@ -137,7 +137,7 @@ preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorbl
 preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1,
                                            primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-training_block = TrainingBlock(main_count=25, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
+training_block = TrainingBlock(nickname='Training', main_count=25, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
 
 # Defines the whole genome
 skeleton_genome = {
