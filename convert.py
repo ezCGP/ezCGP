@@ -9,7 +9,7 @@ import problem
 def convert(individuals):
     s = ''
     for i, ind_1 in enumerate(individuals):
-        print('Individual number {}:'.format(i))
+        print('\nIndividual number {}:'.format(i))
         ind_1 = individual.build_individual(problem.skeleton_genome, ind_1)
         print("fitness", ind_1.fitness.values)
         for i in range(1,ind_1.num_blocks+1):
@@ -17,7 +17,7 @@ def convert(individuals):
             curr_block = ind_1.skeleton[i]
 
             # show block name
-            print('{} Block:'.format(curr_block['nickname']))
+            print('\n{} Block:'.format(curr_block['nickname']))
 
             # go through each active genome node and print
             for active_node in curr_block['block_object'].active_nodes[:-1]:
