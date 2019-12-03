@@ -21,8 +21,8 @@ def convert(individuals):
 
             # go through each active genome node and print
             for active_node in curr_block['block_object'].active_nodes:
-                print(curr_block[active_node])
-                s += str(curr_block[active_node])
+                print(curr_block['block_object'][active_node])
+                s += str(curr_block['block_object'][active_node])
     return s
 
 data = np.load('outputs_cifar/gen6_pop.npy', allow_pickle=True)
