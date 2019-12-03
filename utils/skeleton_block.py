@@ -19,7 +19,7 @@ class SkeletonBlock:
                  batch_size=128,
                  n_epochs=50,
                  large_dataset=None,
-                 nickname='tensor_mnist_block',
+                 nickname='',
                  primitives={},
                  args={
                      arguments.argPow2: {'prob': 1},

@@ -13,9 +13,14 @@ def convert(individuals):
         ind_1 = individual.build_individual(problem.skeleton_genome, ind_1)
         print("fitness", ind_1.fitness.values)
         for i in range(1,ind_1.num_blocks+1):
-            curr_block = ind_1.skeleton[i]["block_object"]
-            print('{} Block:'.format(type(curr_block)))
-            for active_node in curr_block.active_nodes:
+            # get block dictionary containing metadata + block obj
+            curr_block = ind_1.skeleton[i]
+
+            # show block name
+            print('{} Block:'.format(curr_block['nickname']))
+
+            # go through each active genome node and print
+            for active_node in curr_block['block_object'].active_nodes:
                 print(curr_block[active_node])
                 s += str(curr_block[active_node])
     return s
