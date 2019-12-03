@@ -1,7 +1,7 @@
 import numpy as np
 import individual
 import problem
-# convert from npy to txt file
+# convert from npy to txt file and shows blocks and their layers
 # YOU MUST CHANGE THE TXT FILE STRING AND SPECIFY WHICH GEN TO WRITE IN OUTPUTS
 # OTHERWISE IT WILL OVERWRITE!!!!!
 #
@@ -20,7 +20,9 @@ def convert(individuals):
             print('{} Block:'.format(curr_block['nickname']))
 
             # go through each active genome node and print
-            for active_node in curr_block['block_object'].active_nodes:
+            for active_node in curr_block['block_object'].active_nodes[:-1]:
+                # print all layers except last node because it is just a number
+                # i'm not sure why, but it isn't a layer type so it should probably be ignored
                 print(curr_block['block_object'][active_node])
                 s += str(curr_block['block_object'][active_node])
     return s

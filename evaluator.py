@@ -1,3 +1,6 @@
+# script to evaluate individual with best score from latest generation (.npy) in outputs_cifar/
+# and run it for many epochs (see Constants)
+
 import problem
 import numpy as np
 from individual import Individual, build_individual
