@@ -1,11 +1,11 @@
 # ezCGP pbs script
-#PBS -N ezcgp4
+#PBS -N ezcgp5
 #PBS -l nodes=1:ppn=18
 #PBS -l pmem= 7gb
 #PBS -l walltime=12:00:00
 #PBS -q pace-ice
 #PBS -j oe
-#PBS -o ezCGP4.out
+#PBS -o ezCGP5.out
 #PBS -m abe
 #PBS -M szhang460@gatech.edu
 
