@@ -18,7 +18,7 @@ def convert(individuals):
                 s += str(curr_block[active_node])
     return s
 
-data = np.load('outputs_cifar/gen5_pop.npy', allow_pickle=True)
+data = np.load('outputs_cifar/gen6_pop.npy', allow_pickle=True)
 s = convert(data)
-#text_file = open("gen5_pop.txt", "w")
+#text_file = open("gen6_pop.txt", "w")
 #text_file.write(s)

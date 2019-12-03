@@ -69,7 +69,7 @@ def mate_population(population):
     #for i in range(problem.N_OFFSPRING):
     # Initialize mate wrapper
     for i in range(problem.N_OFFSPRING):
-        mate_obj = Mate(population, problem.skeleton_genome)
+        mate_obj = Mate(population, problem.skeleton_genome) # the two offspring is considered as parents too
     
     # Mate and produce two random offspring
     # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
