@@ -1,11 +1,11 @@
 # ezCGP pbs script
-#PBS -N best_individual_100_epochs
+#PBS -N sam_ind_200_epochs
 #PBS -l nodes=1:ppn=18
 #PBS -l pmem= 7gb
 #PBS -l walltime=12:00:00
 #PBS -q pace-ice
 #PBS -j oe
-#PBS -o best_individual_100_epochs.out
+#PBS -o sam_ind_200_epochs.out
 #PBS -m abe
 #PBS -M szhang460@gatech.edu
 

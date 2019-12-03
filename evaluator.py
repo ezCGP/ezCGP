@@ -5,7 +5,7 @@ import time
 
 #  Constants (you edit)
 root_dir = 'outputs_cifar'
-epochs = 100
+epochs = 500
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
 generation = np.load(file_generation)
@@ -13,10 +13,10 @@ generation = np.load(file_generation)
 file_pop = '{}/gen{}_pop.npy'.format(root_dir, generation)
 population = np.load(file_pop, allow_pickle = True)
 population = [build_individual(problem.skeleton_genome, x) for x in population]
-#scores = []
-#for individual in population:
-#    scores.append(individual.fitness.values[0])
-sample_best = population[4]#[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]] #  choose ind with the best score
+scores = []
+for individual in population:
+    scores.append(individual.fitness.values[0])
+sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]] #  choose ind with the best score
 
 #  Copied from tester.py
 print("Best Individual")
