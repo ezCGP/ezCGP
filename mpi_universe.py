@@ -234,7 +234,7 @@ if __name__ == '__main__':
             scatter_end = time.time()
 
             print("Rank: {} Length: {}".format(rank, len(population)))
-            print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation + 1))
+            print("-------------RAN UNIVERSE FOR GENERATION: {}-----------".format(generation))
             indPopulation = [build_individual(problem.skeleton_genome, genome) for genome in population]
             run_start = time.time()
             indPopulation = run_universe(indPopulation, problem.N_MUTANTS, problem.N_OFFSPRING, input_data, labels)
