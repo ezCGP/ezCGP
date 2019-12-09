@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import individual
-from problem import skeleton_genome
+from problem import skeleton_genome, SEED_ROOT_DIR
 # convert from npy to txt file and shows blocks and their layers
 #
 # USAGE
@@ -35,7 +35,7 @@ def convert(individuals):
     return s
 
 try:
-    data = np.load('outputs_cifar/{}'.format(sys.argv[1]), allow_pickle=True)
+    data = np.load('{}/{}'.format(problem.SEED_ROOT_DIR, sys.argv[1]), allow_pickle=True)
 except IndexError:
     print('Please input a gen .npy file from outputs_cifar')
     quit()

@@ -7,7 +7,7 @@ from individual import Individual, build_individual
 import time
 
 #  Constants (you edit)
-root_dir = 'outputs_cifar'
+root_dir = problem.SEED_ROOT_DIR
 epochs = 500
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
