@@ -164,7 +164,6 @@ if __name__ == '__main__':
             # and load all the individuals
             file_pop = '{}/gen{}_pop.npy'.format(problem.SEED_ROOT_DIR, generation)
             population = np.load(file_pop, allow_pickle = True)
-            population = [build_individual(problem.skeleton_genome, x) for x in population]
         except IOError: # create a new universe's individuals
             print('Tried to load previous generations, but no files found.')
             generation = 0
