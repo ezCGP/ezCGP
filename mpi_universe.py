@@ -156,51 +156,63 @@ if __name__ == '__main__':
 
     final_populations = []  # one for each universe created
     for i in range(problem.N_UNIVERSE):
-        print("===== STARTING UNIVERSE: ", i)
-        start = time.time()
+        try: # Seed individuals from previous outputs 
+            # find the latest generation
+            file_generation = '{}/generation_number.npy'.format(problem.SEED_ROOT_DIR)
+            generation = np.load(file_generation)
 
-        print("--------------------CREATE UNIVERSE--------------------")
-        input_data = train_data
-        labels = train_labels
-        population_size = problem.POP_SIZE  # Should be multiple of num of CPUs
+            # and load all the individuals
+            file_pop = '{}/gen{}_pop.npy'.format(root_dir, generation)
+            population = np.load(file_pop, allow_pickle = True)
+            population = [build_individual(problem.skeleton_genome, x) for x in population]
+        except IOError: # create a new universe's individuals
+            print('Tried to load previous generations, but no files found.')
+            generation = 0
 
-        np.random.seed(seed + i)
+            print("===== STARTING UNIVERSE: ", i)
+            start = time.time()
 
-        """
-        Each CPU initialize its own subpopulation
-        """
-        population = []
-        for i in range(int(population_size / size)):
-            ind = Individual(skeleton=problem.skeleton_genome)
-            population.append(ind.get_genome_list())
+            print("--------------------CREATE UNIVERSE--------------------")
+            input_data = train_data
+            labels = train_labels
+            population_size = problem.POP_SIZE  # Should be multiple of num of CPUs
 
-        for i in range(len(population)):
-            print("CPU %i CREATE INDIVIDUAL" % rank)
-            individual = build_individual(problem.skeleton_genome, population[i])
-            print("CPU %i EVALUATE INDIVIDUAL" % rank)
-            individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val))
-            try:
+            np.random.seed(seed + i)
 
-                print("CPU %i Scoring INDIVIDUAL" % rank)
-                individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
-                                                                  predict=individual.genome_outputs)
-                population[i][-1] = individual.fitness.values  # better fix?
-                print('CPU {}: Initialized individual has fitness {}'
-                      .format(rank, individual.fitness.values))
-            except:
-                import pdb
+            """
+            Each CPU initialize its own subpopulation
+            """
+            population = []
+            for i in range(int(population_size / size)):
+                ind = Individual(skeleton=problem.skeleton_genome)
+                population.append(ind.get_genome_list())
 
-                pdb.set_trace()
+            for i in range(len(population)):
+                print("CPU %i CREATE INDIVIDUAL" % rank)
+                individual = build_individual(problem.skeleton_genome, population[i])
+                print("CPU %i EVALUATE INDIVIDUAL" % rank)
+                individual.evaluate(problem.x_train, problem.y_train, (problem.x_val, problem.y_val))
+                try:
 
-        """
-        Gather initialized population back to Master CPU
-        """
-        population = comm.gather(population, root=0)
-        if rank == 0:
-            # Converting 2D initial genome output list pop into 1D for first mating
-            population = merge_pop(population)
+                    print("CPU %i Scoring INDIVIDUAL" % rank)
+                    individual.fitness.values = problem.scoreFunction(actual=problem.y_val,
+                                                                      predict=individual.genome_outputs)
+                    population[i][-1] = individual.fitness.values  # better fix?
+                    print('CPU {}: Initialized individual has fitness {}'
+                          .format(rank, individual.fitness.values))
+                except:
+                    import pdb
 
-        generation = 0
+                    pdb.set_trace()
+
+            """
+            Gather initialized population back to Master CPU
+            """
+            population = comm.gather(population, root=0)
+            if rank == 0:
+                # Converting 2D initial genome output list pop into 1D for first mating
+                population = merge_pop(population)
+
         converged = False
         start_time = time.time()
         newpath = r'outputs_cifar/'
@@ -226,7 +238,6 @@ if __name__ == '__main__':
                 population = mate_population(population)  # needs to be 1D to mate
                 print(len(population))
                 population = split_pop(population, size)  # becomes 2D
-
 
             comm.Barrier()
             scatter_start = time.time()
