@@ -217,7 +217,7 @@ if __name__ == '__main__':
 
         converged = False
         start_time = time.time()
-        newpath = r'outputs_cifar/'
+        newpath = r'{}/'.format(problem.SEED_ROOT_DIR)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
         file_generation = 'outputs_cifar/generation_number.npy'
@@ -292,7 +292,7 @@ if __name__ == '__main__':
                 else:
                     pass
 
-                file_pop = 'outputs_cifar/gen%i_pop.npy' % (generation)
+                file_pop = '{}/gen%i_pop.npy' % (problem.SEED_ROOT_DIR, generation)
                 np.save(file_pop, population)
                 np.save(file_generation, generation)
 
