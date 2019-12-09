@@ -156,6 +156,13 @@ if __name__ == '__main__':
 
     final_populations = []  # one for each universe created
     for i in range(problem.N_UNIVERSE):
+        # set universe constants
+        input_data = train_data
+        labels = train_labels
+        population_size = problem.POP_SIZE  # Should be multiple of num of CPUs
+
+        np.random.seed(seed + i)
+
         try: # Seed individuals from previous outputs 
             # find the latest generation
             file_generation = '{}/generation_number.npy'.format(problem.SEED_ROOT_DIR)
@@ -164,6 +171,8 @@ if __name__ == '__main__':
             # and load all the individuals
             file_pop = '{}/gen{}_pop.npy'.format(problem.SEED_ROOT_DIR, generation)
             population = np.load(file_pop, allow_pickle = True)
+
+            # set universal 
         except IOError: # create a new universe's individuals
             print('Tried to load previous generations, but no files found.')
             generation = 0
@@ -172,12 +181,6 @@ if __name__ == '__main__':
             start = time.time()
 
             print("--------------------CREATE UNIVERSE--------------------")
-            input_data = train_data
-            labels = train_labels
-            population_size = problem.POP_SIZE  # Should be multiple of num of CPUs
-
-            np.random.seed(seed + i)
-
             """
             Each CPU initialize its own subpopulation
             """
