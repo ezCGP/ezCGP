@@ -220,7 +220,7 @@ if __name__ == '__main__':
         newpath = r'{}/'.format(problem.SEED_ROOT_DIR)
         if not os.path.exists(newpath):
             os.makedirs(newpath)
-        file_generation = 'outputs_cifar/generation_number.npy'
+        file_generation = '{}/generation_number.npy'.format(problem.SEED_ROOT_DIR)
 
         """
         Parallel GP ezCGP starts here
