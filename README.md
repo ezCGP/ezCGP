@@ -21,16 +21,18 @@ To activate your ezCGP Anaconda environment, simply run:
 
 > conda activate ezCGP
 
-If you are on a Linux machine, you may also have to install another dependency. Please **try running WITHOUT these packages first**:
+You may also have to install another dependency depending on your machine. However, please **try running WITHOUT these packages first**:
+
+Linux:
 
 > sudo apt install mpich
 > sudo apt install libgl1-mesa-glx
 
-If you are on a MacOS machine, you may also have to install another dependency. Please **try running WITHOUT these packages first**:
+MacOS:
 
 > brew install mpich
 
-If you are on a Windows machine, you may also have to install another dependency. Please **try running WITHOUT these packages first**:
+Windows: 
 
 > https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi?redirectedfrom=MSDN   
 
