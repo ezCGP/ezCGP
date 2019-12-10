@@ -359,10 +359,10 @@ def conv_block(input_tensor, filters=64, kernel_size=3):
     return relu_func(norm_func(conv_layer(input_tensor, filters, kernel_size)))
 
 operDict[conv_block] = {"inputs": [tf.Tensor],
-                            "args": ["argPow2", "argFilterSize"],
-                            "outputs": tf.Tensor,
-                            "name": 'convBlock',
-                            "include_labels": False}
+                        "args": ["argPow2", "argFilterSize"],
+                        "outputs": tf.Tensor,
+                        "name": 'convBlock',
+                        "include_labels": False}
 
 def res_block(input_tensor, number1=64, size1=3, number2=128, size2=3):
     # size1 = (size1, size1)
@@ -372,10 +372,10 @@ def res_block(input_tensor, number1=64, size1=3, number2=128, size2=3):
         number1, size1), number2, size2)), input_tensor))
 
 operDict[res_block] = {"inputs": [tf.Tensor],
-                            "args": ["argPow2", "argFilterSize", "argPow2", "argFilterSize"],
-                            "outputs": tf.Tensor,
-                            "name": 'resBlock',
-                            "include_labels": False}
+                       "args": ["argPow2", "argFilterSize", "argPow2", "argFilterSize"],
+                       "outputs": tf.Tensor,
+                       "name": 'resBlock',
+                       "include_labels": False}
 
 def sqeeze_excitation_block(input_tensor):
     return sigmoid_func(dense_layer(relu_func(dense_layer(global_avg_pool_layer(input_tensor)))))

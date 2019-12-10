@@ -292,7 +292,7 @@ if __name__ == '__main__':
                 else:
                     pass
 
-                file_pop = '{}/gen%i_pop.npy' % (problem.SEED_ROOT_DIR, generation)
+                file_pop = '{}/gen{}_pop.npy'.format(problem.SEED_ROOT_DIR, generation)
                 np.save(file_pop, population)
                 np.save(file_generation, generation)
 
