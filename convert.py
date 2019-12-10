@@ -35,7 +35,7 @@ def convert(individuals):
     return s
 
 try:
-    print('Converting {}/{} to text').format(SEED_ROOT_DIR, sys.argv[1])
+    print('Converting {}/{} to text'.format(SEED_ROOT_DIR, sys.argv[1]))
     data = np.load('{}/{}'.format(SEED_ROOT_DIR, sys.argv[1]), allow_pickle=True)
 except IndexError:
     print('Please input a gen .npy file from outputs_cifar')
