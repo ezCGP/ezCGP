@@ -42,6 +42,8 @@ operDict[mult_tensors] = {"inputs": [tf.Tensor, tf.Tensor],
 OpenCV methods
     1. GaussianBlur
 """
+# May need to adjust the kernel size to 3? Please see here:
+# https://dsp.stackexchange.com/questions/23460/how-to-calculate-gaussian-kernel-for-a-small-support-size
 def gassuian_blur(input, kernel_size=5):
     output = []
     for im in input:
@@ -52,7 +54,7 @@ def gassuian_blur(input, kernel_size=5):
 operDict[gassuian_blur] = {"inputs": [np.ndarray],
 			   "outputs": np.ndarray,
 			   "args": ['argKernelSize'],
-               "include_labels": False}
+                           "include_labels": False}
 
 
 """
