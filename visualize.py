@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # load file and path
     filename, file_extension = os.path.splitext(sys.argv[1])
     path = SEED_ROOT_DIR + '/' + filename
-    print('Saving visualized csv to {}'.format(path))
+    print('Saving visualized csv to {}'.format(path + '.csv'))
 
     # create visualizer object and load population
     vis = Visualizer(path)
