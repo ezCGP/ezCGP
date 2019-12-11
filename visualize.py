@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     # create visualizer object and load population
     vis = Visualizer(path)
-    population = np.load(sys.argv[1], allow_pickle=True)
+    population = np.load(path, allow_pickle=True)
     for individual in population:
         vis.add_to_csv(individual, from_npy=True)
 
