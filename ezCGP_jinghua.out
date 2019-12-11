@@ -1,0 +1,2397 @@
+---------------------------------------
+Begin PBS Prologue Tue Dec 10 20:05:13 EST 2019
+Job ID:     7296.pace-ice-sched.pace.gatech.edu
+User ID:    szhang460
+Job name:   ezcgp_jinghua
+Queue:      pace-ice
+End PBS Prologue Tue Dec 10 20:05:13 EST 2019
+---------------------------------------
+Started on rich133-c32-11-r.pace.gatech.edu
+gcc(4):ERROR:105: Unable to locate a modulefile for 'gcc/4.8.0'
+ =========================================================================
+|                                                                         |
+|       A note about this anaconda and modules: This version of           |
+|       Anaconda doesn’t play well with modules - once you load the       |
+|       this module treat this module as the the VERY last one to load.   |
+|       We cannot undo changes that conda introduces, so start in a new   |
+|       shell if you need to switch or re-load modules                    |
+|                                                                         |
+ =========================================================================
+2019-12-10 20:05:28.683554: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:28.685219: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:28.703503: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:28.714499: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:29.969587: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:29.983468: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:30.130030: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:30.145437: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:32.276927: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:32.289246: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:32.301454: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:32.320525: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:32.653473: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:32.657022: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:32.678469: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:32.678742: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:32.702551: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:32.708723: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:33.111213: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:33.122458: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:36.729246: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:36.745513: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+2019-12-10 20:05:37.598288: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-10 20:05:37.604546: I tensorflow/core/common_runtime/process_util.cc:69] Creating new thread pool with default inter op setting: 18. Tune using inter_op_parallelism_threads for best performance.
+Train data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 3 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 1, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 1 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [1], 'args': [13]} and has arguments: [0.0594128583860013]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 4 6 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 58485, 32, 32, 3)
+[3 2 6 ... 4 6 6]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 7]} and has arguments: [2 5]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 58485, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [1], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [13]} and has arguments: [0.11668376759761023]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 6 6 2]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 45095, 32, 32, 3)
+[3 2 6 ... 6 6 2]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]} and has arguments: [32 7]
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 45095, 32, 32, 3)
+Epoch completed. epoch_loss: 107.43974049389362
+Mutated population individual has fitness: (0.6064, 0.614865649028956)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]}
+1
+Active nodes [-1, 0, 1, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]} and has arguments: [0.0007630160148366594]
+function at: 1 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.08752913919493151]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [1], 'args': [13]} and has arguments: [0.19764628204380827]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.11928285488830037]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.08752913919493151]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 6 4 8]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 55529, 32, 32, 3)
+[3 2 6 ... 6 4 8]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 7]} and has arguments: [4 7]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 55529, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}Train data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 6 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]} and has arguments: [0.0594128583860013]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 5 6 3]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 51974, 32, 32, 3)
+[3 2 6 ... 5 6 3]
+Active nodes [-1, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 6 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 51974, 32, 32, 3)
+Epoch completed. epoch_loss: 159.51626816391945
+Mutated population individual has fitness: (0.7456, 0.8057747985353966)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+6
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 2 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [4], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 6 7 4]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 54751, 32, 32, 3)
+[3 2 6 ... 6 7 4]
+Active nodes [-1, 7, 25]
+function at: -1 is: InputPlaceholder
+function at: 7 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [-1], 'args': [2, 6, 0, 6]} and has arguments: [8 5 32 5]
+function at: 25 is: 7 -> likely an output node
+block_input: (1, 54751, 32, 32, 3)
+Epoch completed. epoch_loss: 120.17758649587631
+Mutated population individual has fitness: (0.47119999999999995, 0.4875076442610583)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [-1], 'args': [2, 6, 0, 6]}
+7
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1772625032533524]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]} and has arguments: [0.15111570664075158]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.05065031774162003]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.039835475539046296]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 8 7 4]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 51817, 32, 32, 3)
+[3 2 6 ... 8 7 4]
+Active nodes [-1, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 6 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 51817, 32, 32, 3)
+Epoch completed. epoch_loss: 151.59717851877213
+Mutated population individual has fitness: (0.7176, 0.7721816887809152)Train data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+    MATING
+block index:  2
+block index:  0
+block index:  0
+block index:  0
+block index:  2
+block index:  0
+24
+Rank: 0 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]} and has arguments: [0.18016648074389613]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]} and has arguments: [0.08912858770436694]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.006499671963391273]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.037063557440227844]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 7 1 1]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 46956, 32, 32, 3)
+[3 2 6 ... 7 1 1]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]} and has arguments: [8 1]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 46956, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Active nodes [-1, 0, 3, 7, 8, 11, 13, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]} and has arguments: [0.07180259084392213]
+function at: 3 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [0], 'args': [14]} and has arguments: [0.06472342481272482]
+function at: 7 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]} and has arguments: [0.09997886428509942]
+function at: 8 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [7], 'args': [14]} and has arguments: [0.06472342481272482]
+function at: 11 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [8], 'args': [13]} and has arguments: [0.09997886428509942]
+function at: 13 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [11], 'args': [12]} and has arguments: [0.07180259084392213]
+function at: 15 is: 13 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 4 0 0]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 55146, 32, 32, 3)
+[3 2 6 ... 4 0 0]
+Active nodes [-1, 0, 3, 4, 5, 7, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 7]} and has arguments: [2 1]
+function at: 3 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 4 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 0], 'args': []} and has arguments: []
+function at: 5 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [4], 'args': [0, 6]} and has arguments: [2 3]
+function at: 7 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [5], 'args': [3, 6, 3, 6]} and has arguments: [256 3 256 3]
+function at: 25 is: 7 -> likely an output node
+block_input: (1, 55146, 32, 32, 3)
+Epoch completed. epoch_loss: 158.7633826136589
+Mutated population individual has fitness: (0.6556, 0.6906621985133585)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [0], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [7], 'args': [14]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [8], 'args': [13]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [11], 'args': [12]}
+13
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 7]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 0], 'args': []}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [4], 'args': [0, 6]}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [5], 'args': [3, 6, 3, 6]}
+7
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]} and has arguments: [0.19310614864826942]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]} and has arguments: [0.12510649362887694]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.19167042952299496]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.09262583664628272]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 3 2 8]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 61172, 32, 32, 3)
+[3 2 6 ... 3 2 8]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]} and has arguments: [512 5]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []Train data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 2 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.0594128583860013]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 9 7 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 55263, 32, 32, 3)
+[3 2 6 ... 9 7 6]
+Active nodes [-1, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 55263, 32, 32, 3)
+Epoch completed. epoch_loss: 136.43773943185806
+Mutated population individual has fitness: (0.7218, 0.7485557213756747)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+1
+Active nodes [-1, 3, 11, 15]
+function at: -1 is: InputPlaceholder
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 11 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]} and has arguments: [0.16688051030647638]
+function at: 15 is: 11 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 3 3 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 43123, 32, 32, 3)
+[3 2 6 ... 3 3 7]
+Active nodes [-1, 1, 2, 12, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 25 is: 12 -> likely an output node
+block_input: (1, 43123, 32, 32, 3)
+Epoch completed. epoch_loss: 147.431214928627
+Mutated population individual has fitness: (0.8782, 0.9071432596114486)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]}
+11
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [2], 'args': []}
+12
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1861119665476347]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.0017575178671413339]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1749278455982202]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.12247814126030598]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.0017575178671413339]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 3 3]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 54939, 32, 32, 3)
+[3 2 6 ... 0 3 3]
+Active nodes [-1, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 54939, 32, 32, 3)
+Epoch completed. epoch_loss: 134.52361553907394
+Mutated population individual has fitness: (0.6728000000000001, 0.68912872663688)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+1
+Rank: 2 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original functionTrain data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 11 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 8, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 8 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 15 is: 8 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 9 3 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 46139, 32, 32, 3)
+[3 2 6 ... 9 3 7]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]} and has arguments: [4 7]
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]} and has arguments: [4 7]
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 46139, 32, 32, 3)
+Epoch completed. epoch_loss: 97.99250404536724
+Mutated population individual has fitness: (0.5913999999999999, 0.5960161325379747)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+8
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]}
+1
+Active nodes [-1, 2, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 2 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [13]} and has arguments: [0.11668376759761023]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 2 3]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 43494, 32, 32, 3)
+[3 2 6 ... 0 2 3]
+Active nodes [-1, 0, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]} and has arguments: [16 7 16 7]
+function at: 5 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]} and has arguments: [8 7]
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 43494, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]}
+14
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [13]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]}
+14
+Active nodes [-1, 0, 8, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.07960239847309296]
+function at: 8 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.0007630160148366594]
+function at: 15 is: 8 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 8 5 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 37814, 32, 32, 3)
+[3 2 6 ... 8 5 7]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]} and has arguments: [64 3]
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]} and has arguments: [64 3]
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 37814, 32, 32, 3)
+Epoch completed. epoch_loss: 97.3352528065443
+Mutated population individual has fitness: (0.49560000000000004, 0.49401957218055537)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+8
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]}
+1
+Rank: 11 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original functionTrain data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 7 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 8, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 8 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 15 is: 8 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 9 3 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 46139, 32, 32, 3)
+[3 2 6 ... 9 3 7]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 4]} and has arguments: [2 3]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 46139, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 4]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+8
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 4]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [13]} and has arguments: [0.11668376759761023]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 8 7 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 45095, 32, 32, 3)
+[3 2 6 ... 8 7 6]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]} and has arguments: [32 7]
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 45095, 32, 32, 3)
+Epoch completed. epoch_loss: 111.00680387020111
+Mutated population individual has fitness: (0.6202, 0.6347602540277874)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]}
+1
+Active nodes [-1, 0, 8, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.0007630160148366594]
+function at: 8 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.08752913919493151]
+function at: 15 is: 8 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 5 3 4]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 38091, 32, 32, 3)
+[3 2 6 ... 5 3 4]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 4]} and has arguments: [4 5]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 38091, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 4]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+8
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 4]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Rank: 7 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original functionTrain data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 8 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 6 7 8]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 43597, 32, 32, 3)
+[3 2 6 ... 6 7 8]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 43597, 32, 32, 3)
+Epoch completed. epoch_loss: 112.89418858289719
+Mutated population individual has fitness: (0.7786, 0.8083913812478143)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+1
+Active nodes [-1, 0, 1, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 1 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 3 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [1], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [4], 'args': [13]} and has arguments: [0.16688051030647638]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 4 3]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 71097, 32, 32, 3)
+[3 2 6 ... 0 4 3]
+Active nodes [-1, 0, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]} and has arguments: [32 7]
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 5]} and has arguments: [16 7 16 7]
+function at: 5 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [1, 4]} and has arguments: [16 7]
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []} and has arguments: []
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 71097, 32, 32, 3)
+Epoch completed. epoch_loss: 131.62061195075512
+Mutated population individual has fitness: (0.4458, 0.45171026512606116)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [1], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 5]}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [1, 4]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []}
+14
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]} and has arguments: [0.003977625528467787]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.17068943095214437]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 2 6 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 41136, 32, 32, 3)
+[3 2 6 ... 2 6 7]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 41136, 32, 32, 3)
+Epoch completed. epoch_loss: 109.84557241201401
+Mutated population individual has fitness: (0.7989999999999999, 0.8254269346684682)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+1
+Rank: 8 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 4, 7, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.0023820444751846636]
+function at: 4 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [0], 'args': [14]} and has arguments: [0.1463899172416069]Train data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 4 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.0594128583860013]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 7 2 5]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 55263, 32, 32, 3)
+[3 2 6 ... 7 2 5]
+Active nodes [-1, 0, 1, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, -1], 'args': []} and has arguments: []
+function at: 6 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 55263, 32, 32, 3)
+Epoch completed. epoch_loss: 136.93262308835983
+Mutated population individual has fitness: (0.7034, 0.7441808896113817)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, -1], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []}
+6
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]} and has arguments: [0.16688051030647638]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 7 0 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 55371, 32, 32, 3)
+[3 2 6 ... 7 0 6]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 55371, 32, 32, 3)
+Epoch completed. epoch_loss: 168.7372562289238
+Mutated population individual has fitness: (0.7708, 0.799954699940218)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+1
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1861119665476347]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.0017575178671413339]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1749278455982202]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.12247814126030598]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.0017575178671413339]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 3 3 2]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 54939, 32, 32, 3)
+[3 2 6 ... 3 3 2]
+Active nodes [-1, 0, 1, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, -1], 'args': []} and has arguments: []
+function at: 6 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 54939, 32, 32, 3)
+Epoch completed. epoch_loss: 138.94555273652077
+Mutated population individual has fitness: (0.7070000000000001, 0.7309320969873272)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, -1], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []}
+6
+Rank: 4 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 2, 15]
+function at: -1 is: InputPlaceholder
+Train data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 9 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]} and has arguments: [0.0594128583860013]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 1 9 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 51974, 32, 32, 3)
+[3 2 6 ... 1 9 6]
+Active nodes [-1, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [-1], 'args': [0, 5]} and has arguments: [4 7]
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 51974, 32, 32, 3)
+Epoch completed. epoch_loss: 123.21850869059563
+Mutated population individual has fitness: (0.6762, 0.6965062781933234)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [-1], 'args': [0, 5]}
+1
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.16688051030647638]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 1 5 1]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 60618, 32, 32, 3)
+[3 2 6 ... 1 5 1]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]} and has arguments: [16 7]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 60618, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [12]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Active nodes [-1, 0, 2, 4, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]} and has arguments: [0.02515265455021065]
+function at: 2 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]} and has arguments: [0.17976139140885866]
+function at: 4 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]} and has arguments: [0.09670257729524045]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]} and has arguments: [0.15569447200274805]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 2 4 5]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 53649, 32, 32, 3)
+[3 2 6 ... 2 4 5]
+Active nodes [-1, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [-1], 'args': [0, 5]} and has arguments: [32 3]
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 53649, 32, 32, 3)
+Epoch completed. epoch_loss: 124.25226901471615
+Mutated population individual has fitness: (0.6606000000000001, 0.6844229043785437)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [-1], 'args': [0, 5]}
+1
+Rank: 9 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [13]} and has arguments: [0.1902872971963458]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.08732941318315138]
+function at: 15 is: 6 -> likely an output nodeTrain data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 10 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 6 7 8]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 43597, 32, 32, 3)
+[3 2 6 ... 6 7 8]
+Active nodes [-1, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 6 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 43597, 32, 32, 3)
+Epoch completed. epoch_loss: 106.98578891158104
+Mutated population individual has fitness: (0.7112, 0.7563097238614729)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+6
+Active nodes [-1, 0, 1, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 1 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 3 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [1], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [4], 'args': [13]} and has arguments: [0.16688051030647638]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 4 3]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 71097, 32, 32, 3)
+[3 2 6 ... 0 4 3]
+Active nodes [-1, 0, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]} and has arguments: [32 7]
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 5]} and has arguments: [16 7 16 7]
+function at: 5 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [1, 4]} and has arguments: [16 7]
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []} and has arguments: []
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 71097, 32, 32, 3)
+Epoch completed. epoch_loss: 134.68089853227139
+Mutated population individual has fitness: (0.4558, 0.46348441169395316)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [1], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [0, 5]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 5]}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [1, 4]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []}
+14
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]} and has arguments: [0.003977625528467787]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.17068943095214437]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 2 6 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 41136, 32, 32, 3)
+[3 2 6 ... 2 6 7]
+Active nodes [-1, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 6 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 41136, 32, 32, 3)
+Epoch completed. epoch_loss: 102.66660070419312
+Mutated population individual has fitness: (0.6788000000000001, 0.6959424236030219)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [14]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+6
+Rank: 10 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 2, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 2 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]} and has arguments: [0.14048964243903117]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [13]} and has arguments: [0.11177010620014627]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 2 9 8]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output nodeTrain data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 1 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.0594128583860013]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.06329125617588663]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 9 7 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 55263, 32, 32, 3)
+[3 2 6 ... 9 7 6]
+Active nodes [-1, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 55263, 32, 32, 3)
+Epoch completed. epoch_loss: 133.690730124712
+Mutated population individual has fitness: (0.6992, 0.7122180518863349)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+1
+Active nodes [-1, 0, 4, 7, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 4 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [0], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 15 is: 7 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 4 8]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 49199, 32, 32, 3)
+[3 2 6 ... 0 4 8]
+Active nodes [-1, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 6 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 49199, 32, 32, 3)
+Epoch completed. epoch_loss: 127.48372316360474
+Mutated population individual has fitness: (0.6872, 0.7070001928433765)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [12]}
+7
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+6
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1861119665476347]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.0017575178671413339]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1749278455982202]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.12247814126030598]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.0017575178671413339]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 9 2]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 54939, 32, 32, 3)
+[3 2 6 ... 0 9 2]
+Active nodes [-1, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 54939, 32, 32, 3)
+Epoch completed. epoch_loss: 133.6057002544403
+Mutated population individual has fitness: (0.6814, 0.7048539477587505)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+1
+Rank: 1 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.043681234317759055]
+function at: 3 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [14]} and has arguments: [0.09529914926907453]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.007736344695403785]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.019734452795427692]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [15]} and has arguments: [0.007736344695403785]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 2 9 3]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 41431, 32, 32, 3)
+[3 2 6 ... 2 9 3]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 6]} and has arguments: [16 3]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []Train data shape: (1, 35000, 32, 32, 3)
+Train labels shape: (35000,)
+Validation data shape: (5000, 32, 32, 3)
+Validation labels shape: (5000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Start MPI Universe
+Rank: 5 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 14-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 8, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1715090975308301]
+function at: 8 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.1253096651996301]
+function at: 15 is: 8 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 6 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 46139, 32, 32, 3)
+[3 2 6 ... 0 6 7]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 46139, 32, 32, 3)
+Epoch completed. epoch_loss: 122.401336312294
+Mutated population individual has fitness: (0.7954, 0.8265211663440692)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+8
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+1
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.15382816230459537]
+function at: 3 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [14]} and has arguments: [0.05590253327472139]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.16688051030647638]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [15]} and has arguments: [0.1128573608967995]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 4 7 1]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 61618, 32, 32, 3)
+[3 2 6 ... 4 7 1]
+Active nodes [-1, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [1], 'args': [1, 5]} and has arguments: [16 7]
+function at: 5 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [0, 4]} and has arguments: [32 7]
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []} and has arguments: []
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 61618, 32, 32, 3)
+Epoch completed. epoch_loss: 128.19162049889565
+Mutated population individual has fitness: (0.5492, 0.5693559183659074)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [1], 'args': [1, 5]}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [0, 4]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []}
+14
+Active nodes [-1, 0, 8, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1705068654109779]
+function at: 8 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.12356714546146134]
+function at: 15 is: 8 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 6 1 0]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 46029, 32, 32, 3)
+[3 2 6 ... 6 1 0]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 46029, 32, 32, 3)
+Epoch completed. epoch_loss: 120.83043870329857
+Mutated population individual has fitness: (0.789, 0.8361623344947983)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]}
+8
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+1
+Rank: 5 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 1, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.13062014011736117]
+function at: 1 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [15]} and has arguments: [0.19268404513209833]
+function at: 3 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [1], 'args': [14]} and has arguments: [0.08087154337647404]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.19268404513209833]
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [4], 'args': [13]} and has arguments: [0.15022234438572885]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [12]} and has arguments: [0.13062014011736117]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 8 2 3]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 2, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 2 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]} and has arguments: [0.023733416848348222]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [14]} and has arguments: [0.053715361254829785]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 8 0 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 37754, 32, 32, 3)
+[3 2 6 ... 8 0 6]
+Active nodes [-1, 0, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]} and has arguments: [64 1 64 5]
+function at: 5 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [1, 4]} and has arguments: [64 5]
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 37754, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [1, 4]}
+14
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [1, 4]}
+14
+Active nodes [-1, 3, 11, 15]
+function at: -1 is: InputPlaceholder
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [15]} and has arguments: [0.010064290695434908]
+function at: 11 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]} and has arguments: [0.17231153942569102]
+function at: 15 is: 11 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 3 1 2]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 41443, 32, 32, 3)
+[3 2 6 ... 3 1 2]
+Active nodes [-1, 1, 2, 12, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [-1], 'args': [3, 5]} and has arguments: [2 1]
+function at: 2 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 25 is: 12 -> likely an output node
+block_input: (1, 41443, 32, 32, 3)
+Epoch completed. epoch_loss: 114.16272181272507
+Mutated population individual has fitness: (0.8264, 0.8598918582180771)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [15]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]}
+11
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [-1], 'args': [3, 5]}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [2], 'args': []}
+12
+Active nodes [-1, 2, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 2 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]} and has arguments: [0.08694369104956537]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [14]} and has arguments: [0.05380901107969802]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 8 0 5]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 40090, 32, 32, 3)
+[3 2 6 ... 8 0 5]
+Active nodes [-1, 0, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]} and has arguments: [16 3 16 7]
+function at: 5 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [1, 4]} and has arguments: [16 7]
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 40090, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [1, 4]}
+14
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 1, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [1], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [2, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Rank: 3 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 2, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 2 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [15]} and has arguments: [0.08520003657955086]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [13]} and has arguments: [0.12253322436799774]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 5 5]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 42636, 32, 32, 3)
+[3 2 6 ... 0 5 5]
+Active nodes [-1, 0, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 3, 4]} and has arguments: [2 7 16 1]
+function at: 5 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]} and has arguments: [256 1]
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 42636, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 3, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]}
+14
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [15]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [13]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 3, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]}
+14
+Active nodes [-1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 5 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [13]} and has arguments: [0.07938278176488509]
+function at: 6 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]} and has arguments: [0.07443564355746164]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 4 2 9]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 40590, 32, 32, 3)
+[3 2 6 ... 4 2 9]
+Active nodes [-1, 0, 1, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]} and has arguments: [8 1]
+function at: 25 is: 1 -> likely an output node
+block_input: (1, 40590, 32, 32, 3)
+Epoch completed. epoch_loss: 94.46047964692116
+Mutated population individual has fitness: (0.677, 0.68987376900888)
+Genome shape:
+InputPlaceholder
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [-1], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [5], 'args': [12]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [0], 'args': [0, 5]}
+1
+Active nodes [-1, 2, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 2 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [15]} and has arguments: [0.15833359127505975]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [2], 'args': [13]} and has arguments: [0.019872502292542737]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 7 0 5]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 41346, 32, 32, 3)
+[3 2 6 ... 7 0 5]
+Active nodes [-1, 0, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 3, 4]} and has arguments: [512 5 512 3]
+function at: 5 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]} and has arguments: [4 3]
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 41346, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [1], 'args': [1, 5, 3, 4]}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [2], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function conv_layer at 0x2aaae1d57ea0>, 'inputs': [10], 'args': [2, 4]}
+14
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [15]}
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 41431, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 6]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 6]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Active nodes [-1, 0, 4, 7, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [14]} and has arguments: [0.10528344650820351]
+function at: 4 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [0], 'args': [14]} and has arguments: [0.10528344650820351]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [12]} and has arguments: [0.09933578712210438]
+function at: 15 is: 7 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 7 9]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 47003, 32, 32, 3)
+[3 2 6 ... 0 7 9]
+Active nodes [-1, 0, 1, 2, 3, 4, 6, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [2], 'args': []} and has arguments: []
+function at: 4 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 0], 'args': []} and has arguments: []
+function at: 6 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 25 is: 6 -> likely an output node
+block_input: (1, 47003, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [2], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 0], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [4], 'args': []}
+6
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [12]}
+7
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [-1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [2], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 0], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [4], 'args': []}
+6
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.09746658659087282]
+function at: 3 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [14]} and has arguments: [0.14082791028494362]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]} and has arguments: [0.1311747065390172]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.15809023648975803]
+function at: 6 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [15]} and has arguments: [0.1311747065390172]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 3 2 2]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 64933, 32, 32, 3)
+[3 2 6 ... 3 2 2]
+Active nodes [-1, 0, 1, 3, 20, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 6]} and has arguments: [64 5]
+function at: 1 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 64933, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 6]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [5], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 6]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Should not call mutate since only one function available. Returning original function
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.19810093430864517]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.15143857568456406]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [12]} and has arguments: [0.19810093430864517]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.07978415329448277]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.15143857568456406]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 8 4 8]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 71921, 32, 32, 3)
+[3 2 6 ... 8 4 8]
+Active nodes [-1, 0, 1, 8, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 8 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 25 is: 8 -> likely an output node
+block_input: (1, 71921, 32, 32, 3)
+Epoch completed. epoch_loss: 181.58955109119415
+Mutated population individual has fitness: (0.7170000000000001, 0.7300767045981955)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [12]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []}
+8
+Active nodes [-1, 2, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 2 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]} and has arguments: [0.0374884072552454]
+function at: 6 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [2], 'args': [13]} and has arguments: [0.16720186150520583]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 1 7 9]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 42383, 32, 32, 3)
+[3 2 6 ... 1 7 9]
+Active nodes [-1, 0, 1, 8, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 8 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 25 is: 8 -> likely an output node
+block_input: (1, 42383, 32, 32, 3)
+Epoch completed. epoch_loss: 126.79079243540764
+Mutated population individual has fitness: (0.793, 0.8292134184982021)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [15]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [2], 'args': [13]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []}
+8
+Active nodes [-1, 0, 3, 4, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.18511238164256144]
+function at: 3 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]} and has arguments: [0.1325212496903204]
+function at: 4 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [12]} and has arguments: [0.18511238164256144]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [4], 'args': [13]} and has arguments: [0.015371812991156952]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.1325212496903204]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 2 4 6]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 64014, 32, 32, 3)
+[3 2 6 ... 2 4 6]
+Active nodes [-1, 0, 1, 8, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [-1, -1], 'args': []} and has arguments: []
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 8 is: {'ftn': <function avg_pool_layer at 0x2aaae1d58048>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 25 is: 8 -> likely an output node
+block_input: (1, 64014, 32, 32, 3)
+Epoch completed. epoch_loss: 161.85558852553368
+Mutated population individual has fitness: (0.7192000000000001, 0.7435061105293963)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [14]}
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [3], 'args': [12]}
+function at: 3 is: {'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []} and has arguments: []
+function at: 25 is: 20 -> likely an output node
+block_input: (1, 61172, 32, 32, 3)
+This is a dead block
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+Malformed predictions passed in. Setting worst fitness
+Mutated population individual has fitness: (1, 1)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [0], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [2], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [4], 'args': [15]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [0, 0], 'args': []}
+{'ftn': <function input_layer at 0x2aaae1d57e18>, 'inputs': [1], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 3], 'args': []}
+20
+front size: 1
+    MATING
+block index:  2
+block index:  0
+block index:  2
+block index:  1
+block index:  2
+block index:  0
+24
+Rank: 0 Length: 2
+-------------RUNNING UNIVERSE FOR GENERATION: 15-----------
+    MUTATING
+Population after mutation 4
+    EVALUATING
+Active nodes [-1, 0, 1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.1353002346704778]
+function at: 1 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [0], 'args': [15]} and has arguments: [0.024044468034505263]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [1], 'args': [13]} and has arguments: [0.050253743514389694]
+function at: 6 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]} and has arguments: [0.12345200470774942]
+function at: 15 is: 6 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 9 9 0]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 48009, 32, 32, 3)
+[3 2 6 ... 9 9 0]
+Active nodes [-1, 1, 2, 5, 10, 14, 25]
+function at: -1 is: InputPlaceholder
+function at: 1 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 2 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [1], 'args': [1, 5]} and has arguments: [16 1]
+function at: 5 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [0, 4]} and has arguments: [128 5]
+function at: 10 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []} and has arguments: []
+function at: 25 is: 14 -> likely an output node
+block_input: (1, 48009, 32, 32, 3)
+Epoch completed. epoch_loss: 113.6973665356636
+Mutated population individual has fitness: (0.5728, 0.5993300893156068)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [0], 'args': [15]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [1], 'args': [13]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [5], 'args': [14]}
+6
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [-1], 'args': []}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [1], 'args': [1, 5]}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [2], 'args': [0, 4]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [5], 'args': []}
+{'ftn': <function sum_func at 0x2aaae1d58400>, 'inputs': [10, 10], 'args': []}
+14
+Active nodes [-1, 0, 3, 7, 8, 11, 13, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]} and has arguments: [0.05365753849616654]
+function at: 3 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [0], 'args': [14]} and has arguments: [0.1396400583285798]
+function at: 7 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]} and has arguments: [0.024240230130857077]
+function at: 8 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [7], 'args': [14]} and has arguments: [0.1396400583285798]
+function at: 11 is: {'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [8], 'args': [13]} and has arguments: [0.024240230130857077]
+function at: 13 is: {'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [11], 'args': [12]} and has arguments: [0.05365753849616654]
+function at: 15 is: 13 -> likely an output node
+block_input: (1, 35000, 32, 32, 3)
+[3 2 6 ... 0 6 4]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 52939, 32, 32, 3)
+[3 2 6 ... 0 6 4]
+Active nodes [-1, 0, 3, 4, 5, 7, 25]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]} and has arguments: [16 7]
+function at: 3 is: {'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []} and has arguments: []
+function at: 4 is: {'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 0], 'args': []} and has arguments: []
+function at: 5 is: {'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [4], 'args': [0, 6]} and has arguments: [256 5]
+function at: 7 is: {'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [5], 'args': [3, 6, 3, 6]} and has arguments: [32 5 32 5]
+function at: 25 is: 7 -> likely an output node
+block_input: (1, 52939, 32, 32, 3)
+Epoch completed. epoch_loss: 167.5268021374941
+Mutated population individual has fitness: (0.8374, 0.9039144771218897)
+Genome shape:
+InputPlaceholder
+{'ftn': <function add_salt_pepper_noise at 0x2aaae1d57d90>, 'inputs': [-1], 'args': [12]}
+{'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [0], 'args': [14]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [3], 'args': [13]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [7], 'args': [14]}
+{'ftn': <function random_horizontal_flip at 0x2aaae1d57b70>, 'inputs': [8], 'args': [13]}
+{'ftn': <function random_noise at 0x2aaae1d57ae8>, 'inputs': [11], 'args': [12]}
+13
+InputPlaceholder
+{'ftn': <function ceil_greyscale_norm at 0x2aaae1d57950>, 'inputs': [-1], 'args': []}
+0
+InputPlaceholder
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [-1], 'args': [1, 7]}
+{'ftn': <function max_pool_layer at 0x2aaae1d57f28>, 'inputs': [0], 'args': []}
+{'ftn': <function concat_func at 0x2aaae1d58378>, 'inputs': [3, 0], 'args': []}
+{'ftn': <function conv_block at 0x2aaae1d58510>, 'inputs': [4], 'args': [0, 6]}
+{'ftn': <function res_block at 0x2aaae1d58598>, 'inputs': [5], 'args': [3, 6, 3, 6]}
+7
+Active nodes [-1, 0, 1, 5, 6, 15]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aaae1d57c80>, 'inputs': [-1], 'args': [12]} and has arguments: [0.0466322711323683]---------------------------------------
+Begin PBS Epilogue Wed Dec 11 00:03:01 EST 2019
+Job ID:     7296.pace-ice-sched.pace.gatech.edu
+User ID:    szhang460
+Job name:   ezcgp_jinghua
+Resources:  neednodes=1:ppn=18,nodes=1:ppn=18,walltime=12:00:00
+Rsrc Used:  cput=51:49:26,energy_used=0,mem=65613152kb,vmem=115135984kb,walltime=03:57:48
+Queue:      pace-ice
+Nodes:     
+rich133-c32-11-r.pace.gatech.edu
+End PBS Epilogue Wed Dec 11 00:03:01 EST 2019
+---------------------------------------

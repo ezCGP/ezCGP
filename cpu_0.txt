@@ -13,3 +13,6 @@ Gen 12 Scatter: 0.005826, Gather: 0.002124, Run: 753.580047, Select: 0.588605
 Gen 13 Scatter: 0.005627, Gather: 0.002095, Run: 2959.281501, Select: 0.577273
 Gen 12 Scatter: 0.005880, Gather: 0.007133, Run: 1294.017746, Select: 0.593097
 Gen 13 Scatter: 0.005910, Gather: 0.002133, Run: 545.527491, Select: 0.587869
+Gen 14 Scatter: 0.006131, Gather: 0.002036, Run: 581.525236, Select: 0.597255
+Gen 14 Scatter: 0.005604, Gather: 0.021518, Run: 2003.224964, Select: 0.660560
+Gen 15 Scatter: 0.005682, Gather: 0.002189, Run: 133.903590, Select: 0.577029
