@@ -1,15 +1,25 @@
 """
 This class takes in an individual and writes it to a .csv for draw.io to process
 
-Use: Instantiate object, then pass an individual to create_csv
+Use: 
+
+$python3.6 visualize.py gen11_pop.npy
+
+Visualizer will take problem.py's SEED_ROOT_DIR constant and find the generation and output a CSV file in the same directory
 
 Open draw.io
 Go to Arrange > Insert > Advanced > CSV...
 Then just copy-paste the csv file content into the textbox
+
+Note: Fitnesses here are the accuracy values and F-1 score.
 """
 
 import string
 import numpy as np
+from problem import SEED_ROOT_DIR
+
+import os
+import sys
 
 header = '## Hello World \
             \n# label: %title%<br><i style="color:gray;">%text%</i> \
@@ -30,7 +40,7 @@ header = '## Hello World \
 
 
 class Visualizer:
-    def __init__(self, output_path='vis.csv'):
+    def __init__(self, output_path='vis'):
         # Limit on number of block is letters of alphabet
         self.output_path = output_path
         self.shifts = list(string.ascii_lowercase)
@@ -99,12 +109,19 @@ class Visualizer:
 
 
 if __name__ == "__main__":
-    import os
-    import sys
     population = np.load(sys.argv[1], allow_pickle=True)
     # Required npy is formatted certain way (includes all nodes)
 
     filename, file_extension = os.path.splitext(sys.argv[1])
-    vis = Visualizer(filename)
+    path = SEED_ROOT_DIR + '/' + filename
+    print('Saving visualized csv to {}'.format(path))
+
+    vis = Visualizer(path)
     for individual in population:
         vis.add_to_csv(individual, from_npy=True)
+
+    # we can adjust the code above to visualize the best individual trained
+    # with many epochs from evaluator.py
+    # it'd be the same shape as one of the individuals above, but with different fitness values
+    #
+    # idea is the same as manually copy pasting into output csv file's individual's fitness
