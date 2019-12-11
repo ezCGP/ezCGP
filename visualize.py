@@ -109,14 +109,14 @@ class Visualizer:
 
 
 if __name__ == "__main__":
-    population = np.load(sys.argv[1], allow_pickle=True)
-    # Required npy is formatted certain way (includes all nodes)
-
+    # load file and path
     filename, file_extension = os.path.splitext(sys.argv[1])
     path = SEED_ROOT_DIR + '/' + filename
     print('Saving visualized csv to {}'.format(path))
 
+    # create visualizer object and load population
     vis = Visualizer(path)
+    population = np.load(sys.argv[1], allow_pickl=True)
     for individual in population:
         vis.add_to_csv(individual, from_npy=True)
 
