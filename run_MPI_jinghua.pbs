@@ -1,7 +1,7 @@
 # ezCGP pbs script
 #PBS -N ezcgp_jinghua
-#PBS -l nodes=1:ppn=18
-#PBS -l pmem= 7gb
+#PBS -l nodes=1:ppn=15
+#PBS -l pmem=8gb
 #PBS -l walltime=12:00:00
 #PBS -q pace-ice
 #PBS -j oe
