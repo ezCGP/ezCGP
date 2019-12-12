@@ -9,7 +9,6 @@ import tempfile
 import gc
 
 # my scripts
-from mate_methods import Mate
 from mutate_methods import Mutate
 import tensorflow as tf
 
@@ -22,16 +21,16 @@ from utils.DataSet import DataSet
 # mkl.set_num_threads(1)
 # os.environ["OMP_NUM_THREADS"] = "1"
 
-class Block(Mate, Mutate):
+class Block(Mutate):
     """
     Define the 'subclass' for a genome.
     Input nodes -> Block Instance -> Block Instance -> ... -> Output Nodes
     """
 
     def __init__(self, nickname,
-                 setup_dict_ftn, setup_dict_arg, setup_dict_mate, setup_dict_mut,
+                 setup_dict_ftn, setup_dict_arg, setup_dict_mut,
                  operator_dict, block_input_dtypes, block_outputs_dtypes, block_main_count, block_arg_count,
-                 block_mut_prob, block_mate_prob,
+                 block_mut_prob,
                  tensorblock_flag=False, learning_required=False, apply_to_val = True, num_classes=None, batch_size=None, n_epochs=1, large_dataset=None):
         # TODO consider changing ftn_dict, arg_dict, etc to setup_dict_ftn, setup_dict_mate, etc
         # and then change gene_dict back to oper_dict or ftn_dict
@@ -41,15 +40,7 @@ class Block(Mate, Mutate):
         values should go from (0,1]; anything geq to 1 means that we want this equally distributed with whatever is left.
         the sum of values less than 1 should not be greater than 1 or it will error
         """
-
-        # inherit Mate, Mutate
-        Mate.__init__(self, block_input_dtypes, block_outputs_dtypes,
-                            block_main_count, block_arg_count)
-        self.mate_prob = block_mate_prob
-        self.mate_methods = list(setup_dict_mate.keys())
-        self.mate_weights = self.buildWeights('mate_methods', setup_dict_mate)
-        self.mate_dict = setup_dict_mate
-
+        # inherit Mutate
         Mutate.__init__(self, block_input_dtypes, block_outputs_dtypes,
                               block_main_count, block_arg_count)
         self.mut_prob = block_mut_prob
@@ -109,21 +100,6 @@ class Block(Mate, Mutate):
         else:
             # don't mutate
             pass
-
-
-    def mate(self, other):
-        roll = np.random.random()
-        if roll <= self.mate_prob:
-            # then mate
-            mate_method = np.random.choice(a=self.mate_methods, size=1, p=self.mate_weights)[0]
-            offspring_list = mate_method(self, other, *self.mate_dict[mate_method]['args'])
-            for offspring in offspring_list:
-                offspring.need_evaluate = True
-                offspring.findActive() #will need active nodes for mutating step
-            return offspring_list
-        else:
-            # don't mate
-            return None
 
     def resetEvalAttr(self):
         self.dead = False

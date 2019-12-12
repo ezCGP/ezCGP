@@ -1,15 +1,11 @@
 import arguments
-import mate_methods as mate
 import mutate_methods as mut
 import operators
 import tensorflow as tf
 import os
 
-# import mkl
-# mkl.set_num_threads(1)
-# os.environ["OMP_NUM_THREADS"] = "1"
-
-
+# outlines parameters to be passed into a Block object
+# this is done in individual.py in the constructer
 class SkeletonBlock:
 
     def __init__(self,
@@ -28,7 +24,6 @@ class SkeletonBlock:
                      arguments.percentage: {'prob': 1},
                      arguments.rotRange: {'prob': 1}
                  },
-                 mate={mate.Mate.dont_mate: {'prob': 1, 'args': []}},
                  mut={
                      mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},
                      mut.Mutate.mutate_singleArgValue: {'prob': 1, 'args': []},
@@ -38,10 +33,9 @@ class SkeletonBlock:
                  operator_dict=operators.operDict,
                  input_dtypes=[tf.Tensor],
                  output_dtypes=[tf.Tensor],
-                 main_count=4,
-                 arg_count=20,
-                 mut_prob=1,
-                 mate_prob=0):
+                 main_count=4, # max number of genes
+                 arg_count=20, # max number of arguments per primitive
+                 mut_prob=0.5):
 
         self.tensorblock_flag = tensorblock_flag
         self.learning_required = learning_required
@@ -52,7 +46,6 @@ class SkeletonBlock:
         self.nickname = nickname
         self.setup_dict_ftn = primitives
         self.setup_dict_arg = args
-        self.setup_dict_mate = mate
         self.setup_dict_mut = mut
         self.operator_dict = operator_dict
         self.block_input_dtypes = input_dtypes
@@ -60,4 +53,3 @@ class SkeletonBlock:
         self.block_main_count = main_count
         self.block_arg_count = arg_count
         self.block_mut_prob = mut_prob
-        self.block_mate_prob = mate_prob

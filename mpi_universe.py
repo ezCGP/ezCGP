@@ -55,8 +55,7 @@ def mate_population(population):
     Mate through population before evaluating and selecting
     Build individuals from genome list (genome_output_values)
     then (back external) limit the number of total population size to be a multiple of # cpu cores
-    for Jinghua will focus on inside Mating
-    for Sam will focus on converting genome list to list of indivs, and after (end of this function)
+
     convert individuals to genome values for multiprocessing
     convert population of genome lists into individuals
     :param population:

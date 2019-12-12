@@ -50,6 +50,9 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                 exit()
             else:
                 # now build out the block if it exists
+                # takes the parameters outlined by utils/skeleton_block.py
+                # and passes it to the actual Block object
+                # saves that block object in the corresponding place in skeleton_genome
                 self.skeleton[i]["block_object"] = Block(**self.skeleton[i])
 
         self.fitness = self.Fitness()
@@ -153,26 +156,6 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                 self.skeleton[i+1]['block_object'].mutate()
         else:
             self.skeleton[block]["block_object"].mutate()
-
-
-    def mate(self, other, block=None):
-        if block is "random selection":
-            roll = np.random.random()
-            for i in range(1,self.num_blocks):
-                if roll <= i/self.num_blocks:
-                    offspring_list = self.skeleton[i]["block_object"].mate(
-                                            other.skeleton[i]["block_object"])
-                    break
-                else:
-                    continue
-        elif block is None:
-            for i in range(1,self.num_blocks):
-                offspring_list = self.skeleton[i]["block_object"].mate(
-                                        other.skeleton[i]["block_object"])
-        else:
-            offspring_list = self.skeleton[i]["block_object"].mate(
-                                    other.skeleton[i]["block_object"])
-        return offspring_list
 
     def copy(self):
         # copy without memory leaks (remove genome_output)
