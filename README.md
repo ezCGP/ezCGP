@@ -12,9 +12,13 @@ If you do not have Anaconda, please follow this [Digital Ocean guide](https://ww
 **NOTE:** The requirements.txt file should only be used with the `conda install` command, **not pip install**.
 
 > conda create -n ezCGP python=3.6
+
 > conda activate ezCGP
+
 > conda config --env --add channels menpo
+
 > conda config --env --add channels conda-forge
+
 > conda install --file requirements.txt
 
 To activate your ezCGP Anaconda environment, simply run:
