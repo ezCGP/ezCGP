@@ -74,7 +74,7 @@ def mate_population(population):
     # TODO: extend this to mate any number of offspring (e.g percentage of num cpu core for efficiency)
         mate_list = mate_obj.whole_block_swapping() # creates two offspring
         for mate in mate_list:
-            if mate.need_evaluate:
+            if mate.need_evaluate():
                 population.append(mate)
             else:
                 pass
@@ -103,12 +103,12 @@ def run_universe(population, num_mutants, num_offspring, input_data, labels, blo
 
             # Check if mutant needs to be evaluated
             # If mut_prob is < 1 there is a chance it didn't mutate
-            if mutant.need_evaluate:
+            if mutant.need_evaluate():
                 population.append(mutant)
             else:
                 pass
 
-    print("Population after mutation", len(population))
+    print("Population after mutation: ", len(population))
 
     print("    EVALUATING")
     for individual in population:
