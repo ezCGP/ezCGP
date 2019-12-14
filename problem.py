@@ -20,7 +20,7 @@ import logging
 
 GEN_LIMIT = 50
 POP_SIZE = 12
-N_EPOCHS = 1
+N_EPOCHS = 3
 SEED = 17
 #SEED = 38
 N_UNIVERSE = 1
@@ -30,7 +30,7 @@ N_OFFSPRING = 6 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
-SEED_ROOT_DIR = 'sam_ezCGP_runs/run_7'
+SEED_ROOT_DIR = 'sam_ezCGP_runs/run_8'
 #SEED_ROOT_DIR = 'jinghua_ezCGP_runs'
 
 """DBMANAGER"""
