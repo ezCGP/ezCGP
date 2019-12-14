@@ -8,7 +8,7 @@ import time
 
 #  Constants (you edit)
 root_dir = problem.SEED_ROOT_DIR
-epochs = 500
+epochs = 200
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
 generation = np.load(file_generation)
