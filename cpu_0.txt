@@ -29,3 +29,4 @@ Gen 39 Scatter: 0.003521, Gather: 0.003672, Run: 190.810636, Select: 1.166137
 Gen 40 Scatter: 0.003574, Gather: 0.003627, Run: 168.694084, Select: 1.177739
 Gen 41 Scatter: 0.002929, Gather: 0.003086, Run: 186.447270, Select: 1.183033
 Gen 42 Scatter: 0.002966, Gather: 0.003047, Run: 226.233517, Select: 1.189224
+Gen 1 Scatter: 0.011014, Gather: 0.011437, Run: 797.870582, Select: 1.158999
