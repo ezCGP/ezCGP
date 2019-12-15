@@ -78,7 +78,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
 
             # evaluate the block
             block = self.skeleton[i]["block_object"]
-            genome_list.append(block.genome)
+            genome_list.append(deepcopy(block.genome))
         genome_list.append(self.fitness.values)
         genome_list.append(self.need_evaluate())
         return genome_list
