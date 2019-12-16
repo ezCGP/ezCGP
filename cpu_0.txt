@@ -179,3 +179,13 @@ Gen 22 Scatter: 0.032407, Gather: 0.174946, Run: 1254.636053, Select: 2.465528
 Gen 23 Scatter: 0.033504, Gather: 0.137442, Run: 1071.110107, Select: 2.327772
 Gen 24 Scatter: 0.032392, Gather: 0.135816, Run: 1373.546704, Select: 2.308117
 Gen 25 Scatter: 0.032833, Gather: 0.178140, Run: 1238.843435, Select: 2.480238
+Gen 26 Scatter: 0.030691, Gather: 0.127011, Run: 2375.323442, Select: 2.285487
+Gen 27 Scatter: 0.032523, Gather: 0.126805, Run: 1826.159778, Select: 2.221425
+Gen 28 Scatter: 0.032453, Gather: 0.061676, Run: 1543.241841, Select: 2.229472
+Gen 29 Scatter: 0.032289, Gather: 0.182447, Run: 2001.493427, Select: 2.273843
+Gen 30 Scatter: 0.032211, Gather: 0.061688, Run: 1586.529262, Select: 2.200961
+Gen 31 Scatter: 0.032104, Gather: 0.128820, Run: 1642.335419, Select: 2.239810
+Gen 32 Scatter: 0.032127, Gather: 0.063059, Run: 2637.087130, Select: 2.268310
+Gen 33 Scatter: 0.032923, Gather: 0.180815, Run: 2290.948350, Select: 2.267227
+Gen 34 Scatter: 0.032606, Gather: 0.133500, Run: 3119.062943, Select: 2.264575
+Gen 35 Scatter: 0.032181, Gather: 0.061946, Run: 1673.307530, Select: 2.251209

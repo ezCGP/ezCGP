@@ -33,9 +33,9 @@ class SkeletonBlock:
                  operator_dict=operators.operDict,
                  input_dtypes=[tf.Tensor],
                  output_dtypes=[tf.Tensor],
-                 main_count=4, # max number of genes
+                 main_count=50, # max number of genes
                  arg_count=20, # max number of arguments per primitive
-                 mut_prob=0.5):
+                 mut_prob=1):
 
         self.tensorblock_flag = tensorblock_flag
         self.learning_required = learning_required
