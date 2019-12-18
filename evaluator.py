@@ -5,14 +5,16 @@ import problem
 import numpy as np
 from individual import Individual, build_individual
 import time
+from matplotlib import pyplot as plt
 
 #  Constants (you edit)
 root_dir = problem.SEED_ROOT_DIR
-epochs = 100
+epochs = 50
 print('Picking best individual from {} and running for {} epochs'.format(root_dir, epochs))
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
 generation = np.load(file_generation)
+#generation = 25
 
 file_pop = '{}/gen{}_pop.npy'.format(root_dir, generation)
 population = np.load(file_pop, allow_pickle = True)
@@ -48,8 +50,6 @@ for i in range(1,individual.num_blocks+1):
         print('function at: {} is: {} and has arguments: {}'\
                 .format(active_node, fn, arg_values[fn['args']]))
 
-curr_block.n_epochs = epochs
-
 # Concatenate validation set and testing set
 x_test = problem.x_test[0]
 y_test = problem.y_test[0]
@@ -57,9 +57,23 @@ y_test = problem.y_test[0]
 x_train = np.array([np.vstack((problem.x_train[0], problem.x_val))])
 y_train = np.append(problem.y_train, problem.y_val)
 
-start = time.time()
-individual.evaluate(x_train, y_train, (x_test, y_test)) # This will force genome_output_values to point to the test set
-print("Time to evaluate", time.time() - start)
-individual.fitness.values = problem.scoreFunction(actual=y_test, predict=individual.genome_outputs)
+# get the accuracy for each epoch
+accuracies = []
+f1_scores = []
+for epoch in range(epochs):
+    curr_block.n_epochs = epoch
 
-print("final fitness", individual.fitness.values)
+    start = time.time()
+    individual.evaluate(x_train, y_train, (x_test, y_test)) # This will force genome_output_values to point to the test set
+    print("Time to evaluate", time.time() - start)
+    individual.fitness.values = problem.scoreFunction(actual=y_test, predict=individual.genome_outputs)
+    accuracies.append(individual.fitness.values[0])
+    f1_scores.append(individual.fitness.values[1])
+    print("{} epoch fitness: {}".format(epoch, individual.fitness.values))
+
+# plot epochs vs. accuracy
+plt.scatter(range(epochs), accuracies)
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.title('Generation {} Best Individual'.format(generation))
+plt.savefig('gen{}_epochs.png'.format(generation))

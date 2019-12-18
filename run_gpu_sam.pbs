@@ -1,7 +1,7 @@
 # ezCGP pbs script
 #PBS -N ezcgp_gpu_sam
-#PBS -l nodes=1:ppn=8:gpus=1:exclusive_process
-#PBS -l pmem=14gb
+#PBS -l nodes=1:ppn=4:gpus=1:exclusive_process
+#PBS -l pmem=30gb
 #PBS -l walltime=8:00:00
 #PBS -q pace-ice-gpu
 #PBS -j oe
