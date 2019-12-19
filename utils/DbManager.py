@@ -3,6 +3,7 @@ import numpy as np
 import scipy.stats as scst
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 import os
+import sys
 import random
 import six
 from six.moves import cPickle as pickle
@@ -15,6 +16,8 @@ import arguments
 import mutate_methods as mut
 from utils import DbConfig
 
+# get parent directory files as well
+import problem
 
 class DbManager():
     def __init__(self, config: DbConfig):
@@ -68,7 +71,7 @@ class DbManager():
 
     def split_data(self, x, y):
         zipped = list(zip(x, y))
-        seed = 5
+        seed = problem.SEED
         np.random.seed(seed)
         random.seed(seed) #set both random seeds to same thin
 

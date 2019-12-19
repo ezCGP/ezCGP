@@ -30,7 +30,7 @@ N_OFFSPRING = 6 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
-SEED_ROOT_DIR = 'sam_ezCGP_runs/run_13'
+SEED_ROOT_DIR = 'sam_ezCGP_runs/run_12'
 #SEED_ROOT_DIR = 'jinghua_ezCGP_runs'
 
 """DBMANAGER"""
@@ -134,11 +134,11 @@ def scoreFunction(predict, actual):
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 """
-preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=40, n_epochs=N_EPOCHS)
+preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=10, n_epochs=N_EPOCHS)
 preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1, n_epochs=N_EPOCHS,
                                            primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-training_block = TrainingBlock(nickname='Training', main_count=100, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
+training_block = TrainingBlock(nickname='Training', main_count=25, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
 
 # Defines the generic genome structure
 skeleton_genome = {
