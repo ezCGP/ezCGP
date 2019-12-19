@@ -74,6 +74,6 @@ for epoch in range(epochs):
 # plot epochs vs. accuracy
 plt.scatter(range(epochs), accuracies)
 plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
+plt.ylabel('1 - Accuracy')
 plt.title('Generation {} Best Individual'.format(generation))
 plt.savefig('gen{}_epochs.png'.format(generation))
