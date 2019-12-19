@@ -30,7 +30,7 @@ N_OFFSPRING = 6 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
-SEED_ROOT_DIR = 'sam_ezCGP_runs/run_13'
+SEED_ROOT_DIR = 'sam_ezCGP_runs/run_11'
 #SEED_ROOT_DIR = 'jinghua_ezCGP_runs'
 
 """DBMANAGER"""
