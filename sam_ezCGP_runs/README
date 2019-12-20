@@ -1,3 +1,3 @@
-For sam_ezCGP_runs/run_x where x is <= 12, set DbConfig to 0.7 train, 0.2 test, 0.1 val.
+For sam_ezCGP_runs/run_x where x is <= 12, set DbConfig to 0.7 train, 0.2 test, 0.1 val. There is a high likelihood run_9's results might be inaccessible due to this reason, but I am not sure why. Run 11 and Run 9 run into the same error if DbConfig is set to below, but only run 11 is fixed by changing it back to 0.7, 0.2, 0.1.
 
 This was updated to 0.6, 0.2, 0.2 to be more fair after run 13. If you do not change the Config, the convert and evaluator scripts will not work. For now, 60/20/20 will be our accepted fair split.
