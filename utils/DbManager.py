@@ -17,7 +17,7 @@ import mutate_methods as mut
 from utils import DbConfig
 
 # get parent directory files as well
-import problem
+#import problem
 
 class DbManager():
     def __init__(self, config: DbConfig):
@@ -51,7 +51,10 @@ class DbManager():
             data.append(self.load_data_from_path(f))
         x = np.concatenate([x[0] for x in data])
         y = np.concatenate([x[1] for x in data])
-        train, test, val = self.split_data(x, y)
+        train, val = self.split_data(x, y)
+
+        test_path = os.path.join(path, 'test_batch')
+        test = self.load_data_from_path(test_path)
         return train, test, val
 
     def load_cifar100(self):
@@ -69,28 +72,17 @@ class DbManager():
             Y = np.array(Y)
             return X, Y
 
-    def split_data(self, x, y):
-        zipped = list(zip(x, y))
-        seed = problem.SEED
-        np.random.seed(seed)
-        random.seed(seed) #set both random seeds to same thin
+    def split_data(self, X, y):
+        assert self.db_conf.train_size_perc + self.db_conf.validation_size_perc == 1
 
-        random.shuffle(zipped)
-        X = np.array([x[0] for x in zipped])
-        y = np.array([x[1] for x in zipped])
-
-        train_index = int(len(x) * self.db_conf.train_size_perc)
+        train_index = int(len(X) * self.db_conf.train_size_perc)
         X_train = X[0:train_index]
         y_train = y[0:train_index]
 
-        test_index = train_index + int(len(x) * self.db_conf.test_size_perc);
-        X_test = X[train_index:test_index]
-        y_test = y[train_index:test_index]
+        X_val = X[train_index:]
+        y_val = y[train_index:]
 
-        X_val = X[test_index:]
-        y_val = y[test_index:]
-
-        return (X_train, y_train), (X_test, y_test), (X_val, y_val)
+        return (X_train, y_train), (X_val, y_val)
 
     def get_train_data(self):
         return self.train_data_set
