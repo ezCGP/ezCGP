@@ -79,6 +79,7 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             # evaluate the block
             block = self.skeleton[i]["block_object"]
             genome_list.append(deepcopy(block.genome))
+            genome_list.append(deepcopy(block.args))
         genome_list.append(self.fitness.values)
         genome_list.append(self.need_evaluate())
         return genome_list
@@ -185,7 +186,8 @@ def build_individual(skeleton_genome, genome_list):
     need_evaluate = genome_list[-1]
     for i in range(1,individual.num_blocks+1):
         # replace with genome
-        individual.skeleton[i]["block_object"].genome = genome_list[i-1]
+        individual.skeleton[i]["block_object"].genome = genome_list[2*i-2]
+        individual.skeleton[i]["block_object"].args = genome_list[2*i-1]
         individual.skeleton[i]["block_object"].findActive()
         individual.skeleton[i]["block_object"].need_evaluate = need_evaluate
     # individual structure:
