@@ -9,12 +9,12 @@ from matplotlib import pyplot as plt
 
 #  Constants (you edit)
 root_dir = problem.SEED_ROOT_DIR
-epochs = 50
+epochs = 30
 print('Picking best individual from {} and running for {} epochs'.format(root_dir, epochs))
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
 generation = np.load(file_generation)
-#generation = 9
+generation = 20
 
 file_pop = '{}/gen{}_pop.npy'.format(root_dir, generation)
 population = np.load(file_pop, allow_pickle = True)
@@ -25,7 +25,7 @@ for individual in population:
 sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]] #  choose ind with the best score
 
 #  Copied from tester.py
-print("Best Individual")
+print("Best Individual from generation {}".format(generation))
 individual = sample_best
 print('Original fitness: {} \n'.format(individual.fitness.values))
 for i in range(1,individual.num_blocks+1):
@@ -77,3 +77,8 @@ plt.xlabel('Epochs')
 plt.ylabel('1 - Accuracy')
 plt.title('Generation {} Best Individual'.format(generation))
 plt.savefig('gen{}_epochs.png'.format(generation))
+
+# print epoch accuracy tuples
+print('\nFinal Results')
+for i in range(epochs):
+    print('{} epoch fitness: {}'.format(i, accuracies[i]))
