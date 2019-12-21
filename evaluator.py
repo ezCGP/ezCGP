@@ -14,7 +14,7 @@ print('Picking best individual from {} and running for {} epochs'.format(root_di
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
 generation = np.load(file_generation)
-generation = 11
+generation = 20
 
 file_pop = '{}/gen{}_pop.npy'.format(root_dir, generation)
 population = np.load(file_pop, allow_pickle = True)
