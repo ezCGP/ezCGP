@@ -19,17 +19,30 @@ def convert(individuals):
         ind_1 = individual.build_individual(skeleton_genome, ind_1)
         s += "\nfitness {}".format(ind_1.fitness.values)
         for i in range(1,ind_1.num_blocks+1):
-            # get block dictionary containing metadata + block obj
-            curr_block = ind_1.skeleton[i]
-
             # show block name
-            s += '\n\n{} Block:'.format(curr_block['nickname'])
+            nickname = ind_1.skeleton[i]['nickname']
+            s += '\n\n{} Block:\n'.format(nickname)
+
+            # get block object from block dictionary containing metadata + block obj
+            curr_block = ind_1.skeleton[i]['block_object']
+            arg_values = np.array(curr_block.args)
 
             # go through each active genome node and print
-            for active_node in curr_block['block_object'].active_nodes[:-1]:
+            for active_node in curr_block.active_nodes[:-1]:
                 # print all layers except last node because it is just a number
-                # i'm not sure why, but it isn't a layer type so it should probably be ignored
-                s += '\n' + str(curr_block['block_object'][active_node])
+                # i'm not sure why, but it isn't a layer type so it should be ignored
+                fn = curr_block[active_node]
+                if active_node < 0:
+                    # nothing to evaluate at input nodes
+                    s += 'function at: {} is: {}'\
+                              .format(active_node, fn)
+                    continue
+                elif active_node >= curr_block.genome_main_count:
+                    # nothing to evaluate at output nodes
+                    s += 'function at: {} is: {} -> likely an output node'\
+                              .format(active_node, fn)
+                    continue
+                s += '\nfunction at: {} is: {} and has arguments: {}'.format(active_node, fn, arg_values[fn['args']])
 
     print(s) # print total file output
     return s
