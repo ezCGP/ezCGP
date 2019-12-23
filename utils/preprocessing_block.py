@@ -34,7 +34,7 @@ class PreprocessingBlock(SkeletonBlock):
                 operators.random_noise: {'prob': 1},
                 operators.random_horizontal_flip: {'prob': 1},
                 operators.add_gausian_noise: {'prob': 1},
-                #operators.add_salt_pepper_noise: {'prob': 1}
+                operators.add_salt_pepper_noise: {'prob': 1}
             }
         else:
             # specific layers
