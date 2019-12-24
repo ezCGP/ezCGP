@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 #  Constants (you edit)
 root_dir = problem.SEED_ROOT_DIR
-epochs = 1 
+epochs = 30 
 print('Picking best individual from {} and running for {} epochs'.format(root_dir, epochs))
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
