@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 
 #  Constants (you edit)
 root_dir = problem.SEED_ROOT_DIR
-epochs = 30
+epochs = 1 
 print('Picking best individual from {} and running for {} epochs'.format(root_dir, epochs))
 
 file_generation = '{}/generation_number.npy'.format(root_dir)
@@ -76,7 +76,7 @@ plt.scatter(range(epochs), accuracies)
 plt.xlabel('Epochs')
 plt.ylabel('1 - Accuracy')
 plt.title('Generation {} Best Individual'.format(generation))
-plt.savefig('gen{}_epochs.png'.format(generation))
+plt.savefig('{}/gen{}_epochs.png'.format(problem.SEED_ROOT_DIR, generation))
 
 # print epoch accuracy tuples
 print('\nFinal Results')
