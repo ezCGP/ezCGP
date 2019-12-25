@@ -22,7 +22,9 @@ class SkeletonBlock:
                      arguments.argFilterSize: {'prob': 1},
                      arguments.argKernelSize: {'prob': 1},
                      arguments.percentage: {'prob': 1},
-                     arguments.rotRange: {'prob': 1}
+                     arguments.rotRange: {'prob': 1},
+                     arguments.argPoolHeight: {'prob': 1},
+                     arguments.argPoolWidth: {'prob': 1}
                  },
                  mut={
                      mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},

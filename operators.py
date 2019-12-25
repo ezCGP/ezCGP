@@ -289,7 +289,7 @@ def fractional_max_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     overlapping = True          # overlapping pooling regions work better, according to 2015 Ben Graham paper
     return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)
 
-operDict[max_pool_layer] = {"inputs": [tf.Tensor],
+operDict[fractional_max_pool] = {"inputs": [tf.Tensor],
                             "args": ['argPoolHeight', 'argPoolWidth'],
                             "outputs": tf.Tensor,
                             "name": 'fractional_max_pool',
@@ -303,7 +303,7 @@ def fractional_avg_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     overlapping = True        
     return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)
 
-operDict[max_pool_layer] = {"inputs": [tf.Tensor],
+operDict[fractional_avg_pool] = {"inputs": [tf.Tensor],
                             "args": ['argPoolHeight', 'argPoolWidth'],
                             "outputs": tf.Tensor,
                             "name": 'fractional_avg_pool',
