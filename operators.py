@@ -281,6 +281,7 @@ operDict[identity_layer] = {"inputs": [tf.Tensor],
                          "name": 'identityLayer',
                          "include_labels": False}
 
+# TODO: fractionals cause dead blocks, see blocks.py
 def fractional_max_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     if input_tensor.shape[1].value == 1:
         return input_tensor

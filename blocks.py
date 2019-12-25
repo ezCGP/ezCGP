@@ -295,6 +295,7 @@ class Block(Mutate):
                         self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
                 self.dead = True
+                print(e)
                 break
 
     def tensorflow_evaluate(self, block_inputs, labels_all, validation_pair):
