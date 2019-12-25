@@ -23,6 +23,8 @@ class TrainingBlock(SkeletonBlock):
                 operators.sqeeze_excitation_block: {'prob': 1},
                 operators.max_pool_layer: {'prob': 1},
                 operators.avg_pool_layer: {'prob': 1},
+                operators.fractional_max_pool: {'prob': 1},
+                operators.fractional_avg_pool: {'prob': 1},
                 operators.sum_func: {'prob': 1},
                 operators.conv_block: {'prob': 1},
                 #operators.identity_block: {'prob': 1}, # TODO replace this with info from operator_dict?

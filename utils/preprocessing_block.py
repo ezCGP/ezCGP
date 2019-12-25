@@ -21,15 +21,9 @@ class PreprocessingBlock(SkeletonBlock):
             #prob: float btwn 0 and 1 -> assigns that prob to that primitive...the sum can't be more than 1
             #prob: 1 -> equally distribute the remaining probability amoung all those remaining (hard to explain, sorry)
             self.setup_dict_ftn = {
-#               operators.identity_layer: {"prob": 1}
-            #      operators.gassuian_blur: {'prob': 1},
-            #      operators.ceil_greyscale_norm: {'prob': 1}
-            #      operators.identity_layer: {"prob": 1}
+#               operators.identity_layer: {"prob": 1},
             #      operators.gassuian_blur: {'prob': 1},
 #                  operators.ceil_greyscale_norm: {'prob': 1}
-            #    operators.identity_layer: {"prob": 1}
-            #     operators.gassuian_blur: {'prob': 1},
-                #operators.ceil_greyscale_norm: {'prob': 1},
                 # operators.random_rotation: {'prob':1}, not usable right now for some reason (likely output size)
                 operators.random_noise: {'prob': 1},
                 operators.random_horizontal_flip: {'prob': 1},

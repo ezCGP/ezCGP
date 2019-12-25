@@ -208,7 +208,7 @@ class argKernelSize(object):
     def __repr__(self):
         return str(self)
 
-arguments.append(argFilterSize)
+arguments.append(argKernelSize)
 
 class percentage(object):
 
@@ -228,6 +228,8 @@ class percentage(object):
     def __repr__(self):
         return str(self)
 
+arguments.append(percentage)
+
 class rotRange(object):
 
     def __init__(self, value=None):
@@ -245,3 +247,48 @@ class rotRange(object):
 
     def __repr__(self):
         return str(self)
+
+arguments.append(rotRange)
+
+# TODO: Implement Pool height and width properly
+class argPoolHeight(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        # kernel height between 1 and 8
+        self.value = np.random.uniform(1, 8)
+
+    def __str__(self):
+        return "{}".format(self.value)
+
+    def __repr__(self):
+        return str(self)
+
+arguments.append(argPoolHeight)
+
+class argPoolWidth(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        # kernel width between 1 and 8
+        self.value = np.random.uniform(1, 8)
+
+    def __str__(self):
+        return "{}".format(self.value)
+
+    def __repr__(self):
+        return str(self)
+
+arguments.append(argPoolWidth)

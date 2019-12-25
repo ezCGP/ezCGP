@@ -1,4 +1,5 @@
 # operators
+# for args, see arguments.py
 
 import numpy as np
 import tensorflow as tf
@@ -196,6 +197,8 @@ LAYERS
     5. Global Average Pooling
     6. Dense
     7. Identity Layer
+    8. Fractional Max Pooling
+    9. Fractional Avg Pooling
 """
 
 def input_layer(input_tensor):
@@ -277,6 +280,34 @@ operDict[identity_layer] = {"inputs": [tf.Tensor],
                          "outputs": tf.Tensor,
                          "name": 'identityLayer',
                          "include_labels": False}
+
+def fractional_max_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
+    if input_tensor.shape[1].value == 1:
+        return input_tensor
+    pooling_ratio = [1.0, pool_height, pool_width, 1.0]      # see args.py for mutation limits
+    psuedo_random = True        # true random underfits when combined with data augmentation and/or dropout 
+    overlapping = True          # overlapping pooling regions work better, according to 2015 Ben Graham paper
+    return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)
+
+operDict[max_pool_layer] = {"inputs": [tf.Tensor],
+                            "args": ['argPoolHeight', 'argPoolWidth'],
+                            "outputs": tf.Tensor,
+                            "name": 'fractional_max_pool',
+                            "include_labels": False}
+
+def fractional_avg_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
+    if input_tensor.shape[1].value == 1:
+        return input_tensor
+    pooling_ratio = [1.0, pool_height, pool_width, 1.0] 
+    psuedo_random = True 
+    overlapping = True        
+    return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)
+
+operDict[max_pool_layer] = {"inputs": [tf.Tensor],
+                            "args": ['argPoolHeight', 'argPoolWidth'],
+                            "outputs": tf.Tensor,
+                            "name": 'fractional_avg_pool',
+                            "include_labels": False}
 
 """
 FUNCTIONS
