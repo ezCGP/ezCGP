@@ -7,7 +7,7 @@ import random
 import cv2
 import skimage as sk
 import logging
-from problem import SEED
+import problem
 # from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -291,8 +291,8 @@ def fractional_max_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     pooling_ratio = [1.0, pool_height, pool_width, 1.0]      # see args.py for mutation limits
     pseudo_random = True        # true random underfits when combined with data augmentation and/or dropout 
     overlapping = True          # overlapping pooling regions work better, according to 2015 Ben Graham paper
-    # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence)
-    return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping, SEED)[0]
+    # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence
+    return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping, problem.SEED)[0]
 
 operDict[fractional_max_pool] = {"inputs": [tf.Tensor],
                             "args": ['argPoolHeight', 'argPoolWidth'],
@@ -307,7 +307,7 @@ def fractional_avg_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     pseudo_random = True 
     overlapping = True        
     # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence)
-    return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping, SEED)[0]
+    return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping, problem.SEED)[0]
 
 operDict[fractional_avg_pool] = {"inputs": [tf.Tensor],
                             "args": ['argPoolHeight', 'argPoolWidth'],
