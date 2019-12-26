@@ -7,7 +7,6 @@ import random
 import cv2
 import skimage as sk
 import logging
-import problem
 # from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
