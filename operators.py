@@ -7,6 +7,7 @@ import random
 import cv2
 import skimage as sk
 import logging
+from problem import SEED
 # from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -45,6 +46,7 @@ OpenCV methods
 """
 # May need to adjust the kernel size to 3? Please see here:
 # https://dsp.stackexchange.com/questions/23460/how-to-calculate-gaussian-kernel-for-a-small-support-size
+# TODO: errors, add crop, and hist norm
 def gassuian_blur(input, kernel_size=5):
     output = []
     for im in input:
@@ -282,8 +284,7 @@ operDict[identity_layer] = {"inputs": [tf.Tensor],
                          "name": 'identityLayer',
                          "include_labels": False}
 
-# TODO: fractionals cause dead blocks, see blocks.py
-# see pace error log
+# TODO: see error PACE, start here
 def fractional_max_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     if input_tensor.shape[1].value == 1:
         return input_tensor
@@ -291,7 +292,7 @@ def fractional_max_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     pseudo_random = True        # true random underfits when combined with data augmentation and/or dropout 
     overlapping = True          # overlapping pooling regions work better, according to 2015 Ben Graham paper
     # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence)
-    return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)[0]
+    return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping, SEED)[0]
 
 operDict[fractional_max_pool] = {"inputs": [tf.Tensor],
                             "args": ['argPoolHeight', 'argPoolWidth'],
@@ -306,7 +307,7 @@ def fractional_avg_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     pseudo_random = True 
     overlapping = True        
     # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence)
-    return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)[0]
+    return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping, SEED)[0]
 
 operDict[fractional_avg_pool] = {"inputs": [tf.Tensor],
                             "args": ['argPoolHeight', 'argPoolWidth'],

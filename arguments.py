@@ -261,8 +261,8 @@ class argPoolHeight(object):
             self.num_samples = 10
 
     def mutate(self):
-        # kernel height between 1 and 8
-        self.value = np.random.uniform(1, 8)
+        # kernel height between 1 and 4
+        self.value = np.random.uniform(1, 4)
 
     def __str__(self):
         return "{}".format(self.value)
@@ -282,8 +282,8 @@ class argPoolWidth(object):
             self.num_samples = 10
 
     def mutate(self):
-        # kernel width between 1 and 8
-        self.value = np.random.uniform(1, 8)
+        # kernel width between 1 and 4
+        self.value = np.random.uniform(1, 4)
 
     def __str__(self):
         return "{}".format(self.value)

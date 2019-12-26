@@ -227,31 +227,35 @@ class Block(Mutate):
         print("tensorbard killed")
 
     def tensorflow_add_optimizer_loss_layer(self):
-        for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
-            flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
-            labels = tf.placeholder(tf.int32, [None], name='y_batch')
-            logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
-            loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
-                                        logits = logits,
-                                        labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
-            tf.summary.tensor_summary("loss", loss)
-            self.evaluated[output_node] = {
-                "classes": tf.argmax(input=logits, axis=1),
-                "probabilities": tf.nn.softmax(logits),
-                "loss": loss}
-            self.fetch_nodes.append(self.evaluated[output_node])
-            tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
-            tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
-        optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
-        step = tf.Variable(0, name='backprop_steps', trainable=False)
-        train_step = optimizer.minimize(loss, global_step=step) #global_step)
-        #tf.summary.scalar('loss', loss)
-        #tf.summary.scalar('logits', logits)
-        #tf.summary.scalar('results', results)
-        merged_summary = tf.summary.merge_all()
-        for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
-            # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
-            self.fetch_nodes.append(graph_metadata)
+        try:
+            for output_node in range(self.genome_main_count, self.genome_main_count+self.genome_output_count):
+                flattened = tf.layers.Flatten()(self.evaluated[self[output_node]])
+                labels = tf.placeholder(tf.int32, [None], name='y_batch')
+                logits = tf.layers.dense(inputs=flattened, units=self.num_classes) # logits layer
+                loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+                                            logits = logits,
+                                            labels = tf.one_hot(indices=labels, depth=self.num_classes, dtype=tf.float32)))
+                tf.summary.tensor_summary("loss", loss)
+                self.evaluated[output_node] = {
+                    "classes": tf.argmax(input=logits, axis=1),
+                    "probabilities": tf.nn.softmax(logits),
+                    "loss": loss}
+                self.fetch_nodes.append(self.evaluated[output_node])
+                tf.summary.tensor_summary("classes", self.evaluated[output_node]["classes"])
+                tf.summary.tensor_summary("probabilities", self.evaluated[output_node]["probabilities"])
+            optimizer = tf.train.AdamOptimizer() # TODO add optimizer into 'arguments' to and apply GA to it for mutate + mate
+            step = tf.Variable(0, name='backprop_steps', trainable=False)
+            train_step = optimizer.minimize(loss, global_step=step) #global_step)
+            #tf.summary.scalar('loss', loss)
+            #tf.summary.scalar('logits', logits)
+            #tf.summary.scalar('results', results)
+            merged_summary = tf.summary.merge_all()
+            for graph_metadata in [train_step, merged_summary]: # opportunity to add other things we would want to fetch from the graph
+                # remember, we need 'train_step' so that the optimizer is run; we don't actually need the output
+                self.fetch_nodes.append(graph_metadata)
+        except ValueError as e:
+            print('add optimizier error: {}'.format(e))
+            self.dead = True
 
     def calculate_func_args_inputs(self):
         for node_index in self.active_nodes:
@@ -283,6 +287,7 @@ class Block(Mutate):
                     with self.graph.as_default():
                         # building tensorflow graph
                         self.evaluated[node_index] = function(*inputs, *argnums)
+                        print('self.evaluated shape: ', self.evaluate[node_index].shape)
                 else:
                     if self.apply_to_val:
                         if self.operator_dict[function]["include_labels"]:
