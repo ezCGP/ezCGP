@@ -287,7 +287,6 @@ class Block(Mutate):
                     with self.graph.as_default():
                         # building tensorflow graph
                         self.evaluated[node_index] = function(*inputs, *argnums)
-                        print('self.evaluated shape: ', self.evaluate[node_index].shape)
                 else:
                     if self.apply_to_val:
                         if self.operator_dict[function]["include_labels"]:
