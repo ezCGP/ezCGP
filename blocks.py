@@ -278,7 +278,7 @@ class Block(Mutate):
                     if self.operator_dict[function]["include_labels"]:
                         raise(Exception("Tensorflow operators should not include labels"))
                     # added because the objects themselves were being sent in
-                    argnums = [arg.value if type(arg) is not int \
+                    argnums = [arg.value if type(arg) is not int and type(arg) is not float \
                             else arg for arg in args]
                     with self.graph.as_default():
                         # building tensorflow graph
@@ -295,6 +295,7 @@ class Block(Mutate):
                         self.evaluated[node_index] = function(*inputs, *args)
             except Exception as e:
                 self.dead = True
+                print('calculate_func_args_inputs error: ')
                 print(e)
                 break
 
