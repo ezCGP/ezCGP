@@ -6,6 +6,7 @@ import tensorflow as tf
 import random
 import cv2
 import skimage as sk
+from skimage import filters, exposure
 import logging
 # from tflearn.layers.conv import global_avg_pool
 
@@ -186,8 +187,18 @@ operDict[add_salt_pepper_noise] = {"inputs": [np.ndarray],
                             "args": ['percentage'],
                             "include_labels": True}
 
-# def scale_in(input, mode = True):
+"""histogram equalization.
+See: https://scikit-image.org/docs/0.13.x/api/skimage.exposure.html#skimage.exposure.equalize_hist
+"""
+def hist_equal(input, labels, percentage = .25):
+    nbins = 32 # turn this into a param?
+    function = lambda img: exposure.equalize_hist(img, nbins = nbins)
+    return apply_augmentation(input, labels, percentage, function)
 
+operDict[hist_equal] = {"inputs": [np.ndarray],
+                            "outputs": np.ndarray,
+                            "args": ['percentage'],
+                            "include_labels": True}
 
 """
 LAYERS
@@ -322,6 +333,8 @@ FUNCTIONS
     4. Summation
     5. Sigmoid
 """
+
+
 
 def norm_func(input_tensor):
     # Batch Normalization
