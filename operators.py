@@ -149,11 +149,11 @@ https://stackoverflow.com/questions/22937589/how-to-add-noise-gaussian-salt-and-
 Add gausian noise to change lighting condition
 for data augmentation
 """
-def add_gausian_noise(input, labels, percentage = .25): #add random_degree to the arguments
+def add_gaussian_noise(input, labels, percentage = .25): #add random_degree to the arguments
     function = add_gausian_noise_to_one_image
     return apply_augmentation(input, labels, percentage, function)
 
-operDict[add_gausian_noise] = {"inputs": [np.ndarray],
+operDict[add_gaussian_noise] = {"inputs": [np.ndarray],
                             "outputs": np.ndarray,
                             "args": ['percentage'],
                             "include_labels": True}
