@@ -57,7 +57,7 @@ def gassuian_blur(input, kernel_size=5):
 operDict[gassuian_blur] = {"inputs": [np.ndarray],
 			   "outputs": np.ndarray,
 			   "args": ['argKernelSize'],
-                           "include_labels": False}
+                           "include_labels": True}
 
 
 """
@@ -190,12 +190,12 @@ operDict[add_salt_pepper_noise] = {"inputs": [np.ndarray],
 """histogram equalization.
 See: https://scikit-image.org/docs/0.13.x/api/skimage.exposure.html#skimage.exposure.equalize_hist
 """
-def hist_equal(input, labels, percentage = .25):
+def add_hist_equal(input, labels, percentage = .25):
     nbins = 32 # turn this into a param?
     function = lambda img: exposure.equalize_hist(img, nbins = nbins)
     return apply_augmentation(input, labels, percentage, function)
 
-operDict[hist_equal] = {"inputs": [np.ndarray],
+operDict[add_hist_equal] = {"inputs": [np.ndarray],
                             "outputs": np.ndarray,
                             "args": ['percentage'],
                             "include_labels": True}
