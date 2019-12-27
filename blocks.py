@@ -15,6 +15,7 @@ import tensorflow as tf
 import operators
 import arguments
 import logging
+import traceback
 
 from utils.DataSet import DataSet
 # import mkl
@@ -300,6 +301,7 @@ class Block(Mutate):
             except Exception as e:
                 self.dead = True
                 print('calculate_func_args_inputs error: ')
+                print(traceback.format_exc())
                 print(e)
                 break
 
