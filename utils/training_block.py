@@ -16,7 +16,7 @@ class TrainingBlock(SkeletonBlock):
             #prob: 1 -> equally distribute the remaining probability amoung all those remaining (hard to explain, sorry)
             self.setup_dict_ftn = {
                 operators.dense_layer: {'prob': 1},
-                operators.input_layer: {'prob': 1},
+                #operators.input_layer: {'prob': 1},
                 operators.conv_layer: {'prob': 1},
                 operators.concat_func: {'prob': 1},
                 operators.res_block: {'prob': 1},
