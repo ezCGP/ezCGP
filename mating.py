@@ -43,6 +43,7 @@ class Mate():
 
         # swap the blocks, genome_output_values already clear -> no mem leak in deepcopy
         temp_block = deepcopy(ind_2_genome_list[block_index])
+        print(temp_block)
         ind_2_genome_list[block_index] = deepcopy(ind_1_genome_list[block_index])
         ind_1_genome_list[block_index] = deepcopy(temp_block)
         ind_1 = build_individual(self.skeleton_genome, ind_1_genome_list)
