@@ -45,12 +45,13 @@ class Mate():
         temp_block = deepcopy(ind_2_genome_list[2*block_index-2])
         ind_2_genome_list[2*block_index-2] = deepcopy(ind_1_genome_list[2*block_index-2])
         ind_1_genome_list[2*block_index-2] = deepcopy(temp_block)
-        print('mated block: ', temp_block)
+        #print('mated block: ', temp_block)
+
         # swap the block's args
         temp_args = deepcopy(ind_2_genome_list[2*block_index-1])
         ind_2_genome_list[2*block_index-1] = deepcopy(ind_1_genome_list[2*block_index-1])
         ind_1_genome_list[2*block_index-1] = deepcopy(temp_args)
-        print('mated block args: ', temp_args)
+        #print('mated block args: ', temp_args)
 
         # build the new individuals from the genome lists
         ind_1 = build_individual(self.skeleton_genome, ind_1_genome_list)
