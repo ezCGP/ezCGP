@@ -123,7 +123,7 @@ class Genome():
                         delete.append(c)
 
             if len(choices) != 1:
-                print("Should not call mutate since only one function available. Returning original function")
+                #print("Should not call mutate since only one function available. Returning original function")
 
                 choices = np.delete(choices, delete)
                 weights = np.delete(weights, delete)

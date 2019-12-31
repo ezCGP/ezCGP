@@ -34,7 +34,7 @@ class Mate():
         block_index = 2
         while block_index == 2:
             # if it picked the unchanging preprocessing block (ceil grayscale), then pick another block.
-            # this should be deleted ONLY if that ceil grayscale block gets more primitives later
+            # this loop should be deleted ONLY if that ceil grayscale block gets more primitives later
             block_index = np.random.choice(a=parent_1.blocks_indices, size=1, p=None)[0]
 
         # get genome list is an array, which starts with 0
