@@ -23,7 +23,7 @@ scores = []
 for individual in population:
     scores.append(individual.fitness.values[0])
 sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]] #  choose ind with the best score
-#sample_best = population[0] # choose individual manually
+sample_best = population[7] # choose individual manually
 
 #  Copied from tester.py
 print("Best Individual from generation {}".format(generation))
@@ -61,16 +61,17 @@ y_train = np.append(problem.y_train, problem.y_val)
 # get the accuracy for each epoch
 accuracies = []
 f1_scores = []
-for epoch in range(epochs):
-    curr_block.n_epochs = epoch
+#for epoch in range(epochs):
+epoch = epochs
+curr_block.n_epochs = epoch
 
-    start = time.time()
-    individual.evaluate(x_train, y_train, (x_test, y_test)) # This will force genome_output_values to point to the test set
-    print("Time to evaluate", time.time() - start)
-    individual.fitness.values = problem.scoreFunction(actual=y_test, predict=individual.genome_outputs)
-    accuracies.append(individual.fitness.values[0])
-    f1_scores.append(individual.fitness.values[1])
-    print("{} epoch fitness: {}".format(epoch, individual.fitness.values))
+start = time.time()
+individual.evaluate(x_train, y_train, (x_test, y_test)) # This will force genome_output_values to point to the test set
+print("Time to evaluate", time.time() - start)
+individual.fitness.values = problem.scoreFunction(actual=y_test, predict=individual.genome_outputs)
+accuracies.append(individual.fitness.values[0])
+f1_scores.append(individual.fitness.values[1])
+print("{} epoch fitness: {}".format(epoch, individual.fitness.values))
 
 # plot epochs vs. accuracy
 plt.scatter(range(epochs), accuracies)
@@ -81,5 +82,5 @@ plt.savefig('{}/gen{}_epochs.png'.format(problem.SEED_ROOT_DIR, generation))
 
 # print epoch accuracy tuples
 print('\nFinal Results')
-for i in range(epochs):
-    print('{} epoch fitness: {}'.format(i, accuracies[i]))
+#for i in range(epochs):
+#    print('{} epoch fitness: {}'.format(i, accuracies[i]))
