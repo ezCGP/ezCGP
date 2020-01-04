@@ -20,13 +20,13 @@ import logging
 
 GEN_LIMIT = 100
 POP_SIZE = 12
-N_EPOCHS = 5
+N_EPOCHS = 10
 SEED = 17
 #SEED = 38
 N_UNIVERSE = 1
 
-N_MUTANTS = 8
-N_OFFSPRING = 1 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
+N_MUTANTS = 4
+N_OFFSPRING = 2 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 

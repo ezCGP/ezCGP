@@ -1,0 +1,1 @@
+At generation 30, since individuals grew rather large, switched to 10 epochs instead of the original 5 in order to avoid biasing towards simple and shallow individuals.
