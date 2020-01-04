@@ -23,6 +23,7 @@ scores = []
 for individual in population:
     scores.append(individual.fitness.values[0])
 sample_best = population[np.random.choice(a=np.where(np.min(scores) == scores)[0], size=1)[0]] #  choose ind with the best score
+#sample_best = population[0] # choose individual manually
 
 #  Copied from tester.py
 print("Best Individual from generation {}".format(generation))
