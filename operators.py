@@ -46,7 +46,6 @@ OpenCV methods
 """
 # May need to adjust the kernel size to 3? Please see here:
 # https://dsp.stackexchange.com/questions/23460/how-to-calculate-gaussian-kernel-for-a-small-support-size
-# TODO: errors, add crop, and hist norm
 def gassuian_blur(input, kernel_size=5):
     output = []
     for im in input:
@@ -336,7 +335,7 @@ FUNCTIONS
 
 
 
-def norm_func(input_tensor):
+def batch_normalization_func(input_tensor):
     # Batch Normalization
     return tf.layers.batch_normalization(input_tensor, training=True)
 

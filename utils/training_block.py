@@ -27,6 +27,7 @@ class TrainingBlock(SkeletonBlock):
                 operators.fractional_avg_pool: {'prob': 1},
                 operators.sum_func: {'prob': 1},
                 operators.conv_block: {'prob': 1},
+                operators.batch_normalization_func: {'prob': 1},
                 #operators.identity_block: {'prob': 1}, # TODO replace this with info from operator_dict?
             }
         else:
