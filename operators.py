@@ -339,11 +339,11 @@ def batch_normalization_func(input_tensor):
     # Batch Normalization
     return tf.layers.batch_normalization(input_tensor, training=True)
 
-operDict[concat_func] = {"inputs": [tf.Tensor],
-                         "args": [],
-                         "outputs": tf.Tensor,
-                         "name": "batch_normalization",
-                         "include_labels": False}
+operDict[batch_normalization_func] = {"inputs": [tf.Tensor],
+                                      "args": [],
+                                      "outputs": tf.Tensor,
+                                      "name": "batch_normalization",
+                                      "include_labels": False}
 
 
 def relu_func(input_tensor):
