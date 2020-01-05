@@ -410,7 +410,7 @@ BLOCKS
 def conv_block(input_tensor, filters=64, kernel_size=3):
     # Returns the result of one ConvBlock (convolutional layer + batch normalization + ReLu)
     # kernel_size = (kernel_size, kernel_size)
-    return relu_func(norm_func(conv_layer(input_tensor, filters, kernel_size)))
+    return relu_func(batch_normalization_func(conv_layer(input_tensor, filters, kernel_size)))
 
 operDict[conv_block] = {"inputs": [tf.Tensor],
                         "args": ["argPow2", "argFilterSize"],
@@ -422,7 +422,7 @@ def res_block(input_tensor, number1=64, size1=3, number2=128, size2=3):
     # size1 = (size1, size1)
     # size2 = (size2, size2)
     # Returns the result of one ResBlock (ConvBlock + convolutional layer + batch normalization + summation + ReLu)
-    return relu_func(sum_func(norm_func(conv_layer(conv_block(input_tensor, \
+    return relu_func(sum_func(batch_normalization_func(conv_layer(conv_block(input_tensor, \
         number1, size1), number2, size2)), input_tensor))
 
 operDict[res_block] = {"inputs": [tf.Tensor],
