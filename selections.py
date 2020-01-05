@@ -9,7 +9,7 @@
 from __future__ import division
 import bisect
 import math
-import random
+import numpy as np
 
 from itertools import chain
 from operator import attrgetter, itemgetter
@@ -194,14 +194,14 @@ def selTournamentDCD(individuals, k):
             return ind1
 
         #random.seed(seed)
-        if random.random() <= 0.5:
+        if np.random.random() <= 0.5:
             return ind1
         return ind2
 
     #random.seed(seed)
-    individuals_1 = random.sample(individuals, len(individuals))
+    individuals_1 = np.random.choice(np.array(individuals), len(individuals))
     #random.seed(seed)
-    individuals_2 = random.sample(individuals, len(individuals))
+    individuals_2 = np.random.choice(np.array(individuals), len(individuals))
 
     chosen = []
     # PYTHON 2->3 ERROR. CHANGED xrange() to range()

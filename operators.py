@@ -3,7 +3,6 @@
 
 import numpy as np
 import tensorflow as tf
-import random
 import cv2
 import skimage as sk
 from skimage import filters, exposure
@@ -100,8 +99,7 @@ see https://gist.github.com/tomahim/9ef72befd43f5c106e592425453cb6ae
 for data augmentation ideas
 """
 def random_rotation(input, labels, percentage = .25, rotRange = 25): #add random_degree to the arguments
-    uniform = random.uniform
-    function = lambda x: sk.transform.rotate(x, uniform(-rotRange, rotRange))
+    function = lambda x: sk.transform.rotate(x, np.random.uniform(-rotRange, rotRange))
     return apply_augmentation(input, labels, percentage, function)
 
 operDict[random_rotation] = {"inputs": [np.ndarray],
