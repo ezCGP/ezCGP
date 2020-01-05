@@ -19,7 +19,7 @@ import logging
 # Create Universe: cpu cores == pop_size
 
 GEN_LIMIT = 100
-POP_SIZE = 12
+POP_SIZE = 20
 N_EPOCHS = 10
 SEED = 17
 #SEED = 38
@@ -30,7 +30,7 @@ N_OFFSPRING = 2 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
-SEED_ROOT_DIR = 'sam_ezCGP_runs/run_19'
+SEED_ROOT_DIR = 'sam_ezCGP_runs/run_20'
 #SEED_ROOT_DIR = 'jinghua_ezCGP_runs'
 
 """DBMANAGER"""

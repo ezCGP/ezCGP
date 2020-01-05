@@ -147,7 +147,8 @@ if __name__ == '__main__':
     print("Start MPI Universe")
 
     seed = problem.SEED
-    np.random.seed(seed)
+    #np.random.seed(seed)
+    np.random.seed()
     # keep these imports after the seed is set for numpy
 
     train_data = problem.x_train
