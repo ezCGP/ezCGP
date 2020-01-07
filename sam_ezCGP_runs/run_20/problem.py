@@ -19,7 +19,7 @@ import logging
 # Create Universe: cpu cores == pop_size
 
 GEN_LIMIT = 100
-POP_SIZE = 20
+POP_SIZE = 12
 N_EPOCHS = 10
 SEED = 17
 #SEED = 38
@@ -138,7 +138,7 @@ preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorbl
 preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1, n_epochs=N_EPOCHS,
                                            primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-training_block = TrainingBlock(nickname='Training', main_count=120, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
+training_block = TrainingBlock(nickname='Training', main_count=110, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
 
 # Defines the generic genome structure
 skeleton_genome = {
