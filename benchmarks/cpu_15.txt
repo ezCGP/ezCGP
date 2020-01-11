@@ -1,0 +1,47 @@
+Gen -1 Scatter: 0.752503, Gather: 0.080198, Run: 762.156961
+Gen 0 Scatter: 0.704441, Gather: 0.120002, Run: 430.175124
+Gen 1 Scatter: 0.760423, Gather: 0.119995, Run: 231.053082
+Gen 2 Scatter: 0.724473, Gather: 0.119977, Run: 295.947716
+Gen 3 Scatter: 0.760522, Gather: 0.121193, Run: 349.735087
+Gen -1 Scatter: 0.784780, Gather: 0.108699, Run: 736.556990
+Gen 0 Scatter: 0.764622, Gather: 0.119986, Run: 415.418666
+Gen 1 Scatter: 0.769315, Gather: 0.119980, Run: 235.295826
+Gen 2 Scatter: 0.708270, Gather: 0.120005, Run: 243.754671
+Gen 3 Scatter: 0.676465, Gather: 0.159970, Run: 378.386644
+Gen -1 Scatter: 0.884572, Gather: 0.120188, Run: 605.125010
+Gen 0 Scatter: 0.804430, Gather: 0.120015, Run: 351.311906
+Gen 1 Scatter: 0.876798, Gather: 0.084169, Run: 263.097138
+Gen 2 Scatter: 0.620446, Gather: 0.120006, Run: 217.300424
+Gen -1 Scatter: 0.640494, Gather: 0.080002, Run: 508.604828
+Gen 0 Scatter: 0.760617, Gather: 0.080003, Run: 311.965627
+Gen 1 Scatter: 0.772441, Gather: 0.079992, Run: 202.089939
+Gen 2 Scatter: 0.748460, Gather: 0.080007, Run: 190.747456
+Gen 3 Scatter: 0.728426, Gather: 0.108340, Run: 261.137669
+Gen -1 Scatter: 0.640506, Gather: 0.076430, Run: 542.712782
+Gen 0 Scatter: 0.708484, Gather: 0.119995, Run: 349.836833
+Gen 1 Scatter: 0.704496, Gather: 0.123966, Run: 246.012065
+Gen 2 Scatter: 0.724479, Gather: 0.079981, Run: 237.372814
+Gen 3 Scatter: 0.688452, Gather: 0.097439, Run: 609.820165
+Gen -1 Scatter: 0.740562, Gather: 0.089340, Run: 458.313186
+Gen 0 Scatter: 0.843237, Gather: 0.119992, Run: 321.296848
+Gen 1 Scatter: 0.772873, Gather: 0.079982, Run: 256.095163
+Gen 2 Scatter: 0.592445, Gather: 0.119967, Run: 255.419940
+Gen 3 Scatter: 0.648485, Gather: 0.136240, Run: 468.267273
+Gen -1 Scatter: 0.179799, Gather: 0.001422, Run: 603.001189
+Gen 0 Scatter: 0.110725, Gather: 0.000851, Run: 417.852266
+Gen 1 Scatter: 0.096907, Gather: 0.000945, Run: 352.946741
+Gen 2 Scatter: 0.121589, Gather: 0.000621, Run: 329.284635
+Gen 3 Scatter: 0.215897, Gather: 0.000809, Run: 379.838733
+Gen 4 Scatter: 0.119276, Gather: 0.001346, Run: 380.046636
+Gen 5 Scatter: 0.119558, Gather: 0.000672, Run: 433.315086
+Gen -1 Scatter: 0.219817, Gather: 0.000597, Run: 696.436726, Select: 0.000002
+Gen 0 Scatter: 0.243608, Gather: 0.000871, Run: 501.877515, Select: 0.000002
+Gen 1 Scatter: 0.127939, Gather: 0.000863, Run: 414.840398, Select: 0.000001
+Gen -1 Scatter: 0.082827, Gather: 0.000608, Run: 626.839973, Select: 0.000002
+Gen 0 Scatter: 0.155556, Gather: 0.000657, Run: 401.109090, Select: 0.000001
+Gen 1 Scatter: 0.094575, Gather: 0.000919, Run: 321.789436, Select: 0.000001
+Gen -1 Scatter: 0.172130, Gather: 0.000750, Run: 424.670254, Select: 0.000001
+Gen 0 Scatter: 0.159890, Gather: 0.000627, Run: 346.631834, Select: 0.000001
+Gen 1 Scatter: 0.127924, Gather: 0.000803, Run: 304.398264, Select: 0.000001
+Gen 2 Scatter: 0.187834, Gather: 0.001008, Run: 280.321012, Select: 0.000002
+Gen 3 Scatter: 0.143896, Gather: 0.001224, Run: 290.956753, Select: 0.000002

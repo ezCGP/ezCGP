@@ -1,0 +1,20 @@
+# ezCGP pbs script
+#PBS -N sam_200_epochs
+#PBS -l nodes=1:ppn=8
+#PBS -l pmem=14gb
+#PBS -l walltime=12:00:00
+#PBS -q pace-ice
+#PBS -j oe
+#PBS -o sam_200_epochs.out
+#PBS -m abe
+#PBS -M szhang460@gatech.edu
+
+cd ~/ezCGP
+echo "Started on `/bin/hostname`"               # prints the name of the node job started on
+module load java/1.8.0_25
+module load openmpi/2.1.1
+module load glib/2.40.0 
+module load gcc/4.8.0
+module load anaconda3
+source activate ezCGP-cpu
+python3.6 evaluator.py

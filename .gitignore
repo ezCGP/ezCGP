@@ -1,7 +1,12 @@
 # Rodd insert
 outputs/*
 
+# FlyCheck Emacs
+flycheck_operators.py
+
 # Byte-compiled / optimized / DLL files
+
+test_mpi.py
 __pycache__/
 *.py[cod]
 *$py.class
@@ -10,6 +15,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+.vscode
 .Python
 build/
 develop-eggs/
@@ -27,6 +33,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.idea
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

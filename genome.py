@@ -1,6 +1,7 @@
 ### genome.py
 
 import numpy as np
+import logging
 
 class Genome():
 
@@ -90,7 +91,11 @@ class Genome():
         else:
             # then it's a Block Main Node
             pass
-        ftn = self[node_index]["ftn"]
+        try:
+            ftn = self[node_index]["ftn"]
+        except TypeError:
+            print('Input/output dtype is incompatible with operator functions')
+            quit()
         ftn_dict = self.operator_dict[ftn]
         if input_dtype:
             # get the required input data types for this function
@@ -107,6 +112,7 @@ class Genome():
 
     def randomFtn(self, only_one=False, exclude=None, output_dtype=None):
         choices = self.ftn_methods
+
         weights = self.ftn_weights
         if exclude is not None:
             delete = []
@@ -115,9 +121,13 @@ class Genome():
                 for c, choice in enumerate(choices):
                     if val==choice:
                         delete.append(c)
-            choices = np.delete(choices, delete)
-            weights = np.delete(weights, delete)
-            weights /= weights.sum() # normalize weights
+
+            if len(choices) != 1:
+                #print("Should not call mutate since only one function available. Returning original function")
+
+                choices = np.delete(choices, delete)
+                weights = np.delete(weights, delete)
+                weights /= weights.sum() # normalize weights
         else:
             pass
         if output_dtype is not None:
@@ -254,10 +264,6 @@ class Genome():
                 if len(self[node_index]["args"]) > 0:
                     self.active_args.update(self[node_index]["args"])
                 else: # no args to update
-                    pass
-                if (not self.has_learner) and (self[node_index]["ftn"].__name__=="single_learner"):
-                    self.has_learner = True
-                else: # already learned or ftn isn't a learner
                     pass
             else: # not an active node; don't care
                 pass

@@ -3,6 +3,7 @@
 # external packages
 import numpy as np
 from copy import deepcopy
+import logging
 
 # my scripts
 from blocks import Block
@@ -38,10 +39,10 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         ]
         """
         self.skeleton = deepcopy(skeleton) # needs deepcopy or else it will add 'block_object' to the dictionary
-        self.blocks = list(self.skeleton.keys())
-        self.blocks.remove('input')
-        self.blocks.remove('output')
-        self.num_blocks = len(self.blocks)
+        self.blocks_indices = list(self.skeleton.keys())
+        self.blocks_indices.remove('input')
+        self.blocks_indices.remove('output')
+        self.num_blocks = len(self.blocks_indices)
         # verify that the number of blocks matches the dictionary
         for i in range(1,self.num_blocks+1):
             if i not in skeleton.keys():
@@ -49,6 +50,9 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                 exit()
             else:
                 # now build out the block if it exists
+                # takes the parameters outlined by utils/skeleton_block.py
+                # and passes it to the actual Block object
+                # saves that block object in the corresponding place in skeleton_genome
                 self.skeleton[i]["block_object"] = Block(**self.skeleton[i])
 
         self.fitness = self.Fitness()
@@ -67,6 +71,20 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         """
 
 
+    def get_genome_list(self):
+        genome_list = []
+        for i in range(1,self.num_blocks+1):
+            # print('block number ', i)
+
+            # evaluate the block
+            block = self.skeleton[i]["block_object"]
+            genome_list.append(deepcopy(block.genome))
+            genome_list.append(deepcopy(block.args))
+        genome_list.append(self.fitness.values)
+        genome_list.append(self.need_evaluate())
+        return genome_list
+
+
     def __getitem__(self, block_index):
         if (block_index=="input") or (block_index=="output"):
             return self.skeleton[block_index]
@@ -82,14 +100,43 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
                 pass
         return False
 
+    def set_need_evaluate(self, flag=True):
+        for i in range(1,self.num_blocks+1):
+            self.skeleton[i]["block_object"].need_evaluate = flag
+
+    def clear_rec(self):
+        for i in range(1,self.num_blocks+1):
+            block = self.skeleton[i]["block_object"]
+            block.rec_clear()
+
+
+
 
     def evaluate(self, data, labels=None, validation_pair=None):
         # added validation pair support external validation of labels/data in each block
         for i in range(1,self.num_blocks+1):
-            self.skeleton[i]["block_object"].evaluate(block_inputs=data, labels_all=labels, validation_pair=validation_pair)
-            data = self.skeleton[i]["block_object"].genome_output_values
+            block = self.skeleton[i]["block_object"]
+            block.evaluate(block_inputs=data, labels_all=labels, validation_pair=validation_pair)
+
+            if not block.dead:
+                data = self.skeleton[i]["block_object"].genome_output_values[0] #last genome output val should be classifications making labels none
+                labels =  self.skeleton[i]["block_object"].genome_output_values[1]
+                self.skeleton[i]["block_object"].genome_output_values = [] # clear out to avoid mem leak
+                if block.apply_to_val:
+                    validation_pair = self.skeleton[i]["block_object"].validation_pair_output
+                    self.skeleton[i]["block_object"].validation_pair_output = []
+
+                #after running enumerate in individual.evaluate(), data strips down one dimension, so add back the dimension
+                if i != self.num_blocks:
+                    new_shape = (1,) + data.shape
+                    data = data.reshape(new_shape)
+            else:
+                print("This is a dead block")
+                for active_node in block.active_nodes:
+                    print(block[active_node])
+                break
+
         self.genome_outputs = data
-        #return genome_outputs
 
     def score_fitness(self, labels):
         #self.fitness =
@@ -111,26 +158,9 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
         else:
             self.skeleton[block]["block_object"].mutate()
 
-
-    def mate(self, other, block=None):
-        if block is "random selection":
-            roll = np.random.random()
-            for i in range(1,self.num_blocks):
-                if roll <= i/self.num_blocks:
-                    offspring_list = self.skeleton[i]["block_object"].mate(
-                                            other.skeleton[i]["block_object"])
-                    break
-                else:
-                    continue
-        elif block is None:
-            for i in range(1,self.num_blocks):
-                offspring_list = self.skeleton[i]["block_object"].mate(
-                                        other.skeleton[i]["block_object"])
-        else:
-            offspring_list = self.skeleton[i]["block_object"].mate(
-                                    other.skeleton[i]["block_object"])
-        return offspring_list
-
+    def copy(self):
+        # copy without memory leaks (remove genome_output)
+        return build_individual(self.skeleton, self.get_genome_list())
 
     class Fitness(object):
         '''
@@ -150,3 +180,17 @@ class Individual(): # Block not inherited in...rather just instanciate to an att
             # 'self' must be at least as good as 'other' for all objective fnts (np.all(a>=b))
             # and strictly better in at least one (np.any(a>b))
             return np.any(a < b) and np.all(a <= b)
+
+def build_individual(skeleton_genome, genome_list):
+    individual = Individual(skeleton_genome)
+    need_evaluate = genome_list[-1]
+    for i in range(1,individual.num_blocks+1):
+        # replace with genome
+        individual.skeleton[i]["block_object"].genome = genome_list[2*i-2]
+        individual.skeleton[i]["block_object"].args = genome_list[2*i-1]
+        individual.skeleton[i]["block_object"].findActive()
+        individual.skeleton[i]["block_object"].need_evaluate = need_evaluate
+    # individual structure:
+    # [block1, block2, ..., blockn, fitnessTuple, needEvaluated]
+    individual.fitness.values  = genome_list[-2]
+    return individual

@@ -1,0 +1,381 @@
+---------------------------------------
+Begin PBS Prologue Sat Dec 21 17:15:23 EST 2019
+Job ID:     7495.pace-ice-sched.pace.gatech.edu
+User ID:    szhang460
+Job name:   sam_200_epochs_gpu
+Queue:      pace-ice-gpu
+End PBS Prologue Sat Dec 21 17:15:23 EST 2019
+---------------------------------------
+ =========================================================================
+|                                                                         |
+|       A note about this anaconda and modules: This version of           |
+|       Anaconda doesn’t play well with modules - once you load the       |
+|       this module treat this module as the the VERY last one to load.   |
+|       We cannot undo changes that conda introduces, so start in a new   |
+|       shell if you need to switch or re-load modules                    |
+|                                                                         |
+ =========================================================================
+Started on rich133-h29-10.pace.gatech.edu
+gcc(4):ERROR:105: Unable to locate a modulefile for 'gcc/4.8.0'
+ =========================================================================
+|                                                                         |
+|       A note about this anaconda and modules: This version of           |
+|       Anaconda doesn’t play well with modules - once you load the       |
+|       this module treat this module as the the VERY last one to load.   |
+|       We cannot undo changes that conda introduces, so start in a new   |
+|       shell if you need to switch or re-load modules                    |
+|                                                                         |
+ =========================================================================
+Sat Dec 21 17:15:23 2019       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 390.30                 Driver Version: 390.30                    |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  Tesla V100-PCIE...  On   | 00000000:02:00.0 Off |                    0 |
+| N/A   39C    P0    41W / 250W |      0MiB / 16160MiB |      0%   E. Process |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                       GPU Memory |
+|  GPU       PID   Type   Process name                             Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+2019-12-21 17:15:46.156612: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-12-21 17:15:46.430782: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Tesla V100-PCIE-16GB major: 7 minor: 0 memoryClockRate(GHz): 1.38
+pciBusID: 0000:02:00.0
+totalMemory: 15.78GiB freeMemory: 15.36GiB
+2019-12-21 17:15:46.430823: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:15:46.690147: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:15:46.690186: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:15:46.690193: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:15:46.690489: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+Train data shape: (1, 40000, 32, 32, 3)
+Train labels shape: (40000,)
+Validation data shape: (10000, 32, 32, 3)
+Validation labels shape: (10000,)
+Test data shape: (1, 10000, 32, 32, 3)
+Test labels shape: (1, 10000)
+Picking best individual from sam_ezCGP_runs/run_14 and running for 30 epochs
+Best Individual from generation 25
+Original fitness: (0.18220000000000003, 0.18125257446381637) 
+
+arg_values: [16 2 16 512 7 5 5 1 3 5 5 3 0.06248216835164124 0.0015782617256402398
+ 0.15818118937062625 0.10409432637046796 25 16 29 49]
+curr_block isDead =  False
+[-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [-1], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 1 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [0], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [1], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [5], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 10 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [7], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 14 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [10], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 28 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [14], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 30 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [28], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 32 is: {'ftn': <function random_noise at 0x2aab28549158>, 'inputs': [30], 'args': [12]} and has arguments: [0.06248216835164124]
+function at: 33 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [32], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 40 is: 33 -> likely an output node
+arg_values: [128 8 8 16 5 5 5 3 3 5 7 3 0.19153059197349612 0.07884419169652963
+ 0.07860549374450723 0.06909193298667923 24 19 25 45]
+curr_block isDead =  False
+[-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aab28545f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+arg_values: [64 64 4 16 5 1 7 1 5 3 7 3 0.17264151413487266 0.11992326752618579
+ 0.1248642828641369 0.1248826908624647 12 11 48 41]
+curr_block isDead =  False
+[-1, 0, 2, 3, 4, 5, 12, 14, 18, 20, 100]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [-1], 'args': [1, 6, 1, 6]} and has arguments: [64 7 64 7]
+function at: 2 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [2], 'args': [1, 5, 3, 6]} and has arguments: [64 1 16 7]
+function at: 4 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [3], 'args': [1, 5]} and has arguments: [64 1]
+function at: 5 is: {'ftn': <function max_pool_layer at 0x2aab28549598>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [12], 'args': [0, 7]} and has arguments: [64 1]
+function at: 18 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [14, -1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [18], 'args': []} and has arguments: []
+function at: 100 is: 20 -> likely an output node
+Active nodes [-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [-1], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 1 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [0], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [1], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [5], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 10 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [7], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 14 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [10], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 28 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [14], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 30 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [28], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 32 is: {'ftn': <function random_noise at 0x2aab28549158>, 'inputs': [30], 'args': [12]} and has arguments: [0.06248216835164124]
+function at: 33 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [32], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 40 is: 33 -> likely an output node
+block_input: (1, 50000, 32, 32, 3)
+[6 9 9 ... 8 5 9]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aab28545f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+[6 9 9 ... 8 5 9]
+Active nodes [-1, 0, 2, 3, 4, 5, 12, 14, 18, 20, 100]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [-1], 'args': [1, 6, 1, 6]} and has arguments: [64 7 64 7]
+function at: 2 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [2], 'args': [1, 5, 3, 6]} and has arguments: [64 1 16 7]
+function at: 4 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [3], 'args': [1, 5]} and has arguments: [64 1]
+function at: 5 is: {'ftn': <function max_pool_layer at 0x2aab28549598>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [12], 'args': [0, 7]} and has arguments: [64 1]
+function at: 18 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [14, -1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [18], 'args': []} and has arguments: []
+function at: 100 is: 20 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+Time to evaluate 19.959537506103516
+0 epoch fitness: (0.9049, 0.9720778365441409)
+Active nodes [-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [-1], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 1 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [0], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [1], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [5], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 10 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [7], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 14 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [10], 'args': [15]} and has arguments: [0.10409432637046796]2019-12-21 17:16:06.151189: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:16:06.151249: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:16:06.151257: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:16:06.151262: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:16:06.151410: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+2019-12-21 17:16:40.642655: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:16:40.642734: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:16:40.642742: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:16:40.642747: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:16:40.642906: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+
+function at: 28 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [14], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 30 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [28], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 32 is: {'ftn': <function random_noise at 0x2aab28549158>, 'inputs': [30], 'args': [12]} and has arguments: [0.06248216835164124]
+function at: 33 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [32], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 40 is: 33 -> likely an output node
+block_input: (1, 50000, 32, 32, 3)
+[6 9 9 ... 6 9 2]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aab28545f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+[6 9 9 ... 6 9 2]
+Active nodes [-1, 0, 2, 3, 4, 5, 12, 14, 18, 20, 100]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [-1], 'args': [1, 6, 1, 6]} and has arguments: [64 7 64 7]
+function at: 2 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [2], 'args': [1, 5, 3, 6]} and has arguments: [64 1 16 7]
+function at: 4 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [3], 'args': [1, 5]} and has arguments: [64 1]
+function at: 5 is: {'ftn': <function max_pool_layer at 0x2aab28549598>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [12], 'args': [0, 7]} and has arguments: [64 1]
+function at: 18 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [14, -1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [18], 'args': []} and has arguments: []
+function at: 100 is: 20 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+Epoch completed. epoch_loss: 176.90335121750832
+Time to evaluate 34.25001549720764
+1 epoch fitness: (0.5161, 0.5344605903340212)
+Active nodes [-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [-1], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 1 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [0], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [1], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [5], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 10 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [7], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 14 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [10], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 28 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [14], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 30 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [28], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 32 is: {'ftn': <function random_noise at 0x2aab28549158>, 'inputs': [30], 'args': [12]} and has arguments: [0.06248216835164124]
+function at: 33 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [32], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 40 is: 33 -> likely an output node
+block_input: (1, 50000, 32, 32, 3)
+[6 9 9 ... 1 4 7]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aab28545f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+[6 9 9 ... 1 4 7]
+Active nodes [-1, 0, 2, 3, 4, 5, 12, 14, 18, 20, 100]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [-1], 'args': [1, 6, 1, 6]} and has arguments: [64 7 64 7]
+function at: 2 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [2], 'args': [1, 5, 3, 6]} and has arguments: [64 1 16 7]
+function at: 4 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [3], 'args': [1, 5]} and has arguments: [64 1]
+function at: 5 is: {'ftn': <function max_pool_layer at 0x2aab28549598>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [12], 'args': [0, 7]} and has arguments: [64 1]
+function at: 18 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [14, -1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [18], 'args': []} and has arguments: []
+function at: 100 is: 20 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+Epoch completed. epoch_loss: 176.42424821853638
+Epoch completed. epoch_loss: 136.38632214814425
+Time to evaluate 50.24572253227234
+2 epoch fitness: (0.4637, 0.48089485386193354)
+Active nodes [-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [-1], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 1 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [0], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [1], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [5], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 10 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [7], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 14 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [10], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 28 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [14], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 30 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [28], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 32 is: {'ftn': <function random_noise at 0x2aab28549158>, 'inputs': [30], 'args': [12]} and has arguments: [0.06248216835164124]
+function at: 33 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [32], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 40 is: 33 -> likely an output node
+block_input: (1, 50000, 32, 32, 3)
+[6 9 9 ... 0 2 4]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aab28545f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+[6 9 9 ... 0 2 4]
+Active nodes [-1, 0, 2, 3, 4, 5, 12, 14, 18, 20, 100]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [-1], 'args': [1, 6, 1, 6]} and has arguments: [64 7 64 7]
+function at: 2 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [2], 'args': [1, 5, 3, 6]} and has arguments: [64 1 16 7]2019-12-21 17:17:30.981650: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:17:30.981722: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:17:30.981730: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:17:30.981735: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:17:30.981895: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+2019-12-21 17:18:37.238160: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:18:37.238242: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:18:37.238249: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:18:37.238255: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:18:37.238412: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+2019-12-21 17:19:59.662622: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:19:59.662709: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:19:59.662717: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:19:59.662723: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:19:59.662898: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+
+function at: 4 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [3], 'args': [1, 5]} and has arguments: [64 1]
+function at: 5 is: {'ftn': <function max_pool_layer at 0x2aab28549598>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [12], 'args': [0, 7]} and has arguments: [64 1]
+function at: 18 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [14, -1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [18], 'args': []} and has arguments: []
+function at: 100 is: 20 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+Epoch completed. epoch_loss: 178.7311796247959
+Epoch completed. epoch_loss: 136.81092114001513
+Epoch completed. epoch_loss: 120.58324693143368
+Time to evaluate 66.29596090316772
+3 epoch fitness: (0.3944, 0.3975722377866209)
+Active nodes [-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [-1], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 1 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [0], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [1], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [5], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 10 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [7], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 14 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [10], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 28 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [14], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 30 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [28], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 32 is: {'ftn': <function random_noise at 0x2aab28549158>, 'inputs': [30], 'args': [12]} and has arguments: [0.06248216835164124]
+function at: 33 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [32], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 40 is: 33 -> likely an output node
+block_input: (1, 50000, 32, 32, 3)
+[6 9 9 ... 0 7 9]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aab28545f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+[6 9 9 ... 0 7 9]
+Active nodes [-1, 0, 2, 3, 4, 5, 12, 14, 18, 20, 100]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [-1], 'args': [1, 6, 1, 6]} and has arguments: [64 7 64 7]
+function at: 2 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [2], 'args': [1, 5, 3, 6]} and has arguments: [64 1 16 7]
+function at: 4 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [3], 'args': [1, 5]} and has arguments: [64 1]
+function at: 5 is: {'ftn': <function max_pool_layer at 0x2aab28549598>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [12], 'args': [0, 7]} and has arguments: [64 1]
+function at: 18 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [14, -1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [18], 'args': []} and has arguments: []
+function at: 100 is: 20 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+Epoch completed. epoch_loss: 174.84116977453232
+Epoch completed. epoch_loss: 135.70947381854057
+Epoch completed. epoch_loss: 118.76157224178314
+Epoch completed. epoch_loss: 107.87319761514664
+Time to evaluate 82.27255368232727
+4 epoch fitness: (0.3719, 0.36997904618608113)
+Active nodes [-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [-1], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 1 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [0], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 5 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [1], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 7 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [5], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 10 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [7], 'args': [14]} and has arguments: [0.15818118937062625]
+function at: 14 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [10], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 28 is: {'ftn': <function add_gausian_noise at 0x2aab285492f0>, 'inputs': [14], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 30 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [28], 'args': [15]} and has arguments: [0.10409432637046796]
+function at: 32 is: {'ftn': <function random_noise at 0x2aab28549158>, 'inputs': [30], 'args': [12]} and has arguments: [0.06248216835164124]
+function at: 33 is: {'ftn': <function random_horizontal_flip at 0x2aab285491e0>, 'inputs': [32], 'args': [13]} and has arguments: [0.0015782617256402398]
+function at: 40 is: 33 -> likely an output node
+block_input: (1, 50000, 32, 32, 3)
+[6 9 9 ... 8 3 1]
+Active nodes [-1, 0, 1]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function ceil_greyscale_norm at 0x2aab28545f28>, 'inputs': [-1], 'args': []} and has arguments: []
+function at: 1 is: 0 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+[6 9 9 ... 8 3 1]
+Active nodes [-1, 0, 2, 3, 4, 5, 12, 14, 18, 20, 100]
+function at: -1 is: InputPlaceholder
+function at: 0 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [-1], 'args': [1, 6, 1, 6]} and has arguments: [64 7 64 7]
+function at: 2 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [0, 0], 'args': []} and has arguments: []
+function at: 3 is: {'ftn': <function res_block at 0x2aab28549b70>, 'inputs': [2], 'args': [1, 5, 3, 6]} and has arguments: [64 1 16 7]
+function at: 4 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [3], 'args': [1, 5]} and has arguments: [64 1]
+function at: 5 is: {'ftn': <function max_pool_layer at 0x2aab28549598>, 'inputs': [4], 'args': []} and has arguments: []
+function at: 12 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [5], 'args': []} and has arguments: []
+function at: 14 is: {'ftn': <function conv_block at 0x2aab28549ae8>, 'inputs': [12], 'args': [0, 7]} and has arguments: [64 1]
+function at: 18 is: {'ftn': <function sum_func at 0x2aab285499d8>, 'inputs': [14, -1], 'args': []} and has arguments: []
+function at: 20 is: {'ftn': <function avg_pool_layer at 0x2aab28549620>, 'inputs': [18], 'args': []} and has arguments: []
+function at: 100 is: 20 -> likely an output node
+block_input: (1, 106388, 32, 32, 3)
+Epoch completed. epoch_loss: 174.90656964480877
+Epoch completed. epoch_loss: 135.37777141481638
+Epoch completed. epoch_loss: 118.67315115779638
+Epoch completed. epoch_loss: 107.64547554403543
+Epoch completed. epoch_loss: 99.03296287357807
+Time to evaluate 98.29662561416626
+5 epoch fitness: (0.473, 0.4800171551894332)
+Active nodes [-1, 0, 1, 5, 7, 10, 14, 28, 30, 32, 33, 40]2019-12-21 17:21:37.541884: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:21:37.541967: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:21:37.541975: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:21:37.541980: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:21:37.542129: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+2019-12-21 17:23:31.471466: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0
+2019-12-21 17:23:31.471534: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-12-21 17:23:31.471542: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 
+2019-12-21 17:23:31.471547: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N 
+2019-12-21 17:23:31.471705: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 14862 MB memory) -> physical GPU (device: 0, name: Tesla V100-PCIE-16GB, pci bus id: 0000:02:00.0, compute capability: 7.0)
+---------------------------------------
+Begin PBS Epilogue Sat Dec 21 17:23:42 EST 2019
+Job ID:     7495.pace-ice-sched.pace.gatech.edu
+User ID:    szhang460
+Job name:   sam_200_epochs_gpu
+Resources:  neednodes=1:ppn=8:gpus=1:exclusive_process,nodes=1:ppn=8:gpus=1:exclusive_process,pmem=14gb,walltime=08:00:00
+Rsrc Used:  cput=00:07:42,energy_used=0,mem=24290688kb,vmem=49157620kb,walltime=00:08:19
+Queue:      pace-ice-gpu
+Nodes:     
+rich133-h29-10.pace.gatech.edu
+End PBS Epilogue Sat Dec 21 17:23:42 EST 2019
+---------------------------------------

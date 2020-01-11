@@ -44,7 +44,8 @@ class Mutate(Genome):
                     if current_pointer == mutate_pointer:
                         # mutate this function
                         current_ftn = self[node_index]["ftn"]
-                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], output_dtype=self.operator_dict[current_ftn]['outputs'])
+                        self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], \
+                                                                 output_dtype=self.operator_dict[current_ftn]['outputs'])
                         # see if we changed an active node
                         if node_index in self.active_nodes:
                             self.active_node_unchanged = False
@@ -156,6 +157,8 @@ class Mutate(Genome):
 
 
     def mutate_singleInput(self):
+        if self.genome_main_count == 1:
+            return # cannot swap gene if only one
         choices = np.arange(self.genome_main_count+self.genome_output_count)
         self.active_node_unchanged = True
         while self.active_node_unchanged:
@@ -193,7 +196,9 @@ class Mutate(Genome):
         while self.active_node_unchanged:
             node_index = np.random.choice(a=choices)
             current_ftn = self[node_index]["ftn"]
-            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], output_dtype=self.operator_dict[current_ftn]['outputs'])
+            self[node_index]["ftn"] = self.randomFtn(only_one=True, exclude=[current_ftn], \
+                                                     output_dtype=self.operator_dict[current_ftn]['outputs'])
+
             # get all inputs to match new required datatype
             # find which already connected inputs match with the required datatypes
             required_dtypes = self.getNodeType(node_index, input_dtype=True)
@@ -203,11 +208,13 @@ class Mutate(Genome):
                 for i, dtype in enumerate(required_dtypes):
                     if (current_dtype==dtype) and (new_inputs[i] is None):
                         new_inputs[i] = input_node
+
             # now see which input node was not filled in
             for i, dtype in enumerate(required_dtypes):
                 if new_inputs[i] is None:
                     new_inputs[i] = self.randomInput(dtype=dtype, max_=node_index, exclude=None)
             self[node_index]["inputs"] = new_inputs
+
             # same for the args
             required_dtypes = self.getNodeType(node_index, arg_dtype=True)
             new_args = [None]*len(required_dtypes)
@@ -216,34 +223,18 @@ class Mutate(Genome):
                 for i, dtype in enumerate(required_dtypes):
                     if (current_dtype==dtype) and (new_args[i] is None):
                         new_args[i] = arg_node
+
             # which has not been filled
             for i, dtype in enumerate(required_dtypes):
                 if new_args[i] is None:
                     new_args[i] = self.randomArg(dtype=dtype, exclude=None)
             self[node_index]["args"] = new_args
+
             # check if it's active
             if node_index in self.active_nodes:
                 self.active_node_unchanged = False
             else:
                 pass
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def mutate(self):
         '''
@@ -358,9 +349,6 @@ class Mutate(Genome):
                 else: #don't mutate
                     pass
 
-
-
-
         # finish with the Output Nodes
         for node_index in range(numMain, numMain+numOutputs):
             if random.random() <= input_mut_rate:
@@ -381,7 +369,6 @@ class Mutate(Genome):
         then the previous genertion of mutant without the mutated active node is returned
         2) else if the mutant is not dominated by the parent, that mutant is returned
         '''
-
         mutant = deepcopy(self)
         while mutant.active_node_changed==False:
             previous_mutant = deepcopy(mutant)
@@ -390,6 +377,7 @@ class Mutate(Genome):
         if self.fitness.dominates(mutant.fitness):
             # new mutant is strictly worse
             self = deepcopy(previous_mutant)
+            del previous_mutant
         else:
             self = deepcopy(mutant)
         del mutant
@@ -508,8 +496,6 @@ class Mutate(Genome):
 
                     # mutate pointer has to be in output == found
                     break
-
-
 
     def mutate_args(self): # CAN PROB DELETE
         '''
