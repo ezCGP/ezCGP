@@ -2,8 +2,9 @@ numpy==1.16.4
 scikit-image==0.15.0
 scikit-learn==0.21.2
 opencv=4.1.1
-mpich=3.3.1
+#mpich=3.3.2
 mpi4py=2.0.0
+openmpi=3.1.2
 tensorflow-gpu==1.12.0         # choose this to run on an environment for PACE ICE GPU
 #tensorflow==1.12.0            # choose this to run on a separate environment for CPU only
 cudatoolkit==9.0               # CUDA 9.0 is chosen for PACE ICE GPU support, which uses TelsaP100 GPUs with driver version 390
