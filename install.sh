@@ -14,4 +14,4 @@ sudo /root/anaconda3/bin/conda activate ezCGPP
 sudo /root/anaconda3/bin/conda config --env --add channels menpo
 sudo /root/anaconda3/bin/conda config --env --add channels conda-forge
 sudo /root/anaconda3/bin/conda install --file requirements.txt -y
-sudo pip install horovod
+sudo pip3 install horovod
