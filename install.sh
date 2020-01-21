@@ -1,4 +1,5 @@
 # install shared Anaconda environment following: https://medium.com/@pjptech/installing-anaconda-for-multiple-users-650b2a6666c6
+sudo rm /etc/profile.d/conda.sh
 cd /tmp
 curl -O https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh
 bash Anaconda3*.sh -u
