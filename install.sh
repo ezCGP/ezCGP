@@ -9,6 +9,7 @@ cd ~
 git clone https://github.com/ezCGP/ezCGP
 cd ezCGP
 git checkout 2020S-gpu
+cd ~
 sudo ln -s $HOME/anaconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 conda create -n ezCGP python=3.6 anaconda -y
 conda activate ezCGP
