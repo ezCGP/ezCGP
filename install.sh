@@ -16,6 +16,6 @@ conda activate ezCGP
 conda config --env --add channels menpo
 conda config --env --add channels conda-forge
 conda install --file requirements.txt -y
-conda install -c engility/label/broken horovod
+conda install -c qiqiao horovod
 source ~/.bashrc
 conda activate ezCGP
