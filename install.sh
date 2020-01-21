@@ -11,9 +11,10 @@ cd ezCGP
 git checkout 2020S-gpu
 sudo ln -s $HOME/anaconda3/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 conda create -n ezCGP python=3.6 anaconda -y
-conda activate ezCGPP
+conda activate ezCGP
 conda config --env --add channels menpo
 conda config --env --add channels conda-forge
 conda install --file requirements.txt -y
 source ~/.bashrc
+conda activate ezCGP
 pip3 install horovod
