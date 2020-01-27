@@ -2,7 +2,8 @@
 sudo rm /etc/profile.d/conda.sh
 cd /tmp
 curl -O https://repo.anaconda.com/archive/Anaconda3-5.2.0-Linux-x86_64.sh
-bash Anaconda3*.sh -u
+mkdir -f /home/anaconda
+bash Anaconda3*.sh -u -b -p /home/anaconda
 #chmod -R go-w /opt/anaconda
 #chmod -R go+rX /opt/anaconda
 source ~/.bashrc
