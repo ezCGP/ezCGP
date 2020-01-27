@@ -7,7 +7,7 @@ bash Anaconda3*.sh -u
 #chmod -R go+rX /opt/anaconda
 source ~/.bashrc
 cd ~
-git clone https://github.com/ezCGP/ezCGP
+git clone --single-branch --branch 2020S-gpu https://github.com/ezCGP/ezCGP
 cd ezCGP
 git checkout 2020S-gpu
 cd ~
