@@ -7,11 +7,10 @@ bash Anaconda3*.sh -u -b -p /home/anaconda
 #chmod -R go-w /opt/anaconda
 #chmod -R go+rX /opt/anaconda
 source ~/.bashrc
-cd ~
 git clone --single-branch --branch 2020S-gpu https://github.com/ezCGP/ezCGP
 cd ezCGP
 git checkout 2020S-gpu
-cd ~
+cd ..
 sudo ln -s /home/anaconda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 . /etc/profile.d/conda.sh
 conda create -n ezCGP python=3.6 anaconda -y
@@ -20,3 +19,4 @@ conda config --env --add channels menpo
 conda config --env --add channels conda-forge
 conda install --file requirements.txt -y
 conda install -c qiqiao horovod
+ln -s /home/Anaconda/bin/conda /usr/local/bin/conda
