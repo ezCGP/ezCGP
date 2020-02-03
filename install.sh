@@ -19,5 +19,6 @@ conda config --env --add channels menpo
 conda config --env --add channels conda-forge
 ls
 conda install --file requirements.txt -y
+conda install -c anaconda cudatoolkit
 conda install -c qiqiao horovod -y
 ln -s /home/Anaconda/bin/conda /usr/local/bin/conda
