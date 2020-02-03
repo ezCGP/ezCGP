@@ -6,9 +6,10 @@ mkdir -f /home/anaconda
 bash Anaconda3*.sh -u -b -p /home/anaconda
 #chmod -R go-w /opt/anaconda
 #chmod -R go+rX /opt/anaconda
+cd /
 source ~/.bashrc
 git clone --single-branch --branch 2020S-gpu https://github.com/ezCGP/ezCGP
-cd ezCGP
+cd /ezCGP
 git checkout 2020S-gpu
 sudo ln -s /home/anaconda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 . /etc/profile.d/conda.sh
