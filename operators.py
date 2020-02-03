@@ -58,6 +58,53 @@ operDict[gassuian_blur] = {"inputs": [np.ndarray],
                            "include_labels": True}
 
 
+
+
+"""Example of using Augmentor"""
+
+def rotate(p, probability = .5, max_left_rotation=5, max_right_rotation = 10):
+    p.rotate(probability, max_left_rotation, max_right_rotation)
+    return p
+
+operDict[gassuian_blur] = {"inputs": [Augmentor.Pipeline],
+			   "outputs": Augmentor.Pipeline,
+			   "args": ['percentage', 'rotRange', 'rotRange']
+               }
+
+
+# Create your new operation by inheriting from the Operation superclass:
+class FoldImage(Operation):
+    # Here you can accept as many custom parameters as required:
+    def __init__(self, probability, num_of_folds):
+        # Call the superclass's constructor (meaning you must
+        # supply a probability value):
+        Operation.__init__(self, probability)
+        # Set your custom operation's member variables here as required:
+        self.num_of_folds = num_of_folds
+
+    # Your class must implement the perform_operation method:
+    def perform_operation(self, image):
+        # Start of code to perform custom image operation.
+        for fold in range(self.num_of_folds):
+            pass
+        # End of code to perform custom image operation.
+
+        # Return the image so that it can further processed in the pipeline:
+        return image
+
+
+def fold(p, probability = .5, num_of_folds):
+    fold = Fold(probability = .75, num_of_folds = 4)
+    p.add_operation(fold)
+    return p
+
+operDict[gassuian_blur] = {"inputs": [Augmentor.Pipeline],
+			   "outputs": Augmentor.Pipeline,
+			   "args": ['percentage']
+               }
+
+
+
 """
 Normalization methods
 """
