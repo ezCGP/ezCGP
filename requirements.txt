@@ -8,6 +8,6 @@ openmpi=3.1.2
 tensorflow-gpu==1.12.0         # choose this to run on an environment for PACE ICE GPU
 #tensorflow==1.12.0            # choose this to run on a separate environment for CPU only
 #cudatoolkit==9.0               # CUDA 9.0 is chosen for PACE ICE GPU support, which uses TelsaP100 GPUs with driver version 390
-#cudatoolkit==10.1               # CUDA 10.1 is chosen for GCP GPU support https://cloud.google.com/compute/docs/gpus/install-drivers-gpu
+cudatoolkit==10.1               # CUDA 10.1 is chosen for GCP GPU support https://cloud.google.com/compute/docs/gpus/install-drivers-gpu
                      # please see this site for compatibilities: https://stackoverflow.com/questions/30820513/what-is-the-correct-version-of-cuda-for-my-nvidia-driver/30820690#30820690
 
