@@ -10,7 +10,6 @@ source ~/.bashrc
 git clone --single-branch --branch 2020S-gpu https://github.com/ezCGP/ezCGP
 cd ezCGP
 git checkout 2020S-gpu
-cd ..
 sudo ln -s /home/anaconda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 . /etc/profile.d/conda.sh
 conda create -n ezCGP python=3.6 anaconda -y
