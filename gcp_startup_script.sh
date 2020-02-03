@@ -3,5 +3,6 @@
 sudo apt-get update
 sudo apt-get install bzip2 libxml2-dev git python3-pip -y
 # get the install.sh script from Github and put it in local directory for user to run manually
+cd /
 wget https://raw.githubusercontent.com/ezCGP/ezCGP/2020S-gpu/install.sh
 bash install.sh
