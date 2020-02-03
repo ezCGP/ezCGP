@@ -17,6 +17,7 @@ conda create -n ezCGP python=3.6 anaconda -y
 conda activate ezCGP
 conda config --env --add channels menpo
 conda config --env --add channels conda-forge
-conda install --file /requirements.txt -y
+pwd
+conda install --file ~/ezCGP/requirements.txt -y
 conda install -c qiqiao horovod
 ln -s /home/Anaconda/bin/conda /usr/local/bin/conda
