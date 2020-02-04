@@ -18,6 +18,6 @@ conda activate ezCGP
 conda config --env --add channels menpo
 conda config --env --add channels conda-forge
 conda install --file requirements.txt -y
-conda install -c nvidia cudatoolkit
+conda install -c nvidia cudatoolkit -y
 conda install -c qiqiao horovod -y
 ln -s /home/Anaconda/bin/conda /usr/local/bin/conda
