@@ -407,6 +407,17 @@ operDict[sum_func] = {"inputs": [tf.Tensor, tf.Tensor],
                             "name": 'sumFunc',
                             "include_labels": False}
 
+def subtract_func(data1, data2):
+    # Element-wise subtraction of two feature maps, channel by channel.
+    # If one feature map is larger, we downsample it using max pooling
+    # If one feature map has more channels, we increase its size using zero padding
+    return sum_func(data1, -data2)
+operDict[subtract_func] = {"inputs": [tf.Tensor, tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'subtractFunc',
+                            "include_labels": False}
+
 def sigmoid_func(input_tensor):
     return tf.nn.sigmoid(input_tensor)
 
