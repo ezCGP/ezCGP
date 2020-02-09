@@ -335,6 +335,19 @@ operDict[dropout_layer] = {"inputs": [tf.Tensor],
                             "outputs": tf.Tensor,
                             "name": 'dropout_layer',
                             "include_labels": False}
+
+def flatten_layer(input_tensor):
+    #if input_tensor.shape[1].value == 1:
+     #   return input_tensor
+    # returns a tuple of Tensor objects (output, rate)
+    return tf.layers.flatten(input_tensor)
+
+
+operDict[flatten_layer] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'flatten_layer',
+                            "include_labels": False}
 """
 FUNCTIONS
     1. Batch Normalization
