@@ -296,7 +296,7 @@ def fractional_max_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     if input_tensor.shape[1].value == 1:
         return input_tensor
     pooling_ratio = [1.0, pool_height, pool_width, 1.0]      # see args.py for mutation limits
-    pseudo_random = True        # true random underfits when combined with data augmentation and/or dropout 
+    pseudo_random = True        # true random underfits when combined with data augmentation and/or dropout
     overlapping = True          # overlapping pooling regions work better, according to 2015 Ben Graham paper
     # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence
     return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)[0]
@@ -310,9 +310,9 @@ operDict[fractional_max_pool] = {"inputs": [tf.Tensor],
 def fractional_avg_pool(input_tensor, pool_height = 2.0, pool_width = 2.0):
     if input_tensor.shape[1].value == 1:
         return input_tensor
-    pooling_ratio = [1.0, pool_height, pool_width, 1.0] 
-    pseudo_random = True 
-    overlapping = True        
+    pooling_ratio = [1.0, pool_height, pool_width, 1.0]
+    pseudo_random = True
+    overlapping = True
     # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence)
     return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)[0]
 
@@ -322,6 +322,32 @@ operDict[fractional_avg_pool] = {"inputs": [tf.Tensor],
                             "name": 'fractional_avg_pool',
                             "include_labels": False}
 
+
+def dropout_layer(input_tensor, rate = 0.2):
+    #if input_tensor.shape[1].value == 1:
+     #   return input_tensor
+    # returns a tuple of Tensor objects (output, rate)
+    return tf.nn.dropout(input_tensor, rate)
+
+
+operDict[dropout_layer] = {"inputs": [tf.Tensor],
+                            "args": ['percentage'],
+                            "outputs": tf.Tensor,
+                            "name": 'dropout_layer',
+                            "include_labels": False}
+
+def flatten_layer(input_tensor):
+    #if input_tensor.shape[1].value == 1:
+     #   return input_tensor
+    # returns a tuple of Tensor objects (output, rate)
+    return tf.layers.flatten(input_tensor)
+
+
+operDict[flatten_layer] = {"inputs": [tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'flatten_layer',
+                            "include_labels": False}
 """
 FUNCTIONS
     1. Batch Normalization
@@ -389,6 +415,17 @@ operDict[sum_func] = {"inputs": [tf.Tensor, tf.Tensor],
                             "args": [],
                             "outputs": tf.Tensor,
                             "name": 'sumFunc',
+                            "include_labels": False}
+
+def subtract_func(data1, data2):
+    # Element-wise subtraction of two feature maps, channel by channel.
+    # If one feature map is larger, we downsample it using max pooling
+    # If one feature map has more channels, we increase its size using zero padding
+    return sum_func(data1, -data2)
+operDict[subtract_func] = {"inputs": [tf.Tensor, tf.Tensor],
+                            "args": [],
+                            "outputs": tf.Tensor,
+                            "name": 'subtractFunc',
                             "include_labels": False}
 
 def sigmoid_func(input_tensor):
