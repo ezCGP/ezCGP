@@ -4,6 +4,7 @@
 # packages
 import numpy as np
 from numpy import random as r
+import tensorflow as tf
 #import random
 from copy import copy
 
@@ -292,3 +293,27 @@ class argPoolWidth(object):
         return str(self)
 
 arguments.append(argPoolWidth)
+
+class activation(object):
+
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+            self.num_samples = 10
+
+    def mutate(self):
+        # kernel width between 1 and 4
+        activationList = [tf.nn.relu, tf.nn.sigmoid,
+                          tf.nn.tanh,
+                          None, tf.nn.elu]
+        self.value = np.random.choice(activationList)
+
+    def __str__(self):
+        return "{}".format(self.value)
+
+    def __repr__(self):
+        return str(self)
+
+arguments.append(activation)

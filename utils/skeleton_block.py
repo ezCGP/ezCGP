@@ -24,7 +24,8 @@ class SkeletonBlock:
                      arguments.percentage: {'prob': 1},
                      arguments.rotRange: {'prob': 1},
                      arguments.argPoolHeight: {'prob': 1},
-                     arguments.argPoolWidth: {'prob': 1}
+                     arguments.argPoolWidth: {'prob': 1},
+                     arguments.activation: {"prob": 1}
                  },
                  mut={
                      mut.Mutate.mutate_singleInput: {'prob': 1, 'args': []},

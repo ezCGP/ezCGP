@@ -222,16 +222,16 @@ operDict[input_layer] = {"inputs": [tf.Tensor],
 			 "args": [],
              "include_labels": False}
 
-def conv_layer(input_tensor, filters=64, kernel_size=3):
+def conv_layer(input_tensor, filters=64, kernel_size=3, activation = tf.nn.relu):
     kernel_size = (kernel_size, kernel_size)
     # Convolutional Layer
     # Computes 32 features using a 5x5 filter with ReLU activation.
     # Padding is added to preserve width and height.
     return tf.layers.conv2d(inputs=input_tensor, filters=filters, \
-        kernel_size=kernel_size, padding="same", activation=None, data_format = "channels_last")
+        kernel_size=kernel_size, padding="same", activation = activation, data_format = "channels_last")
 
 operDict[conv_layer] = {"inputs": [tf.Tensor],
-                            "args": ["argPow2", "argFilterSize"],
+                            "args": ["argPow2", "argFilterSize", "activation"],
                             "outputs": tf.Tensor,
                             "name": 'convLayer',
                             "include_labels": False
@@ -266,15 +266,15 @@ operDict[avg_pool_layer] = {"inputs": [tf.Tensor],
 def global_avg_pool_layer(input_tensor):
     return avg_pool_layer(input_tensor)
 
-def dense_layer(input_tensor, num_units=128):
+def dense_layer(input_tensor, num_units=128, activation = tf.nn.relu):
     # Flatten tensor into a batch of vectors
     pool2_flat = tf.layers.Flatten()(input_tensor)
     # Densely connected layer with 1024 neurons
-    logits = tf.layers.dense(inputs=pool2_flat, units=num_units, activation=tf.nn.relu)
+    logits = tf.layers.dense(inputs=pool2_flat, units=num_units, activation = activation)
     return logits
 
 operDict[dense_layer] = {"inputs": [tf.Tensor],
-                         "args": ["argPow2"],
+                         "args": ["argPow2", "activation"],
                          "outputs": tf.Tensor,
                          "name": 'denseLayer',
                          "include_labels": False}
@@ -331,8 +331,6 @@ FUNCTIONS
     5. Sigmoid
 """
 
-
-
 def batch_normalization_func(input_tensor):
     # Batch Normalization
     return tf.layers.batch_normalization(input_tensor, training=True)
@@ -347,7 +345,6 @@ operDict[batch_normalization_func] = {"inputs": [tf.Tensor],
 def relu_func(input_tensor):
     # ReLu Non-linear activation function
     return tf.nn.relu(input_tensor)
-
 
 def concat_func(data1, data2):
     # Concatenates two feature maps in the channel dimension
