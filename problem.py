@@ -7,12 +7,12 @@ from six.moves import cPickle as pickle
 
 from utils.training_block import TrainingBlock
 from utils.preprocessing_block import PreprocessingBlock
-
+from utils.skeleton_block import SkeletonBlock
 from utils.DbConfig import DbConfig
 from utils.DbManager import DbManager
 import logging
 
-
+from AugmentorBlock import AugmentorBlock
 """PARAMETERS"""
 # total population: (pop_size + n_offspring * 2) * (N_Mutants + 1)
 # divide by num cores to find number of individuals per core
@@ -132,20 +132,36 @@ def scoreFunction(predict, actual):
 
     print('Loaded MNIST dataset. x_train: {} y_train: {} x_test: {} y_test: {}'
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
-
+#
 """
-preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=50, n_epochs=N_EPOCHS)
+#preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=50, n_epochs=N_EPOCHS)
 preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1, n_epochs=N_EPOCHS,
                                            primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
-training_block = TrainingBlock(nickname='Training', main_count=120, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
+training_block = TrainingBlock(nickname='Training', main_count=120, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS,
+                                            primitives={operators.ceil_greyscale_norm: {'prob': 1}})
 
 # Defines the generic genome structure
 skeleton_genome = {
     'input': [np.ndarray],  # we don't pass in the labels since the labels are only used at evaluation and scoring time
     'output': [np.ndarray],
     # vars converts the block object to a dictionary
-    1: vars(preprocessing_block1),
-    2: vars(preprocessing_block2),
-    3: vars(training_block)
+   # 1: vars(preprocessing_block1),
+    1: vars(preprocessing_block2),
+    2: vars(training_block)
 }
+
+import Augmentor
+block = SkeletonBlock()
+block.setup_dict_ftn = {operators.rotate: {"prob": 1}}
+block.block_input_dtypes = Augmentor.Pipeline,
+block.block_outputs_dtypes = Augmentor.Pipeline,
+del(block.tensorblock_flag)
+del(block.learning_required)
+del(block.apply_to_val)
+del(block.batch_size)
+del(block.n_epochs)
+block = AugmentorBlock(**vars(block))
+
+
+block.evaluate()

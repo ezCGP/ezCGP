@@ -7,6 +7,8 @@ import cv2
 import skimage as sk
 from skimage import filters, exposure
 import logging
+import Augmentor
+from Augmentor.Operations import Operation
 # from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -66,9 +68,9 @@ def rotate(p, probability = .5, max_left_rotation=5, max_right_rotation = 10):
     p.rotate(probability, max_left_rotation, max_right_rotation)
     return p
 
-operDict[gassuian_blur] = {"inputs": [Augmentor.Pipeline],
+operDict[rotate] = {"inputs": [Augmentor.Pipeline],
 			   "outputs": Augmentor.Pipeline,
-			   "args": ['percentage', 'rotRange', 'rotRange']
+			   "args": []
                }
 
 
@@ -93,8 +95,8 @@ class FoldImage(Operation):
         return image
 
 
-def fold(p, probability = .5, num_of_folds):
-    fold = Fold(probability = .75, num_of_folds = 4)
+def fold(p, probability = .5, num_of_folds = 4):
+    fold = Fold(probability = probability, num_of_folds = num_of_folds)
     p.add_operation(fold)
     return p
 
