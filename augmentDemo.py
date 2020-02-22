@@ -17,8 +17,7 @@ x_val, y_val = val
 x_train, y_train = np.array([x_train]), np.array(y_train)  # this is such a weird shape requirement
 x_test, y_test = np.array([x_test]), np.array([y_test])
 x_val, y_val = np.array(x_val), np.array(y_val)
-
-dataset = DataSet(x_train[0].astype(np.uint8), y_train, x_val, y_val)
+x_train = x_train[0].astype(np.uint8)
 
 # Create your new operation by inheriting from the Operation superclass:
 class normalize(Operation):
@@ -37,11 +36,14 @@ class normalize(Operation):
         augmentedImages.append(modImage)
         return augmentedImages
 
+dataset = DataSet(x_train, y_train, x_val, y_val)
+
 dataset.train_pipeline.rotate90(.1)
 dataset.train_pipeline.add_operation(normalize())
 dataset.test_pipeline.add_operation(normalize())
 
-x_batch, y_batch = dataset.next_batch_train(128)  # training data is randomly rotated and augmented
-print(x_batch.shape)
-x_val_norm = dataset.preprocess_data()  # testing data is just normalized
+x_batch, y_batch = dataset.next_batch_train(128)  # training data is randomly rotated and normalized
+print("X_batch shape", x_batch.shape)
+x_val_norm, y_val = dataset.preprocess_data()  # testing data is just normalized
+print("X val norm shape", x_val_norm.shape)
 dataset.clear_data()
