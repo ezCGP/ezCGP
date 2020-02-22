@@ -1,40 +1,65 @@
+"""
+Created by Michael Jurado with help from William.
+This class will be how ezCGP transfers training data between blocks
+"""
 import numpy as np
-
+import Augmentor
+from Augmentor.Operations import Operation
 
 class DataSet():
-    def __init__(self, x, y):
+    def __init__(self, x_train, y_train, x_test, y_test):
+        """
+
+        :param x_train: training samples
+        :param y_train: training labels
+        :param x_test: testing samples
+        :param y_test: testing labels
+        """
         super().__init__()
-        self.__index_in_epoch = 0
-        self._index_in_epoch = 0
-        self._num_examples = len(x)
-        self._epochs_completed = 0
-        self._features = x
-        self._labels = y
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_test = x_test
+        self.y_test = y_test
+        self.train_pipeline = Augmentor.Pipeline()
+        self.test_pipeline = Augmentor.Pipeline()
+        self.batch_size = None  # batch_size
+        self.generator = None  # training_generator
 
-    def clear_batch(self):
-        self.__index_in_epoch = 0
-        self._index_in_epoch = 0
-        self._num_examples = 0
-        self._epochs_completed = 0
-        self._features = []
-        self._labels = []
+    def clear_data(self):
+        """
+        Method clears the data structures so that individual can be re-evaluated
+        :return:
+        """
+        self.batch_size = None
 
-    def next_batch(self, batch_size: int = 128):
-        start = self._index_in_epoch
-        self._index_in_epoch += batch_size
-        if self._index_in_epoch > self._num_examples:
-            self._epochs_completed += 1
-            assert batch_size <= self._num_examples
-            if self._index_in_epoch - batch_size == self._num_examples:
-                start = 0
-                self._index_in_epoch = batch_size
-            else:
-                ret_image, ret_label = self._features[self._index_in_epoch - batch_size:], \
-                                       self._labels[self._index_in_epoch - batch_size:]
-                self._index_in_epoch = 0
-                return ret_image, ret_label
-        end = self._index_in_epoch
-        return self._features[start:end], self._labels[start:end]
+        del(self.generator)
+        self.generator = None
+        
+        del(self.train_pipeline)
+        self.train_pipeline = Augmentor.Pipeline()
 
-    def x_y_list(self) -> (list, list):
-        return list(self._features), list(self._labels)
+        del(self.test_pipeline)
+        self.test_pipeline = Augmentor.Pipeline()
+
+    def next_batch_train(self, batch_size):
+        """
+
+        :param batch_size: mini-batch size
+        :return: numpy array of training samples
+        """
+        if batch_size != self.batch_size:
+            del(self.generator)
+            self.generator = self.train_pipeline.keras_generator_from_array(self.x_train.astype(np.uint8),
+                                                                            self.y_train, batch_size, scaled=False)
+        return next(self.generator)
+
+    def preprocess_data(self):
+        """
+        Runs the preprocessing pipeline and returns preprocessed testing data
+        :return: preprocessed data (unbatched)
+        """
+        preMethod = self.test_pipeline.torch_transform()
+        x_val_norm = [np.asarray(preMethod(x)) for x in self.x_test]
+        for i in self.x_test:
+            new = preMethod(i)
+        return np.array(x_val_norm), self.y_test
