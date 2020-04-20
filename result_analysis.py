@@ -2,6 +2,8 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from hypervolume import HyperVolume
+from problem import SEED_ROOT_DIR, skeleton_genome
+from individual import build_individual
 
 import sys
 from matplotlib.animation import FuncAnimation
@@ -36,9 +38,9 @@ def draw_analysis():
 def draw_analysis2():
     reference_point = (1, 1)
     hv = HyperVolume(reference_point)
-    root_dir = 'outputs_cifar_augment'
+    root_dir = SEED_ROOT_DIR
     file_generation = '{}/generation_number.npy'.format(root_dir)
-    generation = np.load(file_generation)
+    generation = np.load(file_generation, allow_pickle=True)
     accuracy_score_list = []
     f1_score_list = []
     active_nodes_list = []
@@ -47,11 +49,13 @@ def draw_analysis2():
 
     paretoInds = []  # list to keep track of current pareto dominant inds
     paretoScoreList = []  # keeps track of pareto scores through time
-    for gen in range(0, generation+1):
+    for gen in range(1, generation+1):
+        print('gen {}'.format(gen))
         gen_fitnesses = []
         file_pop = '{}/gen{}_pop.npy'.format(root_dir, gen)
-        population = np.load(file_pop)
+        population = np.load(file_pop, allow_pickle=True)
         scores = []
+        population = [build_individual(skeleton_genome, i) for i in population]
         for individual in population:
             scores.append(individual.fitness.values[0])
             gen_fitnesses.append(individual.fitness.values)
@@ -82,29 +86,29 @@ def draw_analysis2():
         accuracy_score_list.append(1 - sample_best.fitness.values[0])
         f1_score_list.append(1 - sample_best.fitness.values[1])
         active_nodes_list.append(len(active_nodes))
-        volumes.append(1 - hv.compute(gen_fitnesses))
+        volumes.append(1 - hv.compute(gen_fitnesses)) # HV just a fancy 3D AUC (1-accuracy, 1-F1 score)
         populations += list(population)
     plt.subplot(221)
-    plt.plot(range(0, generation + 1), accuracy_score_list, linestyle='--', marker='o', color = 'black')
+    plt.plot(range(0, generation), accuracy_score_list, linestyle='--', marker='o', color = 'black')
     # plt.legend(['accuracy_score'])
     plt.title('Accuracy over generations')
     plt.ylabel('Accuracy')
     plt.xlabel('Generations')
     plt.subplot(222)
-    plt.plot(range(0, generation + 1), active_nodes_list, linestyle='--', marker='o', color = 'r')
+    plt.plot(range(0, generation), active_nodes_list, linestyle='--', marker='o', color = 'r')
     # plt.legend(['active_nodes length'])
     plt.tight_layout()
     plt.title('Active nodes over generations')
     plt.ylabel('Number of active nodes')
     plt.xlabel('Generations')
     plt.subplot(223)
-    plt.plot(range(0, generation + 1), volumes, linestyle='--', marker='o', color = 'black')
+    plt.plot(range(0, generation), volumes, linestyle='--', marker='o', color = 'black')
     # plt.legend(['hyper volume over generations'])
     plt.title('HyperVolume over generations')
     plt.ylabel('HyperVolume')
     plt.xlabel('Generations')
     plt.subplot(224)
-    plt.plot(range(0, generation + 1), f1_score_list, linestyle='--', marker='o', color = 'r')
+    plt.plot(range(0, generation), f1_score_list, linestyle='--', marker='o', color = 'r')
     # plt.legend(['active_nodes length'])
     plt.tight_layout()
     plt.title('F1-score over generations')
