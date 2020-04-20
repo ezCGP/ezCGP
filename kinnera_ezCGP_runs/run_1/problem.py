@@ -31,10 +31,7 @@ N_OFFSPRING = 2 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
 SEED_ROOT_DIR = 'kinnera_ezCGP_runs/run_1'
-<<<<<<< HEAD:problem.py
-=======
 #SEED_ROOT_DIR = 'sam_ezCGP_runs/run_20'
->>>>>>> 25e97603a1205cce120250affdfbb68220c25208:kinnera_ezCGP_runs/run_1/problem.py
 #SEED_ROOT_DIR = 'jinghua_ezCGP_runs'
 
 """DBMANAGER"""
