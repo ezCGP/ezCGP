@@ -3,6 +3,9 @@ import os
 import matplotlib.pyplot as plt
 from hypervolume import HyperVolume
 
+import sys
+from matplotlib.animation import FuncAnimation
+
 def draw_analysis():
     root_dir = 'outputs_gibran'
     file_generation = '{}/generation_number.npy'.format(root_dir)
@@ -41,6 +44,9 @@ def draw_analysis2():
     active_nodes_list = []
     volumes = []
     populations = []
+
+    paretoInds = []  # list to keep track of current pareto dominant inds
+    paretoScoreList = []  # keeps track of pareto scores through time
     for gen in range(0, generation+1):
         gen_fitnesses = []
         file_pop = '{}/gen{}_pop.npy'.format(root_dir, gen)
@@ -49,6 +55,26 @@ def draw_analysis2():
         for individual in population:
             scores.append(individual.fitness.values[0])
             gen_fitnesses.append(individual.fitness.values)
+        
+        megaPopulation = population + paretoInds  # combine population and pareto inds temporarily
+        paretoInds = []
+        for i in range(len(megaPopulation)):
+            candidate_acc = 1 - megaPopulation[i].fitness.values[0]
+            candidate_f1 = 1- megaPopulation[i].fitness.values[1]
+            dominated = False
+            for i_ in range(len(megaPopulation)):
+                if i != i_:
+                    comp_acc = 1 - megaPopulation[i_].fitness.values[0]
+                    comp_f1 = 1 - megaPopulation[i_].fitness.values[1]
+                    if comp_acc > candidate_acc and comp_f1 > candidate_f1:
+                        dominated = True
+            if not dominated:
+                paretoInds.append(megaPopulation[i])
+
+        paretoScoreList.append([ind.fitness.values for ind in paretoInds])
+
+
+
         sample_best = population[np.random.choice(a=np.where(np.min(scores)==scores)[0], size=1)[0]]
         # print('Generation: {}'.format(gen))
         # display_genome(sample_best)
@@ -96,6 +122,34 @@ def draw_analysis2():
     best_ind = populations[fit_acc.argmin()]
     print('Best individual had fitness: {}'.format(best_ind.fitness.values))
     display_genome(best_ind)
+
+
+
+        # pareto front graphs
+    fig, ax = plt.subplots()
+    fig.set_tight_layout(True)
+
+    # Query the figure's on-screen size and DPI. Note that when saving the figure to
+    # a file, we need to provide a DPI for that separately.
+    print('fig size: {0} DPI, size in inches {1}'.format(
+        fig.get_dpi(), fig.get_size_inches()))
+
+
+    def update(paretoScores):
+        acc_score = [i[0] for i in paretoScores]
+        f1_score = [i[1] for i in paretoScores]
+        ax.plot(acc_score, f1_score)
+        # Update the line and the axes (with a new xlabel). Return a tuple of
+        # "artists" that have to be redrawn for this frame.
+        line.set_ydata(x - 5 + i)
+        #ax.set_xlabel(label)
+        return line, ax
+
+    # FuncAnimation will call the 'update' function for each frame; here
+    # animating over 10 frames, with an interval of 200ms between frames.
+    anim = FuncAnimation(fig, update, frames=paretoScoreList, interval=200)
+    anim.save('line.gif', dpi=80, writer='imagemagick')
+    plt.show()
 
 def display_genome(individual):
     print('The genome is: ')
