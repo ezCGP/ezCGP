@@ -18,7 +18,7 @@ import logging
 # divide by num cores to find number of individuals per core
 # Create Universe: cpu cores == pop_size
 
-GEN_LIMIT = 100
+GEN_LIMIT = 50
 POP_SIZE = 20
 N_EPOCHS = 10
 SEED = 17
@@ -31,6 +31,10 @@ N_OFFSPRING = 2 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
 SEED_ROOT_DIR = 'kinnera_ezCGP_runs/run_1'
+<<<<<<< HEAD:problem.py
+=======
+#SEED_ROOT_DIR = 'sam_ezCGP_runs/run_20'
+>>>>>>> 25e97603a1205cce120250affdfbb68220c25208:kinnera_ezCGP_runs/run_1/problem.py
 #SEED_ROOT_DIR = 'jinghua_ezCGP_runs'
 
 """DBMANAGER"""
@@ -134,9 +138,9 @@ def scoreFunction(predict, actual):
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
 
 """
-preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=50, n_epochs=N_EPOCHS)
-preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1, n_epochs=N_EPOCHS,
-                                           primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
+#preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=50, n_epochs=N_EPOCHS)
+#preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1, n_epochs=N_EPOCHS,
+                                           #primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
 training_block = TrainingBlock(nickname='Training', main_count=70, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
 
