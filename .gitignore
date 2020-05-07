@@ -1,5 +1,5 @@
 # Rodd insert
-outputs/*
+#outputs/*
 **/__pycache__/
 
 # FlyCheck Emacs
