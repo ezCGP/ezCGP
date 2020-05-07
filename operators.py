@@ -7,6 +7,8 @@ import cv2
 import skimage as sk
 from skimage import filters, exposure
 import logging
+import Augmentor
+from Augmentor.Operations import Operation
 # from tflearn.layers.conv import global_avg_pool
 
 # dictionary to define data types for all nodes and operators
@@ -56,6 +58,53 @@ operDict[gassuian_blur] = {"inputs": [np.ndarray],
 			   "outputs": np.ndarray,
 			   "args": ['argKernelSize'],
                            "include_labels": True}
+
+
+
+
+"""Example of using Augmentor"""
+
+def rotate(p, probability = .5, max_left_rotation=5, max_right_rotation = 10):
+    p.rotate(probability, max_left_rotation, max_right_rotation)
+    return p
+
+operDict[rotate] = {"inputs": [Augmentor.Pipeline],
+			   "outputs": Augmentor.Pipeline,
+			   "args": []
+               }
+
+
+# Create your new operation by inheriting from the Operation superclass:
+class FoldImage(Operation):
+    # Here you can accept as many custom parameters as required:
+    def __init__(self, probability, num_of_folds):
+        # Call the superclass's constructor (meaning you must
+        # supply a probability value):
+        Operation.__init__(self, probability)
+        # Set your custom operation's member variables here as required:
+        self.num_of_folds = num_of_folds
+
+    # Your class must implement the perform_operation method:
+    def perform_operation(self, image):
+        # Start of code to perform custom image operation.
+        for fold in range(self.num_of_folds):
+            pass
+        # End of code to perform custom image operation.
+
+        # Return the image so that it can further processed in the pipeline:
+        return image
+
+
+def fold(p, probability = .5, num_of_folds = 4):
+    fold = Fold(probability = probability, num_of_folds = num_of_folds)
+    p.add_operation(fold)
+    return p
+
+operDict[gassuian_blur] = {"inputs": [Augmentor.Pipeline],
+			   "outputs": Augmentor.Pipeline,
+			   "args": ['percentage']
+               }
+
 
 
 """
