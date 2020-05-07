@@ -1,35 +1,57 @@
-### main.py
-import utils.LogSetup as logging
-# external packages
-from copy import deepcopy
-import numpy as np
-import random
+'''
+
+'''
+
+# packages
+import os
 import time
-import logging
+import numpy as np
 
 
-if __name__ == '__main__':
-    # set the seed and import scripts
-    seed = 5
-    np.random.seed(seed)
-    random.seed(seed) #set both random seeds to same thin
-    # keep these imports after the seed is set for numpy
-    import problem
-    import old_universe
+# scripts
+from code.universe import Universe, MPIUniverse
 
-    # Read in Data
-    train_data = problem.x_train
-    train_labels = problem.y_train
 
-    final_populations = [] # one for each universe created
-    num_universes = 1#20
-    for i in range(num_universes):
-        print('start new run {}'.format(i))
-        start = time.time()
-        converged_solution = old_universe.create_universe(input_data=train_data, labels=train_labels, universe_seed=seed+i, population_size=40)
-        final_populations.append(converged_solution)
-        time_complete = time.time() - start
-        print('time of generation: {}'.format(time.time() - start))
-        with open("sequential_run_time.txt", "a") as f:
-            f.write("%f\n" % time_complete)
-        # post processing step for that run
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--problem",
+                        type = str,
+                        required = True,
+                        help = "pick which problem class to import")
+    parser.add_argument("-s", "--seed",
+                        type = int,
+                        default = 0,
+                        help = "pick which seed to use for numpy")
+    args = parser.parse_args()
+
+
+
+    # figure out which problem py file to import
+    if args.problem.endswith('.py'):
+        args.problem = args.problem[:-3]
+    problem_module = __import__(args.problem)
+
+
+    output_home = os.path.join(os.getcwd(),
+                               "outputs",
+                               args.problem,
+                               time.strftime("%Y%m%d-%H%M%S"))
+    os.makedirs(output_home, exist_ok=False)
+
+    problem = problem_module.Problem()
+    for ith_universe in range(problem.number_universe):
+        # set the seed
+        np.random.seed(args.seed + ith_universe)
+
+        # init corresponding universe
+        output_universe = os.path.join(output_home, "univ%i" % ith_universe)
+        if problem.mpi:
+            universe = MPIUniverse(problem, output_universe)
+        else:
+            universe = Universe(problem, output_universe)
+
+        # run
+        start_time = time.time()
+        universe.run(problem)
+        print("time of universe %i: %02fmin" % (ith_universe, (time.time()-start_time)/60))
