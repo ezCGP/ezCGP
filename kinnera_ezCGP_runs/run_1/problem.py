@@ -18,7 +18,7 @@ import logging
 # divide by num cores to find number of individuals per core
 # Create Universe: cpu cores == pop_size
 
-GEN_LIMIT = 100
+GEN_LIMIT = 50
 POP_SIZE = 20
 N_EPOCHS = 10
 SEED = 17
@@ -31,6 +31,7 @@ N_OFFSPRING = 2 # THIS COMES IN PAIRS (e.g. N_OFFPSRING = 2 is 4/gen)
 MIN_SCORE = 0.00  # terminate immediately when 100% accuracy is achieved
 
 SEED_ROOT_DIR = 'kinnera_ezCGP_runs/run_1'
+#SEED_ROOT_DIR = 'sam_ezCGP_runs/run_20'
 #SEED_ROOT_DIR = 'jinghua_ezCGP_runs'
 
 """DBMANAGER"""
@@ -99,9 +100,11 @@ def scoreFunction(predict, actual):
 
 """
     Play with difference sizes, and different distribution
+
     mnist = tf.keras.datasets.mnist
     (x_train, y_train),(x_test, y_test) = mnist.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0
+
     print(x_train.shape[0])
     # val_size = int(0.1 * x_train.shape[0]) # percentage of training data
     val_size = 2000 # exact value done so that x_train has a size multiple of batch_size
@@ -110,23 +113,31 @@ def scoreFunction(predict, actual):
         replace=False)
     val_mask = np.zeros(x_train.shape[0], dtype=bool)
     val_mask[val_ind] = True
+
     x_train = x_train.reshape(-1, 28, 28, 1)
     x_test = x_test.reshape(-1, 28, 28, 1)
+
     x_val = x_train[val_mask]
     y_val = y_train[val_mask]
+
     x_train = x_train[~val_mask]
     y_train = y_train[~val_mask]
+
     x_train = [x_train]
     x_test = [x_test]
+
+
     print('Train: X: {} y: {}'.format(x_train[0].shape, y_train.shape))
     print('Validation: X: {} y: {}'.format(x_val.shape, y_val.shape))
     print('Test: X: {} y: {}'.format(x_test[0].shape, y_test.shape))
+
     print('Loaded MNIST dataset. x_train: {} y_train: {} x_test: {} y_test: {}'
         .format(x_train.shape, y_train.shape, x_test.shape, y_test.shape))
+
 """
-preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=50, n_epochs=N_EPOCHS)
-preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1, n_epochs=N_EPOCHS,
-                                           primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
+#preprocessing_block1 = PreprocessingBlock(nickname='Data Augmentation', tensorblock_flag=False, apply_to_val=False, main_count=50, n_epochs=N_EPOCHS)
+#preprocessing_block2 = PreprocessingBlock(nickname='Preprocessing', tensorblock_flag=False, apply_to_val = True, main_count=1, n_epochs=N_EPOCHS,
+                                           #primitives={operators.ceil_greyscale_norm: {'prob': 1}}) #input_dtypes = [tf.Tensor], output_dtypes = [tf.Tensor])
 
 training_block = TrainingBlock(nickname='Training', main_count=70, learning_required=True, apply_to_val=False, n_epochs=N_EPOCHS)
 
