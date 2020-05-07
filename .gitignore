@@ -1,5 +1,6 @@
 # Rodd insert
 outputs/*
+**/__pycache__/
 
 # FlyCheck Emacs
 flycheck_operators.py
