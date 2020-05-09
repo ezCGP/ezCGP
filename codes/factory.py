@@ -17,11 +17,14 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from code.genetic_material import IndividualMaterial, BlockMaterial
-from code.individual_definitions.individual_definition import IndividualDefinition
-from code.block_definitions.block_definition import BlockDefinition
+from codes.population import PopulationDefinition
+from codes.genetic_material import IndividualMaterial, BlockMaterial
+from codes.individual_definitions.individual_definition import IndividualDefinition
+from codes.block_definitions.block_definition import BlockDefinition
 
-class Factory():
+
+
+class FactoryDefinition():
     '''
     TODO
     '''

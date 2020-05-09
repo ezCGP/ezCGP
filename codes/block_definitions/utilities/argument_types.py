@@ -18,7 +18,7 @@ from abc import ABC, abstractmethod
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__)))))) #one 'dirname' for every parentdir including root
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 

@@ -14,11 +14,11 @@ from typing import List
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__))))) #one 'dirname' for every parentdir including root
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from code.block_definitions.utilities import tools
-from code.block_definitions.utilities import operators_numpy # do something better...
+from codes.block_definitions.utilities import tools
+from codes.block_definitions.utilities import operators_numpy # do something better...
 
 
 

@@ -18,13 +18,13 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from code.block_definitions.block_shape import BlockShapeMeta_Abstract
-from code.block_definitions.block_operators import BlockOperators_Abstract
-from code.block_definitions.block_arguments import BlockArguments_Abstract
-from code.block_definitions.block_evaluate import BlockEvaluate_Abstract
-from code.block_definitions.block_mutate import BlockMutate_Abstract
-from code.block_definitions.block_mate import BlockMate_Abstract
-from code.genetic_material import IndividualMaterial, BlockMaterial
+from codes.block_definitions.block_shapemeta import BlockShapeMeta_Abstract
+from codes.block_definitions.block_operators import BlockOperators_Abstract
+from codes.block_definitions.block_arguments import BlockArguments_Abstract
+from codes.block_definitions.block_evaluate import BlockEvaluate_Abstract
+from codes.block_definitions.block_mutate import BlockMutate_Abstract
+from codes.block_definitions.block_mate import BlockMate_Abstract
+from codes.genetic_material import IndividualMaterial, BlockMaterial
 from data.data_tools.data_types import ezDataSet
 
 

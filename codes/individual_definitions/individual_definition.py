@@ -13,14 +13,14 @@ mention any assumptions made in the code or rules about code structure should go
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__))))) #one 'dirname' for every parentdir including root
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from code.block.block_definition import BlockDefinition
-from code.individual_definitions.individual_evaluate import IndividualEvaluate_Abstract
-from code.individual_definitions.individual_mutate import IndividualMutate_Abstract
-from code.individual_definitions.individual_mate import IndividualMate_Abstract
-from code.genetic_material import IndividualMaterial, BlockMaterial
+from codes.block_definitions.block_definition import BlockDefinition
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Abstract
+from codes.individual_definitions.individual_mutate import IndividualMutate_Abstract
+from codes.individual_definitions.individual_mate import IndividualMate_Abstract
+from codes.genetic_material import IndividualMaterial, BlockMaterial
 from data.data_tools.data_types import ezDataSet
 
 
@@ -60,7 +60,7 @@ class IndividualDefinition():
         '''
         TODO
         '''
-        mutants = self.mutate_def.mutate(self, indiv_material: IndividualMaterial)
+        mutants = self.mutate_def.mutate(self, indiv_material)
         return mutants
 
 

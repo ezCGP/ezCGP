@@ -18,8 +18,8 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from data.data_tools.data_types import ezDataSet
-from code.genetic_material import IndividualMaterial
-from code.individual_definitions.individual_definition import IndividualDefinition
+from codes.genetic_material import IndividualMaterial
+from codes.individual_definitions.individual_definition import IndividualDefinition
 
 
 

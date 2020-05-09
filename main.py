@@ -1,15 +1,27 @@
 '''
+root/main.py
 
+Overview:
+overview of what will/should be in this file and how it interacts with the rest of the code
+
+Rules:
+mention any assumptions made in the code or rules about code structure should go here
 '''
 
-# packages
+### packages
 import os
 import time
 import numpy as np
 
+### sys relative to root AND to problem dir to import respective problem file
+import sys
+from os.path import dirname, realpath, join
+sys.path.append(dirname(realpath(__file__)))
+sys.path.append(join(dirname(realpath(__file__)), "problems"))
 
-# scripts
-from code.universe import Universe, MPIUniverse
+### absolute imports wrt root
+from codes.universe import UniverseDefinition, MPIUniverseDefinition
+
 
 
 if __name__ == "__main__":
@@ -47,9 +59,9 @@ if __name__ == "__main__":
         # init corresponding universe
         output_universe = os.path.join(output_home, "univ%i" % ith_universe)
         if problem.mpi:
-            universe = MPIUniverse(problem, output_universe)
+            universe = MPIUniverseDefinition(problem, output_universe)
         else:
-            universe = Universe(problem, output_universe)
+            universe = UniverseDefinition(problem, output_universe)
 
         # run
         start_time = time.time()

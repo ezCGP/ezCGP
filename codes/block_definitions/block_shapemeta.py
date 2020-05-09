@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_shape.py
+root/code/block_definitions/block_shapemeta.py
 
 Overview:
 overview of what will/should be in this file and how it interacts with the rest of the code
@@ -14,7 +14,7 @@ import numpy as np
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__))))) #one 'dirname' for every parentdir including root
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 
@@ -39,14 +39,14 @@ class BlockShapeMeta_Abstract():
 
 
 class BlockShapeMeta_SymbolicRegression25(BlockShapeMeta_Abstract):
-	'''
-	TODO
-	'''
+    '''
+    TODO
+    '''
     def __init__(self):
         input_dtypes = [np.float64, np.ndarray]
         output_dtypes = [np.ndarray]
         main_count = 25
         BlockShapeMeta_Abstract.__init__(self,
-		                                 input_dtypes,
-		                                 output_dtypes,
-		                                 main_count)
+                                         input_dtypes,
+                                         output_dtypes,
+                                         main_count)
