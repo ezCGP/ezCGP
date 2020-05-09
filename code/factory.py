@@ -14,12 +14,12 @@ mention any assumptions made in the code or rules about code structure should go
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__))))) #one 'dirname' for every parentdir including root
+sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from code.individual.individual_material import IndividualMaterial
-from code.block.block_material import BlockMaterial
-
+from code.genetic_material import IndividualMaterial, BlockMaterial
+from code.individual_definitions.individual_definition import IndividualDefinition
+from code.block_definitions.block_definition import BlockDefinition
 
 class Factory():
     '''
@@ -29,7 +29,7 @@ class Factory():
         pass
 
 
-    def build_population(self, indiv_def: IndividualDefinition, population_size):
+    def build_population(self, indiv_def: IndividualDefinition, population_size: int):
         '''
         TODO
         '''
@@ -52,6 +52,7 @@ class Factory():
                 my_population[ith_subpop].append(indiv)
         return my_population
     '''
+
 
     def build_individual(self, indiv_def: IndividualDefinition):
         '''

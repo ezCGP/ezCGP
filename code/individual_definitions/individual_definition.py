@@ -34,7 +34,6 @@ class IndividualDefinition():
                  evaluate_def: IndividualEvaluate_Abstract,
                  mutate_def: IndividualMutate_Abstract,
                  mate_def: IndividualMate_Abstract):
-
         self.block_defs = block_defs
         self.block_count = len(block_defs)
         self.mutate_def = mutate_def()

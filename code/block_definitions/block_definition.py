@@ -41,7 +41,6 @@ class BlockDefinition():
                  evaluate_def: BlockEvaluate_Abstract,
                  mutate_def: BlockMutate_Abstract,
                  mate_def: BlockMate_Abstract):
-        
         # Meta:
         self.nickname = nickname
         self.meta_def = meta_def()
