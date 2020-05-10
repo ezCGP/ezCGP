@@ -69,19 +69,6 @@ class BlockDefinition():
         self.arg_types = self.argument_def.arg_types
 
 
-    def init_block(self, block_material: BlockMaterial):
-        '''
-        define:
-         * block_material.genome
-         * block_material.args
-         * block_material.need_evaluate
-        '''
-        block_material.need_evaluate = True
-        self.fill_args(block_material)
-        self.fill_genome(block_material)
-        self.get_actives(block_material)
-
-
     def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str):
         '''
         key returns that key-value from the respective node_dictionary
@@ -179,64 +166,6 @@ class BlockDefinition():
             return rnd.choice(choices)
 
 
-    def fill_args(self, block_material: BlockMaterial):
-        '''
-        TODO
-        '''
-        block_material.args = [None]*self.arg_count
-        for arg_index, arg_type in enumerate(self.arg_types):
-            block_material.args[arg_index] = arg_type()
-
-
-    def fill_genome(self, block_material: BlockMaterial):
-        '''
-        TODO
-        '''
-        block_material.genome = [None]*self.genome_count
-        block_material.genome[(-1*self.input_count):] = ["InputPlaceholder"]*self.input_count
-
-        # fill main nodes
-        for node_index in range(self.main_count):
-            ftns = self.get_random_ftn(return_all=True)
-            for ftn in ftns:
-                # find inputs
-                input_dtypes = self.operator_dict[ftn]["inputs"]
-                input_index = [None]*len(input_dtypes)
-                for ith_input, input_dtype in enumerate(input_dtypes):
-                    input_index[ith_input] = self.get_random_input(block_material, req_dtype=input_dtype, _max=node_index)
-                if None in input_index:
-                    # failed to fill it in; try another ftn
-                    continue
-                else:
-                    pass
-
-                # find args
-                arg_dtypes = self.operator_dict[ftn]["args"]
-                arg_index = [None]*len(arg_dtypes)
-                for ith_arg, arg_dtype in enumerate(arg_dtypes):
-                    poss_arg_index = self.get_random_arg(req_dtype=arg_dtype)
-                if None in arg_index:
-                    # failed to fill it in; try another ftn
-                    continue
-                else:
-                    pass
-
-                # all complete
-                block_material[node_index] = {"ftn": ftn,
-                                    "inputs": input_index,
-                                    "args": arg_index}
-                break
-            # error check that node got filled
-            if block_material[node_index] is None:
-                print("GENOME ERROR: no primitive was able to fit into current genome arrangment")
-                exit()
-
-        # fill output nodes
-        for ith_output, node_index in enumerate(range(self.main_count, self.main_count+self.output_count)):
-            req_dtype = self.output_dtypes[ith_output]
-            block_material[node_index] = self.get_random_input(block_material, req_dtype=req_dtype)
-
-
     def get_actives(self, block_material: BlockMaterial):
         '''
         TODO
@@ -267,20 +196,19 @@ class BlockDefinition():
         block_material.active_args = sorted(list(block_material.active_args))
 
 
-    def mutate(self, indiv_material: IndividualMaterial, block_index: int):
+    def mutate(self, mutant_material: BlockMaterial):
         '''
         TODO
         '''
-        self.mutate_def.mutate(indiv_material, block_index, self)
-        self.get_actives(indiv_material[block_index])
+        self.mutate_def.mutate(mutant_material, self)
+        self.get_actives(mutant_material)
 
 
     def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_index: int):
         '''
         TODO
         '''
-        #children: List() = self.mate_def.mate(parent1, parent2, block_index)
-        children = self.mate_def.mate(parent1, parent2, block_index, self)
+        children = self.mate_def.mate(parent1, parent2, self, block_index)
         for child in children:
             self.get_actives(child[block_index])
         return children
@@ -297,5 +225,6 @@ class BlockDefinition():
                 print("ERROR: datatypes don't match", type(input_data), input_dtype) # add a proper message here
                 return
 
+        self.evaluate_def.reset_evaluation(self, block_material)
         output = self.evaluate_def.evaluate(self, block_material, training_datapair, validation_datapair)
         return output

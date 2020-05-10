@@ -60,7 +60,7 @@ class IndividualDefinition():
         '''
         TODO
         '''
-        mutants = self.mutate_def.mutate(self, indiv_material)
+        mutants = self.mutate_def.mutate(indiv_material, self)
         return mutants
 
 
@@ -68,7 +68,7 @@ class IndividualDefinition():
         '''
         TODO
         '''
-        children = self.mate_def.mate(self, parent1, parent2)
+        children = self.mate_def.mate(parent1, parent2, self)
         return children
 
 
