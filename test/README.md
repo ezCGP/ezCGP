@@ -1,0 +1,1 @@
+This folder is included in .gitignore so it should remain empty in the global repository.
