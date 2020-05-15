@@ -4,6 +4,8 @@ root/code/block_definitions/block_operators.py
 Overview:
 overview of what will/should be in this file and how it interacts with the rest of the code
 
+get list of operator scripts/modules to import + set the weights for the operators
+
 Rules:
 mention any assumptions made in the code or rules about code structure should go here
 '''
@@ -70,16 +72,6 @@ class BlockOperators_Abstract():
             all_functions.append(value)
 
         return all_functions
-
-
-    def get_all_classes(self, module):
-        vals = inspect.getmembers(globals()[module], inspect.isclass)
-        # vals will be a list of tuples (name, value)...we want the value
-        all_classes = []
-        for name, value in vals:
-            all_functions.append(value)
-
-        return all_classes
 
 
     def set_equal_weights(self, module):

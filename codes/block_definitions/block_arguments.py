@@ -26,40 +26,59 @@ class BlockArguments_Abstract():
     '''
     words
     '''
-    def __init__(self,
-                arg_count: int,
-                arg_types: List,
-                arg_weights: List):
-        self.arg_count = arg_count
-        self.arg_alltypes = arg_types
-        self.arg_weights = arg_weights
-        self.fill_args()
+    def __init__(self):
+        self.arg_count = 0
+        self.each_type = []
+        self.each_weight = []
+        self.arg_types = []
 
 
-    def get_arg_weights(weight_dict):
+    def init_from_weight_dict(self, weight_dict):
         '''
-        only works before __init__ called
+        TODO
         '''
-        args, weights = build_weights(weight_dict)
+        args, weights = tools.build_weights(weight_dict)
+        self.each_type = args
+        self.each_weight = weights
+        self.set_arg_types()
 
 
-    def fill_args(self):
+    def get_all_classes(self, module='argument_types'):
+        vals = inspect.getmembers(globals()[module], inspect.isclass)
+        # vals will be a list of tuples (name, value)...we want the value
+        all_classes = []
+        for name, value in vals:
+            all_classes.append(value)
+
+        return all_classes
+
+
+    def set_equal_weights(self, module='argument_types'):
+        weight_dict = {}
+        for arg_type in self.get_all_classes(module):
+            weight_dict[arg_type] = 1
+
+        return weight_dict
+
+
+    def set_arg_types(self):
         '''
-        note it only fills it by the data type class not instances of the argtype
+        note it only fills it by the data type class not instances of the arg class
         '''
         start_point = 0
         end_point = 0
         self.arg_types = [None]*self.arg_count
-        for arg_type, arg_weights in zip(self.arg_alltypes, self.arg_weights):
+        for arg_class, arg_weight in zip(self.each_type, self.each_weight):
             end_point += int(arg_weight*self.arg_count)
             for arg_index in range(start_point, end_point):
                 self.arg_types[arg_index] = arg_type
             start_point = end_point
+
         if end_point != self.arg_count:
             # prob some rounding errors then
-            sorted_byweight = np.argsort(self.arg_weights)[::-1] # sort then reverse
+            sorted_byweight = np.argsort(self.each_weight)[::-1] # sort then reverse to go from largest to smallest
             for i, arg_index in enumerate(range(end_point, self.arg_count)):
-                arg_class = self.arg_alltypes[sorted_byweight[i]]
+                arg_class = self.each_type[sorted_byweight[i]]
                 self.arg_types[arg_indx] = arg_class
         else:
             pass
@@ -68,21 +87,14 @@ class BlockArguments_Abstract():
 
 class BlockArgumentsSize50(BlockArguments_Abstract):
     def __init__(self):
-        arg_count = 50
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 50
         arg_dict = {argument_types.ArgumentType_Ints: 1,
                     argument_types.ArgumentType_Pow2: 1}
-        args, weights = ArgumentDefinition.get_arg_weights(arg_dict)
-        ArgumentDefinition.__init__(self,
-                                    arg_count,
-                                    args,
-                                    weights)
+        self.init_from_weight_dict(arg_dict)
 
 
 
 class BlockArgumentsNoArgs(BlockArguments_Abstract):
     def __init__(self):
-        arg_count = 0 
-        ArgumentDefinition.__init__(self,
-                                    arg_count,
-                                    [],
-                                    [])
+        BlockArguments_Abstract.__init__(self)
