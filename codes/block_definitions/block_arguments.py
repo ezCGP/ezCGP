@@ -10,6 +10,7 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 from typing import List
+import inspect
 
 ### sys relative to root dir
 import sys

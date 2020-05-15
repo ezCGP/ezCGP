@@ -15,12 +15,14 @@ from numpy import random as rnd
 from copy import copy, deepcopy
 from abc import ABC, abstractmethod
 
+'''
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
+'''
 
 
 
@@ -103,11 +105,9 @@ class ArgumentType_Ints(ArgumentType_Abstract):
                 self.value = 50
             elif roll == 2:
                 self.value = 100
-            self.num_samples = 10
             self.mutate()
         else:
             self.value = value
-            self.num_samples = 10
 
 
     def mutate(self):
@@ -141,3 +141,25 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
     def mutate(self):
         roll = rnd.random_integers(1, 9)
         self.value = int(2 ** roll)
+
+
+
+class ArgumentType_SmallFloats(ArgumentType_Abstract):
+    '''
+    TODO
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = rnd.random()*10
+        else:
+            self.value = value
+
+
+    def mutate(self):
+        roll = rnd.random_integers(0,1)
+        if roll == 0:
+            self.mut_normal()
+        elif roll == 1:
+            self.mut_uniform()
+        else:
+            pass
