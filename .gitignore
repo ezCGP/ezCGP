@@ -2,7 +2,7 @@
 outputs/*
 data/datasets/*
 **/__pycache__/
-test/*
+test_area/*
 
 # FlyCheck Emacs
 flycheck_operators.py
