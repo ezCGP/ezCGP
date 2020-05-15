@@ -10,6 +10,9 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 from typing import List
+from copy import deepcopy
+import importlib
+import inspect
 
 ### sys relative to root dir
 import sys
@@ -18,44 +21,73 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import tools
-from codes.block_definitions.utilities import operators_numpy # do something better...
 
 
 
 class BlockOperators_Abstract():
     '''
     words
+    mention about operators and weights list of same len
     '''
-    def __init__(self,
-                operators: List,
-                weights: List,
-                modules: List):
-        self.build_operDict(modules)
+    def __init__(self):
+        self.operator_dict = {}
+        self.operators = []
+        self.weights = []
+
+
+    def init_from_weight_dict(self, weight_dict):
+        operators, weights = tools.build_weights(weight_dict)
         self.operators = operators
         self.weights = weights
 
 
-    def build_operDict(self, modules: List):
+    def import_operator_scripts(self, module_names, module_aliases=None):
         '''
-        import the operator dict from every module in the list and return
+        vars() returns a dictionary of local variables...starts out empty inside a function
+
+        vars() -> locals()
+        want to eventually change globals()
+
+        note that sys.path is a 'global' variable so the paths added earlier in the file can be used here
         '''
-        self.operator_dict = {}
-        for oper_py in modules:
-            _ = __import__(oper_py)
-            self.operator_dict.update(_.operDict)
-            del _
+        if module_aliases is None:
+            module_aliases = deepcopy(module_names)
+        else:
+            assert(len(module_aliases) == len(module_names)), "module names and aliases need to be the same length"
+
+        for name, alias in zip(module_names, module_aliases):
+            #globals()[alias] = __import__(name)
+            #going to use importlib.import_module instead of __import __ because of convention and to do better absolute/relative imports
+            globals()[alias] = importlib.import_module("codes.block_definitions.utilities.%s" % name)
+            self.operator_dict.update(globals()[alias].operator_dict)
 
 
-    def import_list(self):
-        '''
-        in theory import packages only if we use the respective EvaluateDefinition
+    def get_all_functions(self, module):
+        vals = inspect.getmembers(globals()[module], inspect.isfunction)
+        # vals will be a list of tuples (name, value)...we want the value
+        all_functions = []
+        for name, value in vals:
+            all_functions.append(value)
 
-        likely will abandon this...or should it be in operator definition?
-        '''
-        return []
+        return all_functions
 
 
-    # TODO have a method to import in all modules and set weight_dict for all methods to 1
+    def get_all_classes(self, module):
+        vals = inspect.getmembers(globals()[module], inspect.isclass)
+        # vals will be a list of tuples (name, value)...we want the value
+        all_classes = []
+        for name, value in vals:
+            all_functions.append(value)
+
+        return all_classes
+
+
+    def set_equal_weights(self, module):
+        weight_dict = {}
+        for func in self.get_all_functions(module):
+            weight_dict[func] = 1
+
+        return weight_dict
 
 
 
@@ -64,21 +96,16 @@ class BlockOperators_SymbRegressionOpsNoArgs(BlockOperators_Abstract):
     words
     '''
     def __init__(self):
-        modules = ['simple_numpy']
-        weight_dict = {simple_numpy.add_ff2f: 1,
-                    simple_numpy.add_fa2a: 1,
-                    simple_numpy.add_aa2a: 1,
-                    simple_numpy.sub_ff2f: 1,
-                    simple_numpy.sub_fa2a: 1,
-                    simple_numpy.sub_aa2a: 1,
-                    simple_numpy.mul_ff2f: 1,
-                    simple_numpy.mul_fa2a: 1,
-                    simple_numpy.mul_aa2a: 1}
-        operators, weights = tools.build_weights(weight_dict)
-        OperatorDefinition.__init__(self,
-                                    operators,
-                                    weights,
-                                    modules)
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_symbregression_noargs']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
 
 
 
@@ -87,16 +114,13 @@ class BlockOperators_SymbRegressionOpsWithArgs(BlockOperators_Abstract):
     words
     '''
     def __init__(self):
-        modules = ['simple_numpy']
-        weight_dict = {simple_numpy.add_aa2a: 1,
-                    simple_numpy.sub_ff2f: 1,
-                    simple_numpy.sub_fa2a: 1,
-                    simple_numpy.sub_aa2a: 1,
-                    simple_numpy.mul_ff2f: 1,
-                    simple_numpy.mul_fa2a: 1,
-                    simple_numpy.mul_aa2a: 1}
-        operators, weights = tools.build_weights(weight_dict)
-        OperatorDefinition.__init__(self,
-                                    operators,
-                                    weights,
-                                    modules)
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_symbregression_args']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
