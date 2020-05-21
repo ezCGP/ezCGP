@@ -2,10 +2,21 @@
 root/code/block/block_definition.py
 
 Overview:
-defined by shape/meta data, mate methods,mutate methods, evaluate method, operators, or primitives, argument datatypes
+A block, as uzed in ezCGP, is characterized in 6 ways:
+    1. 'Operator' Definition: what operators (primitives or methods) are available to populate the genome
+    2. 'Argument' Definition: what argument data types are available to the genome
+    3. 'Evaluate' Definition: what should we do with the genome
+    4. 'Mutate' Definition: how can we mutate the block's genome
+    5. 'Mate' Definition: how can we mate the block's genome with other blocks
+    6. 'ShapeMeta' Definition: how many genes in a genome; input and output data types; etc
+    
+This block definition class is sort of a 'wrapper' class to join together the 6 definitions as selected by the user.
+The Factory class should have a method to initialize the block definition.
+There should only be one instance of the block definition created, that then gets shared by all the individuals in the population.
+A decision was made in the development of the code, to separate the 'structural definition' of the block, from the actual 'genetic material' unique to each individual. The intention was to make the genetic representation of an individual or of a block
+The class has several methods to help with the process of initializing a genome, and with mutating or mating; additionally there are 'wrapper' methods for mate, mutate, and evaluate: an 'Individual Definition' calls the this block to call the respective 'Block Definition' for that method.
 
-Rules:
-mention any assumptions made in the code or rules about code structure should go here
+This BlockDefinition will get instantiated in the user's problem class since it defines the general scope of the evolutionary process.
 '''
 
 ### packages
@@ -31,7 +42,7 @@ from data.data_tools.data_types import ezDataSet
 
 class BlockDefinition():
     '''
-    TODO
+    Retains the 6 block characteristics/definitions; the un-instantiated class objects are taken in as input to __init__ method, where they are instanitated to an attribute of the BlockDefinition and where other attributes are created as shortcuts to info from the definition classes.
     '''
     def __init__(self,
                  nickname: str,
@@ -69,12 +80,12 @@ class BlockDefinition():
         self.arg_types = self.argument_def.arg_types
 
 
-    def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str):
+    def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str = None):
         '''
-        key returns that key-value from the respective node_dictionary
-         * "inputs"
-         * "args"
-         * "output"
+        this is a method to quickly grab the data type info at the 'node_index' position of the block_material genome
+        
+        * if the node_index is for an 'input/output node' then give the data type of the expected input/output
+        * otherwise, it's a 'main node'; the 'key' will either be ["inputs", "output", "args"] and will return the respective value in the operator_dict at that node_index
         '''
         if node_index < 0:
             # input_node
@@ -91,9 +102,10 @@ class BlockDefinition():
 
     def get_random_input(self, block_material: BlockMaterial, req_dtype, _min=None, _max=None, exclude=[]):
         '''
+        search the genome of the block_material between _min and _max, for a node that outputs the req_dtype.
+        return None if we failed to find a matching input.
+        
         note _max is exclusive so [_min,_max)
-
-        return None if we failed to find good input
         '''
         if _min is None:
             _min = -1*self.input_count
@@ -122,7 +134,10 @@ class BlockDefinition():
 
     def get_random_ftn(self, req_dtype=None, exclude=[], return_all=False):
         '''
-        TODO
+        similar to get_random_input but returns a function/primitive that, if given, will output something with the same data type as req_dtype.
+        if return_all, it will return all matching functions but in a random order based off a random sample; otherwise it returns just one randomly sampled.
+        
+        we should only fail to find a matching function, if exclude contains all functions that could match. This assumes that the user has included primitives that output data types that we would want to see in our genome
         '''
         choices = np.array(self.operators)
         weights = np.array(self.operator_weights)
@@ -140,6 +155,10 @@ class BlockDefinition():
                     delete.append(ith_choice)
             weights = np.delete(weights, delete)
             choices = np.delete(choices, delete)
+        
+        if len(choices) == 0:
+            # we have somehow eliminated all possible options
+            return None
 
         if weights.sum() < 1 - 1e-3:
             # we must have removed some values...normalize
@@ -153,7 +172,7 @@ class BlockDefinition():
 
     def get_random_arg(self, req_dtype, exclude=[]):
         '''
-        TODO
+        similar to get_random_input to find an arg_index that matches the req_dtype
         '''
         choices = []
         for arg_index, arg_type in enumerate(self.arg_types):
@@ -168,7 +187,8 @@ class BlockDefinition():
 
     def get_actives(self, block_material: BlockMaterial):
         '''
-        TODO
+        method will go through and set the attributes block_material.active_nodes and active_args.
+        active_nodes will include all output_nodes, a subset of main_nodes and input_nodes.
         '''
         block_material.active_nodes = set(np.arange(self.main_count, self.main_count+self.output_count))
         block_material.active_args = set()
@@ -198,7 +218,7 @@ class BlockDefinition():
 
     def mutate(self, mutant_material: BlockMaterial):
         '''
-        TODO
+        wrapper method to call the block's mutate definition
         '''
         self.mutate_def.mutate(mutant_material, self)
         self.get_actives(mutant_material)
@@ -206,7 +226,7 @@ class BlockDefinition():
 
     def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_index: int):
         '''
-        TODO
+        wrapper method to call the block's mate definition
         '''
         children = self.mate_def.mate(parent1, parent2, self, block_index)
         for child in children:
@@ -216,10 +236,9 @@ class BlockDefinition():
 
     def evaluate(self, block_material: BlockMaterial, training_datapair: ezDataSet, validation_datapair=None):
         '''
-        TODO
+        wrapper method to call the block's evaluate definition
         '''
         # verify that the input data matches the expected datatypes
-        # TODO make a rule that training_datapair always has to be a list??? would be easiest for code
         for input_dtype, input_data in zip(self.input_dtypes, training_datapair):
             if input_dtype != type(input_data):
                 print("ERROR: datatypes don't match", type(input_data), input_dtype) # add a proper message here
