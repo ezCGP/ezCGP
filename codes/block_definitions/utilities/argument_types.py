@@ -2,11 +2,12 @@
 root/code/block_definitions/utilities/argument_types.py
 
 Overview:
-    Define a set of mutation methods to be called on to mutate all/any of the argument classes.
-    Consider limiting them to be strictly positive or non-negative
+Strongly typing the CGP and having a separate GA evolution for our arguments means it would be easiest to create individual classes for each of our argument data types but at least have all follow the same abstract class.
+At the minimum, it needs a .value attribute to store the actual value of an instantiated argument class, and a method to mutate.
+There is a lot of experimentation to be done to make sure that we have rhobust enough mutation methods: if I want a simple integer, but it needs to be a large value, is there any way to guarentee that ther will be an argument close enough?
 
 Rules:
-mention any assumptions made in the code or rules about code structure should go here
+Basically only needs .value and mutate() defined.
 '''
 
 ### packages
@@ -26,29 +27,6 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 
 
-### Argument Classes
-'''
-    Define the various argument classes with an __init__() and mutate() function.
-    Make sure that there is also a self.value attribute, and a self.num_samples
-    attribute to define how many samples of that argument object type to create
-    in the argument skeleton (see below)
-    class ArgumentType(object):
-        def __init__(self):
-            self.num_samples = #
-            self.value = #######
-            self.mutate()
-        def mutate(self):
-            roll = r.random_integers(0,#)
-            if roll == 0:
-                self.value = #######
-            elif roll == 1:
-                self.value = #######
-            ...
-
-    Once an Argument Class is defined, at it to the list of arguments.
-    The argument skeleton is filled by sampling from this list so even if
-    an Arg Class is defined but not added to the list, it will not be used.
-'''
 class ArgumentType_Abstract(ABC):
     @abstractmethod
     def __init__(self):
@@ -68,10 +46,12 @@ class ArgumentType_Abstract(ABC):
         return str(self)
 
 
-    ### Mutation Methods
     '''
-        Define a set of mutation methods to be called on to mutate all/any of the argument classes.
-        Consider limiting them to be strictly positive or non-negative
+    Mutation Methods:
+    Define a set of mutation methods to be called on to mutate all/any of the argument classes.
+    Currently, the way we set the boundaries of the uniform or the std of the normal distribution are entirely arbitrary. No analysis has been done on this yet.
+    
+    There is a bias here in the code to try and encourage values to move away from negative values as you can see in the conditions if the value is 0...a lot needs to be changed with these methods.
     '''
     def mut_uniform(self):
         if self.value == 0:
@@ -94,7 +74,11 @@ class ArgumentType_Abstract(ABC):
 
 class ArgumentType_Ints(ArgumentType_Abstract):
     '''
-    TODO
+    To try and capture a large range of ints, 1/3 of ints will start at 5,
+    another third will start at 50, and the final third will start at 100.
+    Then all will mutate around that value.
+    All ints are bounded by 1 such that [1,?)...after mutating, we force anything 
+    less than 1, to 1.
     '''
     def __init__(self, value=None):
         if value is None:
@@ -128,7 +112,9 @@ class ArgumentType_Ints(ArgumentType_Abstract):
 
 class ArgumentType_Pow2(ArgumentType_Abstract):
     '''
-    TODO
+    This can be any number 2**i with i any int {1,2,3,4,5,6,7,8}
+    
+    Commonly used in CNN for setting the size of the convolutions.
     '''
     def __init__(self, value=None):
         if value is None:
@@ -146,7 +132,9 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
 
 class ArgumentType_SmallFloats(ArgumentType_Abstract):
     '''
-    TODO
+    Here we get 'small' floats in that they are initialized with a normal
+    distribution centered around 10 so it would be extremely unlikely for it
+    to mutate to a number say 100+.
     '''
     def __init__(self, value=None):
         if value is None:
