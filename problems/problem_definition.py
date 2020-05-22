@@ -35,7 +35,7 @@ from codes.block_definitions.block_arguments import BlockArguments_Abstract
 
 
 
-class ProblemDefinition(ABC):
+class ProblemDefinition_Abstract(ABC):
     '''
      * data: training + validation
      * objective ftn(s)
