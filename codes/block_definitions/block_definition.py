@@ -22,6 +22,7 @@ This BlockDefinition will get instantiated in the user's problem class since it 
 ### packages
 from numpy import random as rnd
 import numpy as np
+import logging
 
 ### sys relative to root dir
 import sys
@@ -118,7 +119,7 @@ class BlockDefinition():
             choices = np.delete(choices, np.where(choices==val))
 
         if len(choices) == 0:
-            # nothing left to choose from
+            logging.warning("%s - Eliminated all possible input nodes with exclude: %s" % (block_material.id, exclude))
             return None
         else:
             # exhuastively try each choice to see if we can get datatypes to match
@@ -130,6 +131,7 @@ class BlockDefinition():
                 else:
                     pass
             # none of the poss_inputs worked, failed to find matching input
+            logging.warning("%s - None of the input nodes matched for req_dtype: %s, exclude: %s" % (block_material.id, req_dtype, exclude))
             return None
 
 
@@ -159,6 +161,7 @@ class BlockDefinition():
         
         if len(choices) == 0:
             # we have somehow eliminated all possible options
+            logging.warning("%s - Eliminated all available operators for req_dtype: %s, and excluding: %s" % (None, req_dtype, exclude))
             return None
 
         if weights.sum() < 1 - 1e-3:
@@ -181,6 +184,7 @@ class BlockDefinition():
                 choices.append(arg_index)
 
         if len(choices) == 0:
+            logging.warning("%s - Eliminated all possible arg values for req_dtype: %s, exclude: %s" % (None, req_dtype, exclude))
             return None
         else:
             return rnd.choice(choices)
@@ -191,6 +195,7 @@ class BlockDefinition():
         method will go through and set the attributes block_material.active_nodes and active_args.
         active_nodes will include all output_nodes, a subset of main_nodes and input_nodes.
         '''
+        logging.debug("%s - Getting active nodes" % (block_material.id))
         block_material.active_nodes = set(np.arange(self.main_count, self.main_count+self.output_count))
         block_material.active_args = set()
         #block_material.active_ftns = set()
@@ -221,6 +226,7 @@ class BlockDefinition():
         '''
         wrapper method to call the block's mutate definition
         '''
+        logging.debug("%s - Sending to Block Mutate Definition" % (mutant_material.id))
         self.mutate_def.mutate(mutant_material, self)
         self.get_actives(mutant_material)
 
@@ -229,7 +235,9 @@ class BlockDefinition():
         '''
         wrapper method to call the block's mate definition
         '''
+        logging.debug("%s+%s - Sending to Block Mate Definition" % (parent1.id, parent2.id))
         children = self.mate_def.mate(parent1, parent2, self, block_index)
+        logging.debug("%s+%s - Received %i Children from Block Mate Definition" % (parent1.id, parent2.id, len(children)))
         for child in children:
             self.get_actives(child[block_index])
         return children
@@ -239,11 +247,12 @@ class BlockDefinition():
         '''
         wrapper method to call the block's evaluate definition
         '''
+        logging.debug("%s - Sending to Block Evaluate Definition" % (block_material.id))
         # verify that the input data matches the expected datatypes
         for input_dtype, input_data in zip(self.input_dtypes, training_datapair):
             if input_dtype != type(input_data):
-                print("ERROR: datatypes don't match", type(input_data), input_dtype) # add a proper message here
-                return
+                logging.critical("%s - Input data type (%s) doesn't match excted type (%s)" % (block_material.id, type(input_data), input_dtype))
+                return None
 
         self.evaluate_def.reset_evaluation(self, block_material)
         output = self.evaluate_def.evaluate(self, block_material, training_datapair, validation_datapair)
