@@ -57,7 +57,8 @@ class BlockDefinition():
         self.meta_def = meta_def()
         for name, val in self.meta_def.__dict__.items():
             # quick way to take all attributes and add to self
-            self.__dict__[name] = val
+            #self.__dict__[name] = val #TODO maybe change to setattr since that is more commonly used
+            setattr(self, name, val)
         # Mutate:
         self.mutate_def = mutate_def()
         self.prob_mutate = self.mutate_def.prob_mutate
@@ -80,7 +81,7 @@ class BlockDefinition():
         self.arg_types = self.argument_def.arg_types
 
 
-    def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str = None):
+    def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str=None):
         '''
         this is a method to quickly grab the data type info at the 'node_index' position of the block_material genome
         

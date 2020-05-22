@@ -2,28 +2,30 @@
 root/code/block_definitions/block_shapemeta.py
 
 Overview:
-overview of what will/should be in this file and how it interacts with the rest of the code
+I know, I know. It's a crap name. Basically this is a 'miscellaneous" attribute class. Provides zero methods, just input and output data types for the block, and number of nodes in a genome. Of course, the user can add any other attribute relevant to their problem and because of the for-loop in the __init__ method of BlockDefinition, it will add every single attribute here to the BlockDefinition.
 
 Rules:
-mention any assumptions made in the code or rules about code structure should go here
+Only requirement is a list of input data types, list of ouptput data types, and an int for the number of nodes in a genome.
+As mentioned above, the user can also add in any other attribute they want eventually added to BlockDefinition.
 '''
 
 ### packages
 import numpy as np
 
+'''
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-
+'''
 
 
 class BlockShapeMeta_Abstract():
     '''
-    a lot of this is just to help fill attributes of a block
-    like number of nodes, acceptable input/output datatypes, etc
+    Note, not an ABC.
+    Only requires list of input dtypes, list of output dtypes, and main node count
     '''
     def __init__(self,
                  input_dtypes: list=[],
@@ -40,7 +42,8 @@ class BlockShapeMeta_Abstract():
 
 class BlockShapeMeta_SymbolicRegression25(BlockShapeMeta_Abstract):
     '''
-    TODO
+    Reasonable block size to use for Symbolic Regression of 25 nodes.
+    Note that an input ins a np.float64, so this will be used in the case where we do not want to use .args and rather use operators to evolve the input float into something useful for the regression.
     '''
     def __init__(self):
         input_dtypes = [np.float64, np.ndarray]
