@@ -35,7 +35,11 @@ def main(problem: ProblemDefinition_Abstract,
     # we have a unique log file per universe run
     logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
     log_logger = logging.getLogger()
-    log_formatter = logging.Formatter(fmt="%(asctime)s,%(msecs)d [%(threadName)] - %(name)s - %(levelname)s - %(message)s",
+    log_formatter = logging.Formatter(fmt="%(asctime)s,%(msecs)d \
+                                           [%(threadName)s-%(thread)d] - \
+                                           [%(filename)s-%funcName)s] - \
+                                           %(levelname)s - \
+                                           %(message)s",
                                       datefmt="%H:%M:%S")
     if loglevel < logging.WARNING: # true only for DEBUG or INFO
         log_stdouthandler = logging.StreamHandler(sys.stdout)
