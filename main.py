@@ -27,7 +27,7 @@ from codes.universe import UniverseDefinition, MPIUniverseDefinition
 from problem.problem_abstract import ProblemDefinition_Abstract
 
 
-def main(problem: ProblemDefinition_Abstract
+def main(problem: ProblemDefinition_Abstract,
          probelm_output_directory=tempfile.mkdtemp(),
          seed: int=0,
          loglevel=logging.WARNING):
