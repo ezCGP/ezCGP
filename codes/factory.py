@@ -73,8 +73,8 @@ class FactoryDefinition():
         '''
         TODO
         '''
-        block_material = BlockMaterial()
-        block_material.set_id(indiv_id, block_def.nickname)
+        block_material = BlockMaterial(block_def.nickname)
+        block_material.set_id(indiv_id)
         self.fill_args(block_def, block_material)
         self.fill_genome(block_def, block_material)
         block_def.get_actives(block_material)

@@ -103,7 +103,7 @@ class BlockMaterial():
      * need_evaluate: boolean flag
      * output: TODO maybe have a place to add the output after it has been evaluated
     '''
-    def __init__(self):
+    def __init__(self, block_nickname="nickname"):
         '''
         sets these attributes:
          * need_evaluate = False
@@ -119,6 +119,7 @@ class BlockMaterial():
         self.args = []
         self.active_args = []
         self.need_evaluate = True
+        self.block_nickname = block_nickname
         self.id = "default-nickname"
 
 
@@ -135,5 +136,5 @@ class BlockMaterial():
         '''
         return self.genome[node_index]
     
-    def set_id(self, indiv_id, block_nickname):
-        self.id = "%s-%s" % (indiv_id, block_nickname)
+    def set_id(self, indiv_id):
+        self.id = "%s-%s" % (indiv_id, self.block_nickname)

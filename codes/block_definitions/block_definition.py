@@ -236,7 +236,6 @@ class BlockDefinition():
         '''
         logging.info("%s - Sending to Block Mutate Definition" % (mutant_material.id))
         self.mutate_def.mutate(mutant_material, self)
-        self.get_actives(mutant_material)
 
 
     def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_index: int):
@@ -246,8 +245,6 @@ class BlockDefinition():
         logging.info("%s+%s - Sending to Block Mate Definition" % (parent1.id, parent2.id))
         children = self.mate_def.mate(parent1, parent2, self, block_index)
         logging.debug("%s+%s - Received %i Children from Block Mate Definition" % (parent1.id, parent2.id, len(children)))
-        for child in children:
-            self.get_actives(child[block_index])
         return children
 
 

@@ -44,10 +44,21 @@ class IndividualMutate_Abstract(ABC):
 
     def set_need_evaluate(self, mutant_material: IndividualMaterial, mutated_block_index: int):
         # going to assume we always mutate an active part of the genome so every block needs to be re-evaluated
-        # TODO more
+        # TODO doc more
         for block_index, block_material in enumerate(mutant_material.blocks):
             if block_index >= mutated_block_index:
                 block_material.need_evaluate = True
+    
+    
+    def post_process(self, mutant_material: IndividualMaterial, indiv_def: IndividualDefinition, mutated_block_index: int):
+        # set need_evaluate
+        # and set ne ids?
+        mutant_material.set_id()
+        for block_index, block_material in enumerate(mutant_material.blocks):
+            block_material.set_id(mutant_material.id)
+            if block_index >= mutated_block_index:
+                block_material.need_evaluate = True
+        indiv_def.blocks[mutated_block_index].get_actives(block_material)
 
 
 

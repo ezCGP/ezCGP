@@ -54,6 +54,23 @@ class IndividualDefinition():
         '''
         for block_index, block in enumerate(indiv_material.blocks):
             self[block_index].get_actives(indiv_material[block_index])
+    
+    
+    def postprocess_evolved_individual(self,
+                                       evolved_material: IndividualMaterial
+                                       evolved_block_index: int):
+        '''
+        An 'evolved' individual is a mutant from mutate() more child from mate()
+        
+        Since it is a new individual, it needs a new id, and we need to process
+        the genome to get the new active nodes and to set to be re-evaluated.
+        '''
+        evolved_material.set_id()
+        for block_index, block_material in enumerate(evolved_material.blocks):
+            block_material.set_id(evolved_material.id)
+            if block_index >= evolved_block_index:
+                block_material.need_evaluate = True
+        self[mutated_block_index].get_actives(evolved_material[mutated_block_index])
 
 
     def mutate(self, indiv_material: IndividualMaterial):
