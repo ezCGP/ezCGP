@@ -33,9 +33,16 @@ def main(problem: ProblemDefinition_Abstract,
          loglevel=logging.WARNING):
     # init logging here but then set the filepath inside the for-loop so that
     # we have a unique log file per universe run
-    logging.basicConfig(level=args.loglevel)
-    log_formatter = logging.Formatter(fmt="%(asctime)s,%(msecs)d - %(name)s - %(levelname)s - %(message)s",
+    logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
+    log_logger = logging.getLogger()
+    log_formatter = logging.Formatter(fmt="%(asctime)s,%(msecs)d [%(threadName)] - %(name)s - %(levelname)s - %(message)s",
                                       datefmt="%H:%M:%S")
+    if loglevel < logging.WARNING: # true only for DEBUG or INFO
+        log_stdouthandler = logging.StreamHandler(sys.stdout)
+        log_stdouthandler.setFormatter(log_formatter)
+        log_logger.addHandler(log_stdouthandler)
+    else:
+        log_stdouthandler = None
     
     for ith_universe in range(problem.number_universe):
         # set the seed
@@ -46,7 +53,10 @@ def main(problem: ProblemDefinition_Abstract,
         os.makedirs(universe_output_direcotry, exist_ok=False)
         # remove any old logging file handlers
         for old_filehandler in logging.handlers:
-            logging.getLogger().removeHandler(old_filehandler)
+            if old_filehandler != log_stdouthandler:
+                # remove everything except the stdout one
+                logging.getLogger().removeHandler(old_filehandler)
+                del old_filehandler
         # replace with a new file handler for the new output directory
         log_filehandler = logging.FileHandler(os.path.join(universe_output_direcotry, "log.txt"), 'w')
         log_filehandler.setFormatter(log_formatter)
