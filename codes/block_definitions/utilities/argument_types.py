@@ -15,6 +15,7 @@ import numpy as np
 from numpy import random as rnd
 from copy import copy, deepcopy
 from abc import ABC, abstractmethod
+import logging
 
 '''
 ### sys relative to root dir
@@ -55,20 +56,25 @@ class ArgumentType_Abstract(ABC):
     '''
     def mut_uniform(self):
         if self.value == 0:
-            return rnd.uniform(0,5)
+            low = 0
+            high = 5
         else:
             low = self.value*.85
             high = self.value * 1.15
-            self.value = rnd.uniform(low,high)
+        logging.debug("%s-%s - numpy.random.uniform(%f,%f)" % (None, None, low, high))
+        self.value = rnd.uniform(low,high)
+            
 
 
     def mut_normal(self):
         if self.value == 0:
-            return rnd.normal(3, 3*.1)
+            mean = 3
+            std = 3*.1
         else:
             mean = self.value
-            sd = self.value * .1
-            self.value = rnd.normal(mean, sd)
+            std = self.value * .1
+        logging.debug("%s-%s - numpy.random.normal(%f,%f)" % (None, None, mean, std))    
+        self.value = rnd.normal(mean, std)
 
 
 
@@ -92,6 +98,7 @@ class ArgumentType_Ints(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
+        logging.debug("%s-%s - Initialize ArgumentType_Ints Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
@@ -102,11 +109,13 @@ class ArgumentType_Ints(ArgumentType_Abstract):
             self.mut_uniform()
         else:
             pass
+        
         if self.value < 1:
             self.value = 1
         else:
             pass
         self.value = int(self.value)
+        logging.debug("%s-%s - Mutated ArgumentType_Ints to %f" % (None, None, self.value))
 
 
 
@@ -121,12 +130,13 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-            self.num_samples = 10
+        logging.debug("%s-%s - Initialize ArgumentType_Pow2 Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
         roll = rnd.random_integers(1, 9)
         self.value = int(2 ** roll)
+        logging.debug("%s-%s - Mutated ArgumentType_Pow2 to %f" % (None, None, self.value))
 
 
 
@@ -141,6 +151,7 @@ class ArgumentType_SmallFloats(ArgumentType_Abstract):
             self.value = rnd.random()*10
         else:
             self.value = value
+        logging.debug("%s-%s - Initialize ArgumentType_SmallFloats Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
@@ -151,3 +162,4 @@ class ArgumentType_SmallFloats(ArgumentType_Abstract):
             self.mut_uniform()
         else:
             pass
+        logging.debug("%s-%s - Mutated ArgumentType_SmallFloats to %f" % (None, None, self.value))

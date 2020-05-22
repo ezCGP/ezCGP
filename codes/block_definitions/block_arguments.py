@@ -18,6 +18,7 @@ Be sure to follow the format to init the abstract class, assign the arg_count an
 ### packages
 from typing import List
 import inspect
+import logging
 
 ### sys relative to root dir
 import sys
@@ -35,6 +36,7 @@ class BlockArguments_Abstract():
     Note that this is not an ABC so the user isn't expected to write in their own methods for a new class.
     '''
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockArguments_Abstract Class" % (None, None))
         self.arg_count = 0
         self.each_type = []
         self.each_weight = []
@@ -52,6 +54,7 @@ class BlockArguments_Abstract():
         assigns the 'real' weights of each type after accounting for the '1' weights which
         allow for equal distribution of weight after all non-1 weights have been set.
         '''
+        logging.debug("%s-%s - Inside init_from_weight_dict; weight_dict: %s" % (None, None, weight_dict))
         args, weights = tools.build_weights(weight_dict)
         self.each_type = args
         self.each_weight = weights
@@ -63,6 +66,7 @@ class BlockArguments_Abstract():
         This is just a helper function to set_equal_weights() to grab all the classes declared in
         the given module. Pretty sexy but will likely never get used.
         '''
+        logging.debug("%s-%s - Inside get_all_classes; module: %s" % (None, None, module))
         vals = inspect.getmembers(globals()[module], inspect.isclass)
         # vals will be a list of tuples (name, value)...we want the value
         all_classes = []
@@ -80,6 +84,7 @@ class BlockArguments_Abstract():
         this returns a weight_dict, and then the user would pass that to init_from_Weight_dict()
         to complete the init
         '''
+        logging.debug("%s-%s - Inside set_all_equal_weights; module: %s" % (None, None, module))
         weight_dict = {}
         for arg_type in self.get_all_classes(module):
             weight_dict[arg_type] = 1
@@ -93,6 +98,7 @@ class BlockArguments_Abstract():
         arg_count, this method will fill out a list of .arg_types to be used to initialize the .arg
         of blocks/individuals.
         '''
+        logging.debug("%s-%s - Inside set_arg_types" % (None, None))
         start_point = 0
         end_point = 0
         self.arg_types = [None]*self.arg_count
@@ -118,6 +124,7 @@ class BlockArgumentsSize50(BlockArguments_Abstract):
     super simple implementation...50 args: 25 ints, and 25 power of 2s
     '''
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockArgumentsSize50 Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
         self.arg_count = 50
         arg_dict = {argument_types.ArgumentType_Ints: 1,
@@ -132,4 +139,5 @@ class BlockArgumentsNoArgs(BlockArguments_Abstract):
     so we would never populate .args and it will stay an empty list
     '''
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockArgumentsNoArgs Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
