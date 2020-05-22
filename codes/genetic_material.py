@@ -13,6 +13,7 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 import numpy as np
+from datetime import datetime
 
 ### sys relative to root dir
 import sys
@@ -33,9 +34,10 @@ class IndividualMaterial():
      * need_evalute: checks the respective boolean flag in all blocks
      and returns True if at least any single block is True
     '''
-    def __init__(self):
+    def __init__(self, _id=None):
         self.fitness = self.Fitness()
         self.blocks = []
+        self.id = "default"
 
 
     def __setitem__(self, block_index, block_material):
@@ -50,6 +52,16 @@ class IndividualMaterial():
         TODO
         '''
         return self.blocks[block_index]
+
+
+    def set_id(self, _id=None):
+        '''
+        thought there could be a unique way to identify an individual for logging and saving
+        '''
+        if id is None:
+            self.id = hex(int(datetime.datetime.now().strftime("%H%M%S%f")))[2:]
+        else:
+            self.id = _id
 
 
     def need_evaluate(self):
@@ -107,6 +119,7 @@ class BlockMaterial():
         self.args = []
         self.active_args = []
         self.need_evaluate = True
+        self.id = "default-nickname"
 
 
     def __setitem__(self, node_index, value):
@@ -121,3 +134,6 @@ class BlockMaterial():
         TODO
         '''
         return self.genome[node_index]
+    
+    def set_id(self, indiv_id, block_nickname):
+        self.id = "%s-%s" % (indiv_id, block_nickname)

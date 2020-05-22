@@ -55,10 +55,10 @@ class BlockDefinition():
                  mate_def: BlockMate_Abstract):
         # Meta:
         self.nickname = nickname
+        logging.debug("%s-%s - Starting Initialize Block" % (None, self.nickname))
         self.meta_def = meta_def()
         for name, val in self.meta_def.__dict__.items():
             # quick way to take all attributes and add to self
-            #self.__dict__[name] = val #TODO maybe change to setattr since that is more commonly used
             setattr(self, name, val)
         # Mutate:
         self.mutate_def = mutate_def()
@@ -80,6 +80,7 @@ class BlockDefinition():
         self.argument_def = argument_def()
         self.arg_count = self.argument_def.arg_count
         self.arg_types = self.argument_def.arg_types
+        logging.debug("%s-%s - Done Initialize Block" % (None, self.nickname))
 
 
     def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str=None):
@@ -89,6 +90,7 @@ class BlockDefinition():
         * if the node_index is for an 'input/output node' then give the data type of the expected input/output
         * otherwise, it's a 'main node'; the 'key' will either be ["inputs", "output", "args"] and will return the respective value in the operator_dict at that node_index
         '''
+        logging.debug("%s - Inside get_node_dtype; node_index: %i, key: %s" % (block_material.id, node_index, key))
         if node_index < 0:
             # input_node
             return self.input_dtypes[-1*node_index-1]
@@ -109,6 +111,7 @@ class BlockDefinition():
         
         note _max is exclusive so [_min,_max)
         '''
+        logging.debug("%s - Inside get_random_input; req_dtype: %s, _min: %s, _max: %s, exclude: %s" % (block_material.id, req_dtype, _min, _max, exclude))
         if _min is None:
             _min = -1*self.input_count
         if _max is None:
@@ -126,6 +129,7 @@ class BlockDefinition():
             poss_inputs = np.random.choice(a=choices, size=len(choices), replace=False)
             for input_index in poss_inputs:
                 input_dtype = self.get_node_dtype(block_material, input_index, "output")
+                logging.debug("%s - trying to match index %i with %s to %s" % (block_material.id, input_dtype, req_dtype))
                 if req_dtype == input_dtype:
                     return input_index
                 else:
@@ -142,6 +146,7 @@ class BlockDefinition():
         
         we should only fail to find a matching function, if exclude contains all functions that could match. This assumes that the user has included primitives that output data types that we would want to see in our genome
         '''
+        logging.debug("%s-%s - Inside get_random_ftn; req_dtype: %s, exclude: %s, return_all: %s" % (None, self.nickname, req_dtype, exclude, return_all))
         choices = np.array(self.operators)
         weights = np.array(self.operator_weights)
         
@@ -161,12 +166,12 @@ class BlockDefinition():
         
         if len(choices) == 0:
             # we have somehow eliminated all possible options
-            logging.warning("%s - Eliminated all available operators for req_dtype: %s, and excluding: %s" % (None, req_dtype, exclude))
+            logging.warning("%s-%s - Eliminated all available operators for req_dtype: %s, and excluding: %s" % (None, self.nickname, req_dtype, exclude))
             return None
 
-        if weights.sum() < 1 - 1e-3:
+        if weights.sum() < 1 - 1e-3: #arbitrarily chose 1e-3 to account for rounding errors
             # we must have removed some values...normalize
-            weights *= 1/weights.sum()
+            weights /= weights.sum()
 
         if return_all:
             return rnd.choice(choices, size=len(choices), replace=False, p=weights)
@@ -178,13 +183,14 @@ class BlockDefinition():
         '''
         similar to get_random_input to find an arg_index that matches the req_dtype
         '''
+        logging.debug("%s-%s - Inside get_random_arg; req_dtype: %s, exclude: %s" % (None, self.nickname, req_dtype, exclude))
         choices = []
         for arg_index, arg_type in enumerate(self.arg_types):
             if (arg_type == req_dtype) and (arg_index not in exclude):
                 choices.append(arg_index)
 
         if len(choices) == 0:
-            logging.warning("%s - Eliminated all possible arg values for req_dtype: %s, exclude: %s" % (None, req_dtype, exclude))
+            logging.warning("%s-%s - Eliminated all possible arg values for req_dtype: %s, exclude: %s" % (None, self.nickname, req_dtype, exclude))
             return None
         else:
             return rnd.choice(choices)
@@ -195,7 +201,7 @@ class BlockDefinition():
         method will go through and set the attributes block_material.active_nodes and active_args.
         active_nodes will include all output_nodes, a subset of main_nodes and input_nodes.
         '''
-        logging.debug("%s - Getting active nodes" % (block_material.id))
+        logging.info("%s - Inside get_actives" % (block_material.id))
         block_material.active_nodes = set(np.arange(self.main_count, self.main_count+self.output_count))
         block_material.active_args = set()
         #block_material.active_ftns = set()
@@ -216,17 +222,19 @@ class BlockDefinition():
                     pass'''
             else:
                 pass
-
+            
         # sort
         block_material.active_nodes = sorted(list(block_material.active_nodes))
+        logging.debug("%s - active nodes: %s" % (block_material.id, block_material.active_nodes))
         block_material.active_args = sorted(list(block_material.active_args))
+        logging.debug("%s - active args: %s" % (block_material.id, block_material.active_args))
 
 
     def mutate(self, mutant_material: BlockMaterial):
         '''
         wrapper method to call the block's mutate definition
         '''
-        logging.debug("%s - Sending to Block Mutate Definition" % (mutant_material.id))
+        logging.info("%s - Sending to Block Mutate Definition" % (mutant_material.id))
         self.mutate_def.mutate(mutant_material, self)
         self.get_actives(mutant_material)
 
@@ -235,7 +243,7 @@ class BlockDefinition():
         '''
         wrapper method to call the block's mate definition
         '''
-        logging.debug("%s+%s - Sending to Block Mate Definition" % (parent1.id, parent2.id))
+        logging.info("%s+%s - Sending to Block Mate Definition" % (parent1.id, parent2.id))
         children = self.mate_def.mate(parent1, parent2, self, block_index)
         logging.debug("%s+%s - Received %i Children from Block Mate Definition" % (parent1.id, parent2.id, len(children)))
         for child in children:

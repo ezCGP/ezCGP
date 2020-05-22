@@ -37,8 +37,8 @@ class FactoryDefinition():
         TODO
         '''
         my_population = PopulationDefinition(population_size)
-        for _ in range(population_size):
-            indiv = self.build_individual(indiv_def)
+        for i in range(population_size):
+            indiv = self.build_individual(indiv_def, indiv_id="initPop%i" % i)
             my_population.population.append(indiv)
         return my_population
 
@@ -57,22 +57,24 @@ class FactoryDefinition():
     '''
 
 
-    def build_individual(self, indiv_def: IndividualDefinition):
+    def build_individual(self, indiv_def: IndividualDefinition, indiv_id=None):
         '''
         TODO
         '''
         indiv_material = IndividualMaterial()
+        indiv_material.set_id(indiv_id)
         for block_def in indiv_def.block_defs:
-            block_material = self.build_block(block_def)
+            block_material = self.build_block(block_def, indiv_id=_id)
             indiv.blocks.append(block_material)
         return indiv
 
 
-    def build_block(self, block_def: BlockDefinition):
+    def build_block(self, block_def: BlockDefinition, indiv_id):
         '''
         TODO
         '''
         block_material = BlockMaterial()
+        block_material.set_id(indiv_id, block_def.nickname)
         self.fill_args(block_def, block_material)
         self.fill_genome(block_def, block_material)
         block_def.get_actives(block_material)
