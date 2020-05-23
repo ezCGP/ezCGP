@@ -2,13 +2,17 @@
 root/codes/block_definitions/block_mate.py
 
 Overview:
-overview of what will/should be in this file and how it interacts with the rest of the code
+Block level definition on how to mate 2 parent blocks. We do define an ABC with a mate method that takes in full IndividualMaterial instances (rather than BlockMaterials); in first developping, it seemed easier to send in the full individual genome because while it was clear how the parent's would exchange the block genome, it was not clear how the child would populate itself in the other blocks. So in these mate() methods, we force the user to define how it will perform crossover on the block but also how it will distribute the rest of the blocks to the child.
+Also should be noted that all the copying/deepcopying of the parents will happen at the utilities/mate_methods.py level; not here. Expect to return a list of full individual children.
 
 Rules:
-mention any assumptions made in the code or rules about code structure should go here
+Pretty much just need to remember to set a prob_mate attribute, and make sure that the mate method we create has the same inputs:
+* 2 parent IndividualMaterial instances
+* the BlockDefinition and the block_index
 '''
 
 ### packages
+import logging
 from abc import ABC, abstractmethod
 
 ### sys relative to root dir
@@ -24,15 +28,7 @@ from codes.block_defintions.utilities import mate_methods
 
 
 class BlockMate_Abstract(ABC):
-    '''
-    REQUIREMENTS/EXPECTATIONS
-    Block Mate class:
-     * in __init__ will assign a prob_mate attribute for that block
-     * as above, we should not deepcopy at all here; we assume that the mate_method itself will handle that and simply return the list
-        output by the select mate_method
-     * inputs: the 2 parents as instances of IndividualMaterial, integer for the i^th block we want to mate
-     * returns: a list of offspring output by the selected mate_method
-    '''
+    @abstractmethod
     def __init__(self):
         pass
 
@@ -48,9 +44,11 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
     if they mate, they will only mate with whole_block()
     '''
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockMate_WholeOnly Class" % (None, None))
         self.prob_mate = 1.0
 
     def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_def: BlockDefinition, block_index: int):
+        logging.info("%s+%s-%s - Sending %i block to mate_methods.whole_block()" % (parent1.id, parent2.id, block_def.nickname, block_index))
     	# dont actually need block_def
         return mate_methods.whole_block(parent1, parent2, block_index)
 
@@ -58,7 +56,9 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
 
 class BlockMate_NoMate(BlockMate_Abstract):
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockMate_NoMate Class" % (None, None))
         self.prob_mate = 0
 
     def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_def: BlockDefinition, block_index: int):
+        logging.info("%s+%s-%s - No mating for block %i" % (parent1.id, parent2.id, block_def.nickname, block_index))
         return []

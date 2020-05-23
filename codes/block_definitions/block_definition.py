@@ -215,11 +215,6 @@ class BlockDefinition():
                 # then add the input nodes to active list
                 block_material.active_nodes.update(block_material[node_index]["inputs"])
                 block_material.active_args.update(block_material[node_index]["args"])
-                '''# if we need to check for learners...
-                if (not block_material.has_learner) and ("learner" in block_material[node_index]["ftn"].__name__):
-                    block_material.has_learner = True
-                else:
-                    pass'''
             else:
                 pass
             
@@ -242,9 +237,9 @@ class BlockDefinition():
         '''
         wrapper method to call the block's mate definition
         '''
-        logging.info("%s+%s - Sending to Block Mate Definition" % (parent1.id, parent2.id))
+        logging.info("%s+%s-%s - Sending to Block Mate Definition" % (parent1.id, parent2.id, self.nickname))
         children = self.mate_def.mate(parent1, parent2, self, block_index)
-        logging.debug("%s+%s - Received %i Children from Block Mate Definition" % (parent1.id, parent2.id, len(children)))
+        logging.debug("%s+%s-%s - Received %i Children from Block Mate Definition" % (parent1.id, parent2.id, self.nickname, len(children)))
         return children
 
 
@@ -259,6 +254,6 @@ class BlockDefinition():
                 logging.critical("%s - Input data type (%s) doesn't match excted type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None
 
-        self.evaluate_def.reset_evaluation(self, block_material)
-        output = self.evaluate_def.evaluate(self, block_material, training_datapair, validation_datapair)
+        self.evaluate_def.reset_evaluation(block_material, self)
+        output = self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
         return output

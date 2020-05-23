@@ -2,10 +2,12 @@
 root/block_definitions/block_evaluate.py
 
 Overview:
-overview of what will/should be in this file and how it interacts with the rest of the code
+Here we define how our block will be 'evaluated'...Of course there is typical concept of evaluating where we just apply methods to data and we're done; then there is 'evaluation' when we are dealing with neural networks where we have to build a graph, train it, and then evaluate it against a different dataset; there have also been cases where we pass through an instantiated class object through the graph and each primitive addes or changes an attribute so evaluation is decorating a class object. This may change in the future, but right now we have generalized the inputs for evaluation to:
+* block_material to get the genome and args
+* block_def to get metadata about the block
+* training and validation data
 
-Rules:
-mention any assumptions made in the code or rules about code structure should go here
+Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDefinition.evaluate() to run reset_evaluation() and then run evaluate().
 '''
 
 ### packages
@@ -24,25 +26,32 @@ from codes.block_definitions.block_definition import BlockDefinition
 
 
 class BlockEvaluate_Abstract(ABC):
-    '''
-    REQUIREMENTS/EXPECTATIONS
-
-    Block Evaluate class:
-     * should start with a reset_evaluation() method
-     * inputs: an instance of BlockMaterial, and the training+validation data
-     * returns: a list of the output to the next block or as output of the individual
-    '''
+    @abstractmethod
     def __init__(self):
         pass
 
-    @abstractmethod
-    def evaluate(self, block_material, training_datapair, validation_datapair=None):
-        pass
 
     @abstractmethod
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def: BlockDefinition,
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet=None):
+        pass
+
+    
     def reset_evaluation(self, block_material):
-        pass
-
+        '''
+        should always happen before we evaluate...should be in BlockDefinition.evaluate()
+        
+        things like block_material.evaluated can really blow up memory so it's good to blow that away at the end of evaluation too
+        also gives us a chance to introduce attributes to the BlockMaterial class that is unique to our problem/evaluation
+        '''
+        logging.debug("%s - Reset for Evaluation" % (block_material.id))
+        block_material.evaluated = [None] * len(block_material.genome)
+        block_material.output = None
+        block_material.dead = False
+        block_material.need_evaluate = False
 
 
 class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
@@ -74,11 +83,19 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
 
 class BlockEvaluate_Standard(BlockEvaluate_Abstract):
     '''
-    TODO
+    This could be used for any basic application of methods onto data, like symbolic regression.
     '''
-    def evaluate(self, block_def, block_material, training_datapair, validation_datapair=None):
-        self.reset_evaluation(block_material)
-
+    def __init__(self):
+        logging.debug("%s-%s - Initialize BlockEvaluate_Standard Class" % (None, None))
+        
+        
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def: BlockDefinition, 
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet=None):
+        logging.info("%s - Start evaluating..." % (block_material.id))
+        
         # add input data
         for i, data_input in enumerate(training_datapair):
             block_material.evaluated[-1*(i+1)] = data_input
@@ -99,29 +116,31 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
                 node_input_indices = block_material[node_index]["inputs"]
                 for node_input_index in node_input_indices:
                     inputs.append(block_material.evaluated[node_input_index])
+                logging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
 
                 args = []
                 node_arg_indices = block_material[node_index]["args"]
                 for node_arg_index in node_arg_indices:
                     args.append(block_material.args[node_arg_index].value)
+                logging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
 
-                #print(function, inputs, args)
-                block_material.evaluated[node_index] = function(*inputs, *args)
-                '''try:
-                    self.evaluated[node_index] = function(*inputs, *args)
-                except Exception as e:
-                    print(e)
-                    self.dead = True
-                    break'''
+                logging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
+                try:
+                    block_material.evaluated[node_index] = function(*inputs, *args)
+                    logging.info("%s - Eval %i; Success" % (block_material.id, node_index))
+                except Exception as err:
+                    logging.info("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
+                    block_material.dead = True
+                    break
 
         output = []
-        for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
-            output.append(block_material.evaluated[block_material.genome[output_index]])
-
+        if not block_material.dead:
+            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
+                output.append(block_material.evaluated[block_material.genome[output_index]])
+                
+        logging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output))
         return output
 
 
-    def reset_evaluation(self, block_material):
-        block_material.evaluated = [None] * len(block_material.genome)
-        block_material.output = None
-        block_material.dead = False
+    def reset_evaluation(self, block_material: BlockMaterial):
+        BlockEvaluate_Abstract.__init__(self)

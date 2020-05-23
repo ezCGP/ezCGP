@@ -35,9 +35,11 @@ class IndividualMaterial():
      and returns True if at least any single block is True
     '''
     def __init__(self, _id=None):
+        self.id = "default"
         self.fitness = self.Fitness()
         self.blocks = []
-        self.id = "default"
+        self.output = []
+        self.dead = False
 
 
     def __setitem__(self, block_index, block_material):
@@ -114,13 +116,17 @@ class BlockMaterial():
 
         moved to factory
         '''
+        self.block_nickname = block_nickname
+        self.id = "default-nickname"
         self.genome = []
         self.active_nodes = []
         self.args = []
         self.active_args = []
         self.need_evaluate = True
-        self.block_nickname = block_nickname
-        self.id = "default-nickname"
+        # maybe remove these if they don't get used in non-symbolic regression evaluation problems
+        self.evaluated = []
+        self.output = []
+        self.dead = False
 
 
     def __setitem__(self, node_index, value):

@@ -2,10 +2,10 @@
 root/codes/block_definitions/block_mutate.py
 
 Overview:
-overview of what will/should be in this file and how it interacts with the rest of the code
+Pretty simple class; basically just a wrapper to the mutate_methods. Deepcopies of the original individual happened at the IndividualMutate_Abstract level so we don't have to do anything fancy here...just pass the mutant along.
 
 Rules:
-mention any assumptions made in the code or rules about code structure should go here
+Will need the probability that a block will mutate, and then how many mutants it should create.
 '''
 
 ### packages
@@ -26,15 +26,14 @@ from codes.block_definitions.utilities import mutate_methods
 
 class BlockMutate_Abstract(ABC):
     '''
-    REQUIREMENTS/EXPECTATIONS
-    Block Mutate class:
-     * in __init__ will assign a prob_mutate and num_mutants attribute for that block
-     * this method will mutate the given individual in-place. do not deepcopy here
-     * inputs: instance of IndividualMaterial, integer for the i^th block we want to mutate
-     * returns: nothing as the mutation should occur in-place to the given individual
+    the user doesn't have to make their own __init__ method if they're happy with the attributes in this init
+    
+    if they do make their own __init__, they shoudln't need to call BlockMutate_Abstract.__init__(self)
     '''
     def __init__(self):
-        pass
+        logging.debug("%s-%s - Initialize BlockMutate_Abstract Class" % (None, None))
+        self.prob_mutate = 1.0
+        self.num_mutants = 4
 
     @abstractmethod
     def mutate(self, mutant_material: BlockMaterial, block_def: BlockDefinition):
@@ -44,14 +43,16 @@ class BlockMutate_Abstract(ABC):
 
 class BlockMutate_OptA(BlockMutate_Abstract):
     '''
-    TODO
+    Good for things like symbolic regression with NO args since we only mutate the input node connections or the primitive function used.
     '''
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockMutate_OptA Class" % (None, None))
         self.prob_mutate = 1.0
         self.num_mutants = 4
 
     def mutate(self, mutant_material: BlockMaterial, block_def: BlockDefinition):
         roll = rnd.random()
+        logging.info("%s - Sending %i block to mutate; roll: " % (block_material.id, block_index, roll))
         if roll < (1/2):
             mutate_methods.mutate_single_input(mutant_material, block_def)
         else:
@@ -61,15 +62,17 @@ class BlockMutate_OptA(BlockMutate_Abstract):
 
 class BlockMutate_OptB(BlockMutate_Abstract):
     '''
-    TODO
+    Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
     '''
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockMutate_OptB Class" % (None, None))
         self.prob_mutate = 1.0
         self.num_mutants = 4
 
 
     def mutate(self, mutant_material: BlockMaterial, block_def: BlockDefinition):
         roll = rnd.random()
+        logging.info("%s - Sending %i block to mutate; roll: " % (block_material.id, block_index, roll))
         if roll < (1/4):
             mutate_methods.mutate_single_input(mutant_material, block_def)
         elif roll < (2/4):

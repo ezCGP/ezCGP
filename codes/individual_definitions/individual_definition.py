@@ -56,9 +56,7 @@ class IndividualDefinition():
             self[block_index].get_actives(indiv_material[block_index])
     
     
-    def postprocess_evolved_individual(self,
-                                       evolved_material: IndividualMaterial
-                                       evolved_block_index: int):
+    def postprocess_evolved_individual(self, evolved_material: IndividualMaterial, evolved_block_index: int):
         '''
         An 'evolved' individual is a mutant from mutate() more child from mate()
         

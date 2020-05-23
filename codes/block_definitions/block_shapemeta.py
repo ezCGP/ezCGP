@@ -11,15 +11,16 @@ As mentioned above, the user can also add in any other attribute they want event
 
 ### packages
 import numpy as np
+import logging
 
-'''
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-'''
+from data.data_tools import data_types
+
 
 
 class BlockShapeMeta_Abstract():
@@ -31,6 +32,7 @@ class BlockShapeMeta_Abstract():
                  input_dtypes: list=[],
                  output_dtypes: list=[],
                  main_count: int=20):
+        logging.debug("%s-%s - Initialize BlockShapeMeta_Abstract Class" % (None, None))
         self.input_dtypes = input_dtypes
         self.input_count = len(input_dtypes)
         self.output_dtypes = output_dtypes
@@ -46,6 +48,7 @@ class BlockShapeMeta_SymbolicRegression25(BlockShapeMeta_Abstract):
     Note that an input ins a np.float64, so this will be used in the case where we do not want to use .args and rather use operators to evolve the input float into something useful for the regression.
     '''
     def __init__(self):
+        logging.debug("%s-%s - Initialize BlockShapeMeta_SymbolicRegression25 Class" % (None, None))
         input_dtypes = [np.float64, np.ndarray]
         output_dtypes = [np.ndarray]
         main_count = 25
