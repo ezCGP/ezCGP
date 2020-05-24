@@ -11,14 +11,11 @@ required inputs:
 required output:
  * it is expected that the parents do not get altered so deepcopies are required
  * list of offspring IndividualMaterial to be added to the population
-
-
-Rules:
-mention any assumptions made in the code or rules about code structure should go here
 '''
 
 ### packages
 from copy import deepcopy
+import logging
 
 ### sys relative to root dir
 import sys
@@ -32,8 +29,9 @@ from codes.block_definitions.block_definition import BlockDefinition
 
 def whole_block(parent1: IndividualMaterial, parent2: IndividualMaterial, block_index: int):
     '''
-    TODO
+    Super simple direct swaping of the blocks. 2 parents in; 2 children out.
     '''
+    logging.info("%s+%s - Mating Block %i with whole_block()" % (parent1.id, parent2.id, block_index))
     child1 = deepcopy(parent1)
     child1[block_index] = deepcopy(parent2[block_index])
 
@@ -47,6 +45,7 @@ def partial_block(parent1: IndividualMaterial, parent2: IndividualMaterial, bloc
     '''
     TODO
     '''
+    logging.info("%s+%s - Mating Block %i with partial_block()" % (parent1.id, parent2.id, block_index))
     child1 = deepcopy(parent1)
     child2 = deepcopy(parent2)
     # TODO

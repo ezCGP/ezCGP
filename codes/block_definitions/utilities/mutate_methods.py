@@ -2,15 +2,15 @@
 root/codes/block_definitions/utilities/mutate_methods.py
 
 Overview:
-overview of what will/should be in this file and how it interacts with the rest of the code
+One of the important coding principles here is to try and preserve life as much as possible. Try to avoid doing any mutation that we know will not work, like connecting two nodes whose data types do not match...that does make coding this all a bit more complicated but it should help with the efficiency of the program as well...the beauty of strongly typed!
 
-Rules:
-mention any assumptions made in the code or rules about code structure should go here
+Note that these BlockMaterials have already been deepcopied from the original individual so we shouldn't be hesitant about editing the genome in place.
 '''
 
 ### packages
 from numpy import random as rnd
 import numpy as np
+import logging
 
 ### sys relative to root dir
 import sys
@@ -28,6 +28,7 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def: BlockDefiniti
     when mutating inputs, it will look for a node that outputs the matching datatype of the current node's input
     so it can fail at doing so and won't mutate that node
     '''
+    logging.info("%s - Inside mutate_single_input" % (mutant_material.id))
     choices = np.arange(block_def.main_count+block_def.output_count)
     choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
     for node_index in choices:
@@ -43,11 +44,14 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def: BlockDefiniti
                 continue
             else:
                 mutant_material[node_index]["inputs"][ith_input] = new_input
+                logging.debug("%s - Mutated node %i; ori_input: %i, new_input: %i" % (mutant_material.id, node_index, current_input_index, new_input))
                 if node_index in mutant_material.active_nodes:
                     # active_node finally mutated
+                    logging.debug("%s - Mutated node %i - active" % (mutant_material.id, node_index))
                     mutant_material.need_evaluate = True
                     break
                 else:
+                    logging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, node_index))
                     pass
         else:
             # then we are mtuating an output-node (expect a int index value)
@@ -59,7 +63,9 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def: BlockDefiniti
                 continue
             else:
                 mutant_material[node_index] = new_output_index
+                logging.debug("%s - Mutated node %i; ori_input: %i, new_input: %i" % (mutant_material.id, node_index, current_output_index, new_output_index))
                 # active_node finally mutated
+                logging.debug("%s - Mutated node %i - active" % (mutant_material.id, node_index))
                 mutant_material.need_evaluate = True
                 break
 
@@ -71,6 +77,7 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def: BlockDefinition
     if the expected input datatypes don't match the current genome,
     it will find a new input/arg that will match
     '''
+    logging.info("%s - Inside mutate_single_ftn" % (mutant_material.id))
     choices = np.arange(block_def.main_count)
     choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
     for node_index in choices:
@@ -78,6 +85,7 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def: BlockDefinition
         current_ftn = mutant_material[node_index]["ftn"]
         req_output_dtype = block_def.operator_dict[current_ftn]["output"]
         new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[current_ftn])
+        logging.debug("%s - Mutated node %i - possible new ftn: %s" % (mutant_material.id, node_index, new_ftn))
 
         # make sure input_dtypes match
         req_input_dtypes = block_def.operator_dict[new_ftn]["inputs"]
@@ -98,7 +106,7 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def: BlockDefinition
         if None in new_inputs:
             continue
         else:
-            pass
+            logging.debug("%s - Mutated node %i - possible new inputs: %s" % (mutant_material.id, node_index, new_inputs))
 
         # make sure arg_dtypes match
         req_arg_dtypes = block_def.operator_dict[new_ftn]["args"]
@@ -118,24 +126,28 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def: BlockDefinition
         if None in new_args:
             continue
         else:
-            pass
+            logging.debug("%s - Mutated node %i - possible new args: %s" % (mutant_material.id, node_index, new_args))
 
         # at this point we found a ftn and fit inputs and args
         mutant_material[node_index]["ftn"] = new_ftn
         mutant_material[node_index]["inputs"] = new_inputs
         mutant_material[node_index]["args"] = new_args
+        logging.debug("%s - Mutated node %i; old_ftn: %s, new_ftn: %s, new_inputs: %s, new_args %s" % (mutant_material.id, node_index, current_ftn, new_ftn, new_inputs, new_args))
         if node_index in mutant_material.active_nodes:
             # active_node finally mutated
+            logging.debug("%s - Mutated node %i - active" % (mutant_material.id, node_index))
             mutant_material.need_evaluate = True
             break
         else:
+            logging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, node_index))
             pass
 
 
 def mutate_single_argindex(mutant_material: BlockMaterial, block_def: BlockDefinition):
     '''
-    words
+    search through the args and try to find a matching arg_type and use that arg index instead
     '''
+    logging.info("%s - Inside mutate_single_argindex" % (mutant_material.id))
     if len(mutant_material.active_args) > 0:
         # then there is something to mutate
         choices = [] # need to find those nodes with 'args' filled
@@ -158,36 +170,39 @@ def mutate_single_argindex(mutant_material: BlockMaterial, block_def: BlockDefin
                 continue
             else:
                 mutant_material[node_index]["args"][ith_arg] = new_arg
+                logging.info("%s - Mutated node %i; ori arg index: %i, new arg index: %i" % (mutant_material.id, node_index, current_arg, new_arg))
                 if node_index in mutant_material.active_nodes:
                     # active_node finally mutated
+                    logging.debug("%s - Mutated node %i - active" % (mutant_material.id, node_index))
                     mutant_material.need_evaluate = True
                     break
                 else:
-                    pass
+                    logging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, node_index))
     else:
         # won't actually mutate
-        pass
+        logging.warning("%s - No active args to mutate" % (mutant_material.id))
 
 
 def mutate_single_argvalue(mutant_material: BlockMaterial, block_def: BlockDefinition):
     '''
-    words
-    ???
-    Potential Guess: this function will take an individual and a block index value to
-    indicate which block to mutate its hyperparameters
+    instead of looking for a different arg index in .args with the same arg type,
+    mutate the value stored in this arg index.
     '''
+    logging.info("%s - Inside mutate_single_argvalue" % (mutant_material.id))
     if len(mutant_material.active_args) > 0:
         # if block has arguments, then there is something to mutate
         choices = np.arange(self.args_count)
         choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
         for arg_index in choices:
             mutant_material.args[arg_index].mutate()
+            logging.info("%s - Mutated node %i; new arg value: %s" % (mutant_material.id, node_index, mutant_material.args[arg_index]))
             if arg_index in mutant_material.active_args:
                 # active_arg finally mutated
+                logging.debug("%s - Mutated node %i - active" % (mutant_material.id, node_index))
                 mutant_material.need_evaluate = True
                 break
             else:
-                pass
+                logging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, node_index))
     else:
         # won't actually mutate
-        pass
+        logging.warning("%s - No active args to mutate" % (mutant_material.id))
