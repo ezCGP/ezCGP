@@ -55,6 +55,7 @@ class IndividualMate_RollOnEachBlock(IndividualMate_Abstract):
     def __init__(self):
         pass
 
+
     def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, indiv_def: IndividualDefinition):
         all_children = []
         for block_index, block_def in enumerate(indiv_def.blocks):

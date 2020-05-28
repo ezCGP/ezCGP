@@ -65,7 +65,6 @@ class ArgumentType_Abstract(ABC):
         self.value = rnd.uniform(low,high)
             
 
-
     def mut_normal(self):
         if self.value == 0:
             mean = 3
