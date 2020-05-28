@@ -10,6 +10,7 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 import os
+import shutil
 import time
 import numpy as np
 import tempfile
@@ -112,9 +113,18 @@ if __name__ == "__main__":
 
     # figure out which problem py file to import
     if args.problem.endswith('.py'):
+        problem_filename = os.path.basename(args.problem)
         args.problem = args.problem[:-3]
+    else:
+        problem_filename = os.path.basename(args.problem + ".py")
     problem_module = __import__(args.problem)
     problem = problem_module.Problem()
+
+    # copy problem file over to problem_output_directory
+    # this way we know for sure which version of the problem file resulted in the output
+    src = join(dirname(realpath(__file__)), "problems", problem_filename)
+    dst = join(probelm_output_directory, problem_filename)
+    shutil.copyfile(src, dst)
     
     # RUN BABYYY
     main(problem, probelm_output_directory, args.seed, args.loglevel)
