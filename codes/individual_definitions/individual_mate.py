@@ -11,6 +11,7 @@ mention any assumptions made in the code or rules about code structure should go
 ### packages
 from abc import ABC, abstractmethod
 from numpy import random as rnd
+import logging
 
 ### sys relative to root dir
 import sys

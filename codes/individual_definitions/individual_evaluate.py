@@ -2,16 +2,14 @@
 root/individual_definitions/individual_evaluate.py
 
 Overview:
-overview of what will/should be in this file and how it interacts with the rest of the code
-
-
-Rules:
-always have a check for dead blocks
+Super basic. All we do is define a class that has a single method: evaluate().
+The method should take in IndividualMaterial (the thing it needs to evaluate), IndividualDefinition (guide for how to evaluate), and the data.
 '''
 
 ### packages
 from copy import deepcopy
 from abc import ABC, abstractmethod
+import logging
 
 ### sys relative to root dir
 import sys
@@ -26,13 +24,6 @@ from codes.individual_definitions.individual_definition import IndividualDefinit
 
 
 class IndividualEvaluate_Abstract(ABC):
-    '''
-    REQUIREMENTS/EXPECTATIONS
-
-    Individual Evaluate class:
-     * inputs: instance of IndividualDefinition, an instance of IndividualMaterial, and the training+validation data
-     * returns: the direct output of the last block
-    '''
     def __init__(self):
         pass
 
@@ -47,6 +38,11 @@ class IndividualEvaluate_Abstract(ABC):
 
 
 class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
+    '''
+    for loop over each block; evaluate, take the output, and pass that in as the input to the next block
+    check for dead blocks (errored during evaluation) and then just stop evaluating. Note, the remaining blocks
+    should continue to have the need_evaluate flag as True.
+    '''
     def __init__(self):
         pass
 
@@ -55,9 +51,9 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                  indiv_def: IndividualDefinition,
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet=None):
-        for block_index, block_material in enumerate(indiv_material.blocks):
-            block_def = indiv_def[block_index]
+        for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if block_material.need_evaluate:
+                logging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
                 training_datapair = block_def.evaluate(block_material, training_datapair, validation_datapair)
                 if block_material.dead:
                     indiv_material.dead = True
@@ -65,6 +61,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                 else:
                     pass
             else:
+                logging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
                 training_datapair = deepcopy(block_material.output)
 
-        indiv_material.output = training_datapair #TODO figure this out
+        indiv_material.output = training_datapair

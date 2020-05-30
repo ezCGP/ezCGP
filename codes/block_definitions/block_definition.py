@@ -246,6 +246,7 @@ class BlockDefinition():
     def evaluate(self, block_material: BlockMaterial, training_datapair: ezDataSet, validation_datapair=None):
         '''
         wrapper method to call the block's evaluate definition
+        NOTE: we take the output and attach to block_materialin postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
         '''
         logging.debug("%s - Sending to Block Evaluate Definition" % (block_material.id))
         # verify that the input data matches the expected datatypes
@@ -254,6 +255,7 @@ class BlockDefinition():
                 logging.critical("%s - Input data type (%s) doesn't match excted type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None
 
-        self.evaluate_def.reset_evaluation(block_material, self)
+        self.evaluate_def.reset_evaluation(block_material)
         output = self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
+        self.evaluate_def.postprocess_evaluated_block(block_material, output)
         return output

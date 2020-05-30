@@ -44,13 +44,23 @@ class BlockEvaluate_Abstract(ABC):
         '''
         should always happen before we evaluate...should be in BlockDefinition.evaluate()
         
-        things like block_material.evaluated can really blow up memory so it's good to blow that away at the end of evaluation too
-        also gives us a chance to introduce attributes to the BlockMaterial class that is unique to our problem/evaluation
+        Note we can always customize this to our block needs which is why we included in BlockEvaluate instead of BlockDefinition
         '''
         logging.debug("%s - Reset for Evaluation" % (block_material.id))
         block_material.evaluated = [None] * len(block_material.genome)
         block_material.output = None
         block_material.dead = False
+
+
+    def postprocess_evaluated_block(self, block_material, output):
+        '''
+        should always happen after we evaluate. important to blow away block_material.evaluated to clear up memory
+
+        can always customize this method which is why we included it in BlockEvaluate and not BlockDefinition
+        '''
+        logging.debug("%s - Processing after Evaluation" % (block_material.id))
+        block_material.output = output
+        block_material.evaluated = None
         block_material.need_evaluate = False
 
 
@@ -138,7 +148,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
             for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
                 output.append(block_material.evaluated[block_material.genome[output_index]])
                 
-        logging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output))
+        logging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
         return output
 
 
