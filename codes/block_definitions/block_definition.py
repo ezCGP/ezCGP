@@ -129,7 +129,7 @@ class BlockDefinition():
             poss_inputs = np.random.choice(a=choices, size=len(choices), replace=False)
             for input_index in poss_inputs:
                 input_dtype = self.get_node_dtype(block_material, input_index, "output")
-                logging.debug("%s - trying to match index %i with %s to %s" % (block_material.id, input_dtype, req_dtype))
+                logging.debug("%s - trying to match index %i with %s to %s" % (block_material.id, input_index, input_dtype, req_dtype))
                 if req_dtype == input_dtype:
                     return input_index
                 else:
@@ -255,7 +255,7 @@ class BlockDefinition():
                 logging.critical("%s - Input data type (%s) doesn't match excted type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None
 
-        self.evaluate_def.reset_evaluation(block_material)
+        self.evaluate_def.reset_evaluation(block_material); print("reset")
         output = self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
         self.evaluate_def.postprocess_evaluated_block(block_material, output)
         return output

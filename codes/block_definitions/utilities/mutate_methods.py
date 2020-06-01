@@ -19,10 +19,10 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.genetic_material import BlockMaterial
-from codes.block_definitions.block_definition import BlockDefinition
+#from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 
 
-def mutate_single_input(mutant_material: BlockMaterial, block_def: BlockDefinition):
+def mutate_single_input(mutant_material: BlockMaterial, block_def): #: BlockDefinition):
     '''
     pick nodes at random and mutate the input-index until an active node is selected
     when mutating inputs, it will look for a node that outputs the matching datatype of the current node's input
@@ -38,7 +38,7 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def: BlockDefiniti
             ith_input = rnd.choice(np.arange(num_inputs_into_node))
             current_input_index = mutant_material[node_index]["inputs"][ith_input]
             req_dtype = block_def.get_node_dtype(mutant_material, node_index, "inputs")[ith_input]
-            new_input = block_def.get_random_input(mutant_material, req_dtype=req_dtype, max_=node_index, exclude=[current_input_index])
+            new_input = block_def.get_random_input(mutant_material, req_dtype=req_dtype, _max=node_index, exclude=[current_input_index])
             if new_input is None:
                 # failed to find new input, will have to try another node to mutate
                 continue
@@ -57,7 +57,7 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def: BlockDefiniti
             # then we are mtuating an output-node (expect a int index value)
             current_output_index = mutant_material[node_index]
             req_dtype = block_def.output_dtypes[node_index-block_def.main_count]
-            new_output_index = block_def.get_random_input(mutant_material, req_dtype=req_dtype, min_=0, exclude=[current_output_index])
+            new_output_index = block_def.get_random_input(mutant_material, req_dtype=req_dtype, _min=0, exclude=[current_output_index])
             if new_output_index is None:
                 # failed to find new node
                 continue
@@ -70,7 +70,7 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def: BlockDefiniti
                 break
 
 
-def mutate_single_ftn(mutant_material: BlockMaterial, block_def: BlockDefinition):
+def mutate_single_ftn(mutant_material: BlockMaterial, block_def): #: BlockDefinition):
     '''
     pick nodes at random and mutate the ftn-index until an active node is selected
     will mutate the function to anything with matching input/arg dtype.
@@ -101,7 +101,7 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def: BlockDefinition
         # now try and fill in anything still None
         for ith_input, (new_input, input_dtype) in enumerate(zip(new_inputs, req_input_dtypes)):
             if new_input is None:
-                new_inputs[ith_input] = block_def.get_random_input(mutant_material, req_dtype=input_dtype, max_=node_index)
+                new_inputs[ith_input] = block_def.get_random_input(mutant_material, req_dtype=input_dtype, _max=node_index)
         # if there is still 'None' then we failed to fit this ftn in...try another ftn
         if None in new_inputs:
             continue
@@ -143,7 +143,7 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def: BlockDefinition
             pass
 
 
-def mutate_single_argindex(mutant_material: BlockMaterial, block_def: BlockDefinition):
+def mutate_single_argindex(mutant_material: BlockMaterial, block_def): #: BlockDefinition):
     '''
     search through the args and try to find a matching arg_type and use that arg index instead
     '''
@@ -183,7 +183,7 @@ def mutate_single_argindex(mutant_material: BlockMaterial, block_def: BlockDefin
         logging.warning("%s - No active args to mutate" % (mutant_material.id))
 
 
-def mutate_single_argvalue(mutant_material: BlockMaterial, block_def: BlockDefinition):
+def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockDefinition):
     '''
     instead of looking for a different arg index in .args with the same arg type,
     mutate the value stored in this arg index.

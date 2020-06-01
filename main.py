@@ -25,7 +25,7 @@ sys.path.append(join(dirname(realpath(__file__)), "problems"))
 
 ### absolute imports wrt root
 from codes.universe import UniverseDefinition, MPIUniverseDefinition
-from problem.problem_abstract import ProblemDefinition_Abstract
+from problems.problem_definition import ProblemDefinition_Abstract
 
 
 def main(problem: ProblemDefinition_Abstract,
@@ -34,7 +34,8 @@ def main(problem: ProblemDefinition_Abstract,
          loglevel=logging.WARNING):
     # init logging here but then set the filepath inside the for-loop so that
     # we have a unique log file per universe run
-    logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
+    #logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
+    logging.getLogger().setLevel(loglevel) # for some reason logging.getLogger already existed so doing basicConfig() does nothing
     log_logger = logging.getLogger()
     format_str = "[%(asctime)s.%(msecs)d][%(threadName)s-%(thread)d][%(filename)s-%(funcName)s] %(levelname)s: %(message)s"
     log_formatter = logging.Formatter(fmt=format_str, datefmt="%H:%M:%S")
@@ -44,24 +45,26 @@ def main(problem: ProblemDefinition_Abstract,
         log_logger.addHandler(log_stdouthandler)
     else:
         log_stdouthandler = None
-    
-    for ith_universe in range(problem.number_universe):
-        # set the seed
-        np.random.seed(seed + ith_universe)
 
+    for ith_universe in range(problem.number_universe):
         # set new output directory
         universe_output_direcotry = os.path.join(probelm_output_directory, "univ%i" % ith_universe)
         os.makedirs(universe_output_direcotry, exist_ok=False)
         # remove any old logging file handlers
-        for old_filehandler in logging.handlers:
+        for old_filehandler in log_logger.handlers:
             if old_filehandler != log_stdouthandler:
                 # remove everything except the stdout one
-                logging.getLogger().removeHandler(old_filehandler)
+                log_logger.removeHandler(old_filehandler)
                 del old_filehandler
         # replace with a new file handler for the new output directory
         log_filehandler = logging.FileHandler(os.path.join(universe_output_direcotry, "log.txt"), 'w')
         log_filehandler.setFormatter(log_formatter)
-        logging.getLogger().addHandler(log_filehandler)
+        log_logger.addHandler(log_filehandler)
+        logging.info("STARTING UNIVERSE %i" % ith_universe)
+
+        # set the seed
+        logging.info("Setting seed to %i" % (seed+ith_universe))
+        np.random.seed(seed + ith_universe)
         
         # init corresponding universe
         if problem.mpi:
@@ -72,7 +75,7 @@ def main(problem: ProblemDefinition_Abstract,
         # run
         start_time = time.time()
         universe.run(problem)
-        print("time of universe %i: %02fmin" % (ith_universe, (time.time()-start_time)/60))
+        logging.info("...time of universe %i: %02fmin" % (ith_universe, (time.time()-start_time)/60))
         
         # do some clean up, if we're about to start another run
         if ith_universe+1 < problem.number_universe:
@@ -95,11 +98,13 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--debug",
                         help="set the logging level to the lowest level to collect everything",
                         dest="loglevel",
+                        action="store_const",
                         const=logging.DEBUG,
                         default=logging.WARNING)
     parser.add_argument("-v", "--verbose",
                         help="set the logging level to 2nd lowest level to collect everything except debug",
-                        dest="loglevel"
+                        dest="loglevel",
+                        action="store_const",
                         const=logging.INFO)
     args = parser.parse_args()
 

@@ -24,7 +24,7 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.genetic_material import IndividualMaterial
-from codes.block_definitions.block_definition import BlockDefinition
+#from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 
 
 def whole_block(parent1: IndividualMaterial, parent2: IndividualMaterial, block_index: int):
@@ -41,7 +41,10 @@ def whole_block(parent1: IndividualMaterial, parent2: IndividualMaterial, block_
     return [child1, child2]
 
 
-def partial_block(parent1: IndividualMaterial, parent2: IndividualMaterial, block_def: BlockDefinition, block_index: int):
+def partial_block(parent1: IndividualMaterial,
+                  parent2: IndividualMaterial,
+                  block_def, #: BlockDefinition,
+                  block_index: int):
     '''
     TODO
     '''

@@ -22,8 +22,8 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.genetic_material import IndividualMaterial
-from codes.block_definitions.block_definition import BlockDefinition
-from codes.block_defintions.utilities import mate_methods
+#from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
+from codes.block_definitions.utilities import mate_methods
 
 
 
@@ -33,7 +33,11 @@ class BlockMate_Abstract(ABC):
         pass
 
     @abstractmethod
-    def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_def: BlockDefinition, block_index: int):
+    def mate(self,
+             parent1: IndividualMaterial,
+             parent2: IndividualMaterial,
+             block_def,#: BlockDefinition,
+             block_index: int):
         pass
 
 
@@ -47,7 +51,11 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
         logging.debug("%s-%s - Initialize BlockMate_WholeOnly Class" % (None, None))
         self.prob_mate = 1.0
 
-    def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_def: BlockDefinition, block_index: int):
+    def mate(self,
+             parent1: IndividualMaterial,
+             parent2: IndividualMaterial,
+             block_def,#: BlockDefinition,
+             block_index: int):
         logging.info("%s+%s-%s - Sending %i block to mate_methods.whole_block()" % (parent1.id, parent2.id, block_def.nickname, block_index))
     	# dont actually need block_def
         return mate_methods.whole_block(parent1, parent2, block_index)
@@ -59,6 +67,10 @@ class BlockMate_NoMate(BlockMate_Abstract):
         logging.debug("%s-%s - Initialize BlockMate_NoMate Class" % (None, None))
         self.prob_mate = 0
 
-    def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, block_def: BlockDefinition, block_index: int):
+    def mate(self,
+             parent1: IndividualMaterial,
+             parent2: IndividualMaterial,
+             block_def, #: BlockDefinition,
+             block_index: int):
         logging.info("%s+%s-%s - No mating for block %i" % (parent1.id, parent2.id, block_def.nickname, block_index))
         return []

@@ -18,7 +18,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
-#from codes.utilities import selections
+from codes.utilities import selections
 
 
 
@@ -76,7 +76,7 @@ class UniverseDefinition():
         self.fitness_scores = []
         for indiv in self.population.population:
             # EVALUATE
-            problem.indiv_def.evaluate(indiv, problem.x_train)
+            problem.indiv_def.evaluate(indiv, problem.data.x_train)
             # SCORE
             problem.objective_functions(indiv)
             self.fitness_scores.append(indiv.fitness.values)
@@ -110,3 +110,8 @@ class UniverseDefinition():
             self.evaluate_score_population(problem)
             self.population_selection()
             self.check_convergence(problem)
+
+
+
+class MPIUniverseDefinition(UniverseDefinition):
+    pass

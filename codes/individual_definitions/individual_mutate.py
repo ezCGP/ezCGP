@@ -20,7 +20,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.genetic_material import IndividualMaterial
-from codes.individual_definitions.individual_definition import IndividualDefinition
+#from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
 
 
 
@@ -38,11 +38,15 @@ class IndividualMutate_Abstract(ABC):
         pass
 
     @abstractmethod
-    def mutate(self, indiv_material: IndividualMaterial, indiv_def: IndividualDefinition):
+    def mutate(self,
+               indiv_material: IndividualMaterial,
+               indiv_def): #: IndividualDefinition):
         pass
 
 
-    def set_need_evaluate(self, mutant_material: IndividualMaterial, mutated_block_index: int):
+    def set_need_evaluate(self,
+                          mutant_material: IndividualMaterial,
+                          mutated_block_index: int):
         # going to assume we always mutate an active part of the genome so every block needs to be re-evaluated
         # TODO doc more
         for block_index, block_material in enumerate(mutant_material.blocks):
@@ -50,7 +54,10 @@ class IndividualMutate_Abstract(ABC):
                 block_material.need_evaluate = True
     
     
-    def post_process(self, mutant_material: IndividualMaterial, indiv_def: IndividualDefinition, mutated_block_index: int):
+    def post_process(self,
+                     mutant_material: IndividualMaterial,
+                     indiv_def, #: IndividualDefinition,
+                     mutated_block_index: int):
         # set need_evaluate
         # and set ne ids?
         mutant_material.set_id()
@@ -69,7 +76,9 @@ class IndividualMutate_RollOnEachBlock(IndividualMutate_Abstract):
     def __init__(self):
         pass
 
-    def mutate(self, indiv_material: IndividualMaterial, indiv_def: IndividualDefinition):
+    def mutate(self,
+               indiv_material: IndividualMaterial,
+               indiv_def): #: IndividualDefinition):
         mutants = []
         for block_index, block_def in enumerate(indiv_def.block_defs):
             roll = rnd.random()
@@ -77,6 +86,7 @@ class IndividualMutate_RollOnEachBlock(IndividualMutate_Abstract):
                 for _ in range(block_def.num_mutants):
                     mutant_material = deepcopy(indiv_material)
                     block_def.mutate(mutant_material.blocks[block_index])
-                    self.set_need_evaluate(mutant_material)
+                    #self.set_need_evaluate(mutant_material, block_index)
+                    indiv_def.postprocess_evolved_individual(mutant_material, block_index)
                     mutants.append(mutant_material)
         return mutants

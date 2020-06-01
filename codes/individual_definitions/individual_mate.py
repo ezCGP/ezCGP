@@ -20,7 +20,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.genetic_material import IndividualMaterial
-from codes.individual_definitions.individual_definition import IndividualDefinition
+#from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
 
 
 
@@ -38,11 +38,16 @@ class IndividualMate_Abstract(ABC):
 
 
     @abstractmethod
-    def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, indiv_def: IndividualDefinition):
+    def mate(self,
+             parent1: IndividualMaterial,
+             parent2: IndividualMaterial,
+             indiv_def): #: IndividualDefinition):
         pass
 
 
-    def set_need_evaluate(self, child: IndividualMaterial, mated_block_index: int):
+    def set_need_evaluate(self,
+                          child: IndividualMaterial,
+                          mated_block_index: int):
         for block_index, block_material in enumerate(child.blocks):
             if block_index >= mated_block_index:
                 block_material.need_evaluate = True
@@ -57,14 +62,18 @@ class IndividualMate_RollOnEachBlock(IndividualMate_Abstract):
         pass
 
 
-    def mate(self, parent1: IndividualMaterial, parent2: IndividualMaterial, indiv_def: IndividualDefinition):
+    def mate(self,
+             parent1: IndividualMaterial,
+             parent2: IndividualMaterial,
+             indiv_def): #: IndividualDefinition):
         all_children = []
-        for block_index, block_def in enumerate(indiv_def.blocks):
+        for block_index, block_def in enumerate(indiv_def.block_defs):
             roll = rnd.random()
             if roll < block_def.mate_def.prob_mate:
                 children = block_def.mate(parent1, parent2, block_index)
                 # for each child, we need to set need_evaluate on all nodes from the mated block and on
                 for child in children:
-                    self.set_need_evaluate(child, block_index)
+                    #self.set_need_evaluate(child, block_index)
+                    indiv_def.postprocess_evolved_individual(child, block_index)
                     all_children.append(child)
         return all_children

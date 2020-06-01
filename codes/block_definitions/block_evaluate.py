@@ -1,5 +1,5 @@
 '''
-root/block_definitions/block_evaluate.py
+root/codes/block_definitions/block_evaluate.py
 
 Overview:
 Here we define how our block will be 'evaluated'...Of course there is typical concept of evaluating where we just apply methods to data and we're done; then there is 'evaluation' when we are dealing with neural networks where we have to build a graph, train it, and then evaluate it against a different dataset; there have also been cases where we pass through an instantiated class object through the graph and each primitive addes or changes an attribute so evaluation is decorating a class object. This may change in the future, but right now we have generalized the inputs for evaluation to:
@@ -12,6 +12,7 @@ Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDe
 
 ### packages
 from abc import ABC, abstractmethod
+import logging
 
 ### sys relative to root dir
 import sys
@@ -21,7 +22,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 ### absolute imports wrt root
 from data.data_tools.data_types import ezDataSet
 from codes.genetic_material import BlockMaterial
-from codes.block_definitions.block_definition import BlockDefinition
+#from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 
 
 
@@ -34,7 +35,7 @@ class BlockEvaluate_Abstract(ABC):
     @abstractmethod
     def evaluate(self,
                  block_material: BlockMaterial,
-                 block_def: BlockDefinition,
+                 block_def,#: BlockDefinition,
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet=None):
         pass
@@ -101,12 +102,14 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
         
     def evaluate(self,
                  block_material: BlockMaterial,
-                 block_def: BlockDefinition, 
+                 block_def,#: BlockDefinition, 
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet=None):
         logging.info("%s - Start evaluating..." % (block_material.id))
         
         # add input data
+        print("oh sick")
+        logging.debug("still sick")
         for i, data_input in enumerate(training_datapair):
             block_material.evaluated[-1*(i+1)] = data_input
 
@@ -115,7 +118,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
             if node_index < 0:
                 # do nothing. at input node
                 continue
-            elif node_index >= block_material.main_count:
+            elif node_index >= block_def.main_count:
                 # do nothing NOW. at output node. we'll come back to grab output after this loop
                 continue
             else:
@@ -141,6 +144,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
                 except Exception as err:
                     logging.info("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
                     block_material.dead = True
+                    import pdb; pdb.set_trace()
                     break
 
         output = []
@@ -153,4 +157,5 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
 
 
     def reset_evaluation(self, block_material: BlockMaterial):
-        BlockEvaluate_Abstract.__init__(self)
+        #BlockEvaluate_Abstract.__init__(self)
+        super().reset_evaluation(block_material)

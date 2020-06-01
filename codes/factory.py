@@ -64,9 +64,9 @@ class FactoryDefinition():
         indiv_material = IndividualMaterial()
         indiv_material.set_id(indiv_id)
         for block_def in indiv_def.block_defs:
-            block_material = self.build_block(block_def, indiv_id=_id)
-            indiv.blocks.append(block_material)
-        return indiv
+            block_material = self.build_block(block_def, indiv_id=indiv_id)
+            indiv_material.blocks.append(block_material)
+        return indiv_material
 
 
     def build_block(self, block_def: BlockDefinition, indiv_id):

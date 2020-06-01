@@ -75,7 +75,7 @@ class IndividualDefinition():
             block_material.set_id(evolved_material.id)
             if block_index >= evolved_block_index:
                 block_material.need_evaluate = True
-        self[mutated_block_index].get_actives(evolved_material[mutated_block_index])
+        self[evolved_block_index].get_actives(evolved_material[evolved_block_index])
 
 
     def mutate(self, indiv_material: IndividualMaterial):
@@ -101,4 +101,4 @@ class IndividualDefinition():
         wrapper method that just directs evaluate call to the IndividualEvaluate class definition of mate
         '''
         logging.info("%s - Sending to Individual Evaluate Definition" % (indiv_material.id))
-        self.evaluate_def.evaluate(self, indiv_material, training_datapair, validation_datapair)
+        self.evaluate_def.evaluate(indiv_material, self, training_datapair, validation_datapair)

@@ -122,6 +122,6 @@ class ProblemDefinition_Abstract(ABC):
 	                             mate_def: IndividualMate_Abstract,
 	                             evaluate_def: IndividualEvaluate_Abstract):
         self.indiv_def = IndividualDefinition(block_defs,
+                                              evaluate_def,
                                               mutate_def,
-                                              mate_def,
-                                              evaluate_def)
+                                              mate_def)

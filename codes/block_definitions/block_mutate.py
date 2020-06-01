@@ -11,6 +11,7 @@ Will need the probability that a block will mutate, and then how many mutants it
 ### packages
 from abc import ABC, abstractmethod
 from numpy import random as rnd
+import logging
 
 ### sys relative to root dir
 import sys
@@ -19,7 +20,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.genetic_material import BlockMaterial
-from codes.block_definitions.block_definition import BlockDefinition
+#from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 from codes.block_definitions.utilities import mutate_methods
 
 
@@ -36,7 +37,7 @@ class BlockMutate_Abstract(ABC):
         self.num_mutants = 4
 
     @abstractmethod
-    def mutate(self, mutant_material: BlockMaterial, block_def: BlockDefinition):
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
         pass
 
 
@@ -50,9 +51,9 @@ class BlockMutate_OptA(BlockMutate_Abstract):
         self.prob_mutate = 1.0
         self.num_mutants = 4
 
-    def mutate(self, mutant_material: BlockMaterial, block_def: BlockDefinition):
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
         roll = rnd.random()
-        logging.info("%s - Sending %i block to mutate; roll: " % (block_material.id, block_index, roll))
+        logging.info("%s - Sending block to mutate; roll: %f" % (mutant_material.id, roll))
         if roll < (1/2):
             mutate_methods.mutate_single_input(mutant_material, block_def)
         else:
@@ -70,7 +71,7 @@ class BlockMutate_OptB(BlockMutate_Abstract):
         self.num_mutants = 4
 
 
-    def mutate(self, mutant_material: BlockMaterial, block_def: BlockDefinition):
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
         roll = rnd.random()
         logging.info("%s - Sending %i block to mutate; roll: " % (block_material.id, block_index, roll))
         if roll < (1/4):

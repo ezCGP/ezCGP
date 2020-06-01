@@ -14,6 +14,7 @@ mention any assumptions made in the code or rules about code structure should go
 ### packages
 import numpy as np
 from datetime import datetime
+import logging
 
 ### sys relative to root dir
 import sys
@@ -60,9 +61,12 @@ class IndividualMaterial():
         '''
         thought there could be a unique way to identify an individual for logging and saving
         '''
-        if id is None:
-            self.id = hex(int(datetime.datetime.now().strftime("%H%M%S%f")))[2:]
+        if _id is None:
+            new = hex(int(datetime.now().strftime("%H%M%S%f")))[2:]
+            logging.debug("New ID %s" % new)
+            self.id = new
         else:
+            logging.debug("New ID %s; given" % _id)
             self.id = _id
 
 

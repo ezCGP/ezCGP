@@ -17,8 +17,8 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from problem.problem_abstract import ProblemDefinition
-from codes.factory import Factory
+from problems.problem_definition import ProblemDefinition_Abstract
+from codes.factory import FactoryDefinition
 from data.data_tools import data_loader
 from codes.block_definitions.block_shapemeta import BlockShapeMeta_SymbolicRegression25
 from codes.block_definitions.block_operators import BlockOperators_SymbRegressionOpsNoArgs
@@ -32,15 +32,14 @@ from codes.individual_definitions.individual_evaluate import IndividualEvaluate_
 
 
 
-class Problem(ProblemDefinition):
+class Problem(ProblemDefinition_Abstract):
     '''
     TODO
     '''
     def __init__(self):
         population_size = 8
-        number_universe = 1
-        factory = Factory
-        factory_instance = factory()
+        number_universe = 10
+        factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
@@ -67,21 +66,24 @@ class Problem(ProblemDefinition):
 
     def construct_dataset(self):
         x = [np.float64(1), np.random.uniform(low=0.25, high=2, size=200)]
-        y = self.goal_function(self.x_train[1])
+        y = self.goal_function(x[1])
         self.data = data_loader.load_symbolicRegression(x, y)
 
 
     def objective_functions(self, indiv):
-        actual = self.data.y_train
-        predit = indiv.output
-        error = actual-predit
-        rms_error = np.sqrt(np.mean(np.square(error)))
-        max_error = np.max(np.abs(error))
-        indiv.fitness.values = (rms_error, max_error)
+        if indiv.dead:
+            indiv.fitness.values = (np.inf, np.inf)
+        else:
+            actual = self.data.y_train
+            predict = indiv.output; print(predict)
+            error = actual-predict
+            rms_error = np.sqrt(np.mean(np.square(error)))
+            max_error = np.max(np.abs(error))
+            indiv.fitness.values = (rms_error, max_error)
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 10
+        GENERATION_LIMIT = 100
         SCORE_MIN = 1e-1
 
         print("\n\n\n\n\n", universe.generation, np.min(np.array(universe.fitness_scores)))

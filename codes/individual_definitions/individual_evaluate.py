@@ -19,7 +19,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 ### absolute imports wrt root
 from data.data_tools.data_types import ezDataSet
 from codes.genetic_material import IndividualMaterial
-from codes.individual_definitions.individual_definition import IndividualDefinition
+#from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
 
 
 
@@ -30,7 +30,7 @@ class IndividualEvaluate_Abstract(ABC):
     @abstractmethod
     def evaluate(self,
                  indiv_material: IndividualMaterial,
-                 indiv_def: IndividualDefinition,
+                 indiv_def, #: IndividualDefinition,
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet=None):
         pass
@@ -48,7 +48,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
 
     def evaluate(self,
                  indiv_material: IndividualMaterial,
-                 indiv_def: IndividualDefinition,
+                 indiv_def, #: IndividualDefinition,
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet=None):
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
