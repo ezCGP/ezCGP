@@ -191,18 +191,18 @@ def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockD
     logging.info("%s - Inside mutate_single_argvalue" % (mutant_material.id))
     if len(mutant_material.active_args) > 0:
         # if block has arguments, then there is something to mutate
-        choices = np.arange(self.args_count)
+        choices = np.arange(block_def.arg_count)
         choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
         for arg_index in choices:
             mutant_material.args[arg_index].mutate()
-            logging.info("%s - Mutated node %i; new arg value: %s" % (mutant_material.id, node_index, mutant_material.args[arg_index]))
+            logging.info("%s - Mutated node %i; new arg value: %s" % (mutant_material.id, arg_index, mutant_material.args[arg_index]))
             if arg_index in mutant_material.active_args:
                 # active_arg finally mutated
-                logging.debug("%s - Mutated node %i - active" % (mutant_material.id, node_index))
+                logging.debug("%s - Mutated node %i - active" % (mutant_material.id, arg_index))
                 mutant_material.need_evaluate = True
                 break
             else:
-                logging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, node_index))
+                logging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, arg_index))
     else:
         # won't actually mutate
         logging.warning("%s - No active args to mutate" % (mutant_material.id))

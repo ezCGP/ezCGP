@@ -255,7 +255,8 @@ class BlockDefinition():
                 logging.critical("%s - Input data type (%s) doesn't match excted type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None
 
-        self.evaluate_def.reset_evaluation(block_material); print("reset")
+        self.evaluate_def.reset_evaluation(block_material)
+        logging.debug("%s - Before evaluating list active nodes: %s, and args %s" % (block_material.id, block_material.active_nodes, block_material.active_args))
         output = self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
         self.evaluate_def.postprocess_evaluated_block(block_material, output)
         return output

@@ -75,11 +75,12 @@ class BlockOperators_Abstract():
         here we assume that all primitives in a module are good for the evolution so we grab them all and return it. It is up to the user to then add weights to each of the primitives, unless this was called through set_equal_weights().
         '''
         logging.debug("%s-%s - Inside get_all_functions" % (None, None))
-        vals = inspect.getmembers(globals()[module], inspect.isfunction)
-        # vals will be a list of tuples (name, value)...we want the value
         all_functions = []
-        for name, value in vals:
-            all_functions.append(value)
+        for name, execute in inspect.getmembers(globals()[module]): # returns list of tuples of everything in that module
+            if inspect.isfunction(execute) and  execute.__module__.endswith(module):
+                # check if what we are pulling is a function, then make sure it is a function defined in that module
+                # as oposed to something imported like dirname from os.path
+                all_functions.append(execute)
 
         logging.debug("%s-%s - Imported %i methods from %s" % (None, None, len(all_functions), module))
         return all_functions

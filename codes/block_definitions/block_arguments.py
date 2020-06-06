@@ -105,7 +105,7 @@ class BlockArguments_Abstract():
         for arg_class, arg_weight in zip(self.each_type, self.each_weight):
             end_point += int(arg_weight*self.arg_count)
             for arg_index in range(start_point, end_point):
-                self.arg_types[arg_index] = arg_type
+                self.arg_types[arg_index] = arg_class
             start_point = end_point
 
         if end_point != self.arg_count:
@@ -141,3 +141,17 @@ class BlockArgumentsNoArgs(BlockArguments_Abstract):
     def __init__(self):
         logging.debug("%s-%s - Initialize BlockArgumentsNoArgs Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
+
+
+
+class BlockArgumentsSmallFloatOnly(BlockArguments_Abstract):
+    '''
+    this will be used for when our operators/primitives should never need arguments,
+    so we would never populate .args and it will stay an empty list
+    '''
+    def __init__(self):
+        logging.debug("%s-%s - Initialize BlockArgumentsSmallFloatOnly Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 20
+        arg_dict = {argument_types.ArgumentType_SmallFloats: 1}
+        self.init_from_weight_dict(arg_dict)

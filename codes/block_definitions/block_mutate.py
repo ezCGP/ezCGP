@@ -73,7 +73,7 @@ class BlockMutate_OptB(BlockMutate_Abstract):
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
         roll = rnd.random()
-        logging.info("%s - Sending %i block to mutate; roll: " % (block_material.id, block_index, roll))
+        logging.info("%s - Sending block to mutate; roll: %f" % (mutant_material.id, roll))
         if roll < (1/4):
             mutate_methods.mutate_single_input(mutant_material, block_def)
         elif roll < (2/4):

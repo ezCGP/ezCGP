@@ -108,8 +108,6 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
         logging.info("%s - Start evaluating..." % (block_material.id))
         
         # add input data
-        print("oh sick")
-        logging.debug("still sick")
         for i, data_input in enumerate(training_datapair):
             block_material.evaluated[-1*(i+1)] = data_input
 

@@ -42,7 +42,7 @@ class BlockShapeMeta_Abstract():
 
 
 
-class BlockShapeMeta_SymbolicRegression25(BlockShapeMeta_Abstract):
+class BlockShapeMeta_SymbolicRegressionNoArg25(BlockShapeMeta_Abstract):
     '''
     Reasonable block size to use for Symbolic Regression of 25 nodes.
     Note that an input ins a np.float64, so this will be used in the case where we do not want to use .args and rather use operators to evolve the input float into something useful for the regression.
@@ -50,6 +50,23 @@ class BlockShapeMeta_SymbolicRegression25(BlockShapeMeta_Abstract):
     def __init__(self):
         logging.debug("%s-%s - Initialize BlockShapeMeta_SymbolicRegression25 Class" % (None, None))
         input_dtypes = [np.float64, np.ndarray]
+        output_dtypes = [np.ndarray]
+        main_count = 25
+        BlockShapeMeta_Abstract.__init__(self,
+                                         input_dtypes,
+                                         output_dtypes,
+                                         main_count)
+
+
+
+class BlockShapeMeta_SymbolicRegressionArg25(BlockShapeMeta_Abstract):
+    '''
+    Reasonable block size to use for Symbolic Regression of 25 nodes.
+    Note that an input ins a np.float64, so this will be used in the case where we do not want to use .args and rather use operators to evolve the input float into something useful for the regression.
+    '''
+    def __init__(self):
+        logging.debug("%s-%s - Initialize BlockShapeMeta_SymbolicRegression25 Class" % (None, None))
+        input_dtypes = [np.ndarray]
         output_dtypes = [np.ndarray]
         main_count = 25
         BlockShapeMeta_Abstract.__init__(self,
