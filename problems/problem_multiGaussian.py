@@ -1,11 +1,5 @@
 '''
-root/problems/problem_symbolicRegression.py
-
-Overview:
-overview of what will/should be in this file and how it interacts with the rest of the code
-
-Rules:
-mention any assumptions made in the code or rules about code structure should go here
+root/problems/problem_multiGaussian.py
 '''
 
 ### packages
@@ -30,6 +24,7 @@ from codes.block_definitions.block_mate import BlockMate_WholeOnly
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
+from post_process import save_things
 
 
 
@@ -39,21 +34,13 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 8
-        number_universe = 10
+        population_size = 12 #must be divisible by 4 if doing mating
+        number_universe = 1
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
-        block0_def = self.construct_block_def(nickname = "wOutArg_block",
-                                             shape_def = BlockShapeMeta_SymbolicRegressionNoArg25,
-                                             operator_def = BlockOperators_SymbRegressionOpsNoArgs,
-                                             argument_def = BlockArgumentsNoArgs,
-                                             evaluate_def = BlockEvaluate_Standard,
-                                             mutate_def = BlockMutate_OptA,
-                                             mate_def = BlockMate_WholeOnly)
-
-        block1_def = self.construct_block_def(nickname = "wArg_block",
+        block_def = self.construct_block_def(nickname = "wArg_block",
                                              shape_def = BlockShapeMeta_SymbolicRegressionArg25,
                                              operator_def = BlockOperators_SymbRegressionOpsWithArgs,
                                              argument_def = BlockArgumentsSmallFloatOnly,
@@ -61,7 +48,7 @@ class Problem(ProblemDefinition_Abstract):
                                              mutate_def = BlockMutate_OptB,
                                              mate_def = BlockMate_WholeOnly)
 
-        self.construct_individual_def(block_defs = [block0_def, block1_def],
+        self.construct_individual_def(block_defs = [block_def],
                                       mutate_def = IndividualMutate_RollOnEachBlock,
                                       mate_def = IndividualMate_RollOnEachBlock,
                                       evaluate_def = IndividualEvaluate_Standard)
@@ -75,30 +62,31 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def construct_dataset(self):
-        x = [np.float64(1), np.random.uniform(low=0.25, high=2, size=200)]
-        y = self.goal_function(x[1])
-        self.data = data_loader.load_symbolicRegression(x, y)
+        from gp_analysis import fake_mixturegauss
+        x, y, noisy, goal_features = fake_mixturegauss.main()
+        self.data = data_loader.load_symbolicRegression([x], [y, noisy, goal_features])
 
 
     def objective_functions(self, indiv):
         if indiv.dead:
             indiv.fitness.values = (np.inf, np.inf)
         else:
-            actual = self.data.y_train
-            predict = indiv.output; print(predict)
-            error = actual-predict
+            clean_y, noisy_y, goal_features = self.data.y_train
+            predict_y = indiv.output
+            # how to extract the arguments to match to goal_features as well?
+            error = clean_y-predict_y
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
             indiv.fitness.values = (rms_error, max_error)
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 100
+        GENERATION_LIMIT = 2
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse
         min_firstobjective_index = universe.fitness_scores[:,0].argmin()
-        min_firstobjective = universe.fitness_scores[min_firstobjective_index,:-1]
+        min_firstobjective = universe.fitness_scores[min_firstobjective_index,:-1].astype(float)
         logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
         if universe.generation >= GENERATION_LIMIT:
@@ -107,3 +95,20 @@ class Problem(ProblemDefinition_Abstract):
         if min_firstobjective[0] < SCORE_MIN:
             logging.warning("TERMINATING...reached minimum scores.")
             universe.converged = True
+
+
+    def postprocess_generation(self, universe):
+        '''
+        I'd say just store an archive of scores
+        '''
+        logging.info("Post Processing Generation Run")
+        save_things.save_fitness_scores(universe)
+
+
+
+    def postprocess_universe(self, universe):
+        '''
+        save each individual at the end of the population
+        '''
+        logging.info("Post Processing Universe Run")
+        save_things.save_population(universe)

@@ -11,6 +11,7 @@ mention any assumptions made in the code or rules about code structure should go
 ### packages
 from abc import ABC, abstractmethod
 from typing import List
+import logging
 
 ### sys relative to root dir
 import sys
@@ -95,6 +96,29 @@ class ProblemDefinition_Abstract(ABC):
 
         set universe.converged to boolean T/F ...True will end the universe run
         '''
+        pass
+
+
+    def postprocess_generation(self, universe):
+        '''
+        NOTE that this is not an abstractmethod because the user may choose not to do anything here
+
+        at this point in universe, the population has been fully evaluated.
+        currently it is at the end of the loop so population selection has already occured.
+        that may change
+        '''
+        logging.info("Post Processing Generation Run - pass")
+        pass
+
+
+    def postprocess_universe(self, universe):
+        '''
+        NOTE that this is not an abstractmethod because the user may choose not to do anything here
+
+        the idea here is that the universe.run() is about to exit but before it does,
+        we can export or plot things wrt the final population
+        '''
+        logging.info("Post Processing Universe Run - pass")
         pass
 
 

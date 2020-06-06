@@ -9,6 +9,7 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import numpy as np
 from typing import List
 
 ### sys relative to root dir
@@ -79,7 +80,10 @@ class UniverseDefinition():
             problem.indiv_def.evaluate(indiv, problem.data.x_train)
             # SCORE
             problem.objective_functions(indiv)
-            self.fitness_scores.append(indiv.fitness.values)
+            # ATTACH TO ID
+            id_scores = indiv.fitness.values + (indiv.id,)
+            self.fitness_scores.append(id_scores)
+        self.fitness_scores = np.array(self.fitness_scores)
 
 
     def population_selection(self):
@@ -96,6 +100,26 @@ class UniverseDefinition():
         problem_def.check_convergence(self)
 
 
+    def postprocess_generation(self, problem_def: ProblemDefinition_Abstract):
+        '''
+        Just a wrapper to problem.postprocess_universe()
+
+        Could decide to save stats about the generation pareto front etc or even save individuals.
+        May decide to move before self.population_selection() so that we can get stats on the whole pop before
+        any trimming...depends on what things we're interested in. Right now I made no decision on what to collect
+        so it's at the end of the generation loop
+        '''
+        problem_def.postprocess_generation(self)
+
+    def postprocess_universe(self, problem_def: ProblemDefinition_Abstract):
+        '''
+        Wrapper to problem.postprocess_universe()
+
+        Provides an option for anything we want to do with the universe + population now that we reached the 
+        complete end of the evolutionary cycle.
+        '''
+        problem_def.postprocess_universe(self)
+
 
     def run(self, problem: ProblemDefinition_Abstract):
         '''
@@ -110,6 +134,8 @@ class UniverseDefinition():
             self.evaluate_score_population(problem)
             self.population_selection()
             self.check_convergence(problem)
+            self.postprocess_generation(problem)
+        self.postprocess_universe(problem)
 
 
 

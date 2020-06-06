@@ -75,7 +75,7 @@ def main(problem: ProblemDefinition_Abstract,
         # run
         start_time = time.time()
         universe.run(problem)
-        logging.info("...time of universe %i: %02fmin" % (ith_universe, (time.time()-start_time)/60))
+        logging.info("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
         
         # do some clean up, if we're about to start another run
         if ith_universe+1 < problem.number_universe:

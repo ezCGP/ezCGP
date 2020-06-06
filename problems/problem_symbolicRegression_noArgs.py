@@ -10,6 +10,7 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 import numpy as np
+import logging
 
 ### sys relative to root dir
 import sys
@@ -86,11 +87,14 @@ class Problem(ProblemDefinition_Abstract):
         GENERATION_LIMIT = 100
         SCORE_MIN = 1e-1
 
-        print("\n\n\n\n\n", universe.generation, np.min(np.array(universe.fitness_scores)))
+        # only going to look at the first objective value which is rmse
+        min_firstobjective_index = universe.fitness_scores[:,0].argmin()
+        min_firstobjective = universe.fitness_scores[min_firstobjective_index,:-1]
+        logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
         if universe.generation >= GENERATION_LIMIT:
-            print("TERMINATING...reached generation limit")
+            logging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
-        if np.min(np.array(universe.fitness_scores)[0]) < SCORE_MIN:
-            print("TERMINATING...reached minimum score")
+        if min_firstobjective[0] < SCORE_MIN:
+            logging.warning("TERMINATING...reached minimum scores.")
             universe.converged = True
