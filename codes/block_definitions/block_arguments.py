@@ -119,7 +119,7 @@ class BlockArguments_Abstract():
 
 
 
-class BlockArgumentsSize50(BlockArguments_Abstract):
+class BlockArguments_Size50(BlockArguments_Abstract):
     '''
     super simple implementation...50 args: 25 ints, and 25 power of 2s
     '''
@@ -133,7 +133,7 @@ class BlockArgumentsSize50(BlockArguments_Abstract):
 
 
 
-class BlockArgumentsNoArgs(BlockArguments_Abstract):
+class BlockArguments_NoArgs(BlockArguments_Abstract):
     '''
     this will be used for when our operators/primitives should never need arguments,
     so we would never populate .args and it will stay an empty list
@@ -144,7 +144,7 @@ class BlockArgumentsNoArgs(BlockArguments_Abstract):
 
 
 
-class BlockArgumentsSmallFloatOnly(BlockArguments_Abstract):
+class BlockArguments_SmallFloatOnly(BlockArguments_Abstract):
     '''
     this will be used for when our operators/primitives should never need arguments,
     so we would never populate .args and it will stay an empty list
@@ -154,4 +154,21 @@ class BlockArgumentsSmallFloatOnly(BlockArguments_Abstract):
         BlockArguments_Abstract.__init__(self)
         self.arg_count = 20
         arg_dict = {argument_types.ArgumentType_SmallFloats: 1}
+        self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_Gaussian(BlockArguments_Abstract):
+    '''
+    floats 0-100 for peak location
+    ints 0-100 for curve intensity
+    floats 0-1 for the std
+    '''
+    def __init__(self):
+        logging.debug("%s-%s - Initialize BlockArguments_Gaussian Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 10*3*10 # 10 curves, 3 args each, x10
+        arg_dict = {argument_types.ArgumentType_Float0to100: 1,
+                    argument_types.ArgumentType_Int0to100: 1,
+                    argument_types.ArgumentType_Float0to1: 1}
         self.init_from_weight_dict(arg_dict)

@@ -162,3 +162,79 @@ class ArgumentType_SmallFloats(ArgumentType_Abstract):
         else:
             pass
         logging.debug("%s-%s - Mutated ArgumentType_SmallFloats to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_Float0to100(ArgumentType_Abstract):
+    '''
+    going to try and use uniform distribution more in the init and in mutate.
+    maybe also have a way to do 'fine tune' mutation so it mutates to a more local number.
+    also limit values from 0 to 100
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate_unif100()
+        else:
+            self.value = value
+        logging.debug("%s-%s - Initialize ArgumentType_Float0to100 Class to %f" % (None, None, self.value))
+
+
+    def mutate_unif100(self):
+        self.value = rnd.uniform(0,100)
+
+
+    def mutate_unif_local(self):
+        # make it a range of 10
+        low = self.value-5
+        high = self.value+5
+        self.value = rnd.uniform(low, high)
+        # force value to be within 0 to 100
+        if (self.value < 0) or (self.value > 100):
+            self.mutate_unif100()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif100()
+        else:
+            self.mutate_unif_local()
+        logging.debug("%s-%s - Mutated ArgumentType_Float0to100 to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_Int0to100(ArgumentType_Float0to100):
+    '''
+    same as ArgumentType_Float0to100 but forced as an int
+    '''
+    def __init__(self, value=None):
+        super().__init__(value)
+        self.make_int()
+
+
+    def make_int(self):
+        self.value = int(self.value)
+
+
+    def mutate(self):
+        super().mutate()
+        self.make_int()
+
+
+
+class ArgumentType_Float0to1(ArgumentType_Abstract):
+    '''
+    like ArgumentType_Float0to100 but go from 0 to 1
+    mutate is just random uniform 0 to 1...may have to introduce fine tuneing...who knows
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+        logging.debug("%s-%s - Initialize ArgumentType_Float0to1 Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        self.value = np.random.random()
+        logging.debug("%s-%s - Mutated ArgumentType_Float0to1 to %f" % (None, None, self.value))

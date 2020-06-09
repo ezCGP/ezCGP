@@ -15,12 +15,12 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import data_loader
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_SymbolicRegressionNoArg25, BlockShapeMeta_SymbolicRegressionArg25
-from codes.block_definitions.block_operators import BlockOperators_SymbRegressionOpsNoArgs, BlockOperators_SymbRegressionOpsWithArgs
-from codes.block_definitions.block_arguments import BlockArgumentsNoArgs, BlockArgumentsSmallFloatOnly
+from codes.block_definitions.block_shapemeta import
+from codes.block_definitions.block_operators import 
+from codes.block_definitions.block_arguments import BlockArguments_Gaussian
 from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-from codes.block_definitions.block_mutate import BlockMutate_OptA, BlockMutate_OptB
-from codes.block_definitions.block_mate import BlockMate_WholeOnly
+from codes.block_definitions.block_mutate import 
+from codes.block_definitions.block_mate import
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
@@ -41,12 +41,12 @@ class Problem(ProblemDefinition_Abstract):
         super().__init__(population_size, number_universe, factory, mpi)
 
         block_def = self.construct_block_def(nickname = "wArg_block",
-                                             shape_def = BlockShapeMeta_SymbolicRegressionArg25,
-                                             operator_def = BlockOperators_SymbRegressionOpsWithArgs,
-                                             argument_def = BlockArgumentsSmallFloatOnly,
-                                             evaluate_def = BlockEvaluate_Standard,
-                                             mutate_def = BlockMutate_OptB,
-                                             mate_def = BlockMate_WholeOnly)
+                                             shape_def = BlockShapeMeta_SymbolicRegressionArg25, #maybe have x2 num of gaussians so 20
+                                             operator_def = BlockOperators_SymbRegressionOpsWithArgs, #only 1 operator...gauss taking in th right args
+                                             argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
+                                             evaluate_def = BlockEvaluate_Standard, #ya standard eval
+                                             mutate_def = BlockMutate_OptB, #maybe not mutate ftn
+                                             mate_def = BlockMate_WholeOnly) #maybe not mate
 
         self.construct_individual_def(block_defs = [block_def],
                                       mutate_def = IndividualMutate_RollOnEachBlock,
@@ -62,7 +62,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def construct_dataset(self):
-        from gp_analysis import fake_mixturegauss
+        from misc import fake_mixturegauss
         x, y, noisy, goal_features = fake_mixturegauss.main()
         self.data = data_loader.load_symbolicRegression([x], [y, noisy, goal_features])
 
