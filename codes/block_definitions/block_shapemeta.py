@@ -73,3 +73,20 @@ class BlockShapeMeta_SymbolicRegressionArg25(BlockShapeMeta_Abstract):
                                          input_dtypes,
                                          output_dtypes,
                                          main_count)
+
+
+
+class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
+    '''
+    going to experiment with the size of the block relative to the number of gaussians needed to be fit in the data
+    '''
+    def __init__(self):
+        logging.debug("%s-%s - Initialize BlockShapeMeta_Gaussian Class" % (None, None))
+        input_dtypes = [np.ndarray]
+        output_dtypes = [np.ndarray]
+        main_count = 20 #10 gaussians
+        BlockShapeMeta_Abstract.__init__(self,
+                                         input_dtypes,
+                                         output_dtypes,
+                                         main_count)
+

@@ -131,3 +131,22 @@ class BlockOperators_SymbRegressionOpsWithArgs(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_Gaussian(BlockOperators_Abstract):
+    '''
+    literally only one operator...just summing gaussians
+    '''
+    def __init__(self):
+        logging.debug("%s-%s - Initialize BlockOperators_Gaussian Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_gaussian_args']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)

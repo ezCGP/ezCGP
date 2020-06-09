@@ -15,7 +15,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import data_loader
-from codes.block_definitions.block_shapemeta import
+from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
 from codes.block_definitions.block_operators import 
 from codes.block_definitions.block_arguments import BlockArguments_Gaussian
 from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
@@ -41,7 +41,7 @@ class Problem(ProblemDefinition_Abstract):
         super().__init__(population_size, number_universe, factory, mpi)
 
         block_def = self.construct_block_def(nickname = "wArg_block",
-                                             shape_def = BlockShapeMeta_SymbolicRegressionArg25, #maybe have x2 num of gaussians so 20
+                                             shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
                                              operator_def = BlockOperators_SymbRegressionOpsWithArgs, #only 1 operator...gauss taking in th right args
                                              argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
                                              evaluate_def = BlockEvaluate_Standard, #ya standard eval
