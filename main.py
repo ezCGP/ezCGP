@@ -24,14 +24,14 @@ sys.path.append(dirname(realpath(__file__)))
 sys.path.append(join(dirname(realpath(__file__)), "problems"))
 
 ### absolute imports wrt root
-from codes.universe import UniverseDefinition, MPIUniverseDefinition
-from problems.problem_definition import ProblemDefinition_Abstract
+# moved imports to AFTER seed is set
+#from codes.universe import UniverseDefinition, MPIUniverseDefinition
 
 
-def main(problem: ProblemDefinition_Abstract,
-         probelm_output_directory=tempfile.mkdtemp(),
+def main(problem_filename: str,
+         probelm_output_directory: str=tempfile.mkdtemp(),
          seed: int=0,
-         loglevel=logging.WARNING):
+         loglevel: int=logging.WARNING):
     # init logging here but then set the filepath inside the for-loop so that
     # we have a unique log file per universe run
     #logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
@@ -45,6 +45,14 @@ def main(problem: ProblemDefinition_Abstract,
         log_logger.addHandler(log_stdouthandler)
     else:
         log_stdouthandler = None
+    
+    # set the seed before importing problem.
+    # NOTE will set another seed when we start the universe
+    logging.warning("Setting seed, for file imports, to %i" % (seed))
+    np.random.seed(seed)
+    problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
+    problem = problem_module.Problem()
+    from codes.universe import UniverseDefinition, MPIUniverseDefinition
 
     for ith_universe in range(problem.number_universe):
         # set new output directory
@@ -63,8 +71,8 @@ def main(problem: ProblemDefinition_Abstract,
         logging.info("STARTING UNIVERSE %i" % ith_universe)
 
         # set the seed
-        logging.info("Setting seed to %i" % (seed+ith_universe))
-        np.random.seed(seed + ith_universe)
+        logging.info("Setting seed, for Universe, to %i" % (seed+1+ith_universe))
+        np.random.seed(seed+1+ith_universe)
         
         # init corresponding universe
         if problem.mpi:
@@ -75,7 +83,7 @@ def main(problem: ProblemDefinition_Abstract,
         # run
         start_time = time.time()
         universe.run(problem)
-        logging.info("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
+        logging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
         
         # do some clean up, if we're about to start another run
         if ith_universe+1 < problem.number_universe:
@@ -119,11 +127,8 @@ if __name__ == "__main__":
     # figure out which problem py file to import
     if args.problem.endswith('.py'):
         problem_filename = os.path.basename(args.problem)
-        args.problem = args.problem[:-3]
     else:
         problem_filename = os.path.basename(args.problem + ".py")
-    problem_module = __import__(args.problem)
-    problem = problem_module.Problem()
 
     # copy problem file over to problem_output_directory
     # this way we know for sure which version of the problem file resulted in the output
@@ -132,4 +137,4 @@ if __name__ == "__main__":
     shutil.copyfile(src, dst)
     
     # RUN BABYYY
-    main(problem, probelm_output_directory, args.seed, args.loglevel)
+    main(problem_filename, probelm_output_directory, args.seed, args.loglevel)
