@@ -62,9 +62,11 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def construct_dataset(self):
-        from misc import fake_mixturegauss
+        from misc import fake_mixturegauss, RollingSum, XLocations
         x, y, noisy, goal_features = fake_mixturegauss.main()
-        self.data = data_loader.load_symbolicRegression([x], [y, noisy, goal_features])
+        x = XLocations(x)
+        starting_sum = RollingSum(np.zeros(x.shape))
+        self.data = data_loader.load_symbolicRegression([x, starting_sum], [y, noisy, goal_features])
 
 
     def objective_functions(self, indiv):

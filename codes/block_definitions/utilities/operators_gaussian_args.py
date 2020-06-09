@@ -19,7 +19,7 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import argument_types
-
+from misc import RollingSum, XLocations
 
 
 ### init dict
@@ -27,7 +27,7 @@ operator_dict = {}
 
 
 ### the only method
-def one_gauss(x, peak, std, intensity, ybump=0.0):
+def one_gauss_sum(x, previous_sum, peak, std, intensity, ybump=0.0):
 	'''
 	https://en.wikipedia.org/wiki/Normal_distribution
 	expect x to be a numpy array of locations
@@ -37,10 +37,15 @@ def one_gauss(x, peak, std, intensity, ybump=0.0):
 	'''
 	factor = 1/(std*np.sqrt(2*np.pi))
 	inside_exp = -0.5 * np.square((x-peak)/std)
-	return intensity*factor*np.exp(inside_exp) + ybump
-operator_dict[one_gauss] = {"inputs": [np.ndarray],
-                            "output": np.ndarray,
-                            "args": [argument_types.ArgumentType_Float0to100,
-                            		 argument_types.ArgumentType_Float0to1,
-                            		 argument_types.ArgumentType_Int0to100]
-                           }
+	previous_sum += intensity*factor*np.exp(inside_exp) + ybump
+    if not isinstance(previous_sum, RollingSum):
+        logging.error("Our Sum is no longer the right type! ...%s" % (type(previous_sum)))
+        raise TypeError
+    return previous_sum
+
+operator_dict[one_gauss_sum] = {"inputs": [XLocations, RollingSum],
+                                "output": RollingSum,
+                                "args": [argument_types.ArgumentType_Float0to100,
+                                         argument_types.ArgumentType_Float0to1,
+                                         argument_types.ArgumentType_Int0to100]
+                               }
