@@ -67,7 +67,7 @@ class Problem(ProblemDefinition_Abstract):
 
     def objective_functions(self, indiv):
         if indiv.dead:
-            indiv.fitness.values = (np.inf, np.inf)
+            indiv.fitness.values = (np.inf, np.inf, np.inf)
         else:
             clean_y, noisy_y, goal_features = self.data.y_train
             predict_y = indiv.output
@@ -75,7 +75,8 @@ class Problem(ProblemDefinition_Abstract):
             error = clean_y-predict_y
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
-            indiv.fitness.values = (rms_error, max_error)
+            #active_error = np.abs(10-len(active_nodes)) 
+            indiv.fitness.values = (rms_error, max_error) #, active_error)
 
 
     def check_convergence(self, universe):
@@ -132,7 +133,12 @@ class Problem(ProblemDefinition_Abstract):
                                    genome_size=np.array([self.indiv_def[0].main_count]))
         # i guess i want to save all the roddcustom_ attributes
         # then open all the values for all the universes for each of the different runs
-        # and plot the different number of genomes in one color 
+        # and plot the different number of genomes in one color
+
+        # shoot...if doing more than one universe, need to delete these
+        self.roddcustom_bestindiv = []
+        self.roddcustom_bestscore = []
+        self.roddcustom_bestactive = []
 
 
     def plot_custom_stats(self, folders):

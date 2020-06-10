@@ -85,7 +85,7 @@ class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
         from misc import fake_mixturegauss
         input_dtypes = [fake_mixturegauss.XLocations, fake_mixturegauss.RollingSum]
         output_dtypes = [fake_mixturegauss.RollingSum]
-        main_count = 20 #10 gaussians
+        main_count = 10 #10 gaussians
         BlockShapeMeta_Abstract.__init__(self,
                                          input_dtypes,
                                          output_dtypes,
