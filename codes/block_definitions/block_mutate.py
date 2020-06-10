@@ -82,3 +82,25 @@ class BlockMutate_OptB(BlockMutate_Abstract):
             mutate_methods.mutate_single_argindex(mutant_material, block_def)
         else:
             mutate_methods.mutate_single_ftn(mutant_material, block_def)
+
+
+
+class BlockMutate_NoFtn(BlockMutate_Abstract):
+    '''
+    used for guassian sum...we only have 1 primitive so no point in mutating ftns
+    '''
+    def __init__(self):
+        logging.debug("%s-%s - Initialize BlockMutate_NoFtn Class" % (None, None))
+        self.prob_mutate = 1.0
+        self.num_mutants = 4
+
+
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+        roll = rnd.random()
+        logging.info("%s - Sending block to mutate; roll: %f" % (mutant_material.id, roll))
+        if roll < (1/3):
+            mutate_methods.mutate_single_input(mutant_material, block_def)
+        elif roll < (2/3):
+            mutate_methods.mutate_single_argvalue(mutant_material, block_def)
+        else:
+            mutate_methods.mutate_single_argindex(mutant_material, block_def)

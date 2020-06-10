@@ -16,11 +16,11 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import data_loader
 from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
-from codes.block_definitions.block_operators import 
+from codes.block_definitions.block_operators import BlockOperators_Gaussian
 from codes.block_definitions.block_arguments import BlockArguments_Gaussian
 from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-from codes.block_definitions.block_mutate import 
-from codes.block_definitions.block_mate import
+from codes.block_definitions.block_mutate import BlockMutate_NoFtn
+from codes.block_definitions.block_mate import BlockMate_NoMate
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
@@ -42,30 +42,25 @@ class Problem(ProblemDefinition_Abstract):
 
         block_def = self.construct_block_def(nickname = "wArg_block",
                                              shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
-                                             operator_def = BlockOperators_SymbRegressionOpsWithArgs, #only 1 operator...gauss taking in th right args
+                                             operator_def = BlockOperators_Gaussian, #only 1 operator...gauss taking in th right args
                                              argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
                                              evaluate_def = BlockEvaluate_Standard, #ya standard eval
-                                             mutate_def = BlockMutate_OptB, #maybe not mutate ftn
-                                             mate_def = BlockMate_WholeOnly) #maybe not mate
+                                             mutate_def = BlockMutate_NoFtn, #maybe not mutate ftn
+                                             mate_def = BlockMate_NoMate) #maybe not mate
 
         self.construct_individual_def(block_defs = [block_def],
                                       mutate_def = IndividualMutate_RollOnEachBlock,
                                       mate_def = IndividualMate_RollOnEachBlock,
                                       evaluate_def = IndividualEvaluate_Standard)
-
         # where to put this?
         self.construct_dataset()
 
 
-    def goal_function(self, data):
-        return 1/data
-
-
     def construct_dataset(self):
-        from misc import fake_mixturegauss, RollingSum, XLocations
+        from misc import fake_mixturegauss
         x, y, noisy, goal_features = fake_mixturegauss.main()
-        x = XLocations(x)
-        starting_sum = RollingSum(np.zeros(x.shape))
+        x = fake_mixturegauss.XLocations(x)
+        starting_sum = fake_mixturegauss.RollingSum(np.zeros(x.shape))
         self.data = data_loader.load_symbolicRegression([x, starting_sum], [y, noisy, goal_features])
 
 
