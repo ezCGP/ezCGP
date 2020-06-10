@@ -116,7 +116,7 @@ class FactoryDefinition():
                 arg_dtypes = block_def.operator_dict[ftn]["args"]
                 arg_index = [None]*len(arg_dtypes)
                 for ith_arg, arg_dtype in enumerate(arg_dtypes):
-                    poss_arg_index = block_def.get_random_arg(req_dtype=arg_dtype)
+                    arg_index[ith_arg] = block_def.get_random_arg(req_dtype=arg_dtype)
                 if None in arg_index:
                     # failed to fill it in; try another ftn
                     continue

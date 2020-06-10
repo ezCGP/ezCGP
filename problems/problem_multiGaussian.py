@@ -34,13 +34,13 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 12 #must be divisible by 4 if doing mating
+        population_size = 52 #must be divisible by 4 if doing mating
         number_universe = 1
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
-        block_def = self.construct_block_def(nickname = "wArg_block",
+        block_def = self.construct_block_def(nickname = "GaussBlock",
                                              shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
                                              operator_def = BlockOperators_Gaussian, #only 1 operator...gauss taking in th right args
                                              argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
@@ -78,11 +78,12 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 2
+        GENERATION_LIMIT = 1000
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse
-        min_firstobjective_index = universe.fitness_scores[:,0].argmin()
+        # CAREFUL, after we added the ids, the values are now strings not floats
+        min_firstobjective_index = universe.fitness_scores[:,0].astype(float).argmin()
         min_firstobjective = universe.fitness_scores[min_firstobjective_index,:-1].astype(float)
         logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 

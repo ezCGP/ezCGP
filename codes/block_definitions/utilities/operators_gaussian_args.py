@@ -37,11 +37,11 @@ def one_gauss_sum(x, previous_sum, peak, std, intensity, ybump=0.0):
     '''
     factor = 1/(std*np.sqrt(2*np.pi))
     inside_exp = -0.5 * np.square((x-peak)/std)
-    previous_sum += intensity*factor*np.exp(inside_exp) + ybump
-    if not isinstance(previous_sum, RollingSum):
-        logging.error("Our Sum is no longer the right type! ...%s" % (type(previous_sum)))
+    output_sum = previous_sum + intensity*factor*np.exp(inside_exp) + ybump
+    if not isinstance(output_sum, fake_mixturegauss.RollingSum):
+        logging.error("Our Sum is no longer the right type! ...%s" % (type(output_sum)))
         raise TypeError
-    return previous_sum
+    return output_sum
 
 operator_dict[one_gauss_sum] = {"inputs": [fake_mixturegauss.XLocations, fake_mixturegauss.RollingSum],
                                 "output": fake_mixturegauss.RollingSum,

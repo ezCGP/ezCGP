@@ -19,6 +19,7 @@ Be sure to follow the format to init the abstract class, assign the arg_count an
 from typing import List
 import inspect
 import logging
+import numpy as np
 
 ### sys relative to root dir
 import sys
@@ -113,7 +114,7 @@ class BlockArguments_Abstract():
             sorted_byweight = np.argsort(self.each_weight)[::-1] # sort then reverse to go from largest to smallest
             for i, arg_index in enumerate(range(end_point, self.arg_count)):
                 arg_class = self.each_type[sorted_byweight[i]]
-                self.arg_types[arg_indx] = arg_class
+                self.arg_types[arg_index] = arg_class
         else:
             pass
 

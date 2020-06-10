@@ -82,8 +82,9 @@ class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
     '''
     def __init__(self):
         logging.debug("%s-%s - Initialize BlockShapeMeta_Gaussian Class" % (None, None))
-        input_dtypes = [np.ndarray]
-        output_dtypes = [np.ndarray]
+        from misc import fake_mixturegauss
+        input_dtypes = [fake_mixturegauss.XLocations, fake_mixturegauss.RollingSum]
+        output_dtypes = [fake_mixturegauss.RollingSum]
         main_count = 20 #10 gaussians
         BlockShapeMeta_Abstract.__init__(self,
                                          input_dtypes,
