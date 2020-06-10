@@ -7,6 +7,20 @@ np.random.seed(19) #20 okay as well except last 2 curves
 import matplotlib.pyplot as plt
 
 
+
+class RollingSum(np.ndarray):
+    def __new__(cls, data):
+        instance = np.asarray(data).view(cls)
+        return instance
+    
+    
+    
+class XLocations(np.ndarray):
+    def __new__(cls, data):
+        instance = np.asarray(data).view(cls)
+        return instance
+
+
 def one_gauss(x, peak, std, intensity, ybump):
 	'''
 	expect x to be a numpy array of locations
