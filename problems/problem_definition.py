@@ -9,6 +9,7 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
 import logging
@@ -120,6 +121,20 @@ class ProblemDefinition_Abstract(ABC):
         '''
         logging.info("Post Processing Universe Run - pass")
         pass
+
+
+    def get_best_indiv(self, universe, ith_obj):
+        '''
+        return the index (ith indiv in population) who has the lowest score based
+        on the ith objective
+        '''
+        best_score = np.inf
+        best_index = None
+        for ith_indiv, indiv in enumerate(universe.population.population):
+            if indiv.fitness.values[ith_obj] < best_score:
+                best_score = indiv.fitness.values[ith_obj]
+                best_index = ith_indiv
+        return best_index, best_score
 
 
     # Note to user: these last two methods are already defined

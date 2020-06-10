@@ -3,6 +3,7 @@ root/problems/problem_multiGaussian.py
 '''
 
 ### packages
+import os
 import numpy as np
 import logging
 
@@ -35,7 +36,7 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         population_size = 52 #must be divisible by 4 if doing mating
-        number_universe = 1
+        number_universe = 100
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
@@ -102,6 +103,16 @@ class Problem(ProblemDefinition_Abstract):
         logging.info("Post Processing Generation Run")
         save_things.save_fitness_scores(universe)
 
+        ith_indiv, _ = self.get_best_indiv(universe, ith_obj=0)
+        best_indiv = universe.population.population[ith_indiv]
+        if hasattr(self, 'roddcustom_bestindiv'):
+            self.roddcustom_bestindiv.append(best_indiv.id)
+            self.roddcustom_bestscore.append(best_indiv.fitness.values)
+            self.roddcustom_bestactive.append(len(best_indiv[0].active_nodes))
+        else:
+            self.roddcustom_bestindiv = [best_indiv.id]
+            self.roddcustom_bestscore = [best_indiv.fitness.values]
+            self.roddcustom_bestactive = [len(best_indiv[0].active_nodes)]
 
 
     def postprocess_universe(self, universe):
@@ -110,3 +121,72 @@ class Problem(ProblemDefinition_Abstract):
         '''
         logging.info("Post Processing Universe Run")
         save_things.save_population(universe)
+
+        best_ids = np.array(self.roddcustom_bestindiv)
+        best_scores = np.array(self.roddcustom_bestscore)
+        best_activecount = np.array(self.roddcustom_bestactive)
+        output_best_file = os.path.join(universe.output_folder, "custom_stats.npz")
+        np.savez(output_best_file, ids=best_ids,
+                                   scores=best_scores,
+                                   active_count=best_activecount,
+                                   genome_size=np.array([self.indiv_def[0].main_count]))
+        # i guess i want to save all the roddcustom_ attributes
+        # then open all the values for all the universes for each of the different runs
+        # and plot the different number of genomes in one color 
+
+
+    def plot_custom_stats(self, folders):
+        import glob
+        import matplotlib.pyplot as plt
+
+        if (type(folders) is str) and (os.path.isdir(folders)):
+            '''# then assume we are looking for folders within this single folder
+            poss_folders = os.listdir(folders)
+            folders = []
+            for poss in poss_folders:
+                if os.path.isdir(poss):
+                    folders.append(poss)'''
+            # now that we are using glob below, we are all good...just make this into a list
+            folders = [folders]
+        elif type(folders) is list:
+            # then continue as is
+            pass
+        else:
+            print("we don't know how to handle type %s yet" % (type(folders)))
+
+        # now try to find 'custom_stats.npz' in the folders
+        stats = {}
+        try:
+            for folder in folders:
+                npzs = glob.glob(os.path.join(folder,"*","custom_stats.npz"), recursive=True)
+                for npz in npzs:
+                    data = np.load(npz)
+                    genome_size = data['genome_size'][0]
+                    if genome_size not in stats:
+                        stats[genome_size] = {'ids': [],
+                                              'scores': [],
+                                              'active_count': []}
+                    for key in ['ids','scores','active_count']:
+                        stats[genome_size][key].append(data[key])
+        except:
+            print(sys.exc_info())
+            e = sys.exc_info()[0]
+            import pdb; pdb.set_trace()
+
+        # now go plot
+        #plt.figure(figsize=(15,10))
+        matplotlib_colors = ['b','g','r','c','m','y']
+        fig, axes = plt.subplots(2, 1, figsize=(16,8))
+        for ith_size, size in enumerate(stats.keys()):
+            for row, key in enumerate(['scores','active_count']):
+                datas = stats[size][key]
+                for data in datas:
+                    if key is 'scores':
+                        data = data[:,0]
+                    axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="--", alpha=0.5)
+
+        plt.show()
+        import pdb; pdb.set_trace()
+
+
+
