@@ -103,6 +103,11 @@ if __name__ == "__main__":
                         type = int,
                         default = 0,
                         help = "pick which seed to use for numpy")
+    parser.add_argument("-t", "--testing",
+                        action="store_const",
+                        const=True,
+                        default=False,
+                        help = "set flag to document the output folder with 'test' to distinguish it from serious runs")
     parser.add_argument("-d", "--debug",
                         help="set the logging level to the lowest level to collect everything",
                         dest="loglevel",
@@ -118,11 +123,14 @@ if __name__ == "__main__":
 
     # create a logging directory specifically for this run
     # will be named: root/outputs/problem_file/datetime_as_str/
-    probelm_output_directory = os.path.join(dirname(realpath(__file__)),
-                                                "outputs",
-                                                args.problem,
-                                                time.strftime("%Y%m%d-%H%M%S"))
-    os.makedirs(probelm_output_directory, exist_ok=False)
+    time_str = time.strftime("%Y%m%d-%H%M%S")
+    if args.testing:
+        time_str = "testing-%s" % time_str
+    problem_output_directory = os.path.join(dirname(realpath(__file__)),
+                                            "outputs",
+                                            args.problem,
+                                            time_str)
+    os.makedirs(problem_output_directory, exist_ok=False)
 
     # figure out which problem py file to import
     if args.problem.endswith('.py'):
@@ -133,8 +141,8 @@ if __name__ == "__main__":
     # copy problem file over to problem_output_directory
     # this way we know for sure which version of the problem file resulted in the output
     src = join(dirname(realpath(__file__)), "problems", problem_filename)
-    dst = join(probelm_output_directory, problem_filename)
+    dst = join(problem_output_directory, problem_filename)
     shutil.copyfile(src, dst)
     
     # RUN BABYYY
-    main(problem_filename, probelm_output_directory, args.seed, args.loglevel)
+    main(problem_filename, problem_output_directory, args.seed, args.loglevel)
