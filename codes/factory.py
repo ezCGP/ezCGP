@@ -136,4 +136,4 @@ class FactoryDefinition():
         # fill output nodes
         for ith_output, node_index in enumerate(range(block_def.main_count, block_def.main_count+block_def.output_count)):
             req_dtype = block_def.output_dtypes[ith_output]
-            block_material[node_index] = block_def.get_random_input(block_material, req_dtype=req_dtype)
+            block_material[node_index] = block_def.get_random_input(block_material, req_dtype=req_dtype, _min=0, _max=block_def.main_count)
