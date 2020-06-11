@@ -68,10 +68,10 @@ def main(problem_filename: str,
         log_filehandler = logging.FileHandler(os.path.join(universe_output_direcotry, "log.txt"), 'w')
         log_filehandler.setFormatter(log_formatter)
         log_logger.addHandler(log_filehandler)
-        logging.info("STARTING UNIVERSE %i" % ith_universe)
+        logging.warning("STARTING UNIVERSE %i" % ith_universe)
 
         # set the seed
-        logging.info("Setting seed, for Universe, to %i" % (seed+1+ith_universe))
+        logging.warning("Setting seed, for Universe, to %i" % (seed+1+ith_universe))
         np.random.seed(seed+1+ith_universe)
         
         # init corresponding universe

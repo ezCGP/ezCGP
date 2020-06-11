@@ -77,7 +77,8 @@ class Problem(ProblemDefinition_Abstract):
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
             # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output
-            active_error = np.abs(10+2+1-len(indiv[0].active_nodes)) #maybe cheating by knowing the goal amount ahead of time
+            #active_error = np.abs(10+2+1-len(indiv[0].active_nodes)) #maybe cheating by knowing the goal amount ahead of time
+            active_error = len(indiv[0].active_nodes)
             indiv.fitness.values = (rms_error, max_error, active_error)
 
 
