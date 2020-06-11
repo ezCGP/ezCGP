@@ -36,7 +36,7 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         population_size = 52 #must be divisible by 4 if doing mating
-        number_universe = 100
+        number_universe = 10
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
@@ -75,8 +75,9 @@ class Problem(ProblemDefinition_Abstract):
             error = clean_y-predict_y
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
-            #active_error = np.abs(10-len(active_nodes)) 
-            indiv.fitness.values = (rms_error, max_error) #, active_error)
+            # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output
+            active_error = np.abs(10+2+1-len(indiv[0].active_nodes)) #maybe cheating by knowing the goal amount ahead of time
+            indiv.fitness.values = (rms_error, max_error, active_error)
 
 
     def check_convergence(self, universe):
@@ -106,14 +107,15 @@ class Problem(ProblemDefinition_Abstract):
 
         ith_indiv, _ = self.get_best_indiv(universe, ith_obj=0)
         best_indiv = universe.population.population[ith_indiv]
+        active_count = len(best_indiv[0].active_nodes) - self.indiv_def[0].input_count - self.indiv_def[0].output_count
         if hasattr(self, 'roddcustom_bestindiv'):
             self.roddcustom_bestindiv.append(best_indiv.id)
             self.roddcustom_bestscore.append(best_indiv.fitness.values)
-            self.roddcustom_bestactive.append(len(best_indiv[0].active_nodes))
+            self.roddcustom_bestactive.append(active_count)
         else:
             self.roddcustom_bestindiv = [best_indiv.id]
             self.roddcustom_bestscore = [best_indiv.fitness.values]
-            self.roddcustom_bestactive = [len(best_indiv[0].active_nodes)]
+            self.roddcustom_bestactive = [active_count]
 
 
     def postprocess_universe(self, universe):
@@ -126,6 +128,7 @@ class Problem(ProblemDefinition_Abstract):
         best_ids = np.array(self.roddcustom_bestindiv)
         best_scores = np.array(self.roddcustom_bestscore)
         best_activecount = np.array(self.roddcustom_bestactive)
+        # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output   
         output_best_file = os.path.join(universe.output_folder, "custom_stats.npz")
         np.savez(output_best_file, ids=best_ids,
                                    scores=best_scores,
