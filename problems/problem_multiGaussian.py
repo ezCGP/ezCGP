@@ -26,6 +26,7 @@ from codes.individual_definitions.individual_mutate import IndividualMutate_Roll
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
 from post_process import save_things
+from post_process import plot_things
 
 
 
@@ -117,6 +118,12 @@ class Problem(ProblemDefinition_Abstract):
             self.roddcustom_bestscore = [best_indiv.fitness.values]
             self.roddcustom_bestactive = [active_count]
 
+        fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.data.y_train[0].max()*1.25)) #axes always 2dim
+        plot_things.plot_regression(axes[0,0], best_indiv, self)
+        plot_things.plot_gaussian(axes[1,0], best_indiv, self)
+        plot_things.plot_legend()
+        plot_things.plot_save(fig, name=os.path.join(universe.output_folder, "gen%04d_bestindv.jpg" % universe.generation))
+
 
     def postprocess_universe(self, universe):
         '''
@@ -165,22 +172,17 @@ class Problem(ProblemDefinition_Abstract):
 
         # now try to find 'custom_stats.npz' in the folders
         stats = {}
-        try:
-            for folder in folders:
-                npzs = glob.glob(os.path.join(folder,"*","custom_stats.npz"), recursive=True)
-                for npz in npzs:
-                    data = np.load(npz)
-                    genome_size = data['genome_size'][0]
-                    if genome_size not in stats:
-                        stats[genome_size] = {'ids': [],
-                                              'scores': [],
-                                              'active_count': []}
-                    for key in ['ids','scores','active_count']:
-                        stats[genome_size][key].append(data[key])
-        except:
-            print(sys.exc_info())
-            e = sys.exc_info()[0]
-            import pdb; pdb.set_trace()
+        for folder in folders:
+            npzs = glob.glob(os.path.join(folder,"*","custom_stats.npz"), recursive=True)
+            for npz in npzs:
+                data = np.load(npz)
+                genome_size = data['genome_size'][0]
+                if genome_size not in stats:
+                    stats[genome_size] = {'ids': [],
+                                          'scores': [],
+                                          'active_count': []}
+                for key in ['ids','scores','active_count']:
+                    stats[genome_size][key].append(data[key])
 
         # now go plot
         #plt.figure(figsize=(15,10))
@@ -192,7 +194,7 @@ class Problem(ProblemDefinition_Abstract):
                 for data in datas:
                     if key is 'scores':
                         data = data[:,0]
-                    axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="--", alpha=0.5)
+                    axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="-", alpha=0.5)
 
         plt.show()
         import pdb; pdb.set_trace()
