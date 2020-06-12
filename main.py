@@ -56,7 +56,7 @@ def main(problem_filename: str,
 
     for ith_universe in range(problem.number_universe):
         # set new output directory
-        universe_output_direcotry = os.path.join(probelm_output_directory, "univ%i" % ith_universe)
+        universe_output_direcotry = os.path.join(probelm_output_directory, "univ%04d" % ith_universe)
         os.makedirs(universe_output_direcotry, exist_ok=False)
         # remove any old logging file handlers
         for old_filehandler in log_logger.handlers:
