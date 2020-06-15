@@ -9,6 +9,8 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import logging
+import itertools
 
 ### sys relative to root dir
 import sys
@@ -54,3 +56,13 @@ class PopulationDefinition():
         TODO
         '''
         pass
+
+
+    def merge_subpopulations(self, subpops):
+        '''
+        if we had a list of list of individual_materials in subpops,
+        then we'd want to append them into a single large list and 
+        assign to self.population
+        '''
+        self.population = list(itertools.chain.from_iterable(subpops))
+        logging.info("Combined %i sub populations into a single population" % (len(subpops)))

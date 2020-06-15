@@ -11,6 +11,9 @@ mention any assumptions made in the code or rules about code structure should go
 ### packages
 import numpy as np
 from typing import List
+import importlib
+import time
+import logging
 
 ### sys relative to root dir
 import sys
@@ -29,16 +32,17 @@ class UniverseDefinition():
     TODO
     '''
     def __init__(self,
-                problem: ProblemDefinition_Abstract,
-                output_folder: str):
+                 problem: ProblemDefinition_Abstract,
+                 output_folder: str):
         '''
         electing to keep Problem class separate from Universe class...
         if we ever need a Problem attribute, just pass in the instance of Problem as an arguement
         ...as opposed to having a copy of the Problem instance as an attribute of Universe
         '''
         self.factory = problem.Factory()
-        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
-        self.problem = problem
+        # moving init of population in run()...move back here if it doesn't work
+        #self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
+        #self.problem = problem #did we really need the problem as attr? cleaner to keep them separate, right?
         self.output_folder = output_folder
         self.converged = False
 
@@ -50,11 +54,11 @@ class UniverseDefinition():
         return selections.selTournamentDCD(self.population.population, k=len(self.population.population))
 
 
-    def evolve_population(self, problem: ProblemDefinition_Abstract):
+    def mate_population(self, problem: ProblemDefinition_Abstract, compute_node=None):
         '''
-        TODO
+        do a ranking/sorting of parents, then pair them off, mate the pairs, return and add the children
         '''
-        # MATE
+        start_time = time.time()
         children = []
         mating_list = self.parent_selection()
         for ith_indiv in range(0, len(mating_list), 2):
@@ -62,15 +66,35 @@ class UniverseDefinition():
             parent2 = mating_list[ith_indiv+1]
             children += problem.indiv_def.mate(parent1, parent2)
         self.population.add_next_generation(children)
+        logging.info("Node %i - Mating took %.2f minutes" % (compute_node, (time.time()-start_time)/60))
 
-        # MUTATE
+
+
+    def mutate_population(self, problem: ProblemDefinition_Abstract, compute_node=None):
+        '''
+        super simple...just loop through am call mutate. at the block level is where it decides to mutate or not
+        '''
+        start_time = time.time()
         mutants = []
         for individual in self.population.population:
             mutants += problem.indiv_def.mutate(individual)
         self.population.add_next_generation(mutants)
+        logging.info("Node %i - Mutation took %.2f minutes" % (compute_node, (time.time()-start_time)/60))
 
 
-    def evaluate_score_population(self, problem: ProblemDefinition_Abstract):
+
+    def evolve_population(self, problem: ProblemDefinition_Abstract):
+        '''
+        TODO
+        '''
+        # MATE
+        self.mate_population(problem)
+
+        # MUTATE
+        self.mutate_population(problem)
+
+
+    def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node=None):
         '''
         TODO
         '''
@@ -111,6 +135,7 @@ class UniverseDefinition():
         '''
         problem_def.postprocess_generation(self)
 
+
     def postprocess_universe(self, problem_def: ProblemDefinition_Abstract):
         '''
         Wrapper to problem.postprocess_universe()
@@ -126,6 +151,7 @@ class UniverseDefinition():
         assumes a population has only been created and not evaluatedscored
         '''
         self.generation = 0
+        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
         self.evaluate_score_population(problem)
         self.population_selection()
         while not self.converged:
@@ -140,4 +166,87 @@ class UniverseDefinition():
 
 
 class MPIUniverseDefinition(UniverseDefinition):
-    pass
+    '''
+    use mpi for multiprocessing on other cpu nodes
+    '''
+    def __init__(self,
+                 problem: ProblemDefinition_Abstract,
+                 output_folder: str):
+        '''
+        TODO
+        '''
+        super().__init__(problem, output_folder)
+
+        # globally import mpi
+        mdl = importlib.import_module("mpi4py")
+        globals().update({'MPI': getattr(mdl, 'MPI')})
+
+
+    def mpi_evolve_population(self, problem: ProblemDefinition_Abstract, comm_world):
+        '''
+        mpi wrapper around UniverseDefinition.evolve_population
+        '''
+        ### MATE
+        # only on main node for now
+        if comm_world.Get_rank() == 0:
+            self.mate_population(problem)
+
+        ### MUTATE
+        # do we gain anything by splitting for mutation? is it not fast enough already?
+        self.population.population = comm_world.scatter(self.population.population, root=0)
+        self.mutate_population(problem, comm_world.Get_rank())
+        comm_world.Barrier() #what does this do?
+        subpops = comm_world.gather(self.population.population, root=0)
+        if comm_world.Get_rank() == 0:
+            self.population.merge_subpopulations(subpops)
+
+
+    def mpi_evaluate_score_population(self, problem: ProblemDefinition_Abstract, comm_world):
+        '''
+        a wrapper method to handle the scatter+gather to evaluate
+        '''
+        # i think scatter returns the subpopulation for the specific node (the rank^th node)
+        self.population.population = comm_world.scatter(self.population.population, root=0) # why assign it to itself?
+        self.evaluate_score_population(problem, comm_world.Get_rank())
+        comm_world.Barrier() #what does this do?
+        subpops = comm_world.gather(self.population.population, root=0) # returns list of list of individuals
+        if comm_world.Get_rank() == 0:
+            self.population.merge_subpopulations(subpops)
+
+
+    def run(self, problem: ProblemDefinition_Abstract):
+        '''
+        1. Split Populatio n into subpopulation such that number of sup-pops == number of CPUs
+        Loop:
+        2. Scatter Sub-population from CPU 0 to each of the cpu
+        3. Evolve Sub-Population on each CPU
+        4. Evaluate Sub-population on each CPU
+        5. Gather all the sub-population to CPU 0 (Master CPU)
+        6. Perform MPI population selection on CPU 0
+            - This produce a new array of sub-population
+        7. Check convergence on CPU 0
+        8. Broadcast Convergence status to all CPUs
+        Repeat Step 2
+        '''
+        comm = MPI.COMM_WORLD
+        size = comm.Get_size()  # number of CPUs #not used anymore
+        rank = comm.Get_rank()  # this CPU's rank
+
+        self.generation = 0
+        # only have main node create the population
+        if rank == 0:
+            self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
+        self.mpi_evaluate_score_population(problem, comm)
+        self.population_selection()
+        while not self.converged:
+            self.generation += 1
+            self.mpi_evolve_population(problem, comm)
+            self.mpi_evaluate_score_population(problem, comm)
+            if rank == 0:
+                self.population_selection()
+                self.check_convergence(problem)
+                self.postprocess_generation(problem)
+            # if converged goes to True then we want all nodes to have that value changed
+            self.converged = comm.bcast(self.converged, root=0)
+        if rank == 0:
+            self.postprocess_universe(problem)

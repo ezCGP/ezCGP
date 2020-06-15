@@ -66,6 +66,7 @@ class BlockOperators_Abstract():
             #globals()[alias] = __import__(name)
             #going to use importlib.import_module instead of __import __ because of convention and to do better absolute/relative imports
             globals()[alias] = importlib.import_module("codes.block_definitions.utilities.%s" % name)
+            # what about globals().update({alias: ...})
             self.operator_dict.update(globals()[alias].operator_dict)
 
 
