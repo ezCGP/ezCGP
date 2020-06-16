@@ -53,9 +53,25 @@ class PopulationDefinition():
 
     def split_population(self, num_sub_pops):
         '''
-        TODO
+        say we have 27 individuals and we want 7 subpops
+
+        start by assigning equal number to the 7 groups with 27//7 which is 3
+            [3,3,3,3,3,3,3]
+        then go through the remainder and add +1
+
+        # then split up the population by those sizes
         '''
-        pass
+        subpop_sizes = [len(self.population)//num_sub_pops] * num_sub_pops
+        for ith_pop in range(len(self.population)%num_sub_pops):
+            subpop_sizes[ith_pop] += 1
+
+        subpops = []
+        position = 0
+        for size in subpop_sizes:
+            subpops.append(self.population[position:position+size])
+            position += size
+
+        self.population = subpops
 
 
     def merge_subpopulations(self, subpops):

@@ -13,6 +13,7 @@ import numpy as np
 from typing import List
 import importlib
 import time
+from copy import deepcopy
 import logging
 
 ### sys relative to root dir
@@ -39,12 +40,51 @@ class UniverseDefinition():
         if we ever need a Problem attribute, just pass in the instance of Problem as an arguement
         ...as opposed to having a copy of the Problem instance as an attribute of Universe
         '''
+        self.adjust_pop_size(problem, [4]) # selections.selTournamentDCD requires multiples of 4
         self.factory = problem.Factory()
         # moving init of population in run()...move back here if it doesn't work
         #self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
         #self.problem = problem #did we really need the problem as attr? cleaner to keep them separate, right?
         self.output_folder = output_folder
         self.converged = False
+
+
+    def adjust_pop_size(self,
+                        problem: ProblemDefinition_Abstract,
+                        multiples_of: List[int]):
+        '''
+        in certain cases, we may need to have our population size be a multiple of something so that the code doesn't break.
+        for example, if we use some tournament selection, the poulation will likely need to be a multiple of 2 or 4.
+        or if we use mpi, then we would want our pop size to be a multiple of the number of nodes we are using out of convenience.
+        '''
+        original_size = problem.pop_size
+        possible_size = deepcopy(original_size)
+        satisfied = False
+        direction = "down"
+        while not satisfied:
+            # loop until we have a pop_size that is a multiple of all ints in the list
+            for mult in multiples_of:
+                if possible_size%mult != 0:
+                    # not a multiple...not satisfied
+                    if direction == "down":
+                        possible_size -= possible_size%mult
+                    else:
+                        possible_size += (mult-possible_size%mult)
+                    satisfied = False
+                    break
+                else:
+                    # it is a multiple...so far, we are satisfied
+                    satisfied = True
+            
+            if possible_size <= 0:
+                # then we failed...try changing direction
+                print(possible_size)
+                satisfied = False
+                direction = "up"
+                possible_size = deepcopy(original_size)
+        if possible_size != original_size:
+            logging.warning("Changing problem's population size from %i to %i to be multiples of %s" % (original_size, possible_size, multiples_of))
+        problem.pop_size = possible_size
 
 
     def parent_selection(self):
@@ -54,7 +94,7 @@ class UniverseDefinition():
         return selections.selTournamentDCD(self.population.population, k=len(self.population.population))
 
 
-    def mate_population(self, problem: ProblemDefinition_Abstract, compute_node=None):
+    def mate_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
         '''
         do a ranking/sorting of parents, then pair them off, mate the pairs, return and add the children
         '''
@@ -70,7 +110,7 @@ class UniverseDefinition():
 
 
 
-    def mutate_population(self, problem: ProblemDefinition_Abstract, compute_node=None):
+    def mutate_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
         '''
         super simple...just loop through am call mutate. at the block level is where it decides to mutate or not
         '''
@@ -94,7 +134,7 @@ class UniverseDefinition():
         self.mutate_population(problem)
 
 
-    def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node=None):
+    def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
         '''
         TODO
         '''
@@ -175,11 +215,20 @@ class MPIUniverseDefinition(UniverseDefinition):
         '''
         TODO
         '''
+        from mpi4py import MPI
+        globals()['MPI'] = MPI
+        self.adjust_pop_size(problem, [4, MPI.COMM_WORLD.Get_size()])
         super().__init__(problem, output_folder)
 
+        ''' cannot import MPI as an attribute since it's a subpackage!
         # globally import mpi
         mdl = importlib.import_module("mpi4py")
-        globals().update({'MPI': getattr(mdl, 'MPI')})
+        #
+        if '__all__' in mdl.__dict__: # true here it seems
+            names = mdl.__dict__['__all__']
+        else:
+            names = [x for x in mdl.__dict__ if not x.startswith('_')]
+        globals().update({name: getattr(mdl, name) for name in names})'''
 
 
     def mpi_evolve_population(self, problem: ProblemDefinition_Abstract, comm_world):
@@ -234,8 +283,11 @@ class MPIUniverseDefinition(UniverseDefinition):
 
         self.generation = 0
         # only have main node create the population
-        if rank == 0:
-            self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
+        #if rank == 0:
+        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size//size) #each node make their own fraction of indiv...but how does seeding work, are they dups?
+        # TODO verify seeding
+        # TODO verify that we are handling different indiv_id's for pop creation
+        # TODO verify logging
         self.mpi_evaluate_score_population(problem, comm)
         self.population_selection()
         while not self.converged:
@@ -246,6 +298,7 @@ class MPIUniverseDefinition(UniverseDefinition):
                 self.population_selection()
                 self.check_convergence(problem)
                 self.postprocess_generation(problem)
+                self.population.split_population(size)
             # if converged goes to True then we want all nodes to have that value changed
             self.converged = comm.bcast(self.converged, root=0)
         if rank == 0:

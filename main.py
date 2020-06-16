@@ -16,6 +16,7 @@ import numpy as np
 import tempfile
 import logging
 import gc
+from mpi4py import MPI
 
 ### sys relative to root AND to problem dir to import respective problem file
 import sys
@@ -24,28 +25,39 @@ sys.path.append(dirname(realpath(__file__)))
 sys.path.append(join(dirname(realpath(__file__)), "problems"))
 
 ### absolute imports wrt root
-# moved imports to AFTER seed is set
-#from codes.universe import UniverseDefinition, MPIUniverseDefinition
+# moved imports to AFTER seed is set!
 
 
 def main(problem_filename: str,
          probelm_output_directory: str=tempfile.mkdtemp(),
          seed: int=0,
          loglevel: int=logging.WARNING):
-    # init logging here but then set the filepath inside the for-loop so that
-    # we have a unique log file per universe run
-    #logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
-    logging.getLogger().setLevel(loglevel) # for some reason logging.getLogger already existed so doing basicConfig() does nothing
-    log_logger = logging.getLogger()
-    format_str = "[%(asctime)s.%(msecs)d][%(threadName)s-%(thread)d][%(filename)s-%(funcName)s] %(levelname)s: %(message)s"
-    log_formatter = logging.Formatter(fmt=format_str, datefmt="%H:%M:%S")
-    if loglevel < logging.WARNING: # true only for DEBUG or INFO
-        log_stdouthandler = logging.StreamHandler(sys.stdout)
-        log_stdouthandler.setFormatter(log_formatter)
-        log_logger.addHandler(log_stdouthandler)
-    else:
-        log_stdouthandler = None
+
+    # want to make sure that creation of files, folders, and logging is not duplicated if using mpi.
+    # the following is always true if not using mpi  
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        os.makedirs(problem_output_directory, exist_ok=False)
+        # copy problem file over to problem_output_directory
+        # this way we know for sure which version of the problem file resulted in the output
+        src = join(dirname(realpath(__file__)), "problems", problem_filename)
+        dst = join(problem_output_directory, problem_filename)
+        shutil.copyfile(src, dst)
+
+        # init logging here but then set the filepath inside the for-loop so that
+        # we have a unique log file per universe run
+        #logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
+        logging.getLogger().setLevel(loglevel) # for some reason logging.getLogger already existed so doing basicConfig() does nothing
+        log_logger = logging.getLogger()
+        format_str = "[%(asctime)s.%(msecs)d][%(threadName)s-%(thread)d][%(filename)s-%(funcName)s] %(levelname)s: %(message)s"
+        log_formatter = logging.Formatter(fmt=format_str, datefmt="%H:%M:%S")
+        if loglevel < logging.WARNING: # true only for DEBUG or INFO
+            log_stdouthandler = logging.StreamHandler(sys.stdout)
+            log_stdouthandler.setFormatter(log_formatter)
+            log_logger.addHandler(log_stdouthandler)
+        else:
+            log_stdouthandler = None
     
+    print(logging.getLogger())
     # set the seed before importing problem.
     # NOTE will set another seed when we start the universe
     logging.warning("Setting seed, for file imports, to %i" % (seed))
@@ -56,29 +68,30 @@ def main(problem_filename: str,
 
     for ith_universe in range(problem.number_universe):
         # set new output directory
-        universe_output_direcotry = os.path.join(probelm_output_directory, "univ%04d" % ith_universe)
-        os.makedirs(universe_output_direcotry, exist_ok=False)
-        # remove any old logging file handlers
-        for old_filehandler in log_logger.handlers:
-            if old_filehandler != log_stdouthandler:
-                # remove everything except the stdout one
-                log_logger.removeHandler(old_filehandler)
-                del old_filehandler
-        # replace with a new file handler for the new output directory
-        log_filehandler = logging.FileHandler(os.path.join(universe_output_direcotry, "log.txt"), 'w')
-        log_filehandler.setFormatter(log_formatter)
-        log_logger.addHandler(log_filehandler)
-        logging.warning("STARTING UNIVERSE %i" % ith_universe)
+        universe_output_directory = os.path.join(probelm_output_directory, "univ%04d" % ith_universe)
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            os.makedirs(universe_output_directory, exist_ok=False)
+            # remove any old logging file handlers
+            for old_filehandler in log_logger.handlers:
+                if old_filehandler != log_stdouthandler:
+                    # remove everything except the stdout one
+                    log_logger.removeHandler(old_filehandler)
+                    del old_filehandler
+            # replace with a new file handler for the new output directory
+            log_filehandler = logging.FileHandler(os.path.join(universe_output_directory, "log.txt"), 'w')
+            log_filehandler.setFormatter(log_formatter)
+            log_logger.addHandler(log_filehandler)
 
-        # set the seed
+        # Start by setting the seed for this universe
+        logging.warning("STARTING UNIVERSE %i" % ith_universe)
         logging.warning("Setting seed, for Universe, to %i" % (seed+1+ith_universe))
         np.random.seed(seed+1+ith_universe)
         
         # init corresponding universe
         if problem.mpi:
-            universe = MPIUniverseDefinition(problem, universe_output_direcotry)
+            universe = MPIUniverseDefinition(problem, universe_output_directory)
         else:
-            universe = UniverseDefinition(problem, universe_output_direcotry)
+            universe = UniverseDefinition(problem, universe_output_directory)
 
         # run
         start_time = time.time()
@@ -130,19 +143,12 @@ if __name__ == "__main__":
                                             "outputs",
                                             args.problem,
                                             time_str)
-    os.makedirs(problem_output_directory, exist_ok=False)
 
     # figure out which problem py file to import
     if args.problem.endswith('.py'):
         problem_filename = os.path.basename(args.problem)
     else:
         problem_filename = os.path.basename(args.problem + ".py")
-
-    # copy problem file over to problem_output_directory
-    # this way we know for sure which version of the problem file resulted in the output
-    src = join(dirname(realpath(__file__)), "problems", problem_filename)
-    dst = join(problem_output_directory, problem_filename)
-    shutil.copyfile(src, dst)
     
     # RUN BABYYY
     main(problem_filename, problem_output_directory, args.seed, args.loglevel)
