@@ -254,6 +254,14 @@ class MPIUniverseDefinition(UniverseDefinition):
         '''
         a wrapper method to handle the scatter+gather to evaluate
         '''
+        # check if we have a already split into subpops
+        if isinstance(self.population.population[0], list):
+            # then we can assume we already split into subpops
+            pass
+        else:
+            if comm_world.Get_rank() == 1:
+                self.population.split_population(comm_world.Get_size())
+            comm_world.Barrier()
         # i think scatter returns the subpopulation for the specific node (the rank^th node)
         self.population.population = comm_world.scatter(self.population.population, root=0) # why assign it to itself?
         self.evaluate_score_population(problem, comm_world.Get_rank())
@@ -284,6 +292,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.generation = 0
         # only have main node create the population
         #if rank == 0:
+        # START with split populations
         self.population = self.factory.build_population(problem.indiv_def, problem.pop_size//size) #each node make their own fraction of indiv...but how does seeding work, are they dups?
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
