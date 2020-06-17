@@ -27,7 +27,7 @@ class PopulationDefinition():
     '''
     def __init__(self,
                 population_size):
-        self.pop_size = population_size
+        #self.pop_size = population_size #moved to problem.pop_size
         self.population = []
 
 
