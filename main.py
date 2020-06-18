@@ -25,17 +25,22 @@ sys.path.append(dirname(realpath(__file__)))
 sys.path.append(join(dirname(realpath(__file__)), "problems"))
 
 ### absolute imports wrt root
-# moved imports to AFTER seed is set!
+from codes.utilities.custom_logging import ezLogging
+# moved most imports to AFTER seed is set!
+
+
 
 
 def main(problem_filename: str,
          probelm_output_directory: str=tempfile.mkdtemp(),
          seed: int=0,
          loglevel: int=logging.WARNING):
+    node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
+    node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
 
     # want to make sure that creation of files, folders, and logging is not duplicated if using mpi.
-    # the following is always true if not using mpi  
-    if MPI.COMM_WORLD.Get_rank() == 0:
+    # the following is always true if not using mpi 
+    if node_rank == 0:
         os.makedirs(problem_output_directory, exist_ok=False)
         # copy problem file over to problem_output_directory
         # this way we know for sure which version of the problem file resulted in the output
@@ -43,60 +48,55 @@ def main(problem_filename: str,
         dst = join(problem_output_directory, problem_filename)
         shutil.copyfile(src, dst)
 
-        # init logging here but then set the filepath inside the for-loop so that
-        # we have a unique log file per universe run
-        #logging.basicConfig(level=loglevel) #not sure if i can set format=log_formatter here to be true for all handlers
-        logging.getLogger().setLevel(loglevel) # for some reason logging.getLogger already existed so doing basicConfig() does nothing
-        log_logger = logging.getLogger()
-        format_str = "[%(asctime)s.%(msecs)d][%(threadName)s-%(thread)d][%(filename)s-%(funcName)s] %(levelname)s: %(message)s"
-        log_formatter = logging.Formatter(fmt=format_str, datefmt="%H:%M:%S")
-        if loglevel < logging.WARNING: # true only for DEBUG or INFO
-            log_stdouthandler = logging.StreamHandler(sys.stdout)
-            log_stdouthandler.setFormatter(log_formatter)
-            log_logger.addHandler(log_stdouthandler)
-        else:
-            log_stdouthandler = None
+    # create custom logging.logger for this node 
+    log_formatter = ezLogging.logging_setup(loglevel)
+    if loglevel < logging.WARNING:
+        # true only for DEBUG or INFO
+        log_handler_2stdout = ezLogging.logging_2stdout(log_formatter)
+    else:
+        log_handler_2stdout = None
     
-    print(logging.getLogger())
     # set the seed before importing problem.
     # NOTE will set another seed when we start the universe
-    logging.warning("Setting seed, for file imports, to %i" % (seed))
+    ezLogging.warning("Setting seed, for file imports, to %i" % (seed))
     np.random.seed(seed)
     problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
     problem = problem_module.Problem()
     from codes.universe import UniverseDefinition, MPIUniverseDefinition
 
+    log_handler_2file = None # just initializing
     for ith_universe in range(problem.number_universe):
         # set new output directory
         universe_output_directory = os.path.join(probelm_output_directory, "univ%04d" % ith_universe)
-        if MPI.COMM_WORLD.Get_rank() == 0:
+        if node_rank == 0:
             os.makedirs(universe_output_directory, exist_ok=False)
-            # remove any old logging file handlers
-            for old_filehandler in log_logger.handlers:
-                if old_filehandler != log_stdouthandler:
-                    # remove everything except the stdout one
-                    log_logger.removeHandler(old_filehandler)
-                    del old_filehandler
-            # replace with a new file handler for the new output directory
-            log_filehandler = logging.FileHandler(os.path.join(universe_output_directory, "log.txt"), 'w')
-            log_filehandler.setFormatter(log_formatter)
-            log_logger.addHandler(log_filehandler)
 
-        # Start by setting the seed for this universe
-        logging.warning("STARTING UNIVERSE %i" % ith_universe)
-        logging.warning("Setting seed, for Universe, to %i" % (seed+1+ith_universe))
-        np.random.seed(seed+1+ith_universe)
+        MPI.COMM_WORLD.Barrier()
+        # remove previous universe log file handler if exists
+        if log_handler_2file is not None:
+            ezLogging.logging_remove_handler(log_handler_2file)
+        # now introduce this universe's log file handler
+        if problem.mpi:
+            log_handler_2file = ezLogging.logging_2file_mpi(log_formatter, filename=os.path.join(probelm_output_directory, "log.txt"))
+        else:
+            log_handler_2file = ezLogging.logging_2file(log_formatter, filename=os.path.join(probelm_output_directory, "log.txt"))
         
         # init corresponding universe
         if problem.mpi:
-            universe = MPIUniverseDefinition(problem, universe_output_directory)
+            universe_seed = seed + 1 + (ith_universe*node_size) + node_rank
+            ThisUniverse = MPIUniverseDefinition
         else:
-            universe = UniverseDefinition(problem, universe_output_directory)
+            universe_seed = seed + 1 + ith_universe
+            ThisUniverse = UniverseDefinition
+        ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
+        np.random.seed(universe_seed)
+        ezLogging.warning("STARTING UNIVERSE %i" % ith_universe)
+        universe = ThisUniverse(problem, universe_output_directory)
 
         # run
         start_time = time.time()
         universe.run(problem)
-        logging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
+        ezLogging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
         
         # do some clean up, if we're about to start another run
         if ith_universe+1 < problem.number_universe:
