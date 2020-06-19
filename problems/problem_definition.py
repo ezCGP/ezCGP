@@ -51,7 +51,8 @@ class ProblemDefinition_Abstract(ABC):
                  population_size: int,
                  number_universe: int,
                  factory_def: FactoryDefinition,
-                 mpi: bool=False):
+                 mpi: bool=False,
+                 seeds: List[str]=[]):
         '''
         self.construct_dataset()
 
@@ -63,6 +64,7 @@ class ProblemDefinition_Abstract(ABC):
         self.number_universe = number_universe
         self.Factory = factory_def
         self.mpi = mpi
+        self.genome_seeds = seeds
 
 
     @abstractmethod

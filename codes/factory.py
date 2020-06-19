@@ -34,14 +34,34 @@ class FactoryDefinition():
         pass
 
 
-    def build_population(self, indiv_def: IndividualDefinition, population_size: int):
+    def build_population(self,
+                         indiv_def: IndividualDefinition,
+                         population_size: int,
+                         genome_seeds: List[str]):
         '''
         TODO
         '''
         my_population = PopulationDefinition(population_size)
-        for i in range(population_size):
+
+        for i, genome_seed in genome_seeds:
+            # should be a filepath
+            if genome_seed.endswith("pkl"):
+                with open(genome_seed, "rb") as f:
+                    indiv = pkl.load(f)
+                if isinstance(indiv, IndividualMaterial):
+                    indiv.set_id("seededIndiv%i" % i)
+                elif "lisp" in genome_seed:
+                    # TODO which block?
+                    indiv = build_block_from_lisp(block_def, lisp=indiv, indiv_id="seededIndiv%i" % i)
+                else:
+                    logging.error("unable to interpret genome seed")
+                    return None
+            my_population.population.append(indiv)
+
+        for i in range(len(genome_seeds), population_size):
             indiv = self.build_individual(indiv_def, indiv_id="initPop%i" % i)
             my_population.population.append(indiv)
+
         return my_population
 
 
@@ -67,6 +87,22 @@ class FactoryDefinition():
         indiv_material.set_id(indiv_id)
         for block_def in indiv_def.block_defs:
             block_material = self.build_block(block_def, indiv_id=indiv_id)
+            indiv_material.blocks.append(block_material)
+        return indiv_material
+
+
+    def build_individual_from_block_seed(self, indiv_def: IndividualDefinition, block_seeds: List, indiv_id=None):
+        '''
+        block_seeds will be a list of file paths. number of blocks in individual need to match block_seed length
+        If we don't have a seed for a block, set it to None like [None, None, seed.npz]
+        '''
+        indiv_material = IndividualMaterial()
+        indiv_material.set_id(indiv_id)
+        for block_def, block_seed in zip(indiv_def.block_defs, block_seeds):
+            if block_seed is None:
+                block_material = self.build_block(block_def, indiv_id=indiv_id)
+            else:
+                block_material = self.build_block_from_lisp(block_def, block_seed, indiv_id)
             indiv_material.blocks.append(block_material)
         return indiv_material
 

@@ -191,7 +191,7 @@ class UniverseDefinition():
         assumes a population has only been created and not evaluatedscored
         '''
         self.generation = 0
-        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
+        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size, problem.genome_seeds)
         self.evaluate_score_population(problem)
         self.population_selection(problem)
         while not self.converged:
