@@ -62,7 +62,7 @@ class IndividualMutate_Abstract(ABC):
         # and set ne ids?
         mutant_material.set_id()
         for block_index, block_material in enumerate(mutant_material.blocks):
-            block_material.set_id(mutant_material.id)
+            #block_material.set_id(mutant_material.id) #moved to individual_mutate.set_id()
             if block_index >= mutated_block_index:
                 block_material.need_evaluate = True
         indiv_def.blocks[mutated_block_index].get_actives(block_material)

@@ -69,6 +69,9 @@ class IndividualMaterial():
             logging.debug("New ID %s; given" % _id)
             self.id = _id
 
+        for block in self.blocks:
+            block.set_id(indiv_id=self.id)
+
 
     def need_evaluate(self):
         '''

@@ -72,7 +72,7 @@ class IndividualDefinition():
         evolved_material.set_id()
         logging.debug("%s - Inside postprocess_evolved_individual, block_index: %i, to process a new individual" % (evolved_material.id, evolved_block_index))
         for block_index, block_material in enumerate(evolved_material.blocks):
-            block_material.set_id(evolved_material.id)
+            #block_material.set_id(evolved_material.id) # now moved into individual_material.set_id()
             if block_index >= evolved_block_index:
                 block_material.need_evaluate = True
         self[evolved_block_index].get_actives(evolved_material[evolved_block_index])
