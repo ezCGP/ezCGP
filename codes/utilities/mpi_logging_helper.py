@@ -29,45 +29,45 @@ from os.path import abspath
 
 
 class MPIFileHandler(logging.FileHandler):
-	def __init__(self,
-				 filename,
-				 mode=MPI.MODE_WRONLY|MPI.MODE_CREATE|MPI.MODE_APPEND,
-				 encoding='utf-8', #or None?
-				 delay=False,
-				 comm=MPI.COMM_WORLD):
-		self.baseFilename = filename #inherited attribute...don't change the attribute name
-		self.mode = mode
-		self.encoding = encoding
-		self.comm = comm
+    def __init__(self,
+                 filename,
+                 mode=MPI.MODE_WRONLY|MPI.MODE_CREATE|MPI.MODE_APPEND,
+                 encoding='utf-8', #or None?
+                 delay=False,
+                 comm=MPI.COMM_WORLD):
+        self.baseFilename = filename #inherited attribute...don't change the attribute name
+        self.mode = mode
+        self.encoding = encoding
+        self.comm = comm
 
-		if delay:
-			'''
-			honestly don't really get this...
-			like we want a delay between the call and when we write to file? why tho
-			"We don't open the stream, but we still need to call the Handler constructor to set level, formatter, lock etc."
-			'''
-			logging.Handler.__init__(self)
-			self.stream = None
-		else:
-			# interesting that it's a logging.FileHandler being passed to logging.StreamHandler
-			logging.StreamHandler.__init__(self, self._open())
-
-
-	def _open(self):
-		'''
-		overwriting the _open of FileHandler which sets up a stream that we pass as input to StreamHandler
-		'''
-		stream = MPI.File.Open(self.comm, self.baseFilename, self.mode)
-		stream.Set_atomicity(True)
-		return stream
+        if delay:
+            '''
+            honestly don't really get this...
+            like we want a delay between the call and when we write to file? why tho
+            "We don't open the stream, but we still need to call the Handler constructor to set level, formatter, lock etc."
+            '''
+            logging.Handler.__init__(self)
+            self.stream = None
+        else:
+            # interesting that it's a logging.FileHandler being passed to logging.StreamHandler
+            logging.StreamHandler.__init__(self, self._open())
 
 
-	def emit(self, record):
-		'''
-		overwriting the emit method of FileHandler and StreamHandler
-		(technically StreamHandler.emit overwrit FileHandler.emit so we are only overwriting StreamHandler.emit)
-		here is what the other guy put for emit:
-		"If a formatter is specified, it is used to format the record.
+    def _open(self):
+        '''
+        overwriting the _open of FileHandler which sets up a stream that we pass as input to StreamHandler
+        '''
+        stream = MPI.File.Open(self.comm, self.baseFilename, self.mode)
+        stream.Set_atomicity(True)
+        return stream
+
+
+    def emit(self, record):
+        '''
+        overwriting the emit method of FileHandler and StreamHandler
+        (technically StreamHandler.emit overwrit FileHandler.emit so we are only overwriting StreamHandler.emit)
+        here is what the other guy put for emit:
+        "If a formatter is specified, it is used to format the record.
         The record is then written to the stream with a trailing newline.  If
         exception information is present, it is formatted using
         traceback.print_exception and appended to the stream.  If the stream
@@ -79,20 +79,18 @@ class MPIFileHandler(logging.FileHandler):
             than `write` method. And `Write_shared` method only accept 
             bytestring, so `encode` is used. `Write_shared` should be invoked
             only once in each all of this emit function to keep atomicity."
-		'''
-		try:
-			msg = self.format(record)
-			#print("yo", record)
-			stream = self.stream
-			stream.Write_shared((msg+self.terminator).encode(self.encoding))
-			#self.flush #copied code had this commented out
-		except Exception:
-			#print("damn")
-			self.handleError(record)
+        '''
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            stream.Write_shared((msg+self.terminator).encode(self.encoding))
+            #self.flush #copied code had this commented out
+        except Exception:
+            self.handleError(record)
 
 
-	def close(self):
-		if self.stream:
-			self.stream.Sync()
-			self.stream.Close()
-			self.stream = None
+    def close(self):
+        if self.stream:
+            self.stream.Sync()
+            self.stream.Close()
+            self.stream = None

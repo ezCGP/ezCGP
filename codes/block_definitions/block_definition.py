@@ -83,6 +83,88 @@ class BlockDefinition():
         logging.debug("%s-%s - Done Initialize Block" % (None, self.nickname))
 
 
+    def get_lisp(self, block_material: BlockMaterial):
+        '''
+        the idea is to help with seeding, we have the ability to collapse an individual into a tree
+        and then collapse into a lisp string representation
+
+        note we'll be using active nodes a lot here...and don't forget that "active_nodes will include
+        all output_nodes, a subset of main_nodes and input_nodes."
+        '''
+        block_material.lisp = []
+
+        # get actives just in case it has changed since last evaluated...but it really shouldn't have!
+        self.get_actives(block_material)
+
+        # each output will have it's own tree
+        #for ith_output in range(self.output_count):
+
+        # first going to create a dictionary of the active nodes inputs
+        _active_dict = {}
+        #output_node = self.main_count+ith_output
+        #_active_dict['output'] = block_material[output_node]
+        for ith_node in reversed(self.active_nodes):
+            if (ith_node<0) or (ith_node>=self.main_count):
+                #input or ouptput node
+                continue
+            func = block_material[ith_node]['function']
+            inputs = block_material[ith_node]['inputs']
+            args = block_material[ith_node]['args']
+
+            # now start to shape it into a lisp
+            lisp = ['%s' % func.__name__]
+            for _input in inputs:
+                # attach an 'n' to remind us that this is a node number and not an arg
+                # later we'll go through and replace each node with it's own entry in _active_dict
+                #lisp.append('%in' % _input)
+                # TODO: consider just leaving it as '-1n' or something...converting to data type and
+                # passing as string and then removing quotes n spaces will likely make it unusable to compare anyways
+                pass
+            for _arg in args:
+                lisp.append('%s' % str(block_material.args[_arg]))
+
+            # and now throw the lisp into our _active_dict (tree)
+            _active_dict['%i' % ith_node] = lisp
+
+        # at this point we have the ith node and arg values for each active node
+        # now we'll go through the list and replace each node with each entry from the dict
+        # this is how we slowly build out the branches of the trees
+        for ith_node in self.active_args:
+            lisp = _active_dict[str(ith_node)]
+            new_lisp = []
+            for i, val in enumerate(lisp):
+                if i == 0:
+                    # 0th position in lisp should be the function. keep and append.
+                    pass
+                elif val.endswith('n'):
+                    if int(val[:-1]) < 0:
+                        # input node so we want to instead pass in the datatype we expect
+                        # -1th genome is 0th input
+                        # -2nd genome is 1th input... genome_node*-1 - 1 = input_node
+                        val = self.input_dtypes[(i*-1)-1]
+                    else:
+                        # then it's a node number, replace with that node's new_lisp
+                        val = _active_dict[str(val[:-1])] #[:-1] to remove 'n'
+                else:
+                    # then it's an arg and we pass it as such
+                    pass
+                new_lisp.append(val)
+            # replace lisp with new_lisp in the dict
+            _active_dict[str(ith_node)] = new_lisp
+
+        # now all that should be left are the output nodes
+        # each output node produces it's own tree so it's own final lisp
+        for ith_output in range(self.output_count):
+            final_node = block_material[self.main_count+ith_output]
+            # convert the final list into a string
+            lisp_str = str(_active_dict[final_node])
+            # since it was a list of strings, there will be a mess of quotes inside
+            # so replace any quotes, and spaces while we're at it
+            lisp_str = lisp_str.replace("'","").replace('"','').replace(" ", "")
+            # that's our tree. so append to lisp
+            block_material.lisp.append(lisp_str)
+
+
     def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str=None):
         '''
         this is a method to quickly grab the data type info at the 'node_index' position of the block_material genome
@@ -246,7 +328,7 @@ class BlockDefinition():
     def evaluate(self, block_material: BlockMaterial, training_datapair: ezDataSet, validation_datapair=None):
         '''
         wrapper method to call the block's evaluate definition
-        NOTE: we take the output and attach to block_materialin postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
+        NOTE: we take the output and attach to block_material in postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
         '''
         logging.debug("%s - Sending to Block Evaluate Definition" % (block_material.id))
         # verify that the input data matches the expected datatypes
