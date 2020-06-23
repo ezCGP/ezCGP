@@ -132,9 +132,72 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
 
 
     def mutate(self):
-        roll = rnd.random_integers(1, 9)
-        self.value = int(2 ** roll)
+        roll = rnd.random_integers(1, 8)
+        self.value = int(2**roll)
         ezLogging.debug("%s-%s - Mutated ArgumentType_Pow2 to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_TFActivation(ArgumentType_Abstract):
+    '''
+    possible values:
+    https://www.tensorflow.org/api_docs/python/tf/keras/activations
+
+    returns the actual function
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TFActivation Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        import tensorflow as tf
+        choices = [tf.nn.relu, tf.nn.sigmoid, tf.nn.tanh, tf.nn.elu, None]
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_TFFilterSize(ArgumentType_Abstract):
+    '''
+    quick way to pick [1,3,5,7]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TFFilterSize Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        import tensorflow as tf
+        choices = [1,3,5,7]
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TFFilterSize to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_TFPoolSize(ArgumentType_Abstract):
+    '''
+    quick way to pick [1,2,3,4]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TFPoolSize Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        import tensorflow as tf
+        choices = [1,2,3,4]
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TFPoolSize to %f" % (None, None, self.value))
 
 
 
@@ -223,7 +286,7 @@ class ArgumentType_Int0to100(ArgumentType_Float0to100):
 
 class ArgumentType_Float0to1(ArgumentType_Abstract):
     '''
-    like ArgumentType_Float0to100 but go from 0 to 1
+    like ArgumentType_Float0to100 but go from [0 to 1)
     mutate is just random uniform 0 to 1...may have to introduce fine tuneing...who knows
     '''
     def __init__(self, value=None):
@@ -235,5 +298,68 @@ class ArgumentType_Float0to1(ArgumentType_Abstract):
 
 
     def mutate(self):
-        self.value = np.random.random()
+        self.value = np.random.random() #NOTE: [0,1) not (0,1)
         ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to1 to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_Int0to25(ArgumentType_Abstract):
+    '''
+    Augmentor.Pipeline.Rotate has a [0,25] limit so I'm using this to define that range
+
+    NOTE:
+        np.random.randint(low, high) ->[low, high)
+        np.random.random_integers(low, high) -> [low,high]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate_unif_int25()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Int0to25 Class to %f" % (None, None, self.value))
+
+
+    def mutate_unif_int25(self):
+        self.value = rnd.random_integers(low=0, high=25)
+
+
+    def mutate_unif_localint(self):
+        # make it a range of 10
+        low = self.value-5
+        high = self.value+5
+        self.value = rnd.random_integers(low, high)
+        # force value to be within 0 to 100
+        if (self.value < 0) or (self.value > 25):
+            self.mutate_unif_int25()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif_int25()
+        else:
+            self.mutate_unif_localint()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Int0to25 to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
+    '''
+    limiting ArgumentType_Float0to1 so that our only choices are (0,1] every 0.05
+    NOTE that np.random.random() or np.random.uniform() is [0,1)
+
+    This is good for setting nonzero probability
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_LimitedFloat0to1 Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        delta = 0.05
+        choices = np.arange(0, 1, delta) + delta #[0.05, 0.1, ..., 0.95, 1.0]
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_LimitedFloat0to1 to %f" % (None, None, self.value))
