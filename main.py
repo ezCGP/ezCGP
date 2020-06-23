@@ -70,24 +70,18 @@ def main(problem_filename: str,
         universe_output_directory = os.path.join(probelm_output_directory, "univ%04d" % ith_universe)
         if node_rank == 0:
             os.makedirs(universe_output_directory, exist_ok=False)
-
         MPI.COMM_WORLD.Barrier()
-        # remove previous universe log file handler if exists
-        if log_handler_2file is not None:
-            ezLogging.logging_remove_handler(log_handler_2file)
-        # now introduce this universe's log file handler
+
+        # init corresponding universe and new log file handler
         if problem.mpi:
-            log_handler_2file = ezLogging.logging_2file_mpi(log_formatter, filename=os.path.join(probelm_output_directory, "log.txt"))
-        else:
-            log_handler_2file = ezLogging.logging_2file(log_formatter, filename=os.path.join(probelm_output_directory, "log.txt"))
-        
-        # init corresponding universe
-        if problem.mpi:
+            ezLogging_method = ezLogging.logging_2file_mpi
             universe_seed = seed + 1 + (ith_universe*node_size) + node_rank
             ThisUniverse = MPIUniverseDefinition
         else:
+            ezLogging_method = ezLogging.logging_2file
             universe_seed = seed + 1 + ith_universe
             ThisUniverse = UniverseDefinition
+        log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
         np.random.seed(universe_seed)
         ezLogging.warning("STARTING UNIVERSE %i" % ith_universe)
@@ -99,10 +93,11 @@ def main(problem_filename: str,
         ezLogging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
         
         # do some clean up, if we're about to start another run
-        if ith_universe+1 < problem.number_universe:
-            # TODO is there a way to track memory usage before and after here?
-            del universe # will that also delete populations? or at least gc.collect will remove it?
-            gc.collect()
+        # remove previous universe log file handler if exists
+        ezLogging.logging_remove_handler(log_handler_2file)
+        # TODO is there a way to track memory usage before and after here?
+        del universe # will that also delete populations? or at least gc.collect will remove it?
+        gc.collect()
 
 
 if __name__ == "__main__":
@@ -114,8 +109,8 @@ if __name__ == "__main__":
                         help = "pick which problem class to import")
     parser.add_argument("-s", "--seed",
                         type = int,
-                        default = 0,
-                        help = "pick which seed to use for numpy")
+                        required = False,
+                        help = "pick which seed to use for numpy. If not provided, will generate from time.")
     parser.add_argument("-t", "--testing",
                         action="store_const",
                         const=True,
@@ -137,6 +132,14 @@ if __name__ == "__main__":
     # create a logging directory specifically for this run
     # will be named: root/outputs/problem_file/datetime_as_str/
     time_str = time.strftime("%Y%m%d-%H%M%S")
+
+    # set seed
+    if args.seed is None:
+        seed = int(time_str.replace("-","")) # from "20200623-101442" to 20200623101442
+    else:
+        seed = int(args.seed)
+    seed%=(2**32) #<-np.random.seed must be between [0,2**32-1]
+    
     if args.testing:
         time_str = "testing-%s" % time_str
     problem_output_directory = os.path.join(dirname(realpath(__file__)),
@@ -151,4 +154,4 @@ if __name__ == "__main__":
         problem_filename = os.path.basename(args.problem + ".py")
     
     # RUN BABYYY
-    main(problem_filename, problem_output_directory, args.seed, args.loglevel)
+    main(problem_filename, problem_output_directory, seed, args.loglevel)

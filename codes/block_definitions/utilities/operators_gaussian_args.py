@@ -20,6 +20,7 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 ### absolute imports wrt root
 from codes.block_definitions.utilities import argument_types
 from misc import fake_mixturegauss 
+from codes.utilities.custom_logging import ezLogging
 
 
 ### init dict
@@ -39,7 +40,7 @@ def one_gauss_sum(x, previous_sum, peak, std, intensity, ybump=0.0):
     inside_exp = -0.5 * np.square((x-peak)/std)
     output_sum = previous_sum + intensity*factor*np.exp(inside_exp) + ybump
     if not isinstance(output_sum, fake_mixturegauss.RollingSum):
-        logging.error("Our Sum is no longer the right type! ...%s" % (type(output_sum)))
+        ezLogging.error("Our Sum is no longer the right type! ...%s" % (type(output_sum)))
         raise TypeError
     return output_sum
 

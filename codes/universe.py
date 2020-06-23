@@ -14,7 +14,7 @@ from typing import List
 import importlib
 import time
 from copy import deepcopy
-import logging
+from mpi4py import MPI
 
 ### sys relative to root dir
 import sys
@@ -24,6 +24,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.utilities import selections
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -47,6 +48,10 @@ class UniverseDefinition():
         #self.problem = problem #did we really need the problem as attr? cleaner to keep them separate, right?
         self.output_folder = output_folder
         self.converged = False
+
+        # match a few attributes found in MPIUniverseDefinition
+        self.node_number = MPI.COMM_WORLD.Get_rank() #0 if not mpi
+        self.node_count = MPI.COMM_WORLD.Get_size() #1 if not mpi
 
 
     def adjust_pop_size(self,
@@ -83,7 +88,7 @@ class UniverseDefinition():
                 direction = "up"
                 possible_size = deepcopy(original_size)
         if possible_size != original_size:
-            logging.warning("Changing problem's population size from %i to %i to be multiples of %s" % (original_size, possible_size, multiples_of))
+            ezLogging.warning("Changing problem's population size from %i to %i to be multiples of %s" % (original_size, possible_size, multiples_of))
         problem.pop_size = possible_size
 
 
@@ -106,7 +111,7 @@ class UniverseDefinition():
             parent2 = mating_list[ith_indiv+1]
             children += problem.indiv_def.mate(parent1, parent2)
         self.population.add_next_generation(children)
-        logging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
+        ezLogging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
 
@@ -119,7 +124,7 @@ class UniverseDefinition():
         for individual in self.population.population:
             mutants += problem.indiv_def.mutate(individual)
         self.population.add_next_generation(mutants)
-        logging.info("Node %i - Mutation took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
+        ezLogging.info("Node %i - Mutation took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
 
@@ -215,8 +220,8 @@ class MPIUniverseDefinition(UniverseDefinition):
         '''
         TODO
         '''
-        from mpi4py import MPI
-        globals()['MPI'] = MPI
+        #from mpi4py import MPI # gave in and going to use everywhere no matter what
+        #globals()['MPI'] = MPI
         # adjust size to be mult of 4 for tournselection
         # and adjust to be 2*number of nodes for mpi so that when we divide up the population, there is
         # an even number of individuals for each node...this way, we can do parent selection beffore splitting
@@ -224,8 +229,6 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.adjust_pop_size(problem, [4, 2*MPI.COMM_WORLD.Get_size()])
         super().__init__(problem, output_folder)
 
-        self.node_number = MPI.COMM_WORLD.Get_rank()
-        self.node_count = MPI.COMM_WORLD.Get_size()
 
         ''' cannot import MPI as an attribute since it's a subpackage!
         # globally import mpi
@@ -250,13 +253,13 @@ class MPIUniverseDefinition(UniverseDefinition):
         start_time = time.time()
         children = []
         mating_list = self.population.population
-        logging.debug("here mating %i" % (len(mating_list)))
+        ezLogging.debug("here mating %i" % (len(mating_list)))
         for ith_indiv in range(0, len(mating_list), 2):
             parent1 = mating_list[ith_indiv]
             parent2 = mating_list[ith_indiv+1]
             children += problem.indiv_def.mate(parent1, parent2)
         self.population.add_next_generation(children)
-        logging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
+        ezLogging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
     def mpi_evolve_population(self, problem: ProblemDefinition_Abstract):
@@ -329,7 +332,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.population = self.factory.build_population(problem.indiv_def, problem.pop_size//self.node_count) #each node make their own fraction of indiv...but how does seeding work, are they dups?
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
-        # TODO verify logging
+        # TODO verify ezLogging
         self.mpi_evaluate_score_population(problem)
         self.gather_population()
         if self.node_number == 0:

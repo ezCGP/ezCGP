@@ -14,7 +14,6 @@ from typing import List
 from copy import deepcopy
 import importlib
 import inspect
-import logging
 
 ### sys relative to root dir
 import sys
@@ -23,6 +22,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import tools
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -31,7 +31,7 @@ class BlockOperators_Abstract():
     Note that the main output from this class will be the operator_dict, a list of all the operators available to the block, and a list of the same size with the 'probability' that the respective operator will be used.
     '''
     def __init__(self):
-        logging.debug("%s-%s - Initialize BlockOperators_Abstract Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockOperators_Abstract Class" % (None, None))
         self.operator_dict = {}
         self.operators = []
         self.weights = []
@@ -41,7 +41,7 @@ class BlockOperators_Abstract():
         '''
         like with BlockArguments_Abstract, we have a method to take in a weight_dict that maybe have values equal to 1, and then tools.build_weights will clean up the weights to proper floats between 0 and 1.
         '''
-        logging.debug("%s-%s - Inside init_from_weight_dict" % (None, None))
+        ezLogging.debug("%s-%s - Inside init_from_weight_dict" % (None, None))
         operators, weights = tools.build_weights(weight_dict)
         self.operators = operators
         self.weights = weights
@@ -56,7 +56,7 @@ class BlockOperators_Abstract():
 
         note that sys.path is a 'global' variable so the paths added earlier in the file can be used here
         '''
-        logging.debug("%s-%s - Inside import_operator_scripts" % (None, None))
+        ezLogging.debug("%s-%s - Inside import_operator_scripts" % (None, None))
         if module_aliases is None:
             module_aliases = deepcopy(module_names)
         else:
@@ -75,7 +75,7 @@ class BlockOperators_Abstract():
         this is a good fool proof way of adding a primitive to an operator script in utilities and making sure it gets used by the evolution...if we forget to manually add it to the weight_dict then it won't get used.
         here we assume that all primitives in a module are good for the evolution so we grab them all and return it. It is up to the user to then add weights to each of the primitives, unless this was called through set_equal_weights().
         '''
-        logging.debug("%s-%s - Inside get_all_functions" % (None, None))
+        ezLogging.debug("%s-%s - Inside get_all_functions" % (None, None))
         all_functions = []
         for name, execute in inspect.getmembers(globals()[module]): # returns list of tuples of everything in that module
             if inspect.isfunction(execute) and  execute.__module__.endswith(module):
@@ -83,12 +83,12 @@ class BlockOperators_Abstract():
                 # as oposed to something imported like dirname from os.path
                 all_functions.append(execute)
 
-        logging.debug("%s-%s - Imported %i methods from %s" % (None, None, len(all_functions), module))
+        ezLogging.debug("%s-%s - Imported %i methods from %s" % (None, None, len(all_functions), module))
         return all_functions
 
 
     def set_equal_weights(self, module):
-        logging.debug("%s-%s - Inside set_equal_weights" % (None, None))
+        ezLogging.debug("%s-%s - Inside set_equal_weights" % (None, None))
         weight_dict = {}
         for func in self.get_all_functions(module):
             weight_dict[func] = 1
@@ -102,7 +102,7 @@ class BlockOperators_SymbRegressionOpsNoArgs(BlockOperators_Abstract):
     Simple numpy operators that do not require arguments; so we should have a block that takes in the data as one input, and at least one float/int as another input to use.
     '''
     def __init__(self):
-        logging.debug("%s-%s - Initialize BlockOperators_SymbRegressionOpsNoArgs Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SymbRegressionOpsNoArgs Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_symbregression_noargs']
@@ -121,7 +121,7 @@ class BlockOperators_SymbRegressionOpsWithArgs(BlockOperators_Abstract):
     Basically the same primitives as BlockOperators_SymbRegressionOpsNoArgs but the operator dict calls for arguments; so our block would only have the data as an input.
     '''
     def __init__(self):
-        logging.debug("%s-%s - Initialize BlockOperators_SymbRegressionOpsWithArgs Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SymbRegressionOpsWithArgs Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_symbregression_args']
@@ -140,7 +140,7 @@ class BlockOperators_Gaussian(BlockOperators_Abstract):
     literally only one operator...just summing gaussians
     '''
     def __init__(self):
-        logging.debug("%s-%s - Initialize BlockOperators_Gaussian Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockOperators_Gaussian Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_gaussian_args']

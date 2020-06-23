@@ -11,7 +11,6 @@ reveal the best way to evolve.
 
 ### packages
 from typing import List
-import logging
 
 ### sys relative to root dir
 import sys
@@ -25,6 +24,7 @@ from codes.individual_definitions.individual_mutate import IndividualMutate_Abst
 from codes.individual_definitions.individual_mate import IndividualMate_Abstract
 from codes.genetic_material import IndividualMaterial, BlockMaterial
 from data.data_tools.data_types import ezDataSet
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -38,7 +38,7 @@ class IndividualDefinition():
                  evaluate_def: IndividualEvaluate_Abstract,
                  mutate_def: IndividualMutate_Abstract,
                  mate_def: IndividualMate_Abstract):
-        logging.debug("%s-%s - Starting Initialize Individual" % (None, None))
+        ezLogging.debug("%s-%s - Starting Initialize Individual" % (None, None))
         self.block_defs = block_defs
         self.block_count = len(block_defs)
         self.mutate_def = mutate_def()
@@ -57,7 +57,7 @@ class IndividualDefinition():
         '''
         loop over each block and set the actives attribute to prep for evaluation
         '''
-        logging.debug("%s - Inside get_actives" % (indiv_material.id))
+        ezLogging.debug("%s - Inside get_actives" % (indiv_material.id))
         for block_index in range(self.block_count):
             self[block_index].get_actives(indiv_material[block_index])
     
@@ -70,7 +70,7 @@ class IndividualDefinition():
         the genome to get the new active nodes and to set to be re-evaluated.
         '''
         evolved_material.set_id()
-        logging.debug("%s - Inside postprocess_evolved_individual, block_index: %i, to process a new individual" % (evolved_material.id, evolved_block_index))
+        ezLogging.debug("%s - Inside postprocess_evolved_individual, block_index: %i, to process a new individual" % (evolved_material.id, evolved_block_index))
         for block_index, block_material in enumerate(evolved_material.blocks):
             #block_material.set_id(evolved_material.id) # now moved into individual_material.set_id()
             if block_index >= evolved_block_index:
@@ -82,7 +82,7 @@ class IndividualDefinition():
         '''
         wrapper method that just directs mutate call to the IndividualMutate class definition of mutate
         '''
-        logging.info("%s - Sending to Individual Mutate Definition" % (indiv_material.id))
+        ezLogging.info("%s - Sending to Individual Mutate Definition" % (indiv_material.id))
         mutants = self.mutate_def.mutate(indiv_material, self)
         return mutants
 
@@ -91,7 +91,7 @@ class IndividualDefinition():
         '''
         wrapper method that just directs mate call to the IndividualMate class definition of mate
         '''
-        logging.info("%s+%s - Sending to Individuals Mate Definition" % (parent1.id, parent2.id))
+        ezLogging.info("%s+%s - Sending to Individuals Mate Definition" % (parent1.id, parent2.id))
         children = self.mate_def.mate(parent1, parent2, self)
         return children
 
@@ -100,5 +100,5 @@ class IndividualDefinition():
         '''
         wrapper method that just directs evaluate call to the IndividualEvaluate class definition of mate
         '''
-        logging.info("%s - Sending to Individual Evaluate Definition" % (indiv_material.id))
+        ezLogging.info("%s - Sending to Individual Evaluate Definition" % (indiv_material.id))
         self.evaluate_def.evaluate(indiv_material, self, training_datapair, validation_datapair)

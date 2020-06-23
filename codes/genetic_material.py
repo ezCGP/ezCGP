@@ -14,7 +14,6 @@ mention any assumptions made in the code or rules about code structure should go
 ### packages
 import numpy as np
 from datetime import datetime
-import logging
 
 ### sys relative to root dir
 import sys
@@ -22,6 +21,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -59,14 +59,14 @@ class IndividualMaterial():
 
     def set_id(self, _id=None):
         '''
-        thought there could be a unique way to identify an individual for logging and saving
+        thought there could be a unique way to identify an individual for ezLogging and saving
         '''
         if _id is None:
             new = hex(int(datetime.now().strftime("%H%M%S%f")))[2:]
-            logging.debug("New ID %s" % new)
+            ezLogging.debug("New ID %s" % new)
             self.id = new
         else:
-            logging.debug("New ID %s; given" % _id)
+            ezLogging.debug("New ID %s; given" % _id)
             self.id = _id
 
         for block in self.blocks:

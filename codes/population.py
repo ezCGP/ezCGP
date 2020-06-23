@@ -9,7 +9,6 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
-import logging
 import itertools
 
 ### sys relative to root dir
@@ -18,6 +17,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -81,4 +81,4 @@ class PopulationDefinition():
         assign to self.population
         '''
         self.population = list(itertools.chain.from_iterable(subpops))
-        logging.info("Combined %i sub populations into a single population" % (len(subpops)))
+        ezLogging.info("Combined %i sub populations into a single population" % (len(subpops)))

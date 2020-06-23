@@ -15,16 +15,15 @@ import numpy as np
 from numpy import random as rnd
 from copy import copy, deepcopy
 from abc import ABC, abstractmethod
-import logging
 
-'''
+
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
-'''
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -61,7 +60,7 @@ class ArgumentType_Abstract(ABC):
         else:
             low = self.value*.85
             high = self.value * 1.15
-        logging.debug("%s-%s - numpy.random.uniform(%f,%f)" % (None, None, low, high))
+        ezLogging.debug("%s-%s - numpy.random.uniform(%f,%f)" % (None, None, low, high))
         self.value = rnd.uniform(low,high)
             
 
@@ -72,7 +71,7 @@ class ArgumentType_Abstract(ABC):
         else:
             mean = self.value
             std = self.value * .1
-        logging.debug("%s-%s - numpy.random.normal(%f,%f)" % (None, None, mean, std))    
+        ezLogging.debug("%s-%s - numpy.random.normal(%f,%f)" % (None, None, mean, std))    
         self.value = rnd.normal(mean, std)
 
 
@@ -97,7 +96,7 @@ class ArgumentType_Ints(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        logging.debug("%s-%s - Initialize ArgumentType_Ints Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Ints Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
@@ -114,7 +113,7 @@ class ArgumentType_Ints(ArgumentType_Abstract):
         else:
             pass
         self.value = int(self.value)
-        logging.debug("%s-%s - Mutated ArgumentType_Ints to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Ints to %f" % (None, None, self.value))
 
 
 
@@ -129,13 +128,13 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        logging.debug("%s-%s - Initialize ArgumentType_Pow2 Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Pow2 Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
         roll = rnd.random_integers(1, 9)
         self.value = int(2 ** roll)
-        logging.debug("%s-%s - Mutated ArgumentType_Pow2 to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Pow2 to %f" % (None, None, self.value))
 
 
 
@@ -150,7 +149,7 @@ class ArgumentType_SmallFloats(ArgumentType_Abstract):
             self.value = rnd.random()*10
         else:
             self.value = value
-        logging.debug("%s-%s - Initialize ArgumentType_SmallFloats Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_SmallFloats Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
@@ -161,7 +160,7 @@ class ArgumentType_SmallFloats(ArgumentType_Abstract):
             self.mut_uniform()
         else:
             pass
-        logging.debug("%s-%s - Mutated ArgumentType_SmallFloats to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_SmallFloats to %f" % (None, None, self.value))
 
 
 
@@ -176,7 +175,7 @@ class ArgumentType_Float0to100(ArgumentType_Abstract):
             self.mutate_unif100()
         else:
             self.value = value
-        logging.debug("%s-%s - Initialize ArgumentType_Float0to100 Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Float0to100 Class to %f" % (None, None, self.value))
 
 
     def mutate_unif100(self):
@@ -199,7 +198,7 @@ class ArgumentType_Float0to100(ArgumentType_Abstract):
             self.mutate_unif100()
         else:
             self.mutate_unif_local()
-        logging.debug("%s-%s - Mutated ArgumentType_Float0to100 to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to100 to %f" % (None, None, self.value))
 
 
 
@@ -232,9 +231,9 @@ class ArgumentType_Float0to1(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        logging.debug("%s-%s - Initialize ArgumentType_Float0to1 Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Float0to1 Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
         self.value = np.random.random()
-        logging.debug("%s-%s - Mutated ArgumentType_Float0to1 to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to1 to %f" % (None, None, self.value))

@@ -12,6 +12,7 @@ mention any assumptions made in the code or rules about code structure should go
 ### packages
 import re
 import numpy as np
+from typing import List
 
 ### sys relative to root dir
 import sys
@@ -23,6 +24,7 @@ from codes.population import PopulationDefinition
 from codes.genetic_material import IndividualMaterial, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.block_definitions.block_definition import BlockDefinition
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -54,7 +56,7 @@ class FactoryDefinition():
                     # TODO which block?
                     indiv = build_block_from_lisp(block_def, lisp=indiv, indiv_id="seededIndiv%i" % i)
                 else:
-                    logging.error("unable to interpret genome seed")
+                    ezLogging.error("unable to interpret genome seed")
                     return None
             my_population.population.append(indiv)
 
@@ -146,7 +148,7 @@ class FactoryDefinition():
 
             if ith_node >= 10**3:
                 # very unlikely to have more than 1000 nodes...prob something went wrong
-                logging.error("something went wrong")
+                ezLogging.error("something went wrong")
                 break
 
         # now build the individual
@@ -184,7 +186,7 @@ class FactoryDefinition():
                                     incoming_dtype = block_def.get_node_dtype(self, block_material, node_index=input_index[ith_input], key='output')
                                     expected_dtype = block_def.operator_dict[ftn]["inputs"][ith_input]
                                     if incoming_dtype != expected_dtype:
-                                        logging.error("error in genome seeding...mismatching incoming + given data types")
+                                        ezLogging.error("error in genome seeding...mismatching incoming + given data types")
                                         import pdb; pdb.set_trace()
                                         return None
                                     else:
@@ -199,7 +201,7 @@ class FactoryDefinition():
                                 req_arg_type = block_def.operator_dict[ftn]["args"][ith_arg]
                                 poss_arg = block_def.get_random_arg(req_arg_type, exclude=args_used)
                                 if poss_arg is None:
-                                    logging.error("can't find matching arg type in seeding")
+                                    ezLogging.error("can't find matching arg type in seeding")
                                     import pdb; pdb.set_trace()
                                     return None
                                 arg_index.append(poss_arg)

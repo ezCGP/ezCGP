@@ -37,7 +37,7 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         population_size = 52 #must be divisible by 4 if doing mating
-        number_universe = 10
+        number_universe = 1 #10
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
@@ -199,6 +199,7 @@ class Problem(ProblemDefinition_Abstract):
 
         plt.show()
         import pdb; pdb.set_trace()
+        plt.close()
 
 
 

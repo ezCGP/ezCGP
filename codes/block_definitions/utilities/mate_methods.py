@@ -15,7 +15,6 @@ required output:
 
 ### packages
 from copy import deepcopy
-import logging
 
 ### sys relative to root dir
 import sys
@@ -25,13 +24,14 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 ### absolute imports wrt root
 from codes.genetic_material import IndividualMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
+from codes.utilities.custom_logging import ezLogging
 
 
 def whole_block(parent1: IndividualMaterial, parent2: IndividualMaterial, block_index: int):
     '''
     Super simple direct swaping of the blocks. 2 parents in; 2 children out.
     '''
-    logging.info("%s+%s - Mating Block %i with whole_block()" % (parent1.id, parent2.id, block_index))
+    ezLogging.info("%s+%s - Mating Block %i with whole_block()" % (parent1.id, parent2.id, block_index))
     child1 = deepcopy(parent1)
     child1[block_index] = deepcopy(parent2[block_index])
 
@@ -48,7 +48,7 @@ def partial_block(parent1: IndividualMaterial,
     '''
     TODO
     '''
-    logging.info("%s+%s - Mating Block %i with partial_block()" % (parent1.id, parent2.id, block_index))
+    ezLogging.info("%s+%s - Mating Block %i with partial_block()" % (parent1.id, parent2.id, block_index))
     child1 = deepcopy(parent1)
     child2 = deepcopy(parent2)
     # TODO

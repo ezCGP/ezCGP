@@ -12,7 +12,6 @@ Pretty much just need to remember to set a prob_mate attribute, and make sure th
 '''
 
 ### packages
-import logging
 from abc import ABC, abstractmethod
 
 ### sys relative to root dir
@@ -24,6 +23,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 from codes.genetic_material import IndividualMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 from codes.block_definitions.utilities import mate_methods
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -48,7 +48,7 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
     if they mate, they will only mate with whole_block()
     '''
     def __init__(self):
-        logging.debug("%s-%s - Initialize BlockMate_WholeOnly Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockMate_WholeOnly Class" % (None, None))
         self.prob_mate = 1.0
 
     def mate(self,
@@ -56,7 +56,7 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
              parent2: IndividualMaterial,
              block_def,#: BlockDefinition,
              block_index: int):
-        logging.info("%s+%s-%s - Sending %i block to mate_methods.whole_block()" % (parent1.id, parent2.id, block_def.nickname, block_index))
+        ezLogging.info("%s+%s-%s - Sending %i block to mate_methods.whole_block()" % (parent1.id, parent2.id, block_def.nickname, block_index))
     	# dont actually need block_def
         return mate_methods.whole_block(parent1, parent2, block_index)
 
@@ -64,7 +64,7 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
 
 class BlockMate_NoMate(BlockMate_Abstract):
     def __init__(self):
-        logging.debug("%s-%s - Initialize BlockMate_NoMate Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockMate_NoMate Class" % (None, None))
         self.prob_mate = 0
 
     def mate(self,
@@ -72,5 +72,5 @@ class BlockMate_NoMate(BlockMate_Abstract):
              parent2: IndividualMaterial,
              block_def, #: BlockDefinition,
              block_index: int):
-        logging.info("%s+%s-%s - No mating for block %i" % (parent1.id, parent2.id, block_def.nickname, block_index))
+        ezLogging.info("%s+%s-%s - No mating for block %i" % (parent1.id, parent2.id, block_def.nickname, block_index))
         return []

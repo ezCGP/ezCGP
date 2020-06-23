@@ -21,6 +21,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 ### absolute imports wrt root
 from codes.genetic_material import IndividualMaterial
 #from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
+from codes.utilities.custom_logging import ezLogging
 
 
 

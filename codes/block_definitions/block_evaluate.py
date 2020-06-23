@@ -12,7 +12,6 @@ Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDe
 
 ### packages
 from abc import ABC, abstractmethod
-import logging
 
 ### sys relative to root dir
 import sys
@@ -23,6 +22,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 from data.data_tools.data_types import ezDataSet
 from codes.genetic_material import BlockMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -47,7 +47,7 @@ class BlockEvaluate_Abstract(ABC):
         
         Note we can always customize this to our block needs which is why we included in BlockEvaluate instead of BlockDefinition
         '''
-        logging.debug("%s - Reset for Evaluation" % (block_material.id))
+        ezLogging.debug("%s - Reset for Evaluation" % (block_material.id))
         block_material.evaluated = [None] * len(block_material.genome)
         block_material.output = None
         block_material.dead = False
@@ -59,7 +59,7 @@ class BlockEvaluate_Abstract(ABC):
 
         can always customize this method which is why we included it in BlockEvaluate and not BlockDefinition
         '''
-        logging.debug("%s - Processing after Evaluation" % (block_material.id))
+        ezLogging.debug("%s - Processing after Evaluation" % (block_material.id))
         block_material.output = output
         block_material.evaluated = None
         block_material.need_evaluate = False
@@ -97,7 +97,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
     This could be used for any basic application of methods onto data, like symbolic regression.
     '''
     def __init__(self):
-        logging.debug("%s-%s - Initialize BlockEvaluate_Standard Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_Standard Class" % (None, None))
         
         
     def evaluate(self,
@@ -105,7 +105,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
                  block_def,#: BlockDefinition, 
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet=None):
-        logging.info("%s - Start evaluating..." % (block_material.id))
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
         
         # add input data
         for i, data_input in enumerate(training_datapair):
@@ -127,20 +127,20 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
                 node_input_indices = block_material[node_index]["inputs"]
                 for node_input_index in node_input_indices:
                     inputs.append(block_material.evaluated[node_input_index])
-                logging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
+                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
 
                 args = []
                 node_arg_indices = block_material[node_index]["args"]
                 for node_arg_index in node_arg_indices:
                     args.append(block_material.args[node_arg_index].value)
-                logging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
+                ezLogging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
 
-                logging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
+                ezLogging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
                 try:
                     block_material.evaluated[node_index] = function(*inputs, *args)
-                    logging.info("%s - Eval %i; Success" % (block_material.id, node_index))
+                    ezLogging.info("%s - Eval %i; Success" % (block_material.id, node_index))
                 except Exception as err:
-                    logging.info("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
+                    ezLogging.info("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
                     block_material.dead = True
                     import pdb; pdb.set_trace()
                     break
@@ -150,7 +150,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
             for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
                 output.append(block_material.evaluated[block_material.genome[output_index]])
                 
-        logging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
+        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
         return output
 
 

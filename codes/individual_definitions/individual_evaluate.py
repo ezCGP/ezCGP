@@ -9,7 +9,6 @@ The method should take in IndividualMaterial (the thing it needs to evaluate), I
 ### packages
 from copy import deepcopy
 from abc import ABC, abstractmethod
-import logging
 
 ### sys relative to root dir
 import sys
@@ -20,6 +19,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 from data.data_tools.data_types import ezDataSet
 from codes.genetic_material import IndividualMaterial
 #from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
+from codes.utilities.custom_logging import ezLogging
 
 
 
@@ -53,7 +53,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                  validation_datapair: ezDataSet=None):
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if block_material.need_evaluate:
-                logging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
+                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
                 training_datapair = block_def.evaluate(block_material, training_datapair, validation_datapair)
                 if block_material.dead:
                     indiv_material.dead = True
@@ -61,7 +61,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                 else:
                     pass
             else:
-                logging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
                 training_datapair = deepcopy(block_material.output)
 
         indiv_material.output = training_datapair

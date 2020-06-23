@@ -86,7 +86,7 @@ class ezLogging():
         return log_handler_2stdout
 
 
-    def logging_2file(filename):
+    def logging_2file(log_formatter, filename):
         log_handler_2file = logging.FileHandler(filename, 'w')
         log_handler_2file.setFormatter(log_formatter)
         my_log = ezLogging.get_logger()
