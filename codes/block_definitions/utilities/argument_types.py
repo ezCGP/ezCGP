@@ -76,6 +76,24 @@ class ArgumentType_Abstract(ABC):
 
 
 
+class ArgumentType_Bool(ArgumentType_Abstract):
+    '''
+    just your basic bool. mutate always switches to opposite value
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = np.random.choice([True,False])
+        else:
+            self.value = bool(value)
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Bool Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        self.value = not self.value
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Bool to %f" % (None, None, self.value))
+
+
+
 class ArgumentType_Ints(ArgumentType_Abstract):
     '''
     To try and capture a large range of ints, 1/3 of ints will start at 5,
@@ -125,6 +143,7 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
+            self.value = None
             self.mutate()
         else:
             self.value = value
@@ -132,8 +151,12 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
 
 
     def mutate(self):
-        roll = rnd.random_integers(1, 8)
-        self.value = int(2**roll)
+        #choices = rnd.random_integers(1, 8)
+        choices = np.arange(1,8+1)
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        pow2 = np.random.choice(choices)
+        self.value = int(2**pow2)
         ezLogging.debug("%s-%s - Mutated ArgumentType_Pow2 to %f" % (None, None, self.value))
 
 
@@ -147,6 +170,7 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
+            self.value = None
             self.mutate()
         else:
             self.value = value
@@ -156,6 +180,8 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
     def mutate(self):
         import tensorflow as tf
         choices = [tf.nn.relu, tf.nn.sigmoid, tf.nn.tanh, tf.nn.elu, None]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %f" % (None, None, self.value))
 
@@ -167,6 +193,7 @@ class ArgumentType_TFFilterSize(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
+            self.value = None
             self.mutate()
         else:
             self.value = value
@@ -174,8 +201,9 @@ class ArgumentType_TFFilterSize(ArgumentType_Abstract):
 
 
     def mutate(self):
-        import tensorflow as tf
         choices = [1,3,5,7]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TFFilterSize to %f" % (None, None, self.value))
 
@@ -187,6 +215,7 @@ class ArgumentType_TFPoolSize(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
+            self.value = None
             self.mutate()
         else:
             self.value = value
@@ -194,8 +223,9 @@ class ArgumentType_TFPoolSize(ArgumentType_Abstract):
 
 
     def mutate(self):
-        import tensorflow as tf
         choices = [1,2,3,4]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TFPoolSize to %f" % (None, None, self.value))
 
@@ -352,6 +382,7 @@ class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
+            self.value = None
             self.mutate()
         else:
             self.value = value
@@ -361,5 +392,7 @@ class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
     def mutate(self):
         delta = 0.05
         choices = np.arange(0, 1, delta) + delta #[0.05, 0.1, ..., 0.95, 1.0]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_LimitedFloat0to1 to %f" % (None, None, self.value))

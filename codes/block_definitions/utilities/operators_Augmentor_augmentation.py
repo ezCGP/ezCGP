@@ -65,16 +65,24 @@ operator_dict[horizontal_flip] = {"inputs": [Augmentor.Pipeline],
                                  }
 
 
-def random_crop(pipeline, probability=.2):
+def random_crop(pipeline, probability, percentage_area, randomise_percentage_area=False):
     '''
     https://arxiv.org/pdf/1912.11370v2.pdf
-
+    https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.crop_random
+    prob: float (0,1]
+    percentage_area: float [0.1,1)
+    randomise_percentage_area: bool -> if True will use given percentage_area as an upper bound and 0 as lower
     '''
-    pipeline.flip_left_right(probability) #should be different!
+    if percentage_area < 0.1:
+        # here we are using argument_types.ArgumentType_LimitedFloat0to1 which goes from [0.05,1] in 0.05 increments so
+        # we are being a bit lazy by using it and adjusting the lowerlimit
+        percentage_area = 0.1
+    pipeline.crop_random(probability, percentage_area, randomise_percentage_area) #should be different!
     return deepcopy(pipeline)
 
 operator_dict[random_crop] = {"inputs": [Augmentor.Pipeline],
                               "output": Augmentor.Pipeline,
-                              "args": [argument_types.ArgumentType_LimitedFloat0to1]  # this will choose values between 0 and 1.
-                                                 # This may not be what we want though as 1 would black out the entire image
+                              "args": [argument_types.ArgumentType_LimitedFloat0to1,
+                                       argument_types.ArgumentType_LimitedFloat0to1,
+                                       argument_types.ArgumentType_Bool]
                              }
