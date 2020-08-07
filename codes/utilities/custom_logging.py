@@ -38,7 +38,7 @@ class ezLogging():
             print("False")
             #log_name = None # for RootLogger
             log_name = "NodeRank-0"'''
-        log_name = "NodeRank-%i" % MPI.COMM_WORLD.Get_rank()
+        log_name = "NodeRank%i" % MPI.COMM_WORLD.Get_rank()
         return logging.getLogger(log_name)
 
 
@@ -73,7 +73,8 @@ class ezLogging():
         my_log.setLevel(loglevel)
         # set format of how every single log entry will start with
         #format_str = "[%(asctime)s.%(msecs)d][%(threadName)s-%(thread)d][%(filename)s-%(funcName)s] %(levelname)s: %(message)s"
-        format_str = "[%(asctime)s.%(msecs)d][%(name)s][%(filename)s-%(funcName)s] %(levelname)s: %(message)s"
+        # removed [%(filename)s-%(funcName)s] because now it only gives "custom_logging.py"
+        format_str = "[%(asctime)s.%(msecs)d][%(name)s] %(levelname)s: %(message)s"
         log_formatter = logging.Formatter(fmt=format_str, datefmt="%H:%M:%S")
         return log_formatter
 

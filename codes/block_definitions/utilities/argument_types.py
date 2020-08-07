@@ -321,14 +321,32 @@ class ArgumentType_Float0to1(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
-            self.mutate()
+            self.mutate_unif1()
         else:
             self.value = value
         ezLogging.debug("%s-%s - Initialize ArgumentType_Float0to1 Class to %f" % (None, None, self.value))
 
 
-    def mutate(self):
+    def mutate_unif1(self):
         self.value = np.random.random() #NOTE: [0,1) not (0,1)
+
+
+    def mutate_unif_local(self):
+        # make it a range of 10
+        low = self.value-.05
+        high = self.value+.05
+        self.value = rnd.uniform(low, high)
+        # force value to be within 0 to 1
+        if (self.value < 0) or (self.value > 1):
+            self.mutate_unif1()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif1()
+        else:
+            self.mutate_unif_local()
         ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to1 to %f" % (None, None, self.value))
 
 

@@ -217,7 +217,7 @@ class BlockDefinition():
                 else:
                     pass
             # none of the poss_inputs worked, failed to find matching input
-            ezLogging.warning("%s - None of the input nodes matched for req_dtype: %s, exclude: %s" % (block_material.id, req_dtype, exclude))
+            ezLogging.warning("%s - None of the input nodes matched for req_dtype: %s, exclude: %s, min: %s, max: %s" % (block_material.id, req_dtype, exclude, _min, _max))
             return None
 
 

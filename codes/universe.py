@@ -350,5 +350,5 @@ class MPIUniverseDefinition(UniverseDefinition):
             # if converged goes to True then we want all nodes to have that value changed
             MPI.COMM_WORLD.Barrier()
             self.converged = MPI.COMM_WORLD.bcast(self.converged, root=0)
-        if rank == 0:
+        if self.node_number == 0:
             self.postprocess_universe(problem)

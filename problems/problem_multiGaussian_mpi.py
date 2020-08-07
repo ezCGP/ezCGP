@@ -36,8 +36,8 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 52 #must be divisible by 4 if doing mating
-        number_universe = 10
+        population_size = 2**8 #must be divisible by 4 if doing mating
+        number_universe = 25
         factory = FactoryDefinition
         mpi = True
         super().__init__(population_size, number_universe, factory, mpi)
@@ -78,12 +78,12 @@ class Problem(ProblemDefinition_Abstract):
             max_error = np.max(np.abs(error))
             # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output
             #active_error = np.abs(10+2+1-len(indiv[0].active_nodes)) #maybe cheating by knowing the goal amount ahead of time
-            active_error = len(indiv[0].active_nodes)
-            indiv.fitness.values = (rms_error, max_error, active_error)
+            #active_error = len(indiv[0].active_nodes)
+            indiv.fitness.values = (rms_error, max_error)#, active_error)
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 1000
+        GENERATION_LIMIT = 500
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse
@@ -173,12 +173,14 @@ class Problem(ProblemDefinition_Abstract):
 
         # now try to find 'custom_stats.npz' in the folders
         stats = {}
+        genome_sizes = []
         for folder in folders:
             npzs = glob.glob(os.path.join(folder,"*","custom_stats.npz"), recursive=True)
             for npz in npzs:
                 data = np.load(npz)
                 genome_size = data['genome_size'][0]
                 if genome_size not in stats:
+                    genome_sizes.append(genome_size)
                     stats[genome_size] = {'ids': [],
                                           'scores': [],
                                           'active_count': []}
@@ -189,16 +191,73 @@ class Problem(ProblemDefinition_Abstract):
         #plt.figure(figsize=(15,10))
         matplotlib_colors = ['b','g','r','c','m','y']
         fig, axes = plt.subplots(2, 1, figsize=(16,8))
-        for ith_size, size in enumerate(stats.keys()):
+        for ith_size, size in enumerate(np.sort(genome_sizes)):
             for row, key in enumerate(['scores','active_count']):
                 datas = stats[size][key]
-                for data in datas:
+                for ith_data, data in enumerate(datas):
                     if key is 'scores':
                         data = data[:,0]
-                    axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="-", alpha=0.5)
-
+                    kwargs = {'color': matplotlib_colors[ith_size],
+                              'linestyle': "--",
+                              'alpha': 0.3}
+                    if (row == 1) and (ith_data == 0):
+                        kwargs['label'] = size
+                    axes[row].plot(data, **kwargs)
+        axes[row].legend()
         plt.show()
         import pdb; pdb.set_trace()
 
 
 
+    def plot_custom_stats2(self, folders):
+        import glob
+        import matplotlib.pyplot as plt
+
+        if (type(folders) is str) and (os.path.isdir(folders)):
+            '''# then assume we are looking for folders within this single folder
+            poss_folders = os.listdir(folders)
+            folders = []
+            for poss in poss_folders:
+                if os.path.isdir(poss):
+                    folders.append(poss)'''
+            # now that we are using glob below, we are all good...just make this into a list
+            folders = [folders]
+        elif type(folders) is list:
+            # then continue as is
+            pass
+        else:
+            print("we don't know how to handle type %s yet" % (type(folders)))
+
+        # now try to find 'custom_stats.npz' in the folders
+        stats = {}
+        for folder in folders:
+            npzs = glob.glob(os.path.join(folder,"*","custom_stats.npz"), recursive=True)
+            for npz in npzs:
+                data = np.load(npz)
+                #genome_size = data['genome_size'][0]
+                if folder not in stats:
+                    stats[folder] = {'ids': [],
+                                          'scores': [],
+                                          'active_count': []}
+                for key in ['ids','scores','active_count']:
+                    stats[folder][key].append(data[key])
+
+        # now go plot
+        #plt.figure(figsize=(15,10))
+        matplotlib_colors = ['b','g','r','c','m','y']
+        fig, axes = plt.subplots(2, 1, figsize=(16,8))
+        for ith_size, size in enumerate(stats.keys()):
+            for row, key in enumerate(['scores','active_count']):
+                datas = stats[size][key]
+                for ith_data, data in enumerate(datas):
+                    if key is 'scores':
+                        data = data[:,0]
+                    kwargs = {'color': matplotlib_colors[ith_size],
+                              'linestyle': "-",
+                              'alpha': 0.5}
+                    if (row == 1) and (ith_data == 0):
+                        kwargs['label'] = os.path.basename(size)
+                    axes[row].plot(data, **kwargs)
+        axes[row].legend()
+        plt.show()
+        import pdb; pdb.set_trace()

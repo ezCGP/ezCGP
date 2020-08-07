@@ -39,7 +39,7 @@ class FactoryDefinition():
     def build_population(self,
                          indiv_def: IndividualDefinition,
                          population_size: int,
-                         genome_seeds: List[str]):
+                         genome_seeds: List[str]=[]):
         '''
         TODO
         '''

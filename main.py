@@ -32,7 +32,7 @@ from codes.utilities.custom_logging import ezLogging
 
 
 def main(problem_filename: str,
-         probelm_output_directory: str=tempfile.mkdtemp(),
+         problem_output_directory: str=tempfile.mkdtemp(),
          seed: int=0,
          loglevel: int=logging.WARNING):
     node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
@@ -67,7 +67,7 @@ def main(problem_filename: str,
     log_handler_2file = None # just initializing
     for ith_universe in range(problem.number_universe):
         # set new output directory
-        universe_output_directory = os.path.join(probelm_output_directory, "univ%04d" % ith_universe)
+        universe_output_directory = os.path.join(problem_output_directory, "univ%04d" % ith_universe)
         if node_rank == 0:
             os.makedirs(universe_output_directory, exist_ok=False)
         MPI.COMM_WORLD.Barrier()
@@ -111,22 +111,27 @@ if __name__ == "__main__":
                         type = int,
                         required = False,
                         help = "pick which seed to use for numpy. If not provided, will generate from time.")
+    parser.add_argument("-n", "--name",
+                        type = str,
+                        required = False,
+                        default = None,
+                        help = "add str to end of output directory name to help with documenting the reason for the run")
     parser.add_argument("-t", "--testing",
-                        action="store_const",
-                        const=True,
-                        default=False,
+                        action = "store_const",
+                        const = True,
+                        default = False,
                         help = "set flag to document the output folder with 'test' to distinguish it from serious runs")
     parser.add_argument("-d", "--debug",
-                        help="set the logging level to the lowest level to collect everything",
-                        dest="loglevel",
-                        action="store_const",
-                        const=logging.DEBUG,
-                        default=logging.WARNING)
+                        help = "set the logging level to the lowest level to collect everything",
+                        dest = "loglevel",
+                        action = "store_const",
+                        const = logging.DEBUG,
+                        default = logging.WARNING)
     parser.add_argument("-v", "--verbose",
-                        help="set the logging level to 2nd lowest level to collect everything except debug",
-                        dest="loglevel",
-                        action="store_const",
-                        const=logging.INFO)
+                        help = "set the logging level to 2nd lowest level to collect everything except debug",
+                        dest = "loglevel",
+                        action = "store_const",
+                        const = logging.INFO)
     args = parser.parse_args()
 
     # create a logging directory specifically for this run
@@ -146,6 +151,10 @@ if __name__ == "__main__":
                                             "outputs",
                                             args.problem,
                                             time_str)
+
+    if args.name:
+        name_str = "-" + str(args.name).replace(" ", "_")
+        problem_output_directory += name_str
 
     # figure out which problem py file to import
     if args.problem.endswith('.py'):
