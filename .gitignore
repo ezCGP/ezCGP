@@ -1,5 +1,8 @@
 # Rodd insert
 outputs/*
+data/datasets/*
+**/__pycache__/
+test_area/*
 
 # FlyCheck Emacs
 flycheck_operators.py
