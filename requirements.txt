@@ -1,0 +1,29 @@
+typing
+numpy
+pandas
+matplotlib
+scipy
+six
+pillow #PIL
+opencv
+mpi4py
+tensorflow
+#Augmentor #only with pip
+
+# these should already be included
+#os
+#shutil
+#time
+#tempfile
+#logging
+#gc
+#copy
+#re
+#datetime
+#itertools
+#importlib
+#inspect
+#abc
+#bisect
+#math
+#random
