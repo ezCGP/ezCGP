@@ -10,8 +10,10 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import os
 import re
 import numpy as np
+from copy import deepcopy
 from typing import List
 
 ### sys relative to root dir
@@ -39,14 +41,16 @@ class FactoryDefinition():
     def build_population(self,
                          indiv_def: IndividualDefinition,
                          population_size: int,
-                         genome_seeds: List[str]=[]):
+                         genome_seeds: List=[[]],
+                         node_rank: int=0,
+                        ):
         '''
         TODO
         '''
         my_population = PopulationDefinition(population_size)
 
         for i, genome_seed in genome_seeds:
-            # should be a filepath
+            '''# should be a filepath
             if genome_seed.endswith("pkl"):
                 with open(genome_seed, "rb") as f:
                     indiv = pkl.load(f)
@@ -54,14 +58,20 @@ class FactoryDefinition():
                     indiv.set_id("seededIndiv%i" % i)
                 elif "lisp" in genome_seed:
                     # TODO which block?
-                    indiv = build_block_from_lisp(block_def, lisp=indiv, indiv_id="seededIndiv%i" % i)
+                    indiv = build_block_from_lisp(block_def, lisp=indiv, indiv_id="seededIndiv%i-%i" % (node_rank,i))
                 else:
                     ezLogging.error("unable to interpret genome seed")
-                    return None
-            my_population.population.append(indiv)
+                    return None'''
+            indiv = build_individual_from_seed(indiv_def,
+                                               genome_seed,
+                                               indiv_id="seededIndiv%i-%i" % (node_rank,i))
+            if isinstance(indiv, IndividualMaterial):
+                # if build_individual failed then we don't want to add to population
+                my_population.population.append(indiv)
 
-        for i in range(len(genome_seeds), population_size):
-            indiv = self.build_individual(indiv_def, indiv_id="initPop%i" % i)
+        for i in range(len(my_population.population), population_size):
+            indiv = self.build_individual(indiv_def,
+                                          indiv_id="initPop%i-%i" % (node_rank,i))
             my_population.population.append(indiv)
 
         return my_population
@@ -93,19 +103,72 @@ class FactoryDefinition():
         return indiv_material
 
 
-    def build_individual_from_block_seed(self, indiv_def: IndividualDefinition, block_seeds: List, indiv_id=None):
+    def build_individual_from_seed(self, indiv_def: IndividualDefinition, block_seeds: List[str], indiv_id=None):
         '''
         block_seeds will be a list of file paths. number of blocks in individual need to match block_seed length
         If we don't have a seed for a block, set it to None like [None, None, seed.npz]
         '''
-        indiv_material = IndividualMaterial()
-        indiv_material.set_id(indiv_id)
-        for block_def, block_seed in zip(indiv_def.block_defs, block_seeds):
-            if block_seed is None:
-                block_material = self.build_block(block_def, indiv_id=indiv_id)
-            else:
-                block_material = self.build_block_from_lisp(block_def, block_seed, indiv_id)
-            indiv_material.blocks.append(block_material)
+        if (isinstance(block_seeds, str)) and (os.path.exists(block_seeds)):
+            # then it's likely a pickled IndividualMaterial instance from a pervious run or text file of lisps
+            # load the whole thing as an individual but then check to make sure all the indiv/block defs match
+            try:
+                # adding a try except loop because any number of things could go wrong here so easier to 
+                # try and catch anything...also makes it easy to catch when seeded material doesn't match defs
+                if block_seeds.endswith(".pkl"):
+                    with open(block_seeds, "rb") as f:
+                        indiv_material = pkl.load(f)
+                    if not isinstance(indiv_material, IndividualMaterial):
+                        raise Exception("pickled file was not an IndividualMaterial type but %s" % (type(indiv_material)))
+                    indiv_material.set_id(indiv_id)
+                    # now check each block to make sure it matches respective definition
+                    for ith_block in range(indiv_def.block_count):
+                        if not self.validate_material_wDefinition(indiv_def[ith_block], indiv_material[ith_block]):
+                            raise Exception("%ith block material does not match block definition")
+                elif ("lisp" in block_seeds) and (block_seeds.endswith(".txt")):
+                    # TODO read several lisps from text file
+                    block_seeds = []
+                    if len(block_seeds) != indiv_def.block_count:
+                        raise Exception("number of lisps in seed file doesn't match IndividualDefinition")
+                    else:
+                        pass
+                else:
+                    raise Exception("block_seeds wasnt pkl or txt file")
+            except Exception as err:
+                ezLogging.error("%s - for seed %s" % (err, block_seeds))
+                indiv_material = None
+                
+        if isinstance(block_seeds, list):
+            indiv_material = IndividualMaterial()
+            indiv_material.set_id(indiv_id)
+            for ith_block in range(indiv_def.block_count):
+                # trying to refrain from zipping block_defs and block_seeds because it won't error if len don't match
+                block_def = indiv_def[ith_block]
+                block_seed = block_seeds[ith_block]
+                if block_seed is None:
+                    block_material = self.build_block(block_def, indiv_id=indiv_id)
+                else:
+                    try:
+                        if os.path.exists(block_seed):
+                            if block_seed.endswith(".pkl"):
+                                with open(genome_seed, "rb") as f:
+                                    block_material = pkl.load(f)
+                                if not isinstance(block_material, BlockMaterial):
+                                    raise Exception("pickled file was not an BlockMaterial type but %s" % (type(block_material)))
+                            elif ("lisp" in block_seed) and (block_seed.endswith(".txt")):
+                                # TODO how to read lips from text file
+                                block_seed = ""
+                            else:
+                                raise Exception("block_seed wasnt pkl or txt file")
+                        if isinstance(block_seed, str):
+                            block_material = self.build_block_from_lisp(block_def, block_seed, indiv_id)
+                        if not self.validate_material_wDefinition(block_def, block_material):
+                            raise Exception("%ith block material does not match block definition")
+                    except Exception as err:
+                        ezLogging.error("%s - for %th block and seed %s" % (err, ith_block, block_seed))
+                        indiv_material = None
+                        break
+                indiv_material.blocks.append(block_material)
+                
         return indiv_material
 
 
@@ -127,6 +190,10 @@ class FactoryDefinition():
         that follows the format of how we build out a lisp in codes.block_definitions.block_definition.get_lisp()
 
         shoud look something like: [func1,[func2,-2n,-1n],-1n]
+        
+        we also can handle cases where we are 'reusing' the output of a node...thanks to this line
+            ```lisp = lisp.replace(_active_dict[ith_node], "%in" % ith_node)```
+        try with: lisp = '[mult,-1n,[mult,[sub,[mult,-1n,-1n],-2n],[sub,[mult,-1n,-1n],-2n]]]'
 
         NOTE: I think this currently only works if the block has 1 output!
         '''
@@ -138,21 +205,21 @@ class FactoryDefinition():
             if match is None:
                 # no more lists inside lisp. so we're done
                 break
-            # get the single element lisp
-            _active_dict[ith_node] = lisp[match.start(): match.end()]
-            # now replace that element with the node number
-            # add 'n' to distinguish from arg value
-            lisp = lisp.replace(_active_dict[ith_node], "%in" % ith_node)
-            # increment to next node
-            ith_node +=1
+                # get the single element lisp
+                _active_dict[ith_node] = lisp[match.start(): match.end()]
+                # now replace that element with the node number
+                # add 'n' to distinguish from arg value
+                lisp = lisp.replace(_active_dict[ith_node], "%in" % ith_node)
+                # increment to next node
+                ith_node +=1
 
-            if ith_node >= 10**3:
-                # very unlikely to have more than 1000 nodes...prob something went wrong
-                ezLogging.error("something went wrong")
-                break
+                if ith_node >= 10**3:
+                    # very unlikely to have more than 1000 nodes...prob something went wrong
+                    ezLogging.error("something went wrong")
+                    break
 
         # now build the individual
-        block_material = BlockMaterial(block_def.nickname)
+        block_material = BlockMaterialz(block_def.nickname)
         block_material.set_id(indiv_id)
         block_material.args = [None]*block_def.arg_count
         block_material.genome = [None]*block_def.genome_count
@@ -183,7 +250,10 @@ class FactoryDefinition():
                                     # then it's a main node
                                     input_index.append(active_main_nodes[int(extracted_val)])
                                     # verify that the data types match
-                                    incoming_dtype = block_def.get_node_dtype(self, block_material, node_index=input_index[ith_input], key='output')
+                                    incoming_dtype = block_def.get_node_dtype(self,
+                                                                              block_material,
+                                                                              node_index=input_index[ith_input],
+                                                                              key='output')
                                     expected_dtype = block_def.operator_dict[ftn]["inputs"][ith_input]
                                     if incoming_dtype != expected_dtype:
                                         ezLogging.error("error in genome seeding...mismatching incoming + given data types")
@@ -263,6 +333,21 @@ class FactoryDefinition():
 
         block_def.get_actives(block_material)
         return block_material
+    
+    
+    def validate_material_wDefinition(self, block_def: BlockDefinition, block_material: BlockMaterial):
+        '''
+        assuming we got a seeded individual/block passed into block_material,
+        it would be wise to try and make sure that the material fits into the
+        BlockDefinition for this simulation/run
+         * ShapeMeta matches: genome_size, arg_size, input/output datatypes
+         * Operator matches: primitives in operator dictionary
+         * Argument matches: datatypes in genome match what is available
+        
+        return True or False
+        '''
+        pass # TODO
+        return True
 
 
     def fill_args(self, block_def: BlockDefinition, block_material: BlockMaterial):
