@@ -41,7 +41,7 @@ class FactoryDefinition():
     def build_population(self,
                          indiv_def: IndividualDefinition,
                          population_size: int,
-                         genome_seeds: List=[[]],
+                         genome_seeds: List=[],
                          node_rank: int=0,
                         ):
         '''
@@ -143,7 +143,7 @@ class FactoryDefinition():
                 ezLogging.error("%s - for seed %s" % (err, block_seeds))
                 indiv_material = None
                 
-        if isinstance(block_seeds, list):
+        if (isinstance(block_seeds, list)) and (len(block_seeds)>0):
             indiv_material = IndividualMaterial()
             indiv_material.set_id(indiv_id)
             for ith_block in range(indiv_def.block_count):

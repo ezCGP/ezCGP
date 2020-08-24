@@ -52,7 +52,7 @@ class ProblemDefinition_Abstract(ABC):
                  number_universe: int,
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
-                 genome_seeds: List=[[]]):
+                 genome_seeds: List=[]):
         '''
         genome_seeds:
         * each element in outer list is an inividual to be seeded

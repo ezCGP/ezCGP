@@ -83,7 +83,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 10#00
+        GENERATION_LIMIT = 3 #1000
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse

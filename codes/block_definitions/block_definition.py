@@ -103,7 +103,7 @@ class BlockDefinition():
         _active_dict = {}
         #output_node = self.main_count+ith_output
         #_active_dict['output'] = block_material[output_node]
-        for ith_node in reversed(self.active_nodes):
+        for ith_node in reversed(block_material.active_nodes):
             if (ith_node<0) or (ith_node>=self.main_count):
                 #input or ouptput node
                 continue
