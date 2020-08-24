@@ -43,3 +43,23 @@ def save_population(universe):
         indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s.pkl" % (universe.generation, indiv.id))
         with open(indiv_file, "wb") as f:
             pkl.dump(indiv, f)
+            
+            
+def save_population_asLisp(universe, indiv_definition):
+    '''    
+    each individual will have it's own .txt file
+    the ith line will be the ith block's lisp
+    block_definition has a get_lisp method, and factory should have a method to load an individual
+    from a txt file of lisps or given the lisp strings directly for each block
+    
+    get_lisp() should return a list with length the number of outputs for each block (should only work for 1 output rn)
+    '''
+    logging.debug("saved each individual from population as lisp-string for generation %i" % universe.generation)
+    for indiv_material in universe.population.population:
+        indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_lisp.txt" % (universe.generation, indiv_material.id))
+        with open(indiv_file, "w") as f:
+            for block_def, block_material in zip(indiv_definition, indiv_material):
+                block_def.get_lisp(block_material)
+                line = " ".join(block_material.lisp) # list with same length as number of block outputs, so we make into single string
+                f.write("%s\n" % line)
+
