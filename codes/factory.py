@@ -49,7 +49,7 @@ class FactoryDefinition():
         '''
         my_population = PopulationDefinition(population_size)
 
-        for i, genome_seed in genome_seeds:
+        for i, genome_seed in enumerate(genome_seeds):
             '''# should be a filepath
             if genome_seed.endswith("pkl"):
                 with open(genome_seed, "rb") as f:
@@ -62,9 +62,9 @@ class FactoryDefinition():
                 else:
                     ezLogging.error("unable to interpret genome seed")
                     return None'''
-            indiv = build_individual_from_seed(indiv_def,
-                                               genome_seed,
-                                               indiv_id="seededIndiv%i-%i" % (node_rank,i))
+            indiv = self.build_individual_from_seed(indiv_def,
+                                                    genome_seed,
+                                                    indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
                 # if build_individual failed then we don't want to add to population
                 my_population.population.append(indiv)
@@ -125,8 +125,14 @@ class FactoryDefinition():
                         if not self.validate_material_wDefinition(indiv_def[ith_block], indiv_material[ith_block]):
                             raise Exception("%ith block material does not match block definition")
                 elif ("lisp" in block_seeds) and (block_seeds.endswith(".txt")):
-                    # TODO read several lisps from text file
-                    block_seeds = []
+                    seeds = []
+                    with open(block_seeds, 'r') as f:
+                        for line in f.readlines():
+                            if line.endswith('\n'):
+                                seeds.append(line[:-1])
+                            else:
+                                seeds.append(line)
+                    block_seeds = seeds # overwrite filename with contents of file
                     if len(block_seeds) != indiv_def.block_count:
                         raise Exception("number of lisps in seed file doesn't match IndividualDefinition")
                     else:
@@ -155,8 +161,13 @@ class FactoryDefinition():
                                 if not isinstance(block_material, BlockMaterial):
                                     raise Exception("pickled file was not an BlockMaterial type but %s" % (type(block_material)))
                             elif ("lisp" in block_seed) and (block_seed.endswith(".txt")):
-                                # TODO how to read lips from text file
-                                block_seed = ""
+                                with open(block_seed, 'r') as f:
+                                    # at block level so assume only one line
+                                    line = f.readline()
+                                    if line.endswith('\n'):
+                                        block_seed = line[:-1]
+                                    else:
+                                        block_seed = line
                             else:
                                 raise Exception("block_seed wasnt pkl or txt file")
                         if isinstance(block_seed, str):
