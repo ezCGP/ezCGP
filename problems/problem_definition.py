@@ -52,8 +52,14 @@ class ProblemDefinition_Abstract(ABC):
                  number_universe: int,
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
-                 seeds: List[str]=[]):
+                 genome_seeds: List=[]):
         '''
+        genome_seeds:
+        * each element in outer list is an inividual to be seeded
+        * each element in the inner list is the seed for that positional block of the individual
+        * an inner element of 'None' will get a randomly built block
+        * an element could be a pkl file instead of another list if we are loading in a whole pickled IndividualMaterial
+        
         self.construct_dataset()
 
         the build out each block and build individual_def
@@ -64,7 +70,7 @@ class ProblemDefinition_Abstract(ABC):
         self.number_universe = number_universe
         self.Factory = factory_def
         self.mpi = mpi
-        self.genome_seeds = seeds
+        self.genome_seeds = genome_seeds
 
 
     @abstractmethod

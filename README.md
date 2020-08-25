@@ -14,13 +14,13 @@ $ conda deactivate
 
 To run in a single process...
 ```
-$ source activate ezcgp-py
+$ conda activate ezcgp-py
 $ python main.py -p [problem_file].py
 ```
 
 To run with MPI...
 ```
-$ source activate ezcgp-py
+$ conda activate ezcgp-py
 $ mpiexec -n [number_cores] python main.py -p [problem_file].py
 ```
 

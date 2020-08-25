@@ -83,7 +83,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 1000
+        GENERATION_LIMIT = 3 #1000
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse
@@ -132,6 +132,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         logging.info("Post Processing Universe Run")
         save_things.save_population(universe)
+        save_things.save_population_asLisp(universe, self.indiv_def)
 
         best_ids = np.array(self.roddcustom_bestindiv)
         best_scores = np.array(self.roddcustom_bestscore)
@@ -193,7 +194,7 @@ class Problem(ProblemDefinition_Abstract):
             for row, key in enumerate(['scores','active_count']):
                 datas = stats[size][key]
                 for data in datas:
-                    if key is 'scores':
+                    if key == 'scores':
                         data = data[:,0]
                     axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="-", alpha=0.5)
 
