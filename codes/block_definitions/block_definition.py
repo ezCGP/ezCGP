@@ -107,7 +107,7 @@ class BlockDefinition():
             if (ith_node<0) or (ith_node>=self.main_count):
                 #input or ouptput node
                 continue
-            func = block_material[ith_node]['function']
+            func = block_material[ith_node]['ftn']
             inputs = block_material[ith_node]['inputs']
             args = block_material[ith_node]['args']
 
@@ -116,7 +116,7 @@ class BlockDefinition():
             for _input in inputs:
                 # attach an 'n' to remind us that this is a node number and not an arg
                 # later we'll go through and replace each node with it's own entry in _active_dict
-                #lisp.append('%in' % _input)
+                 lisp.append('%in' % _input)
                 # TODO: consider just leaving it as '-1n' or something...converting to data type and
                 # passing as string and then removing quotes n spaces will likely make it unusable to compare anyways
                 pass
@@ -129,7 +129,10 @@ class BlockDefinition():
         # at this point we have the ith node and arg values for each active node
         # now we'll go through the list and replace each node with each entry from the dict
         # this is how we slowly build out the branches of the trees
-        for ith_node in self.active_args:
+        for ith_node in block_material.active_nodes:
+            if (ith_node<0) or (ith_node>=self.main_count):
+                #input or ouptput node
+                continue
             lisp = _active_dict[str(ith_node)]
             new_lisp = []
             for i, val in enumerate(lisp):
@@ -138,10 +141,17 @@ class BlockDefinition():
                     pass
                 elif val.endswith('n'):
                     if int(val[:-1]) < 0:
-                        # input node so we want to instead pass in the datatype we expect
+                        '''
+                        decided not to use the datatype and just assume that input datatypes match
+                        ...this stuff unecessarily complicates loading in an individual
+                        so going to just pass it as -1n or -2n etc
+                        
+                        #input node so we want to instead pass in the datatype we expect
                         # -1th genome is 0th input
                         # -2nd genome is 1th input... genome_node*-1 - 1 = input_node
-                        val = self.input_dtypes[(i*-1)-1]
+                        val = self.input_dtypes[(int(val[:-1])*-1)-1]'''
+                        pass
+                        
                     else:
                         # then it's a node number, replace with that node's new_lisp
                         val = _active_dict[str(val[:-1])] #[:-1] to remove 'n'
@@ -157,7 +167,7 @@ class BlockDefinition():
         for ith_output in range(self.output_count):
             final_node = block_material[self.main_count+ith_output]
             # convert the final list into a string
-            lisp_str = str(_active_dict[final_node])
+            lisp_str = str(_active_dict[str(final_node)])
             # since it was a list of strings, there will be a mess of quotes inside
             # so replace any quotes, and spaces while we're at it
             lisp_str = lisp_str.replace("'","").replace('"','').replace(" ", "")

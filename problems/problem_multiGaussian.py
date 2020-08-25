@@ -194,7 +194,7 @@ class Problem(ProblemDefinition_Abstract):
             for row, key in enumerate(['scores','active_count']):
                 datas = stats[size][key]
                 for data in datas:
-                    if key is 'scores':
+                    if key == 'scores':
                         data = data[:,0]
                     axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="-", alpha=0.5)
 

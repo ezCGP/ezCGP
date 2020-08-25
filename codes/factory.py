@@ -175,7 +175,7 @@ class FactoryDefinition():
                         if not self.validate_material_wDefinition(block_def, block_material):
                             raise Exception("%ith block material does not match block definition")
                     except Exception as err:
-                        ezLogging.error("%s - for %th block and seed %s" % (err, ith_block, block_seed))
+                        ezLogging.error("%s - for %ith block and seed %s" % (err, ith_block, block_seed))
                         indiv_material = None
                         break
                 indiv_material.blocks.append(block_material)
@@ -216,6 +216,7 @@ class FactoryDefinition():
             if match is None:
                 # no more lists inside lisp. so we're done
                 break
+            else:
                 # get the single element lisp
                 _active_dict[ith_node] = lisp[match.start(): match.end()]
                 # now replace that element with the node number
@@ -230,13 +231,14 @@ class FactoryDefinition():
                     break
 
         # now build the individual
-        block_material = BlockMaterialz(block_def.nickname)
+        block_material = BlockMaterial(block_def.nickname)
         block_material.set_id(indiv_id)
         block_material.args = [None]*block_def.arg_count
         block_material.genome = [None]*block_def.genome_count
         block_material.genome[(-1*block_def.input_count):] = ["InputPlaceholder"]*block_def.input_count
 
         ith_active_node = -1
+        args_used = [] # so we don't overwrite an arg we already used
         active_main_nodes = sorted(np.random.choice(range(block_def.main_count), size=len(_active_dict), replace=False))
         for node_index in range(block_def.main_count):
             if node_index in active_main_nodes:
@@ -250,7 +252,6 @@ class FactoryDefinition():
                         arg_index = []
                         ith_input = -1
                         ith_arg = -1
-                        args_used = []
                         # now grab what we have in the lisp and make sure they match
                         for val in lisp[1:]: # [1:] #ignores the ftn in 0th element
                             if val.endswith('n'):
@@ -261,8 +262,7 @@ class FactoryDefinition():
                                     # then it's a main node
                                     input_index.append(active_main_nodes[int(extracted_val)])
                                     # verify that the data types match
-                                    incoming_dtype = block_def.get_node_dtype(self,
-                                                                              block_material,
+                                    incoming_dtype = block_def.get_node_dtype(block_material,
                                                                               node_index=input_index[ith_input],
                                                                               key='output')
                                     expected_dtype = block_def.operator_dict[ftn]["inputs"][ith_input]
@@ -280,18 +280,29 @@ class FactoryDefinition():
                                 # then it's an arg value
                                 ith_arg +=1
                                 req_arg_type = block_def.operator_dict[ftn]["args"][ith_arg]
-                                poss_arg = block_def.get_random_arg(req_arg_type, exclude=args_used)
-                                if poss_arg is None:
+                                poss_arg_index = block_def.get_random_arg(req_arg_type, exclude=args_used)
+                                if poss_arg_index is None:
                                     ezLogging.error("can't find matching arg type in seeding")
                                     import pdb; pdb.set_trace()
                                     return None
-                                arg_index.append(poss_arg)
-                                args_used.append(poss_arg)
-                                block_material.args[poss_arg] = req_arg_type(value=val)
+                                arg_index.append(poss_arg_index)
+                                args_used.append(poss_arg_index)
+                                # have to convert val which is still a string to expected datatype!
+                                # kinda hacky but should work
+                                if 'float' in req_arg_type.__name__.lower():
+                                    val = float(val)
+                                elif 'int' in req_arg_type.__name__.lower():
+                                    val = int(val)
+                                elif 'bool' in req_arg_type.__name__.lower():
+                                    val = bool(val)
+                                else:
+                                    pass
+                                block_material.args[poss_arg_index] = req_arg_type(value=val)
 
                         block_material[node_index] =  {"ftn": ftn,
                                                        "inputs": input_index,
                                                        "args": arg_index}
+                        break
                     else:
                         # ftn doesn't match our lisp
                         continue
@@ -333,7 +344,7 @@ class FactoryDefinition():
 
         # output node
         # currently only works for 1 output node
-        block_material[main_count] = active_main_nodes[-1]
+        block_material[block_def.main_count] = active_main_nodes[-1]
 
         # now finish filling in the args
         for arg_index, arg_type in enumerate(block_def.arg_types):
