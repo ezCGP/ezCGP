@@ -116,10 +116,7 @@ class BlockDefinition():
             for _input in inputs:
                 # attach an 'n' to remind us that this is a node number and not an arg
                 # later we'll go through and replace each node with it's own entry in _active_dict
-                 lisp.append('%in' % _input)
-                # TODO: consider just leaving it as '-1n' or something...converting to data type and
-                # passing as string and then removing quotes n spaces will likely make it unusable to compare anyways
-                pass
+                lisp.append('%in' % _input)
             for _arg in args:
                 lisp.append('%s' % str(block_material.args[_arg]))
 

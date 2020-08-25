@@ -13,6 +13,7 @@ mention any assumptions made in the code or rules about code structure should go
 import os
 import re
 import numpy as np
+import pickle as pkl
 from copy import deepcopy
 from typing import List
 
@@ -116,7 +117,7 @@ class FactoryDefinition():
                 # try and catch anything...also makes it easy to catch when seeded material doesn't match defs
                 if block_seeds.endswith(".pkl"):
                     with open(block_seeds, "rb") as f:
-                        indiv_material = pkl.load(f)
+                        indiv_material = pickle.load(f)
                     if not isinstance(indiv_material, IndividualMaterial):
                         raise Exception("pickled file was not an IndividualMaterial type but %s" % (type(indiv_material)))
                     indiv_material.set_id(indiv_id)
