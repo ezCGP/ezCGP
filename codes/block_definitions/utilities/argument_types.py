@@ -423,6 +423,45 @@ class ArgumentType_Int0to25(ArgumentType_Abstract):
             self.mutate_unif_localint()
         ezLogging.debug("%s-%s - Mutated ArgumentType_Int0to25 to %f" % (None, None, self.value))
 
+        
+        
+class ArgumentType_Int1to10(ArgumentType_Abstract):
+    '''
+    [1,2,3,4,5,6,7,8,9,10]
+    NOTE:
+        np.random.randint(low, high) ->[low, high)
+        np.random.random_integers(low, high) -> [low,high]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate_unif_int25()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Int1to10 Class to %f" % (None, None, self.value))
+
+
+    def mutate_unif_int10(self):
+        self.value = rnd.random_integers(low=1, high=10)
+
+
+    def mutate_unif_localint(self):
+        # make it a range of 6
+        low = self.value-3
+        high = self.value+3
+        self.value = rnd.random_integers(low, high)
+        # force value to be within 0 to 100
+        if (self.value < 1) or (self.value > 10):
+            self.mutate_unif_int10()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif_int10()
+        else:
+            self.mutate_unif_localint()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Int1to10 to %f" % (None, None, self.value))
+
 
 
 class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
