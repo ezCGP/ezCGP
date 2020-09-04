@@ -332,7 +332,6 @@ class ArgumentType_Float0to1(ArgumentType_Abstract):
 
 
     def mutate_unif_local(self):
-        # make it a range of 10
         low = self.value-.05
         high = self.value+.05
         self.value = rnd.uniform(low, high)
@@ -348,6 +347,41 @@ class ArgumentType_Float0to1(ArgumentType_Abstract):
         else:
             self.mutate_unif_local()
         ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to1 to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_Float0to10(ArgumentType_Float0to1):
+    '''
+    go from [0 to 10)
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate_unif1()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Float0to10 Class to %f" % (None, None, self.value))
+
+
+    def mutate_unif10(self):
+        self.value = np.random.random()*10 #NOTE: [0,10) not (0,10)
+
+
+    def mutate_unif_local(self):
+        low = self.value-.5
+        high = self.value+.5
+        self.value = rnd.uniform(low, high)
+        # force value to be within 0 to 1
+        if (self.value < 0) or (self.value > 1):
+            self.mutate_unif1()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif1()
+        else:
+            self.mutate_unif_local()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to10 to %f" % (None, None, self.value))
 
 
 
