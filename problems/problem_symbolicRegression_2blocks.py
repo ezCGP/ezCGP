@@ -97,8 +97,8 @@ class Problem(ProblemDefinition_Abstract):
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse
-        min_firstobjective_index = universe.fitness_scores[:,0].argmin()
-        min_firstobjective = universe.fitness_scores[min_firstobjective_index,:-1]
+        min_firstobjective_index = universe.pop_fitness_scores[:,0].argmin()
+        min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:-1]
         logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
         if universe.generation >= GENERATION_LIMIT:
