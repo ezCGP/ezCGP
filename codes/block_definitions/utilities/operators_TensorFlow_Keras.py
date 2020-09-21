@@ -70,3 +70,42 @@ operator_dict[conv2DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
                                         "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_TFFilterSize, argument_types.ArgumentType_TFActivation]
                                         }
+
+def conv3D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu):
+    kernel_size = (kernel_size, kernel_size)
+    '''
+    https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv3D
+    '''
+
+    return tf.keras.layers.Conv3D(filters=filters,
+                                  kernel_size=kernel_size,
+                                  padding="same",
+                                  activation=activation,
+                                  data_format="channels_last"
+                                  )(input_tensor)
+
+
+operator_dict[conv3D_layer] = {"inputs": [tf.keras.layers],
+                               "output": tf.keras.layers,
+                               "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_TFFilterSize, argument_types.ArgumentType_TFActivation]
+                               }
+
+
+def conv3DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu):
+    kernel_size = (kernel_size, kernel_size)
+    '''
+    https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv3DTranspose
+    '''
+
+    return tf.keras.layers.Conv3DTranspose(filters=filters,
+                                           kernel_size=kernel_size,
+                                           padding="same",
+                                           activation=activation,
+                                           data_format="channels_last"
+                                           )(input_tensor)
+
+
+operator_dict[conv3DTranspose_layer] = {"inputs": [tf.keras.layers],
+                                        "output": tf.keras.layers,
+                                        "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_TFFilterSize, argument_types.ArgumentType_TFActivation]
+                                        }
