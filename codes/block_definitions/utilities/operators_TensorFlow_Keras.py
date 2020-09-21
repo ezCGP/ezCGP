@@ -10,17 +10,16 @@ Make sure the BlockEvaluate Definition is appropriate to the tf.keras module.
 And make sure argument types are valid and appropriate for your needs
 '''
 
-
-# packages
+### packages
 import tensorflow as tf
 import numpy as np
 
-# sys relative to root dir
+### sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
-# abosulte imports wrt root
+### abosulte imports wrt root
 from codes.utilities.custom_logging import ezLogging
 from codes.block_definitions.utilities import argument_types
 
@@ -37,19 +36,20 @@ def conv2D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu)
 
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
     '''
-
     return tf.keras.layers.Conv2D(filters=filters,
                                   kernel_size=kernel_size,
                                   padding="same",
                                   activation=activation,
                                   data_format="channels_last"
-                                  )(input_tensor)
+                                 )(input_tensor)
 
 
 operator_dict[conv2D_layer] = {"inputs": [tf.keras.layers],
                                "output": tf.keras.layers,
-                               "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_TFFilterSize, argument_types.ArgumentType_TFActivation]
-                               }
+                               "args": [argument_types.ArgumentType_Pow2,
+                                        argument_types.ArgumentType_TFFilterSize,
+                                        argument_types.ArgumentType_TFActivation]
+                              }
 
 
 def conv2DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu):
@@ -57,7 +57,6 @@ def conv2DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
     '''
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2DTranspose
     '''
-
     return tf.keras.layers.Conv2DTranspose(filters=filters,
                                            kernel_size=kernel_size,
                                            padding="same",
@@ -68,27 +67,31 @@ def conv2DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
 
 operator_dict[conv2DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
-                                        "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_TFFilterSize, argument_types.ArgumentType_TFActivation]
-                                        }
+                                        "args": [argument_types.ArgumentType_Pow2,
+                                                 argument_types.ArgumentType_TFFilterSize,
+                                                 argument_types.ArgumentType_TFActivation]
+                                       }
+
 
 def conv3D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu):
     kernel_size = (kernel_size, kernel_size)
     '''
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv3D
     '''
-
     return tf.keras.layers.Conv3D(filters=filters,
                                   kernel_size=kernel_size,
                                   padding="same",
                                   activation=activation,
                                   data_format="channels_last"
-                                  )(input_tensor)
+                                 )(input_tensor)
 
 
 operator_dict[conv3D_layer] = {"inputs": [tf.keras.layers],
                                "output": tf.keras.layers,
-                               "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_TFFilterSize, argument_types.ArgumentType_TFActivation]
-                               }
+                               "args": [argument_types.ArgumentType_Pow2,
+                                        argument_types.ArgumentType_TFFilterSize,
+                                        argument_types.ArgumentType_TFActivation]
+                              }
 
 
 def conv3DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu):
@@ -96,16 +99,18 @@ def conv3DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
     '''
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv3DTranspose
     '''
-
     return tf.keras.layers.Conv3DTranspose(filters=filters,
                                            kernel_size=kernel_size,
                                            padding="same",
                                            activation=activation,
                                            data_format="channels_last"
-                                           )(input_tensor)
+                                          )(input_tensor)
 
 
 operator_dict[conv3DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
-                                        "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_TFFilterSize, argument_types.ArgumentType_TFActivation]
-                                        }
+                                        "args": [argument_types.ArgumentType_Pow2,
+                                                 argument_types.ArgumentType_TFFilterSize,
+                                                 argument_types.ArgumentType_TFActivation]
+                                       }
+
