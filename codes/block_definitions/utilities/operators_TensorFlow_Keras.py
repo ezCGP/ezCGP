@@ -12,8 +12,6 @@ And make sure argument types are valid and appropriate for your needs
 
 
 # packages
-from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.utilities import argument_types
 import tensorflow as tf
 import numpy as np
 
@@ -23,7 +21,8 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 # abosulte imports wrt root
-
+from codes.utilities.custom_logging import ezLogging
+from codes.block_definitions.utilities import argument_types
 
 # init dict
 operator_dict = {}
