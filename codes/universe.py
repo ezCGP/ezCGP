@@ -144,15 +144,17 @@ class UniverseDefinition():
         TODO
         '''
         self.fitness_scores = []
+        self.individual_ids = []
         for indiv in self.population.population:
             # EVALUATE
             problem.indiv_def.evaluate(indiv, problem.data.x_train)
             # SCORE
             problem.objective_functions(indiv)
-            # ATTACH TO ID
-            id_scores = indiv.fitness.values + (indiv.id,)
             self.fitness_scores.append(id_scores)
+            # ATTACH ID
+            self.individual_ids.append(indiv.id)
         self.fitness_scores = np.array(self.fitness_scores)
+        self.individual_ids = np.array(self.individual_ids)
 
 
     def population_selection(self, problem: ProblemDefinition_Abstract):

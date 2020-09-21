@@ -85,7 +85,7 @@ class Problem(ProblemDefinition_Abstract):
             indiv.fitness.values = (np.inf, np.inf)
         else:
             actual = self.data.y_train
-            predict = indiv.output; print(predict)
+            predict = indiv.output
             error = actual-predict
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
