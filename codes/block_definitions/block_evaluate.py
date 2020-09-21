@@ -41,26 +41,25 @@ class BlockEvaluate_Abstract(ABC):
         pass
 
     
-    def reset_evaluation(self, block_material):
+    def preprocess_block_evaluate(self, block_material):
         '''
         should always happen before we evaluate...should be in BlockDefinition.evaluate()
         
         Note we can always customize this to our block needs which is why we included in BlockEvaluate instead of BlockDefinition
         '''
         ezLogging.debug("%s - Reset for Evaluation" % (block_material.id))
-        block_material.evaluated = [None] * len(block_material.genome)
         block_material.output = None
+        block_material.evaluated = [None] * len(block_material.genome)
         block_material.dead = False
 
 
-    def postprocess_evaluated_block(self, block_material, output):
+    def postprocess_block_evaluate(self, block_material):
         '''
         should always happen after we evaluate. important to blow away block_material.evaluated to clear up memory
 
         can always customize this method which is why we included it in BlockEvaluate and not BlockDefinition
         '''
         ezLogging.debug("%s - Processing after Evaluation" % (block_material.id))
-        block_material.output = output
         block_material.evaluated = None
         block_material.need_evaluate = False
 
@@ -150,8 +149,8 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
             for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
                 output.append(block_material.evaluated[block_material.genome[output_index]])
                 
+        block_material.output = output
         ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
-        return output
 
 
     def reset_evaluation(self, block_material: BlockMaterial):

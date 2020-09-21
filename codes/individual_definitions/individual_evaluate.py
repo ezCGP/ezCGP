@@ -55,7 +55,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
             if block_material.need_evaluate:
                 ezLogging.error("before block eval " + str(block_index)); import pdb; pdb.set_trace()
                 ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-                training_datapair = block_def.evaluate(block_material, training_datapair, validation_datapair)
+                block_def.evaluate(block_material, training_datapair, validation_datapair)
                 if block_material.dead:
                     indiv_material.dead = True
                     break
@@ -63,6 +63,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                     pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+            if block_index < indiv_def.block_count - 1:
                 training_datapair = deepcopy(block_material.output)
-
-        indiv_material.output = training_datapair
+            else:
+                indiv_material.output = deepcopy(block_material.output)
