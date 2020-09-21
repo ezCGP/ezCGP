@@ -53,7 +53,6 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                  validation_datapair: ezDataSet=None):
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if block_material.need_evaluate:
-                ezLogging.error("before block eval " + str(block_index)); import pdb; pdb.set_trace()
                 ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
                 block_def.evaluate(block_material, training_datapair, validation_datapair)
                 if block_material.dead:
