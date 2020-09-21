@@ -148,6 +148,7 @@ class UniverseDefinition():
             # EVALUATE
             problem.indiv_def.evaluate(indiv, problem.data.x_train)
             # SCORE
+            ezLogging.error("indiv evaluated"); import pdb; pdb.set_trace()
             problem.objective_functions(indiv)
             # ATTACH TO ID
             id_scores = indiv.fitness.values + (indiv.id,)

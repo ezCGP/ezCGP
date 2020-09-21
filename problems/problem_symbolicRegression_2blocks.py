@@ -23,7 +23,7 @@ from codes.factory import FactoryDefinition
 from data.data_tools import data_loader
 from codes.block_definitions.block_shapemeta import BlockShapeMeta_SymbolicRegressionNoArg25, BlockShapeMeta_SymbolicRegressionArg25
 from codes.block_definitions.block_operators import BlockOperators_SymbRegressionOpsNoArgs, BlockOperators_SymbRegressionOpsWithArgs
-from codes.block_definitions.block_arguments import BlockArgumentsNoArgs, BlockArgumentsSmallFloatOnly
+from codes.block_definitions.block_arguments import BlockArguments_NoArgs, BlockArguments_SmallFloatOnly
 from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
 from codes.block_definitions.block_mutate import BlockMutate_OptA, BlockMutate_OptB
 from codes.block_definitions.block_mate import BlockMate_WholeOnly
@@ -48,7 +48,7 @@ class Problem(ProblemDefinition_Abstract):
         block0_def = self.construct_block_def(nickname = "wOutArg_block",
                                              shape_def = BlockShapeMeta_SymbolicRegressionNoArg25,
                                              operator_def = BlockOperators_SymbRegressionOpsNoArgs,
-                                             argument_def = BlockArgumentsNoArgs,
+                                             argument_def = BlockArguments_NoArgs,
                                              evaluate_def = BlockEvaluate_Standard,
                                              mutate_def = BlockMutate_OptA,
                                              mate_def = BlockMate_WholeOnly)
@@ -56,7 +56,7 @@ class Problem(ProblemDefinition_Abstract):
         block1_def = self.construct_block_def(nickname = "wArg_block",
                                              shape_def = BlockShapeMeta_SymbolicRegressionArg25,
                                              operator_def = BlockOperators_SymbRegressionOpsWithArgs,
-                                             argument_def = BlockArgumentsSmallFloatOnly,
+                                             argument_def = BlockArguments_SmallFloatOnly,
                                              evaluate_def = BlockEvaluate_Standard,
                                              mutate_def = BlockMutate_OptB,
                                              mate_def = BlockMate_WholeOnly)
