@@ -19,7 +19,7 @@ easier if the output from each node ends up being different things instead of di
 
 ### packages
 import Augmentor
-from Augmentor.Operations import Operation
+#from Augmentor.Operations import Operation
 import numpy as np
 from copy import deepcopy
 
@@ -39,7 +39,11 @@ operator_dict = {}
 
 
 
-class Normalize(Operation):
+class Normalize(Augmentor.Operations.Operation):
+    '''
+    we're going to follow the syntax in the other Operations given in the doc
+    https://augmentor.readthedocs.io/en/master/_modules/Augmentor/Operations.html
+    '''
     # Here you can accept as many custom parameters as required:
     def __init__(self, probability=1):
         # Call the superclass's constructor (meaning you must
@@ -48,12 +52,23 @@ class Normalize(Operation):
 
     # Your class must implement the perform_operation method:
     def perform_operation(self, images):
-        # Return the image so that it can further processed in the pipeline:
-        augmentedImages = []
+        '''
+        here is what the documentation says what images will be...
+        images: List containing PIL.Image object(s)
+        
+        they like to have a do() method and then a for loop applying do() to each image
+        
+        NOTE here we assume that the image maxes out at 255
+        '''
+        def do(image):
+            mod_image = np.asarray(image) / 255.0
+            return mod_image
+        
+        augmented_images = []
         for image in images:
-            modImage = np.asarray(image) / 255.0
-            augmentedImages.append(modImage)
-        return augmentedImages
+            augmented_images.append(do(image))
+        
+        return augmented_images
 
 
 def normalize(pipeline):

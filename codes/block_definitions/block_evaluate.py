@@ -154,5 +154,60 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
 
 
     def reset_evaluation(self, block_material: BlockMaterial):
-        #BlockEvaluate_Abstract.__init__(self)
+        '''
+        we really could just remove this method...I think we're
+        keeping it here as a reminder that we can change it
+        '''
         super().reset_evaluation(block_material)
+
+
+
+class BlockEvaluate_DataAugmentation(BlockEvaluate_Standard):
+    '''
+    the primitives are unique but the evaluation methods shouldn't be unique, so
+    just opting to import BlockEvaluate_Standard
+    
+    NOTE that we want to add augmentation methods to the 'training data pipeline'
+        BUT not to the 'validation/testing data pipeline'
+    '''
+    def __init__(self):
+        super().__init__()
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_DataAugmentation Class" % (None, None))
+
+
+
+class BlockEvaluate_DataPreprocess(BlockEvaluate_Standard):
+    '''
+    In BlockEvaluate_Standard.evaluate() we only evaluate on the training_datapair.
+    But here we want to evaluate both training and validation.
+    The process flow will be almost identical otherwise.
+    '''
+    def __init__(self):
+        super().__init__()
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_DataPreprocess Class" % (None, None))
+        
+        
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition, 
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        
+        training_datapair = super().evaluate(block_material,
+                                             block_def,
+                                             training_datapair)
+        validation_datapair = super().evaluate(block_material,
+                                               block_def,
+                                               validation_datapair)
+        
+        output = []
+        if not block_material.dead:
+            # NOTE the output of the BlockEvaluate_Standard.evaluate() should be a list of one element
+            assert(len(training_datapair)==1)
+            assert(len(validation_datapair)==1)
+            output.append(training_datapair[0])
+            output.append(validation_datapair[0])
+        
+        return output
+

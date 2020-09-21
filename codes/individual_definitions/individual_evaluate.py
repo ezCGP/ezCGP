@@ -66,3 +66,38 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                 training_datapair = deepcopy(block_material.output)
             else:
                 indiv_material.output = deepcopy(block_material.output)
+
+
+
+class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
+    '''
+    In IndividualEvaluate_Standard() it is assumed we don't have validation data, so each block
+    only outputs the training_datapair for the next block.
+    With validation data, we want to return and pass the training and validation data between blocks.
+    ...otherwise the process flow is the same
+    '''
+    def __init__(self):
+        pass
+    
+    
+    def evaluate(self,
+                 indiv_material: IndividualMaterial,
+                 indiv_def, #IndividualDefinition,
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
+            if block_material.need_evaluate:
+                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
+                training_datapair, validation_datapair = block_def.evaluate(block_material,
+                                                                            training_datapair,
+                                                                            validation_datapair)
+                if block_material.dead:
+                    indiv_material.dead = True
+                    break
+                else:
+                    pass
+            else:
+                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+                training_datapair, validation_datapair = deepcopy(block_material.output)
+
+        indiv_material.output = training_datapair, validation_datapair
