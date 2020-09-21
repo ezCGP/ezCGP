@@ -91,3 +91,15 @@ class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
                                          output_dtypes,
                                          main_count)
 
+class BlockShapeMeta_Keras(BlockShapeMeta_Abstract):
+    def __int__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_Keras Class" % (None, None))
+        import tensorflow as tf
+        input_dtypes = [tf.keras.layers]
+        output_dtypes = [tf.keras.layers]
+        main_count = 25
+        BlockShapeMeta_Abstract.__init__(self,
+                                     input_dtypes,
+                                     output_dtypes,
+                                     main_count)
+
