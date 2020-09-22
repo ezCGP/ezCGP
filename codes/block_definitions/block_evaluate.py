@@ -12,6 +12,7 @@ Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDe
 
 ### packages
 from abc import ABC, abstractmethod
+from copy import deepcopy
 
 ### sys relative to root dir
 import sys
@@ -153,12 +154,12 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
         ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
 
 
-    def reset_evaluation(self, block_material: BlockMaterial):
+    def preprocess_block_evaluate(self, block_material: BlockMaterial):
         '''
         we really could just remove this method...I think we're
         keeping it here as a reminder that we can change it
         '''
-        super().reset_evaluation(block_material)
+        super().preprocess_block_evaluate(block_material)
 
 
 
@@ -194,20 +195,17 @@ class BlockEvaluate_DataPreprocess(BlockEvaluate_Standard):
                  validation_datapair: ezDataSet):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         
-        training_datapair = super().evaluate(block_material,
-                                             block_def,
-                                             training_datapair)
-        validation_datapair = super().evaluate(block_material,
-                                               block_def,
-                                               validation_datapair)
-        
+        # going to treat training + validation as separate block_materials!
         output = []
-        if not block_material.dead:
-            # NOTE the output of the BlockEvaluate_Standard.evaluate() should be a list of one element
-            assert(len(training_datapair)==1)
-            assert(len(validation_datapair)==1)
-            output.append(training_datapair[0])
-            output.append(validation_datapair[0])
+        for datapair in [training_datapair, validation_datapair]:
+            super().evaluate(block_material, block_def, datapair)
+            if block_material.dead:
+                return []
+            else:
+                output.append(deepcopy(block_material.output[0])) #assuming only one output
+                self.preprocess_block_evaluate(block_material) #prep for next loop through datapair
         
-        return output
+        block_material.output = output
+        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
+
 
