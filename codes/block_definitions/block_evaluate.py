@@ -103,8 +103,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet=None):
+                 training_datapair: ezDataSet):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         
         # add input data
@@ -174,6 +173,25 @@ class BlockEvaluate_DataAugmentation(BlockEvaluate_Standard):
     def __init__(self):
         super().__init__()
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_DataAugmentation Class" % (None, None))
+    
+    
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def, #: BlockDefinition,
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        
+        super().evaluate(block_material, block_def, training_datapair)
+        
+        output = []
+        if not block_material.dead:
+            output.append(deepcopy(block_material.output[0])) #assuming only 1 output
+            # here is the unique part...add in validation_datapair
+            output.append(validation_datapair[0])
+        
+        block_material.output = output
+        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
 
 
 
