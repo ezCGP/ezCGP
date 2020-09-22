@@ -209,6 +209,28 @@ class ArgumentType_TFFilterSize(ArgumentType_Abstract):
 
 
 
+class ArgumentType_FilterSize(ArgumentType_Abstract):
+    '''
+    quick way to pick [3,5,7]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_FilterSize Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [3,5,7]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_FilterSize to %f" % (None, None, self.value))
+
+
+
 class ArgumentType_TFPoolSize(ArgumentType_Abstract):
     '''
     quick way to pick [1,2,3,4]

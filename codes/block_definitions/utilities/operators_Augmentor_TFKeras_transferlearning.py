@@ -91,7 +91,7 @@ def resnet(pipeline, ith_model, probability=1):
 
 operator_dict[resnet] = {"inputs": [Augmentor.Pipeline],
                          "output": Augmentor.Pipeline,
-                         "args": [ArgumentType_Int0to25]
+                         "args": [argument_types.ArgumentType_Int0to25]
                         }
 
 
