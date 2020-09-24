@@ -123,10 +123,10 @@ def vgg(pipeline, probability=1):
     return deepcopy(pipeline)
 
 
-operDict[vgg] = {"inputs": [Augmentor.Pipeline],
-                 "output": Augmentor.Pipeline,
-                 "args": []
-                }
+operator_dict[vgg] = {"inputs": [Augmentor.Pipeline],
+                      "output": Augmentor.Pipeline,
+                      "args": []
+                     }
 
 
 
@@ -157,8 +157,8 @@ def inception(pipeline, probability=1):
     return deepcopy(pipeline)
 
 
-operDict[inception] = {"inputs": [Augmentor.Pipeline],
-                       "output": Augmentor.Pipeline,
-                       "args": []
-                      }
+operator_dict[inception] = {"inputs": [Augmentor.Pipeline],
+                            "output": Augmentor.Pipeline,
+                            "args": []
+                           }
 
