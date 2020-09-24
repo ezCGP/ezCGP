@@ -151,3 +151,69 @@ class BlockOperators_Gaussian(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_DataAugmentation(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_DataAugmentation Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_Augmentor_augmentation']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_Preprocessing(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_Preprocessing Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_Augmentor_preprocessing']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_TransferLearning(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_TransferLearning Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_Augmentor_TFKeras_transferlearning']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_TFKeras(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_TFKeras Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TensorFlow_Keras']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
