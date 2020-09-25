@@ -40,6 +40,63 @@ class BlockEvaluate_Abstract(ABC):
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet=None):
         pass
+    
+    
+    def standard_evaluate(self,
+                          block_material: BlockMaterial,
+                          block_def,#: BlockDefinition, 
+                          input_dataset: ezDataSet):
+        '''
+        After a while of developing, we noticed that ALL our blocks followed the same eval process.
+        the main difference was WHAT data was passed in...that's it!
+        So this is going to be here (separate from 'evaluate()' as a quick-call method that can
+        be used where needed.
+        '''
+        # add input data
+        for i, data_input in enumerate(input_dataset):
+            block_material.evaluated[-1*(i+1)] = data_input
+
+        # go solve
+        for node_index in block_material.active_nodes:
+            if node_index < 0:
+                # do nothing. at input node
+                continue
+            elif node_index >= block_def.main_count:
+                # do nothing NOW. at output node. we'll come back to grab output after this loop
+                continue
+            else:
+                # main node. this is where we evaluate
+                function = block_material[node_index]["ftn"]
+                
+                inputs = []
+                node_input_indices = block_material[node_index]["inputs"]
+                for node_input_index in node_input_indices:
+                    inputs.append(block_material.evaluated[node_input_index])
+                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
+
+                args = []
+                node_arg_indices = block_material[node_index]["args"]
+                for node_arg_index in node_arg_indices:
+                    args.append(block_material.args[node_arg_index].value)
+                ezLogging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
+
+                ezLogging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
+                try:
+                    block_material.evaluated[node_index] = function(*inputs, *args)
+                    ezLogging.info("%s - Eval %i; Success" % (block_material.id, node_index))
+                except Exception as err:
+                    ezLogging.info("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
+                    block_material.dead = True
+                    import pdb; pdb.set_trace()
+                    break
+
+        output = []
+        if not block_material.dead:
+            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
+                output.append(block_material.evaluated[block_material.genome[output_index]])
+                
+        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
+        return output
 
     
     def preprocess_block_evaluate(self, block_material):
@@ -105,52 +162,8 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
                  block_def,#: BlockDefinition, 
                  training_datapair: ezDataSet):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        
-        # add input data
-        for i, data_input in enumerate(training_datapair):
-            block_material.evaluated[-1*(i+1)] = data_input
-
-        # go solve
-        for node_index in block_material.active_nodes:
-            if node_index < 0:
-                # do nothing. at input node
-                continue
-            elif node_index >= block_def.main_count:
-                # do nothing NOW. at output node. we'll come back to grab output after this loop
-                continue
-            else:
-                # main node. this is where we evaluate
-                function = block_material[node_index]["ftn"]
-                
-                inputs = []
-                node_input_indices = block_material[node_index]["inputs"]
-                for node_input_index in node_input_indices:
-                    inputs.append(block_material.evaluated[node_input_index])
-                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
-
-                args = []
-                node_arg_indices = block_material[node_index]["args"]
-                for node_arg_index in node_arg_indices:
-                    args.append(block_material.args[node_arg_index].value)
-                ezLogging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
-
-                ezLogging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
-                try:
-                    block_material.evaluated[node_index] = function(*inputs, *args)
-                    ezLogging.info("%s - Eval %i; Success" % (block_material.id, node_index))
-                except Exception as err:
-                    ezLogging.info("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
-                    block_material.dead = True
-                    import pdb; pdb.set_trace()
-                    break
-
-        output = []
-        if not block_material.dead:
-            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
-                output.append(block_material.evaluated[block_material.genome[output_index]])
-                
+        output = self.standard_evaluate(block_material, block_def, training_datapair)
         block_material.output = output
-        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
 
 
     def preprocess_block_evaluate(self, block_material: BlockMaterial):
@@ -182,20 +195,19 @@ class BlockEvaluate_DataAugmentation(BlockEvaluate_Standard):
                  validation_datapair: ezDataSet):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         
-        super().evaluate(block_material, block_def, training_datapair)
+        training_output = self.standard_evaluate(block_material, block_def, training_datapair)
         
         output = []
         if not block_material.dead:
-            output.append(deepcopy(block_material.output[0])) #assuming only 1 output
+            output.append(deepcopy(training_output[0])) #assuming only 1 output
             # here is the unique part...add in validation_datapair
             output.append(validation_datapair[0])
         
         block_material.output = output
-        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
 
 
 
-class BlockEvaluate_DataPreprocess(BlockEvaluate_Standard):
+class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
     '''
     In BlockEvaluate_Standard.evaluate() we only evaluate on the training_datapair.
     But here we want to evaluate both training and validation.
@@ -216,14 +228,13 @@ class BlockEvaluate_DataPreprocess(BlockEvaluate_Standard):
         # going to treat training + validation as separate block_materials!
         output = []
         for datapair in [training_datapair, validation_datapair]:
-            super().evaluate(block_material, block_def, datapair)
+            single_output = self.standard_evaluate(block_material, block_def, datapair)
             if block_material.dead:
                 return []
             else:
-                output.append(deepcopy(block_material.output[0])) #assuming only one output
+                output.append(deepcopy(single_output[0])) #assuming only one output
                 self.preprocess_block_evaluate(block_material) #prep for next loop through datapair
         
         block_material.output = output
-        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
 
 
