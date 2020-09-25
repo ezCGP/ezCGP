@@ -136,16 +136,77 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         pass
 
     @abstractmethod
-    def reset_graph(self):
-        pass
-
-    @abstractmethod
     def train_graph(self):
         pass
 
     @abstractmethod
     def run_graph(self):
         pass
+    
+    def standard_build_graph(self,
+                             block_material: BlockMaterial,
+                             block_def,#: BlockDefinition, 
+                             input_layers):
+        '''
+        trying to generalize the graph building process similar to standard_evaluate()
+        '''
+        # add input data
+        for i, input_layer in enumerate(input_layer):
+            block_material.evaluated[-1*(i+1)] = input_layer
+
+        # go solve
+        for node_index in block_material.active_nodes:
+            if node_index < 0:
+                # do nothing. at input node
+                continue
+            elif node_index >= block_def.main_count:
+                # do nothing NOW. at output node. we'll come back to grab output after this loop
+                continue
+            else:
+                # main node. this is where we evaluate
+                function = block_material[node_index]["ftn"]
+                
+                inputs = []
+                node_input_indices = block_material[node_index]["inputs"]
+                for node_input_index in node_input_indices:
+                    inputs.append(block_material.evaluated[node_input_index])
+                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
+
+                args = []
+                node_arg_indices = block_material[node_index]["args"]
+                for node_arg_index in node_arg_indices:
+                    args.append(block_material.args[node_arg_index].value)
+                ezLogging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
+
+                ezLogging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
+                block_material.evaluated[node_index] = function(*inputs, *args)
+
+        output = []
+        if not block_material.dead:
+            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
+                output.append(block_material.evaluated[block_material.genome[output_index]])
+                
+        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
+        return output
+
+    
+    def preprocess_block_evaluate(self, block_material):
+        '''
+        should always happen before we evaluate...should be in BlockDefinition.evaluate()
+        
+        Note we can always customize this to our block needs which is why we included in BlockEvaluate instead of BlockDefinition
+        '''
+        super().preprocess_block_evaluate(block_material)
+        block_material.graph = None
+
+
+    def postprocess_block_evaluate(self, block_material):
+        '''
+        should always happen after we evaluate. important to blow away block_material.evaluated to clear up memory
+
+        can always customize this method which is why we included it in BlockEvaluate and not BlockDefinition
+        '''
+        super().postprocess_block_evaluate(block_material)
 
 
 
@@ -236,5 +297,83 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
                 self.preprocess_block_evaluate(block_material) #prep for next loop through datapair
         
         block_material.output = output
+
+
+
+class BlockEvaluate_TFKerasGraph(BlockEvaluate_GraphAbstract):
+    '''
+    assuming block_def has these custom attributes:
+     * num_classes
+     * input_shape
+    '''
+    def __init__(self):
+        super().__init__()
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKerasGraph Class" % (None, None))
+        
+        
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition, 
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        ''' stuff the old code has but unclear why
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        #tf.config.experimental.set_virtual_device_configuration(gpus[0],[
+                tf.config.experimental.VirtualDeviceConfiguration(memory_limit = 1024*3)
+                ])
+        '''
+        import tensorflow as tf
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        # Assume input+output layers are going to be lists with only one element
+        
+        #https://www.tensorflow.org/api_docs/python/tf/keras/layers/InputLayer
+        # vs
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Input
+        input_layer = tf.keras.Input(input_shape=block_def.input_shape,
+                                     batch_size=None,
+                                     dtype=None)
+        output_layer = self.standard_build_graph(block_material,
+                                                  block_def,
+                                                  [input_layer])[0]
+        
+        #  flatten the output node and perform a softmax
+        output_flatten = tf.keras.layers.Flatten()(output_layer)
+        logits = tf.keras.layers.Dense(units=block_def.num_classes, activation=None, use_bias=True)(output_flatten)
+        softmax = tf.keras.layers.Softmax(logits, axis=1) # TODO verify axis...axis=1 was given by original code
+
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Model
+        block_material.graph = tf.keras.Model(inputs=input_layer, outputs=softmax)
+        
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
+        block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+                                     loss="categorical_crossentropy",
+                                     metrics=None,
+                                     loss_weights=None,
+                                     weighted_metrics=None,
+                                     run_eagerly=None)
+        
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Model#train_on_batch
+        train_batch_count = len(training_datapair.x_train) // block_def.batch_size
+        validate_batch_count = len(validate_datapair.x_train) // block_def.batch_size
+        for ith_epoch in range(block_def.epochs):
+            
+            train_batch_loss = 0
+            for ith_batch in range(train_batch_count):
+                input_batch, y_batch = training_datapair.next_batch(block_def.batch_size) #next_batch_train()
+                train_batch_loss += block_material.graph.train_on_batch(x=input_batch, y=y_batch)
+            train_batch_loss /= train_batch_count
+            
+            if i % 5 == 0:
+                # get validation score
+                validate_batch_loss = 0
+                for ith_batch in range(train_batch_count):
+                    input_batch, y_batch = validate_datapair.next_batch(block_def.batch_size) #next_batch_train()
+                    validate_batch_loss += block_material.graph.test_on_batch(x=input_batch, y=y_batch)
+                validate_batch_loss /= train_batch_count
+                
+                # TODO get accuracy metrics
+                
+        tf.keras.backend.clear_session()
+        output = ... # validation metrics
 
 
