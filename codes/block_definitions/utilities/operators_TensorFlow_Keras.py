@@ -114,3 +114,14 @@ operator_dict[conv3DTranspose_layer] = {"inputs": [tf.keras.layers],
                                                  argument_types.ArgumentType_TFActivation]
                                        }
 
+def gaussianNoise_layer(input_tensor, stddev=stddev):
+    '''
+    https://www.tensorflow.org/api_docs/python/tf/keras/layers/GaussianNoise
+    '''
+    return tf.keras.layers.GaussianNoise(stddev=stddev)(input_tensor)
+
+
+operator_dict[gaussianNoise_layer] = {"inputs": [tf.keras.layers],
+                                        "output": tf.keras.layers,
+                                        "args": [argument_types.ArgumentType_Float0to1]
+                                       }
