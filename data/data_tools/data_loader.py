@@ -1,8 +1,10 @@
 """
 Purpose is to have a data loader method for each dataset. Helper methods should not go here! We want this file to be
 clean.
-File Created by Michael Jurado, Trai Tan, and Mai Pham"""
+File Created by Michael Jurado, Trai Tan, and Mai Pham
+"""
 # scripts
+import os
 import numpy as np
 
 # packages
@@ -28,7 +30,7 @@ def load_CIFAR10(train_size_perc, validation_size_perc):
 
 
     """ load all of cifar """
-    path = './database/cifar-10-batches-py'
+    path = '../datasets/cifar10/cifar-10-batches-py'
     data = []
     for b in range(1, 6):
         f = os.path.join(path, 'data_batch_%d' % (b,))
