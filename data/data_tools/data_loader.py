@@ -30,7 +30,8 @@ def load_CIFAR10(train_size_perc, validation_size_perc):
 
 
     """ load all of cifar """
-    path = '../datasets/cifar10/cifar-10-batches-py'
+    path = os.path.join(os.path.dirname(__file__),
+                        '../datasets/cifar10/cifar-10-batches-py')
     data = []
     for b in range(1, 6):
         f = os.path.join(path, 'data_batch_%d' % (b,))

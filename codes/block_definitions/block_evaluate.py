@@ -13,6 +13,7 @@ Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDe
 ### packages
 from abc import ABC, abstractmethod
 from copy import deepcopy
+import importlib
 
 ### sys relative to root dir
 import sys
@@ -140,7 +141,7 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         pass
 
     @abstractmethod
-    def run_graph(self):
+    def evaluate(self):
         pass
     
     def standard_build_graph(self,
@@ -276,7 +277,7 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
     '''
     def __init__(self):
         super().__init__()
-        ezLogging.debug("%s-%s - Initialize BlockEvaluate_DataPreprocess Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TrainValidate Class" % (None, None))
         
         
     def evaluate(self,
@@ -300,7 +301,7 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
 
 
 
-class BlockEvaluate_TFKerasGraph(BlockEvaluate_GraphAbstract):
+class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
     '''
     assuming block_def has these custom attributes:
      * num_classes
@@ -308,34 +309,25 @@ class BlockEvaluate_TFKerasGraph(BlockEvaluate_GraphAbstract):
     '''
     def __init__(self):
         super().__init__()
-        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKerasGraph Class" % (None, None))
-        
-        
-    def evaluate(self,
-                 block_material: BlockMaterial,
-                 block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
-        ''' stuff the old code has but unclear why
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        #tf.config.experimental.set_virtual_device_configuration(gpus[0],[
-                tf.config.experimental.VirtualDeviceConfiguration(memory_limit = 1024*3)
-                ])
+        globals()['tf'] = importlib.import_module('tensorflow')
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras Class" % (None, None))
+
+
+    def build_graph(self, block_material, block_def):
         '''
-        import tensorflow as tf
-        ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        # Assume input+output layers are going to be lists with only one element
+        Assume input+output layers are going to be lists with only one element
         
-        #https://www.tensorflow.org/api_docs/python/tf/keras/layers/InputLayer
-        # vs
-        #https://www.tensorflow.org/api_docs/python/tf/keras/Input
+        https://www.tensorflow.org/api_docs/python/tf/keras/layers/InputLayer
+         vs
+        https://www.tensorflow.org/api_docs/python/tf/keras/Input
+        '''
         input_layer = tf.keras.Input(input_shape=block_def.input_shape,
                                      batch_size=None,
                                      dtype=None)
         output_layer = self.standard_build_graph(block_material,
                                                   block_def,
                                                   [input_layer])[0]
-        
+
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
         logits = tf.keras.layers.Dense(units=block_def.num_classes, activation=None, use_bias=True)(output_flatten)
@@ -351,8 +343,16 @@ class BlockEvaluate_TFKerasGraph(BlockEvaluate_GraphAbstract):
                                      loss_weights=None,
                                      weighted_metrics=None,
                                      run_eagerly=None)
-        
-        #https://www.tensorflow.org/api_docs/python/tf/keras/Model#train_on_batch
+
+
+    def train_graph(self,
+                    block_material,
+                    block_def,
+                    training_datapair,
+                    validation_datapair):
+        '''
+        https://www.tensorflow.org/api_docs/python/tf/keras/Model#train_on_batch
+        '''
         train_batch_count = len(training_datapair.x_train) // block_def.batch_size
         validate_batch_count = len(validate_datapair.x_train) // block_def.batch_size
         for ith_epoch in range(block_def.epochs):
@@ -375,5 +375,27 @@ class BlockEvaluate_TFKerasGraph(BlockEvaluate_GraphAbstract):
                 
         tf.keras.backend.clear_session()
         output = ... # validation metrics
+        return output
+
+        
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition, 
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        '''
+        stuff the old code has but unclear why
+        
+            gpus = tf.config.experimental.list_physical_devices('GPU')
+            #tf.config.experimental.set_virtual_device_configuration(gpus[0],[
+                    tf.config.experimental.VirtualDeviceConfiguration(memory_limit = 1024*3)
+                    ])
+        '''
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+
+        self.build_graph(block_material, block_def)
+        output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
+        block_material.output = output # TODO make sure it is a list
+
 
 

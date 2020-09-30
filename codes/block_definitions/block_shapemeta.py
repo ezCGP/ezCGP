@@ -93,7 +93,7 @@ class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
 
 
 
-class BlockShapeMeta_DataAugmentation(ShapeMetaDefinition):
+class BlockShapeMeta_DataAugmentation(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataAugmentation Class" % (None, None))
         import Augmentor
@@ -106,9 +106,9 @@ class BlockShapeMeta_DataAugmentation(ShapeMetaDefinition):
 
 
 
-class BlockShapeMeta_Preprocessing(ShapeMetaDefinition):
+class BlockShapeMeta_DataPreprocessing(BlockShapeMeta_Abstract):
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_Preprocessing Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataPreprocessing Class" % (None, None))
         import Augmentor
         input_dtypes = [Augmentor.Pipeline]
         output_dtypes = [Augmentor.Pipeline]
@@ -119,7 +119,7 @@ class BlockShapeMeta_Preprocessing(ShapeMetaDefinition):
 
 
 
-class BlockShapeMeta_TransferLearning(ShapeMetaDefinition):
+class BlockShapeMeta_TransferLearning(BlockShapeMeta_Abstract):
     '''
     Note that even though the models are type tf.keras.Models,
     we are adding them as 'Augmentor.Operations.Operation' so the
@@ -138,14 +138,14 @@ class BlockShapeMeta_TransferLearning(ShapeMetaDefinition):
 
 
 class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
-    def __int__(self):
+    def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TFKeras Class" % (None, None))
         # don't want it imported all the time so we didn't put it at the top of script
         import tensorflow as tf
         input_dtypes = [tf.keras.layers]
         output_dtypes = [tf.keras.layers]
         main_count = 10
-        super().__init__(input_dtypes,
-                         output_dtypes,
-                         main_count)
+        super().__init__([tf.keras.layers],
+                         [tf.keras.layers],
+                         10)
 

@@ -30,20 +30,20 @@ from data.data_tools.data_loader import load_CIFAR10
 from codes.utilities.custom_logging import ezLogging
 # Block Defs
 from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
-                                                     BlockShapeMeta_Preprocessing,
+                                                     BlockShapeMeta_DataPreprocessing,
                                                      BlockShapeMeta_TransferLearning,
                                                      BlockShapeMeta_TFKeras)
 from codes.block_definitions.block_operators import (BlockOperators_DataAugmentation,
-                                                     BlockOperators_Preprocessing,
+                                                     BlockOperators_DataPreprocessing,
                                                      BlockOperators_TransferLearning,
                                                      BlockOperators_TFKeras)
 from codes.block_definitions.block_arguments import (BlockArguments_DataAugmentation,
-                                                     BlockArguments_Preprocessing,
+                                                     BlockArguments_DataPreprocessing,
                                                      BlockArguments_TransferLearning,
                                                      BlockArguments_TFKeras)
 from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
                                                     BlockEvaluate_DataAugmentation,
-                                                    BlockEvaluate_DataPreprocess,
+                                                    BlockEvaluate_TrainValidate,
                                                     BlockEvaluate_TFKeras)
 from codes.block_definitions.block_mutate import BlockMutate_OptB
 from codes.block_definitions.block_mate import BlockMate_WholeOnly, BlockMate_NoMate
@@ -81,10 +81,10 @@ class Problem(ProblemDefinition_Abstract):
                                                           mate_def=BlockMate_WholeOnly)
 
         preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
-                                                           shape_def=BlockShapeMeta_Preprocessing,
-                                                           operator_def=BlockOperators_Preprocessing,
-                                                           argument_def=BlockArguments_Preprocessing,
-                                                           evaluate_def=BlockEvaluate_DataPreprocess,
+                                                           shape_def=BlockShapeMeta_DataPreprocessing,
+                                                           operator_def=BlockOperators_DataPreprocessing,
+                                                           argument_def=BlockArguments_DataPreprocessing,
+                                                           evaluate_def=BlockEvaluate_TrainValidate,
                                                            mutate_def=BlockMutate_OptB,
                                                            mate_def=BlockMate_WholeOnly)
 
@@ -92,7 +92,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            shape_def=BlockShapeMeta_TransferLearning,
                                                            operator_def=BlockOperators_TransferLearning,
                                                            argument_def=BlockArguments_TransferLearning,
-                                                           evaluate_def=BlockEvaluate_DataPreprocess,
+                                                           evaluate_def=BlockEvaluate_TrainValidate,
                                                            mutate_def=BlockMutate_OptB,
                                                            mate_def=BlockMate_WholeOnly)
 

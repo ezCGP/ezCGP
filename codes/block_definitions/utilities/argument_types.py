@@ -174,7 +174,7 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_TFActivation Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TFActivation Class to %s" % (None, None, self.value.__qualname__))
 
 
     def mutate(self):
@@ -183,7 +183,7 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
-        ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %s" % (None, None, self.value.__qualname__))
 
 
 
@@ -456,7 +456,7 @@ class ArgumentType_Int1to10(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
-            self.mutate_unif_int25()
+            self.mutate_unif_int10()
         else:
             self.value = value
         ezLogging.debug("%s-%s - Initialize ArgumentType_Int1to10 Class to %f" % (None, None, self.value))

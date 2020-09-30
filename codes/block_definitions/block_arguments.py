@@ -198,7 +198,7 @@ class BlockArguments_DataAugmentation(BlockArguments_Abstract):
 
 
 
-class BlockArguments_Preprocessing(BlockArguments_Abstract):
+class BlockArguments_DataPreprocessing(BlockArguments_Abstract):
     '''
     usage tally:
     argument_types.ArgumentType_FilterSize - llll
@@ -209,7 +209,7 @@ class BlockArguments_Preprocessing(BlockArguments_Abstract):
     argument_types.ArgumentType_Int0to25 - ll
     '''
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockArguments_Preprocessing Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockArguments_DataPreprocessing Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
         self.arg_count = 13*3
         arg_dict = {argument_types.ArgumentType_FilterSize: 0.33, # 4/13
