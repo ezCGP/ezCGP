@@ -6,6 +6,7 @@ scipy
 six
 pillow #PIL
 opencv
+scikit-learn
 #mpi4py
 tensorflow
 #Augmentor #only with pip
