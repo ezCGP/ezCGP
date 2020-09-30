@@ -10,7 +10,7 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 import numpy as np
-import logging
+#import logging
 
 ### sys relative to root dir
 import sys
@@ -18,12 +18,13 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
+from codes.utilities.custom_logging import ezLogging
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import data_loader
 from codes.block_definitions.block_shapemeta import BlockShapeMeta_SymbolicRegressionNoArg25, BlockShapeMeta_SymbolicRegressionArg25
 from codes.block_definitions.block_operators import BlockOperators_SymbRegressionOpsNoArgs, BlockOperators_SymbRegressionOpsWithArgs
-from codes.block_definitions.block_arguments import BlockArgumentsNoArgs, BlockArgumentsSmallFloatOnly
+from codes.block_definitions.block_arguments import BlockArguments_NoArgs, BlockArguments_SmallFloatOnly
 from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
 from codes.block_definitions.block_mutate import BlockMutate_OptA, BlockMutate_OptB
 from codes.block_definitions.block_mate import BlockMate_WholeOnly
@@ -48,7 +49,7 @@ class Problem(ProblemDefinition_Abstract):
         block0_def = self.construct_block_def(nickname = "wOutArg_block",
                                              shape_def = BlockShapeMeta_SymbolicRegressionNoArg25,
                                              operator_def = BlockOperators_SymbRegressionOpsNoArgs,
-                                             argument_def = BlockArgumentsNoArgs,
+                                             argument_def = BlockArguments_NoArgs,
                                              evaluate_def = BlockEvaluate_Standard,
                                              mutate_def = BlockMutate_OptA,
                                              mate_def = BlockMate_WholeOnly)
@@ -56,7 +57,7 @@ class Problem(ProblemDefinition_Abstract):
         block1_def = self.construct_block_def(nickname = "wArg_block",
                                              shape_def = BlockShapeMeta_SymbolicRegressionArg25,
                                              operator_def = BlockOperators_SymbRegressionOpsWithArgs,
-                                             argument_def = BlockArgumentsSmallFloatOnly,
+                                             argument_def = BlockArguments_SmallFloatOnly,
                                              evaluate_def = BlockEvaluate_Standard,
                                              mutate_def = BlockMutate_OptB,
                                              mate_def = BlockMate_WholeOnly)
@@ -85,7 +86,7 @@ class Problem(ProblemDefinition_Abstract):
             indiv.fitness.values = (np.inf, np.inf)
         else:
             actual = self.data.y_train
-            predict = indiv.output; print(predict)
+            predict = indiv.output
             error = actual-predict
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
@@ -93,17 +94,17 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 100
+        GENERATION_LIMIT = 5
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse
-        min_firstobjective_index = universe.fitness_scores[:,0].argmin()
-        min_firstobjective = universe.fitness_scores[min_firstobjective_index,:-1]
-        logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
+        min_firstobjective_index = universe.pop_fitness_scores[:,0].argmin()
+        min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:-1]
+        ezLogging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
         if universe.generation >= GENERATION_LIMIT:
-            logging.warning("TERMINATING...reached generation limit.")
+            ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
         if min_firstobjective[0] < SCORE_MIN:
-            logging.warning("TERMINATING...reached minimum scores.")
+            ezLogging.warning("TERMINATING...reached minimum scores.")
             universe.converged = True

@@ -28,7 +28,7 @@ operator_dict = {}
 
 def avg_pool_layer(input_tensor, pool_height=2, pool_width=2, strides=2):
     #return tf.layers.average_pooling2d(inputs=input_tensor, pool_size=[2,2], strides=2)
-    return tf.keras.layers.MaxPool2D(pool_size=[pool_height, pool_width], strides=strides, padding="valid")(input_tensor)
+    return tf.keras.layers.AveragePooling2D(pool_size=[pool_height, pool_width], strides=strides, padding="valid")(input_tensor)
 
 operator_dict[avg_pool_layer] = {"inputs": [tf.keras.layers],
                                  "output": tf.keras.layers,
