@@ -210,3 +210,18 @@ class BlockOperators_TransferLearning(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
+
+class BlockOperators_TFKeras(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_TFKeras Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TensorFlow_Keras']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+

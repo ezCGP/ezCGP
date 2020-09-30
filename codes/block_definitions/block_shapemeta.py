@@ -91,3 +91,61 @@ class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
                                          output_dtypes,
                                          main_count)
 
+
+
+class BlockShapeMeta_DataAugmentation(ShapeMetaDefinition):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataAugmentation Class" % (None, None))
+        import Augmentor
+        input_dtypes = [Augmentor.Pipeline]
+        output_dtypes = [Augmentor.Pipeline]
+        main_count = 10
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_Preprocessing(ShapeMetaDefinition):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_Preprocessing Class" % (None, None))
+        import Augmentor
+        input_dtypes = [Augmentor.Pipeline]
+        output_dtypes = [Augmentor.Pipeline]
+        main_count = 10
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_TransferLearning(ShapeMetaDefinition):
+    '''
+    Note that even though the models are type tf.keras.Models,
+    we are adding them as 'Augmentor.Operations.Operation' so the
+    input/output data types are Augmentor.Pipelines
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TransferLearning Class" % (None, None))
+        import Augmentor
+        input_dtypes = [Augmentor.Pipeline]
+        output_dtypes = [Augmentor.Pipeline]
+        main_count = 5
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
+    def __int__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TFKeras Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        import tensorflow as tf
+        input_dtypes = [tf.keras.layers]
+        output_dtypes = [tf.keras.layers]
+        main_count = 10
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
