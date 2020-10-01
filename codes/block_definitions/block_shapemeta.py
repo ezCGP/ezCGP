@@ -148,4 +148,7 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         super().__init__([tf.keras.layers],
                          [tf.keras.layers],
                          10)
+        
+        self.batch_size = 10
+        self.epochs = 2
 

@@ -26,7 +26,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
-from data.data_tools.data_loader import load_CIFAR10
+from data.data_tools.loader import ezDataLoader_CIFAR10
 from codes.utilities.custom_logging import ezLogging
 # Block Defs
 from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
@@ -65,7 +65,7 @@ class Problem(ProblemDefinition_Abstract):
         4) Custom Keras NN
     '''
     def __init__(self):
-        population_size = 8
+        population_size = 4
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -116,36 +116,41 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def construct_dataset(self):
-        """
-        Loads cifar 10
-        :return: None
-        """
-        dataset = load_CIFAR10(.8, .2)
-        # TODO: look into these notes from before...
-        # force normalization  # will now apply to both pipelines
-        # dataset.preprocess_pipeline.add_operation(Normalize())
-        self.data = dataset
+        '''
+        will return 3 ezData_Images objects
+        with .pipeline, .x, .y attributes
+        '''
+        train, validate, test = ezDataLoader_CIFAR10()
+        self.training_datapair = train
+        self.validation_datapair = validate
+        self.testing_datapair = test
 
         
     def objective_functions(self, indiv):
-        """
+        '''
         :param indiv: individual which contains references to output of training
         :return: None
         
         2 objectives:
             1) accuracy score
             2) f1 score
-        """
-        dataset = self.data
-        _, actual = dataset.preprocess_test_data()
-        actual = np.argmax(actual, axis = 1)
-        predict = indiv.output
-        predict = np.argmax(predict, axis = 1)
-        acc_score = accuracy(actual, predict)
-        f1 = f1_score(actual, predict, average = "macro")
-        indiv.fitness.values = (-acc_score, -f1)  # want to minimize this
-
         
+        Old Code:
+            dataset = self.data
+            _, actual = dataset.preprocess_test_data()
+            actual = np.argmax(actual, axis = 1)
+            predict = indiv.output
+            predict = np.argmax(predict, axis = 1)
+            acc_score = accuracy(actual, predict)
+            f1 = f1_score(actual, predict, average = "macro")
+            indiv.fitness.values = (-acc_score, -f1)  # want to minimize this
+        
+        With updated code, we expect the last block to return the validation metrics assigned to the Model object,
+        so we just need to connect those to the individual's fitness values
+        '''
+        indiv.fitness.values = indiv.output
+
+
     def check_convergence(self, universe):
         """
         :param universe:

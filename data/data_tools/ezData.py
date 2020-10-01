@@ -27,7 +27,7 @@ class ezData():
 
 
 class ezData_Images(ezData):
-    def __init__(self, data_dir=None, x=None, y=None, batch_size=None):
+    def __init__(self, data_dir=None, x=None, y=None):
         '''
         Options:
          (1) load data straight into Augmentor.Pipeline if there a parent directory and all images of each class
@@ -39,16 +39,14 @@ class ezData_Images(ezData):
         
         if (data_dir is not None) and (os.path.isdir(data_dir)):
             self.option = 1
+            self.size = len(self.pipeline.augmentor_images)
         elif (x is not None) and (y is not None):
             self.option = 2
+            self.size = len(self.x)
         else:
             print("error")
 
         self.reset_pipeline()
-
-        if batch_size is None:
-            batch_size = len(self.x)
-        self.batch_size = batch_size
 
 
     def reset_pipeline(self):
