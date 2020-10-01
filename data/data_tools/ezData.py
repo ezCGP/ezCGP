@@ -44,21 +44,21 @@ class ezData_Images(ezData):
         else:
             print("error")
 
-        self.clear_pipeline()
+        self.reset_pipeline()
 
         if batch_size is None:
             batch_size = len(self.x)
         self.batch_size = batch_size
 
 
-    def clear_pipeline(self):
+    def reset_pipeline(self):
         '''
         Method clears the data structures so that individual can be re-evaluated
         '''
         if self.option==1:
             self.pipeline = Augmentor.Pipeline(source_directory=data_dir)
-            #self.x = self.pipeline.augmentor_images
-            #self.y = self.pipeline.class_labels
+            self.x = None #self.pipeline.augmentor_images
+            self.y = None #self.pipeline.class_labels
 
         elif self.option==2:
             self.pipeline = Augmentor.Pipeline()
@@ -71,6 +71,8 @@ class ezData_Images(ezData):
 
     def get_next_batch(self):
         '''
+        Likely going to abandon these methods and use tf.keras.preprocessing.image.ImageDataGenerator
+        ----------
         When using Option (2)
 
         Applies augmentation and preprocessing pipeline to a batch of data

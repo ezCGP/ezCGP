@@ -115,7 +115,7 @@ class ezDataLoader_CIFAR10(ezDataLoader):
             Y = np.array(Y)
             data.append((X,Y))
 
-        x = np.concatenate([x[0] for x in data]).astype(np.uint8)
+        x = np.concatenate([PIL.Image.fromarray(x[0]) for x in data]) #.astype(np.uint8)
         y = np.concatenate([x[1] for x in data])
         y = tf.keras.utils.to_categorical(y, num_classes=10)
 

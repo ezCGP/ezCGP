@@ -339,13 +339,15 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
         block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                                      loss="categorical_crossentropy",
-                                     metrics=None,
+                                     metrics=[tf.keras.Accuracy(),
+                                              tf.keras.Precision(),
+                                              tf.keras.Recall()],
                                      loss_weights=None,
                                      weighted_metrics=None,
                                      run_eagerly=None)
 
 
-    def train_graph(self,
+    def old_train_graph(self,
                     block_material,
                     block_def,
                     training_datapair,
@@ -374,8 +376,85 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                 # TODO get accuracy metrics
                 
         tf.keras.backend.clear_session()
-        output = ... # validation metrics
+        output = ting # validation metrics
         return output
+        
+
+    def get_generator(self,
+                      block_material,
+                      block_def,
+                      training_datapair,
+                      validation_datapair):
+        
+        if training_datapair.x is None:
+            '''
+            Here we assume that all our images are in directories that were fed directly into Augmentor.Pipeline at init
+            so that we don't have to read in all the images at once before we batch them out.
+            This means we can use the Augmentor.Pipeline.keras_generator() method
+            https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_generator
+
+            NOT YET TESTED
+            '''
+            training_generator = training_datapair.keras_generator(batch_size=block_def.batch_size,
+                                                                   scaled=True, #if errors, try setting to False
+                                                                   image_data_format="channels_last", #or "channels_last"
+                                                                  )
+            validation_generator = validation_datapair.keras_generator(batch_size=block_def.batch_size,
+                                                                       scaled=True, #if errors, try setting to False
+                                                                       image_data_format="channels_last", #or "channels_last"
+                                                                      )
+        else:
+            '''
+            Here we assume that we have to load all the data into datapair.x and .y so we have to pass the
+            Augmentor.Pipeline as a method fed into tf.keras.preprocessing.image.ImadeDataGenerator
+            https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_preprocess_func
+            https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
+            '''
+            training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+                                        preprocessing_function=training_datapair.keras_preprocess_func()
+                                        )
+            #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
+            training_generator = training_datagen.flow(x=training_datapair.x,
+                                                       y=training_datapair.y,
+                                                       batch_size=training_datapair.batch_size,
+                                                       shuffle=True)
+
+            validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+                                        preprocessing_function=validation_datapair.keras_preprocess_func()
+                                        )
+            #validation_datagen.fit(validation_datapair.x) # don't need to call fit(); see documentation
+            validation_generator = training_datagen.flow(x=validation_datapair.x,
+                                                         y=validation_datapair.y,
+                                                         batch_size=validation_datapair.batch_size,
+                                                         shuffle=True)
+            
+        return training_generator, validation_generator
+    
+    
+    def train_graph(self,
+                    block_material,
+                    block_def,
+                    training_datapair,
+                    validation_datapair):
+        training_generator, validation_generator = self.get_generators(block_material,
+                                                                       block_def,
+                                                                       training_datapair,
+                                                                       validation_datapair)
+        history = block_material.graph.fit(x=training_generator,
+                                           epochs=block_def.epochs,
+                                           verbose=0,
+                                           callbacks=None,
+                                           validation_data=validation_generator,
+                                           shuffle=True,
+                                           steps_per_epoch=training_datapair.size//block_def.batch_size, # TODO
+                                           validation_steps=validation_datapair.size//block_def.batch_size,
+                                           max_queue_size=10,
+                                           workers=1,
+                                           use_multiprocessing=False,
+                                          )
+        tf.keras.backend.clear_session()
+        output = history.stuff # validation metrics
+        return [history.history['val_accuracy'][-1], history.history['val_precision'][-1], history.history['val_recall'][-1]]
 
         
     def evaluate(self,
