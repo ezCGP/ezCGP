@@ -17,6 +17,8 @@ Rules:
 Since we are manipulating an object instead of actually evaluating something, I decided to deepcopy the object
 before returning it. In hindsight this shouldn't make a difference to the final result but it could make debugging
 easier if the output from each node ends up being different things instead of different variables pointing to the same object.
+
+Probability should always be set to 1 for preprocessing methods.
 '''
 
 ### packages
@@ -74,7 +76,7 @@ class Normalize(Augmentor.Operations.Operation):
 
 def normalize(pipeline):
     pipeline.add_operation(Normalize())
-    return deepcopy(pipeline)
+    return pipeline
 
 
 operator_dict[normalize] = {"inputs": [Augmentor.Pipeline],
@@ -101,14 +103,14 @@ class Blur(Augmentor.Operations.Operation):
         
         augmented_images = []
         for image in images:
-            augmented.append(do(image))
+            augmented_images.append(do(image))
         
         return augmented_images
 
 
-def blur(pipeline):
-    pipeline.add_operation(Blur())
-    return deepcopy(pipeline)
+def blur(pipeline, kernel_size, normalize):
+    pipeline.add_operation(Blur(kernel_size, normalize))
+    return pipeline
 
 
 operator_dict[blur] = {"inputs": [Augmentor.Pipeline],
@@ -133,14 +135,14 @@ class GaussianBlur(Augmentor.Operations.Operation):
         
         augmented_images = []
         for image in images:
-            augmented.append(do(image))
+            augmented_images.append(do(image))
         
         return augmented_images
 
 
-def gaussian_blur(pipeline):
-    pipeline.add_operation(GaussianBlur())
-    return deepcopy(pipeline)
+def gaussian_blur(pipeline, kernel_size):
+    pipeline.add_operation(GaussianBlur(kernel_size))
+    return pipeline
 
 
 operator_dict[gaussian_blur] = {"inputs": [Augmentor.Pipeline],
@@ -167,14 +169,14 @@ class MedianBlur(Augmentor.Operations.Operation):
         
         augmented_images = []
         for image in images:
-            augmented.append(do(image))
+            augmented_images.append(do(image))
         
         return augmented_images
 
 
-def median_blur(pipeline):
-    pipeline.add_operation(MedianBlur())
-    return deepcopy(pipeline)
+def median_blur(pipeline, kernel_size):
+    pipeline.add_operation(MedianBlur(kernel_size))
+    return pipeline
 
 
 operator_dict[median_blur] = {"inputs": [Augmentor.Pipeline],
@@ -221,14 +223,14 @@ class BilateralFilter(Augmentor.Operations.Operation):
         
         augmented_images = []
         for image in images:
-            augmented.append(do(image))
+            augmented_images.append(do(image))
         
         return augmented_images
 
 
 def bilateral_filter(pipeline, d, sigma_color, sigma_space):
     pipeline.add_operation(BilateralFilter(d, sigma_color, sigma_space))
-    return deepcopy(pipeline)
+    return pipeline
 
 
 operator_dict[bilateral_filter] = {"inputs": [Augmentor.Pipeline],
@@ -239,13 +241,13 @@ operator_dict[bilateral_filter] = {"inputs": [Augmentor.Pipeline],
                                   }
 
 
-
+'''
 class Thresholding(Augmentor.Operations.Operation):
-    '''
+    ''
     https://docs.opencv.org/3.4.0/d7/d1b/group__imgproc__misc.html#gae8a4a146d1ca78c626a53577199e9c57
     
     going to pass a (0-1] float and multiply that by 255 to get the threshold
-    '''
+    ''
     def __init__(self, thresh, maxval=255, probability=1):
         super().__init__(probability=probability)
         self.maxval = maxval
@@ -253,34 +255,32 @@ class Thresholding(Augmentor.Operations.Operation):
     
     def perform_operation(self, images):
         def do(image):
-            retval, dst = cv2.threshold(image, thresh=self.thresh, maxval=self.maxval)
+            retval, dst = cv2.threshold(src=image, thresh=self.thresh, maxval=self.maxval)
             return dst
         
         augmented_images = []
         for image in images:
-            augmented.append(do(image))
+            augmented_images.append(do(image))
         
         return augmented_images
 
 
 def thresholding(pipeline, threshold):
     pipeline.add_operation(Thresholding(threshold))
-    return deepcopy(pipeline)
+    return pipeline
 
 
 operator_dict[thresholding] = {"inputs": [Augmentor.Pipeline],
                                "output": Augmentor.Pipeline,
                                "args": [argument_types.ArgumentType_LimitedFloat0to1]
-                              }
+                              }'''
 
 
-
+'''
 class AdaptiveThreshold(Augmentor.Operations.Operation):
-    '''
+    ''
     https://docs.opencv.org/3.4.0/d7/d1b/group__imgproc__misc.html#ga72b913f352e4a1b1b397736707afcde3
-    
-    going to pass a (0-1] float and multiply that by 255 to get the threshold
-    '''
+    ''
     def __init__(self, ith_adaptive_method, ith_threshold_type, blockSize, C, maxValue=255, probability=1):
         super().__init__(probability=probability)
         self.maxValue = maxValue
@@ -306,39 +306,39 @@ class AdaptiveThreshold(Augmentor.Operations.Operation):
         
         augmented_images = []
         for image in images:
-            augmented.append(do(image))
+            augmented_images.append(do(image))
         
         return augmented_images
 
 
 def adaptive_threshold(pipeline, ith_adaptive_method, ith_threshold_type, blockSize, C):
     pipeline.add_operation(AdaptiveThreshold(ith_adaptive_method, ith_threshold_type, blockSize, C))
-    return deepcopy(pipeline)
+    return pipeline
 
 
 operator_dict[adaptive_threshold] = {"inputs": [Augmentor.Pipeline],
                                      "output": Augmentor.Pipeline,
-                                     "args": [argument_types.ArgumentType_LimitedFloat0to1,
-                                              argument_types.ArgumentType_Int0to25,
+                                     "args": [argument_types.ArgumentType_Int0to25,
                                               argument_types.ArgumentType_Int0to25,
                                               argument_types.ArgumentType_FilterSize,
                                               argument_types.ArgumentType_Float0to100]
-                                    }
+                                    }'''
 
 
-
+''' only good for greyscale images not 3 channel
 class OtsuThresholding(Augmentor.Operations.Operation):
-    '''
+    ''
     https://docs.opencv.org/3.4.0/d7/d1b/group__imgproc__misc.html#gae8a4a146d1ca78c626a53577199e9c57
     
     going to pass a (0-1] float and multiply that by 255 to get the threshold
-    '''
+    ''
     def __init__(self, probability=1):
         super().__init__(probability=probability)
     
     def perform_operation(self, images):
         def do(image):
-            retval, dst = cv2.threshold(image,
+            import pdb; pdb.set_trace()
+            retval, dst = cv2.threshold(src=image,
                                         thresh=0,
                                         maxval=255,
                                         type=cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -346,19 +346,19 @@ class OtsuThresholding(Augmentor.Operations.Operation):
         
         augmented_images = []
         for image in images:
-            augmented.append(do(image))
+            augmented_images.append(do(image))
         
         return augmented_images
 
 
 def otsu_thresholding(pipeline):
     pipeline.add_operation(OtsuThresholding())
-    return deepcopy(pipeline)
+    return pipeline
 
 
 operator_dict[otsu_thresholding] = {"inputs": [Augmentor.Pipeline],
                                     "output": Augmentor.Pipeline,
                                     "args": []
-                                   }
+                                   }'''
 
 

@@ -338,11 +338,11 @@ class BlockDefinition():
         NOTE: we take the output and attach to block_material in postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
         '''
         ezLogging.debug("%s - Sending to Block Evaluate Definition" % (block_material.id))
-        # verify that the input data matches the expected datatypes
+        '''# verify that the input data matches the expected datatypes
         for input_dtype, input_data in zip(self.input_dtypes, training_datapair):
             if input_dtype != type(input_data):
                 ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
-                return None
+                return None'''
 
         self.evaluate_def.preprocess_block_evaluate(block_material)
         ezLogging.debug("%s - Before evaluating list active nodes: %s, and args %s" % (block_material.id, block_material.active_nodes, block_material.active_args))

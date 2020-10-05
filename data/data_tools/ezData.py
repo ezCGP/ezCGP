@@ -9,6 +9,7 @@ Rules:
 ### packages
 import os
 import numpy as np
+import importlib
 '''
 ### sys relative to root dir
 import sys
@@ -27,8 +28,9 @@ class ezData():
 
 
 class ezData_Images(ezData):
-    def __init__(self, data_dir=None, x=None, y=None):
+    def __init__(self, x=None, y=None, data_dir=None):
         '''
+        always assume: BatchSize x Height x Width x Channels
         Options:
          (1) load data straight into Augmentor.Pipeline if there a parent directory and all images of each class
             are in their own respective subdirectories
@@ -39,30 +41,20 @@ class ezData_Images(ezData):
         
         if (data_dir is not None) and (os.path.isdir(data_dir)):
             self.option = 1
-            self.size = len(self.pipeline.augmentor_images)
-        elif (x is not None) and (y is not None):
-            self.option = 2
-            self.size = len(self.x)
-        else:
-            print("error")
-
-        self.reset_pipeline()
-
-
-    def reset_pipeline(self):
-        '''
-        Method clears the data structures so that individual can be re-evaluated
-        '''
-        if self.option==1:
             self.pipeline = Augmentor.Pipeline(source_directory=data_dir)
             self.x = None #self.pipeline.augmentor_images
             self.y = None #self.pipeline.class_labels
-
-        elif self.option==2:
+            self.num_images = len(self.pipeline.augmentor_images)
+            self.num_classes = np.unique(self.class_labels, axis=0).shape[0] # TODO check
+            self.image_shape = (0,) # TODO get
+        elif (x is not None) and (y is not None):
+            self.option = 2
             self.pipeline = Augmentor.Pipeline()
             self.x = x
             self.y = y
-
+            self.num_images = len(self.x)
+            self.num_classes = 10 #np.unique(self.y, axis=0).shape[0] # TODO switch back to np.unique after done debug
+            self.image_shape = self.x[0].shape
         else:
             print("error")
 

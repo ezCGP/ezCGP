@@ -82,7 +82,7 @@ class ArgumentType_Bool(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
-            self.value = np.random.choice([True,False])
+            self.value = bool(np.random.choice([True,False]))
         else:
             self.value = bool(value)
         ezLogging.debug("%s-%s - Initialize ArgumentType_Bool Class to %f" % (None, None, self.value))

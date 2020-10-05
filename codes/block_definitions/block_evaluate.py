@@ -44,17 +44,23 @@ class BlockEvaluate_Abstract(ABC):
     
     
     def standard_evaluate(self,
-                          block_material: BlockMaterial,
-                          block_def,#: BlockDefinition, 
-                          input_dataset: ezDataSet):
+                          block_material,
+                          block_def, 
+                          input_list):
         '''
         After a while of developing, we noticed that ALL our blocks followed the same eval process.
         the main difference was WHAT data was passed in...that's it!
         So this is going to be here (separate from 'evaluate()' as a quick-call method that can
         be used where needed.
         '''
+        # verify that the input data matches the expected datatypes
+        for input_dtype, input_data in zip(block_def.input_dtypes, input_list):
+            if input_dtype != type(input_data):
+                ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
+                return None
+
         # add input data
-        for i, data_input in enumerate(input_dataset):
+        for i, data_input in enumerate(input_list):
             block_material.evaluated[-1*(i+1)] = data_input
 
         # go solve
@@ -86,18 +92,18 @@ class BlockEvaluate_Abstract(ABC):
                     block_material.evaluated[node_index] = function(*inputs, *args)
                     ezLogging.info("%s - Eval %i; Success" % (block_material.id, node_index))
                 except Exception as err:
-                    ezLogging.info("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
+                    ezLogging.critical("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
                     block_material.dead = True
                     import pdb; pdb.set_trace()
                     break
 
-        output = []
+        output_list = []
         if not block_material.dead:
             for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
-                output.append(block_material.evaluated[block_material.genome[output_index]])
+                output_list.append(block_material.evaluated[block_material.genome[output_index]])
                 
-        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output)))
-        return output
+        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output_list)))
+        return output_list
 
     
     def preprocess_block_evaluate(self, block_material):
@@ -152,7 +158,7 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         trying to generalize the graph building process similar to standard_evaluate()
         '''
         # add input data
-        for i, input_layer in enumerate(input_layer):
+        for i, input_layer in enumerate(input_layers):
             block_material.evaluated[-1*(i+1)] = input_layer
 
         # go solve
@@ -224,8 +230,9 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
                  block_def,#: BlockDefinition, 
                  training_datapair: ezDataSet):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        output = self.standard_evaluate(block_material, block_def, training_datapair)
-        block_material.output = output
+        output_list = self.standard_evaluate(block_material, block_def, [training_datapair.x])
+        training_datapair.x = output_list[0]
+        block_material.output = training_datapair
 
 
     def preprocess_block_evaluate(self, block_material: BlockMaterial):
@@ -257,15 +264,10 @@ class BlockEvaluate_DataAugmentation(BlockEvaluate_Standard):
                  validation_datapair: ezDataSet):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         
-        training_output = self.standard_evaluate(block_material, block_def, training_datapair)
+        output_list = self.standard_evaluate(block_material, block_def, [training_datapair.pipeline])
+        training_datapair.pipeline = output_list[0] #assuming only outputs the pipeline
         
-        output = []
-        if not block_material.dead:
-            output.append(deepcopy(training_output[0])) #assuming only 1 output
-            # here is the unique part...add in validation_datapair
-            output.append(validation_datapair[0])
-        
-        block_material.output = output
+        block_material.output = [training_datapair, validation_datapair]
 
 
 
@@ -290,13 +292,14 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
         # going to treat training + validation as separate block_materials!
         output = []
         for datapair in [training_datapair, validation_datapair]:
-            single_output = self.standard_evaluate(block_material, block_def, datapair)
+            single_output_list = self.standard_evaluate(block_material, block_def, [datapair.pipeline])
+            datapair.pipeline = single_output_list[0]
             if block_material.dead:
                 return []
             else:
-                output.append(deepcopy(single_output[0])) #assuming only one output
+                output.append(datapair)
                 self.preprocess_block_evaluate(block_material) #prep for next loop through datapair
-        
+ 
         block_material.output = output
 
 
@@ -313,7 +316,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras Class" % (None, None))
 
 
-    def build_graph(self, block_material, block_def):
+    def build_graph(self, block_material, block_def, datapair):
         '''
         Assume input+output layers are going to be lists with only one element
         
@@ -321,8 +324,10 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
          vs
         https://www.tensorflow.org/api_docs/python/tf/keras/Input
         '''
-        input_layer = tf.keras.Input(input_shape=block_def.input_shape,
-                                     batch_size=None,
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
+
+        input_layer = tf.keras.Input(shape=datapair.image_shape,
+                                     batch_size=block_def.batch_size,
                                      dtype=None)
         output_layer = self.standard_build_graph(block_material,
                                                   block_def,
@@ -330,8 +335,8 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
-        logits = tf.keras.layers.Dense(units=block_def.num_classes, activation=None, use_bias=True)(output_flatten)
-        softmax = tf.keras.layers.Softmax(logits, axis=1) # TODO verify axis...axis=1 was given by original code
+        logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
+        softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
 
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model
         block_material.graph = tf.keras.Model(inputs=input_layer, outputs=softmax)
@@ -339,9 +344,9 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
         block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                                      loss="categorical_crossentropy",
-                                     metrics=[tf.keras.Accuracy(),
-                                              tf.keras.Precision(),
-                                              tf.keras.Recall()],
+                                     metrics=[tf.keras.metrics.Accuracy(),
+                                              tf.keras.metrics.Precision(),
+                                              tf.keras.metrics.Recall()],
                                      loss_weights=None,
                                      weighted_metrics=None,
                                      run_eagerly=None)
@@ -411,21 +416,21 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
             '''
             training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                        preprocessing_function=training_datapair.keras_preprocess_func()
+                                        preprocessing_function=training_datapair.pipeline.keras_preprocess_func()
                                         )
             #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
             training_generator = training_datagen.flow(x=training_datapair.x,
                                                        y=training_datapair.y,
-                                                       batch_size=training_datapair.batch_size,
+                                                       batch_size=block_def.batch_size,
                                                        shuffle=True)
 
             validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                        preprocessing_function=validation_datapair.keras_preprocess_func()
+                                        preprocessing_function=validation_datapair.pipeline.keras_preprocess_func()
                                         )
             #validation_datagen.fit(validation_datapair.x) # don't need to call fit(); see documentation
             validation_generator = training_datagen.flow(x=validation_datapair.x,
                                                          y=validation_datapair.y,
-                                                         batch_size=validation_datapair.batch_size,
+                                                         batch_size=block_def.batch_size,
                                                          shuffle=True)
             
         return training_generator, validation_generator
@@ -436,18 +441,25 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                     block_def,
                     training_datapair,
                     validation_datapair):
-        training_generator, validation_generator = self.get_generators(block_material,
-                                                                       block_def,
-                                                                       training_datapair,
-                                                                       validation_datapair)
+        ezLogging.debug("%s - Building Generators" % (block_material.id))
+        training_generator, validation_generator = self.get_generator(block_material,
+                                                                      block_def,
+                                                                      training_datapair,
+                                                                      validation_datapair)
+
+        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
+                                                                                      block_def.batch_size,
+                                                                                      training_datapair.num_images//block_def.batch_size,
+                                                                                      block_def.epochs))
+
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
-                                           verbose=0,
+                                           verbose=1, # TODO set to 0 after done debugging
                                            callbacks=None,
                                            validation_data=validation_generator,
                                            shuffle=True,
-                                           steps_per_epoch=training_datapair.size//block_def.batch_size, # TODO
-                                           validation_steps=validation_datapair.size//block_def.batch_size,
+                                           steps_per_epoch=training_datapair.num_images//block_def.batch_size, # TODO
+                                           validation_steps=validation_datapair.num_images//block_def.batch_size,
                                            max_queue_size=10,
                                            workers=1,
                                            use_multiprocessing=False,
@@ -471,10 +483,181 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                     ])
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        try:
+            self.build_graph(block_material, block_def, training_datapair)
+        except Exception as err:
+            ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            import pdb; pdb.set_trace()
+            return
 
-        self.build_graph(block_material, block_def)
-        output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
+        try:
+            output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
+        except Exception as err:
+            ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            import pdb; pdb.set_trace()
+            return
+        
         block_material.output = output # TODO make sure it is a list
 
 
 
+class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
+    '''
+    Here we will initialize our tf.keras.Model with a pretrained network.
+    We expect another TFKeras Block to finish the Model and compile it then.
+    So this block does not handle compiling or training.
+
+    TODO - consider setting pretrained network layers to 'untrainable'
+    '''
+    def __init__(self):
+        super().__init__()
+        globals()['tf'] = importlib.import_module('tensorflow')
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras_TransferLearning Class" % (None, None))
+
+
+    def build_graph(self, block_material, block_def, datapair):
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
+
+        input_layer = tf.keras.Input(shape=datapair.image_shape,
+                                     batch_size= None,
+                                     dtype=None)
+
+        output_layer = self.standard_build_graph(block_material,
+                                                  block_def,
+                                                  [input_layer])[0]
+
+        # attach layers to datapair so it is available to the next block
+        datapair.graph_input_layer = input_layer
+        datapair.final_pretrained_layer = output_layer
+
+
+    def train_graph(self):
+        pass
+
+        
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition, 
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+
+        try:
+            self.build_graph(block_material, block_def, training_datapair)
+        except Exception as err:
+            ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            import pdb; pdb.set_trace()
+            return
+
+        block_material.output = [training_datapair, validation_datapair]
+
+
+
+class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
+    '''
+    Should follow a BlockEvaluate_TFKeras_TransferLearning Block so that it's input is the final layer
+    of the pretrained tf.keras model.
+    In this block, we'll finish building the graph, compile and train.
+    '''
+    def __init__(self):
+        super().__init__()
+        globals()['tf'] = importlib.import_module('tensorflow')
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras_AfterTransferLearning Class" % (None, None))
+
+
+    def build_graph(self, block_material, block_def, datapair):
+        '''
+        Assume input+output layers are going to be lists with only one element
+        
+        https://www.tensorflow.org/api_docs/python/tf/keras/layers/InputLayer
+         vs
+        https://www.tensorflow.org/api_docs/python/tf/keras/Input
+        '''
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
+
+        output_layer = self.standard_build_graph(block_material,
+                                                  block_def,
+                                                  [datapair.final_pretrained_layer])[0]
+
+        #  flatten the output node and perform a softmax
+        output_flatten = tf.keras.layers.Flatten()(output_layer)
+        logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
+        softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
+
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Model
+        block_material.graph = tf.keras.Model(inputs=datapair.input_layer, outputs=softmax)
+        
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
+        block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+                                     loss="categorical_crossentropy",
+                                     metrics=[tf.keras.metrics.Accuracy(),
+                                              tf.keras.metrics.Precision(),
+                                              tf.keras.metrics.Recall()],
+                                     loss_weights=None,
+                                     weighted_metrics=None,
+                                     run_eagerly=None)
+    
+    
+    def train_graph(self,
+                    block_material,
+                    block_def,
+                    training_datapair,
+                    validation_datapair):
+        ezLogging.debug("%s - Building Generators" % (block_material.id))
+        training_generator, validation_generator = self.get_generator(block_material,
+                                                                      block_def,
+                                                                      training_datapair,
+                                                                      validation_datapair)
+
+        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
+                                                                                      block_def.batch_size,
+                                                                                      training_datapair.num_images//block_def.batch_size,
+                                                                                      block_def.epochs))
+        for i, data in enumerate(training_generator):
+            print(i, data[0].shape, data[1].shape)
+            if i == 10:
+                import pdb; pdb.set_trace()
+
+        history = block_material.graph.fit(x=training_generator,
+                                           epochs=block_def.epochs,
+                                           verbose=1, # TODO set to 0 after done debugging
+                                           callbacks=None,
+                                           validation_data=validation_generator,
+                                           shuffle=True,
+                                           steps_per_epoch=training_datapair.num_images//block_def.batch_size, # TODO
+                                           validation_steps=validation_datapair.num_images//block_def.batch_size,
+                                           max_queue_size=10,
+                                           workers=1,
+                                           use_multiprocessing=False,
+                                          )
+        tf.keras.backend.clear_session()
+        output = history.stuff # validation metrics
+        return [history.history['val_accuracy'][-1], history.history['val_precision'][-1], history.history['val_recall'][-1]]
+
+        
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition, 
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        try:
+            self.build_graph(block_material, block_def, training_datapair)
+        except Exception as err:
+            ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            import pdb; pdb.set_trace()
+            return
+
+        try:
+            output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
+        except Exception as err:
+            ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            import pdb; pdb.set_trace()
+            return
+        
+        block_material.output = output # TODO make sure it is a list

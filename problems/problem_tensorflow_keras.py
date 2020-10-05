@@ -44,7 +44,9 @@ from codes.block_definitions.block_arguments import (BlockArguments_DataAugmenta
 from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
                                                     BlockEvaluate_DataAugmentation,
                                                     BlockEvaluate_TrainValidate,
-                                                    BlockEvaluate_TFKeras)
+                                                    BlockEvaluate_TFKeras,
+                                                    BlockEvaluate_TFKeras_TransferLearning,
+                                                    BlockEvaluate_TFKeras_AfterTransferLearning)
 from codes.block_definitions.block_mutate import BlockMutate_OptB
 from codes.block_definitions.block_mate import BlockMate_WholeOnly, BlockMate_NoMate
 # Individual Defs
@@ -92,7 +94,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            shape_def=BlockShapeMeta_TransferLearning,
                                                            operator_def=BlockOperators_TransferLearning,
                                                            argument_def=BlockArguments_TransferLearning,
-                                                           evaluate_def=BlockEvaluate_TrainValidate,
+                                                           evaluate_def=BlockEvaluate_TFKeras_TransferLearning,
                                                            mutate_def=BlockMutate_OptB,
                                                            mate_def=BlockMate_WholeOnly)
 
@@ -100,14 +102,14 @@ class Problem(ProblemDefinition_Abstract):
                                                         shape_def=BlockShapeMeta_TFKeras,
                                                         operator_def=BlockOperators_TFKeras,
                                                         argument_def=BlockArguments_TFKeras,
-                                                        evaluate_def=BlockEvaluate_TFKeras,
+                                                        evaluate_def=BlockEvaluate_TFKeras_AfterTransferLearning,
                                                         mutate_def=BlockMutate_OptB,
                                                         mate_def=BlockMate_WholeOnly)
         
         self.construct_individual_def(block_defs=[augmentation_block_def,
-                                                    preprocessing_block_def,
-                                                    transferlearning_block_def,
-                                                    tensorflow_block_def],
+                                                  #preprocessing_block_def,
+                                                  transferlearning_block_def,
+                                                  tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
                                       evaluate_def=IndividualEvaluate_withValidation)
@@ -120,10 +122,11 @@ class Problem(ProblemDefinition_Abstract):
         will return 3 ezData_Images objects
         with .pipeline, .x, .y attributes
         '''
-        train, validate, test = ezDataLoader_CIFAR10()
-        self.training_datapair = train
-        self.validation_datapair = validate
-        self.testing_datapair = test
+        train, validate, test = ezDataLoader_CIFAR10().load()
+        # remember that our input data has to be a list!
+        self.train_data = train
+        self.validate_data = validate
+        self.test_data = test
 
         
     def objective_functions(self, indiv):

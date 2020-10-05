@@ -9,6 +9,7 @@ Rules:
 ### packages
 import os
 import numpy as np
+import importlib
 from abc import ABC, abstractmethod
 import six
 from six.moves import cPickle as pickle
@@ -62,9 +63,9 @@ class ezDataLoader(ABC):
             y_validate = None
             y_test = None
         else:
-            y_train = x[train_index]
-            y_validate = x[validate_index]
-            y_test = x[test_index]
+            y_train = y[train_index]
+            y_validate = y[validate_index]
+            y_test = y[test_index]
 
         return (x_train, y_train), (x_validate, y_validate), (x_test, y_test)
 
@@ -111,18 +112,22 @@ class ezDataLoader_CIFAR10(ezDataLoader):
                     datadict = pickle.load(f, encoding='latin1')
             X = datadict['data']
             Y = datadict['labels']
-            X = X.reshape(*xshape).transpose(0, 2, 3, 1).astype("float")
+            X = X.reshape(*image_shape).transpose(0, 2, 3, 1).astype("float")
             Y = np.array(Y)
             data.append((X,Y))
 
-        x = np.concatenate([PIL.Image.fromarray(x[0]) for x in data]) #.astype(np.uint8)
+        x = np.concatenate([x[0] for x in data]).astype(np.uint8) # 2020S code eventually calls PIL.Image.fromarray; I don't think needed
         y = np.concatenate([x[1] for x in data])
         y = tf.keras.utils.to_categorical(y, num_classes=10)
 
         train_xy, validate_xy, test_xy= self.split(x, y)
 
+        ''' HACKED - TODO switch after done testing
         train_datapair = ezdata.ezData_Images(*train_xy)
         validate_datapair = ezdata.ezData_Images(*validate_xy)
-        test_datapair = ezdata.ezData_Images(*test_xy)
+        test_datapair = ezdata.ezData_Images(*test_xy)'''
+        train_datapair = ezdata.ezData_Images(train_xy[0][:30], train_xy[1][:30])
+        validate_datapair = ezdata.ezData_Images(validate_xy[0][:30], validate_xy[1][:30])
+        test_datapair = [] #ezdata.ezData_Images(*test_xy)
 
         return train_datapair, validate_datapair, test_datapair

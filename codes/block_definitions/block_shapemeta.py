@@ -130,7 +130,7 @@ class BlockShapeMeta_TransferLearning(BlockShapeMeta_Abstract):
         import Augmentor
         input_dtypes = [Augmentor.Pipeline]
         output_dtypes = [Augmentor.Pipeline]
-        main_count = 5
+        main_count = 1
         super().__init__(input_dtypes,
                          output_dtypes,
                          main_count)
@@ -149,6 +149,6 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
                          [tf.keras.layers],
                          10)
         
-        self.batch_size = 10
+        self.batch_size = 5
         self.epochs = 2
 

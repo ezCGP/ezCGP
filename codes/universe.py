@@ -147,7 +147,7 @@ class UniverseDefinition():
         self.pop_individual_ids = []
         for indiv in self.population.population:
             # EVALUATE
-            problem.indiv_def.evaluate(indiv, problem.data.x_train)
+            problem.indiv_def.evaluate(indiv, problem.train_data, problem.validate_data)
             # SCORE
             problem.objective_functions(indiv)
             self.pop_fitness_scores.append(indiv.fitness.values)

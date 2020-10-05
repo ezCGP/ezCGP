@@ -78,7 +78,7 @@ class BlockOperators_Abstract():
         ezLogging.debug("%s-%s - Inside get_all_functions" % (None, None))
         all_functions = []
         for name, execute in inspect.getmembers(globals()[module]): # returns list of tuples of everything in that module
-            if inspect.isfunction(execute) and  execute.__module__.endswith(module):
+            if (inspect.isfunction(execute)) and  (execute.__module__.endswith(module)) and (execute in self.operator_dict):
                 # check if what we are pulling is a function, then make sure it is a function defined in that module
                 # as oposed to something imported like dirname from os.path
                 all_functions.append(execute)
