@@ -153,13 +153,20 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
     def standard_build_graph(self,
                              block_material: BlockMaterial,
                              block_def,#: BlockDefinition, 
-                             input_layers):
+                             input_layers = None):
         '''
         trying to generalize the graph building process similar to standard_evaluate()
+
+        For Transfer Learning:
+        we expect input_layers to be None, and later when we call function(*inputs, *args), we want to pass in
+        an empty list for inputs.
+        This also guarentees that no matter how many 'active nodes' we have for our transfer learning block,
+        we will only ever use one pretrained model...no inputs are shared between nodes so the models never connect!
         '''
         # add input data
-        for i, input_layer in enumerate(input_layers):
-            block_material.evaluated[-1*(i+1)] = input_layer
+        if input_layers is not None:
+            for i, input_layer in enumerate(input_layers):
+                block_material.evaluated[-1*(i+1)] = input_layer
 
         # go solve
         for node_index in block_material.active_nodes:
@@ -174,10 +181,11 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
                 function = block_material[node_index]["ftn"]
                 
                 inputs = []
-                node_input_indices = block_material[node_index]["inputs"]
-                for node_input_index in node_input_indices:
-                    inputs.append(block_material.evaluated[node_input_index])
-                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
+                if input_layers is not None:
+                    node_input_indices = block_material[node_index]["inputs"]
+                    for node_input_index in node_input_indices:
+                        inputs.append(block_material.evaluated[node_input_index])
+                    ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
 
                 args = []
                 node_arg_indices = block_material[node_index]["args"]
@@ -520,13 +528,8 @@ class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
     def build_graph(self, block_material, block_def, datapair):
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        input_layer = tf.keras.Input(shape=datapair.image_shape,
-                                     batch_size= None,
-                                     dtype=None)
-
-        output_layer = self.standard_build_graph(block_material,
-                                                  block_def,
-                                                  [input_layer])[0]
+        input_layer, output_layer = self.standard_build_graph(block_material,
+                                                              block_def)[0]
 
         # attach layers to datapair so it is available to the next block
         datapair.graph_input_layer = input_layer
