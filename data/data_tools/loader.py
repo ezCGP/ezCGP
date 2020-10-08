@@ -131,3 +131,16 @@ class ezDataLoader_CIFAR10(ezDataLoader):
         test_datapair = [] #ezdata.ezData_Images(*test_xy)
 
         return train_datapair, validate_datapair, test_datapair
+
+class ezDataLoader_MNIST(ezDataLoader):
+    def __init__(self,
+                 train_split=0.5,
+                 validate_split=0.25,
+                 test_split=0.25):
+        super().__init__(train_split, validate_split, test_split)
+
+    def load(self):
+        import tensorflow as tf
+        mnist = tf.keras.datasets.mnist
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        # return train_datapair, validate_split, test_datapair
