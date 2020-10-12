@@ -210,6 +210,22 @@ class BlockOperators_TransferLearning(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
+class BlockOperators_Keras_TransferLearning(BlockOperators_Abstract):
+    '''
+    pass data through some pretrained network
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TFKeras_TransferLearning']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
 
 class BlockOperators_TFKeras(BlockOperators_Abstract):
     def __init__(self):
