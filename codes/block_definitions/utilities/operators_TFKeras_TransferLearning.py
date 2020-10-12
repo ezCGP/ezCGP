@@ -35,14 +35,14 @@ operator_dict[vgg16] = {"inputs": [tf.keras.layers],
                         }
 
 
-def vgg16(input_layers):
+def resnet(input_layers):
     '''
     https://www.tensorflow.org/api_docs/python/tf/keras/applications/ResNet152V2
     '''
     pretrained_model = tf.keras.applications.ResNet152V2(include_top=False, weights='imagenet', input_tensor=None, input_shape=(224, 224, 3), pooling=None)
     return tf.keras.layers.Add()[input_layers , pretrained_model.layers[-1].output]
 
-operator_dict[vgg16] = {"inputs": [tf.keras.layers],
+operator_dict[resnet] = {"inputs": [tf.keras.layers],
                         "output": tf.keras.layers,
                         "args": []
                         }
