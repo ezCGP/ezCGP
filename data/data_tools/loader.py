@@ -131,3 +131,42 @@ class ezDataLoader_CIFAR10(ezDataLoader):
         test_datapair = [] #ezdata.ezData_Images(*test_xy)
 
         return train_datapair, validate_datapair, test_datapair
+
+class ezDataLoader_CIFAR100(ezDataLoader):
+    def __init__(self,
+                 train_split=0.5,
+                 validate_split=0.25,
+                 test_split=0.25):
+        super().__init__(train_split, validate_split, test_split)
+
+    def load(self):
+        # https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar100/load_data
+        ###
+        # 50,000 32x32 color training images and 10,000 test images
+        # labeled over 100 fine-grained classes that are grouped into 20 coarse-grained classes.
+        # train_split ratio is not
+        # want channel last 
+        ###
+        import tensorflow as tf
+        cifar100 = tf.keras.datasets.cifar100
+        (x_train, y_train), (x_test, y_test) = cifar100.load_data()
+        train_datapair = ezdata.ezData_Images(x_train, y_train)
+        validate_datapair = ezdata.ezData_Images(x_test, y_test)
+        return train_datapair, validate_datapair
+
+class ezDataLoader_MNIST(ezDataLoader):
+    def __init__(self,
+                 train_split=0.5,
+                 validate_split=0.25,
+                 test_split=0.25):
+        super().__init__(train_split, validate_split, test_split)
+
+    def load(self):
+        # https://www.tensorflow.org/api_docs/python/tf/keras/datasets/mnist/load_data
+        # image shape is (Samples, width, height, channels)
+        import tensorflow as tf
+        mnist = tf.keras.datasets.mnist
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        train_datapair = ezdata.ezData_Images(x_train, y_train)
+        validate_datapair = ezdata.ezData_Images(x_test, y_test)
+        return train_datapair, validate_datapair
