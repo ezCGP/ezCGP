@@ -387,13 +387,10 @@ class FactoryDefinition():
         TODO
         '''
         block_material.genome = [None]*block_def.genome_count
-        ezLogging.debug(" WAHOO1 %i %i %i" % (len(block_material.genome), block_def.genome_count, block_def.input_count))
         block_material.genome[(-1*block_def.input_count):] = ["InputPlaceholder"]*block_def.input_count
-        ezLogging.debug(" WAHOO2 %i %i" % (len(block_material.genome), block_def.genome_count))
 
         # fill main nodes
         for node_index in range(block_def.main_count):
-            ezLogging.debug(" WAHOO3 %i %i" % (len(block_material.genome), block_def.genome_count))
             ftns = block_def.get_random_ftn(return_all=True)
             for ftn in ftns:
                 # find inputs
@@ -424,10 +421,9 @@ class FactoryDefinition():
                                               "args": arg_index}
                 break
             # error check that node got filled
-            ezLogging.debug(" THIS %s: %i / %i %i " % (block_def.nickname, node_index, len(block_material.genome), block_def.genome_count))
-            ezLogging.debug(" THAT %s" % (type(block_material.genome)))
             if block_material[node_index] is None:
                 print("GENOME ERROR: no primitive was able to fit into current genome arrangment")
+                import pdb; pdb.set_trace()
                 exit()
 
         # fill output nodes

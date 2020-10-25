@@ -31,11 +31,11 @@ from codes.utilities.custom_logging import ezLogging
 # Block Defs
 from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
                                                      BlockShapeMeta_DataPreprocessing,
-                                                     BlockShapeMeta_TransferLearning,
+                                                     BlockShapeMeta_TFKeras_TransferLearning,
                                                      BlockShapeMeta_TFKeras)
 from codes.block_definitions.block_operators import (BlockOperators_DataAugmentation,
                                                      BlockOperators_DataPreprocessing,
-                                                     BlockOperators_TransferLearning,
+                                                     BlockOperators_TFKeras_TransferLearning_CIFAR,
                                                      BlockOperators_TFKeras)
 from codes.block_definitions.block_arguments import (BlockArguments_DataAugmentation,
                                                      BlockArguments_DataPreprocessing,
@@ -45,14 +45,14 @@ from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
                                                     BlockEvaluate_DataAugmentation,
                                                     BlockEvaluate_TrainValidate,
                                                     BlockEvaluate_TFKeras,
-                                                    BlockEvaluate_TFKeras_TransferLearning,
+                                                    BlockEvaluate_TFKeras_TransferLearning2,
                                                     BlockEvaluate_TFKeras_AfterTransferLearning)
 from codes.block_definitions.block_mutate import BlockMutate_OptB
 from codes.block_definitions.block_mate import BlockMate_WholeOnly, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_withValidation
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_withValidation_andTransferLearning
 
 
 
@@ -71,7 +71,7 @@ class Problem(ProblemDefinition_Abstract):
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
-        mpi = True
+        mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
         
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
@@ -91,10 +91,10 @@ class Problem(ProblemDefinition_Abstract):
                                                            mate_def=BlockMate_WholeOnly)
 
         transferlearning_block_def = self.construct_block_def(nickname="transferlearning_block",
-                                                           shape_def=BlockShapeMeta_TransferLearning,
-                                                           operator_def=BlockOperators_TransferLearning,
+                                                           shape_def=BlockShapeMeta_TFKeras_TransferLearning,
+                                                           operator_def=BlockOperators_TFKeras_TransferLearning_CIFAR,
                                                            argument_def=BlockArguments_TransferLearning,
-                                                           evaluate_def=BlockEvaluate_TFKeras_TransferLearning,
+                                                           evaluate_def=BlockEvaluate_TFKeras_TransferLearning2,
                                                            mutate_def=BlockMutate_OptB,
                                                            mate_def=BlockMate_WholeOnly)
 
@@ -112,7 +112,7 @@ class Problem(ProblemDefinition_Abstract):
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
-                                      evaluate_def=IndividualEvaluate_withValidation)
+                                      evaluate_def=IndividualEvaluate_withValidation_andTransferLearning)
 
         self.construct_dataset()
 
@@ -151,7 +151,7 @@ class Problem(ProblemDefinition_Abstract):
         With updated code, we expect the last block to return the validation metrics assigned to the Model object,
         so we just need to connect those to the individual's fitness values
         '''
-        indiv.fitness.values = indiv.output
+        indiv.fitness.values = tuple(indiv.output)
 
 
     def check_convergence(self, universe):

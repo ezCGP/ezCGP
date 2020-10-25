@@ -84,10 +84,13 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
                  indiv_def, #IndividualDefinition,
                  training_datapair: ezDataSet,
                  validation_datapair: ezDataSet):
+        '''
+        we want to deepcopy the data before evaluate so that in future if need_evaluate is False, we can grab the
+        block_material.output and it will be unique to that block not shared with whole individual.
+        '''
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if block_material.need_evaluate:
                 ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-                #print("before evaluate"); import pdb; pdb.set_trace()
                 block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
                 if block_material.dead:
                     indiv_material.dead = True
@@ -97,6 +100,62 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
             training_datapair, validation_datapair = block_material.output
-            #print("after evaluate"); import pdb; pdb.set_trace()
 
         indiv_material.output = training_datapair, validation_datapair
+
+
+
+class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_Abstract):
+    '''
+    In IndividualEvaluate_Standard() it is assumed we don't have validation data, so each block
+    only outputs the training_datapair for the next block.
+    With validation data, we want to return and pass the training and validation data between blocks.
+    ...otherwise the process flow is the same
+
+    see note in evaluate() for specifics of Transfer Learning
+    '''
+    def __init__(self):
+        pass
+    
+    
+    def evaluate(self,
+                 indiv_material: IndividualMaterial,
+                 indiv_def, #IndividualDefinition,
+                 training_datapair: ezDataSet,
+                 validation_datapair: ezDataSet):
+        '''
+        we want to deepcopy the data before evaluate so that in future if need_evaluate is False, we can grab the
+        block_material.output and it will be unique to that block not shared with whole individual.
+
+        the output of tansfer learning with tfkeras are the first and last layers of the model. those are added to
+        attributes of training datapair but that makes the datapair un-deepcopy-able. so we don't deepcopy it,
+        but that means that we can't save the state of datapair after transfer learning but before tensorflow block
+        so even if need_evaluate is False, we also re-evaluate since the saved output is really the output of tensorflow
+        block not after transfer learning.
+        '''
+        for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
+            if (block_def.nickname == 'transferlearning_block') and (indiv_material[block_index+1].need_evaluate):
+                # always always always evaluate if tensorflow_block need_evaluate
+                # otherwise we assume that all blocks of individual are need_evaluate False so it'll just grab indiv_material.output
+                block_material.need_evaluate = True
+
+            if block_material.need_evaluate:
+                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
+                if block_def.nickname == 'tensorflow_block':
+                    block_def.evaluate(block_material, training_datapair, validation_datapair)
+                    # delete anything we don't need anymore that will break a 'deepcopy' call
+                    del training_datapair.graph_input_layer
+                    del training_datapair.final_pretrained_layer
+                else:
+                    block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
+                if block_material.dead:
+                    indiv_material.dead = True
+                    break
+                else:
+                    pass
+            else:
+                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+            training_datapair, validation_datapair = block_material.output
+
+        # training_datapair will be None, and validation_datapair will be the final fitness scores
+        indiv_material.output = validation_datapair

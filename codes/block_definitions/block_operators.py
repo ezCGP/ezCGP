@@ -192,7 +192,7 @@ class BlockOperators_DataPreprocessing(BlockOperators_Abstract):
 
 
 
-class BlockOperators_TransferLearning(BlockOperators_Abstract):
+class BlockOperators_Augmentor_TransferLearning(BlockOperators_Abstract):
     '''
     pass data through some pretrained network
     '''
@@ -210,7 +210,8 @@ class BlockOperators_TransferLearning(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-class BlockOperators_Keras_TransferLearning(BlockOperators_Abstract):
+
+class BlockOperators_TFKeras_TransferLearning(BlockOperators_Abstract):
     '''
     pass data through some pretrained network
     '''
@@ -218,7 +219,7 @@ class BlockOperators_Keras_TransferLearning(BlockOperators_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
-        modules = ['operators_TFKeras_TransferLearning']
+        modules = ['operators_TFKeras_transferlearning']
         self.import_operator_scripts(modules)
 
         weight_dict = {}
@@ -226,6 +227,30 @@ class BlockOperators_Keras_TransferLearning(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_TFKeras_TransferLearning_CIFAR(BlockOperators_Abstract):
+    '''
+    pass data through some pretrained network
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TFKeras_transferlearning']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        # remove inception() for CIFAR dataset since image size is too small
+        weight_dict[operators_TFKeras_transferlearning.inception] = 0
+
+        self.init_from_weight_dict(weight_dict)
+
+
 
 class BlockOperators_TFKeras(BlockOperators_Abstract):
     def __init__(self):

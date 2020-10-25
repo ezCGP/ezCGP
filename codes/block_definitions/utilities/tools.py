@@ -48,10 +48,12 @@ def build_weights(method_dict):
     methods = [None] * len(method_dict)
     weights = [None] * len(method_dict)
     equally_distribute = []
+    remove = []
     for i, (meth_type, prob) in enumerate(method_dict.items()):
         methods[i] = meth_type
         if prob <= 0:
             weights[i] = 0
+            remove.append(i)
             continue
         elif prob < 1:
             prob_remaining -= prob
@@ -68,6 +70,11 @@ def build_weights(method_dict):
         eq_weight = round(prob_remaining/len(equally_distribute), 4)
         for i in equally_distribute:
             weights[i] = eq_weight
+    # remove anything flagged as such
+    remove.sort()
+    for i in remove[::-1]:
+        del weights[i]
+        del methods[i]
     # now clean up any rounding errors by appending any remainder to the last method
     remainder = 1 - sum(weights)
     if remainder > .01:
