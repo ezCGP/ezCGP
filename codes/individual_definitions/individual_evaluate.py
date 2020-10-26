@@ -16,7 +16,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from data.data_tools.data_types import ezDataSet
+from data.data_tools.ezData import ezData
 from codes.genetic_material import IndividualMaterial
 #from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
 from codes.utilities.custom_logging import ezLogging
@@ -31,8 +31,8 @@ class IndividualEvaluate_Abstract(ABC):
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #: IndividualDefinition,
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet=None):
+                 training_datapair: ezData,
+                 validation_datapair: ezData=None):
         pass
 
 
@@ -49,8 +49,8 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #: IndividualDefinition,
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet=None):
+                 training_datapair: ezData,
+                 validation_datapair: ezData=None):
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if block_material.need_evaluate:
                 ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
@@ -82,8 +82,8 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         '''
         we want to deepcopy the data before evaluate so that in future if need_evaluate is False, we can grab the
         block_material.output and it will be unique to that block not shared with whole individual.
@@ -121,8 +121,8 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         '''
         we want to deepcopy the data before evaluate so that in future if need_evaluate is False, we can grab the
         block_material.output and it will be unique to that block not shared with whole individual.

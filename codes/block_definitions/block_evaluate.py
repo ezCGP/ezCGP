@@ -21,7 +21,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from data.data_tools.data_types import ezDataSet
+from data.data_tools.ezData import ezData
 from codes.genetic_material import BlockMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 from codes.utilities.custom_logging import ezLogging
@@ -38,8 +38,8 @@ class BlockEvaluate_Abstract(ABC):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet=None):
+                 training_datapair: ezData,
+                 validation_datapair: ezData=None):
         pass
     
     
@@ -237,7 +237,7 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet):
+                 training_datapair: ezData):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         output_list = self.standard_evaluate(block_material, block_def, [training_datapair.x])
         training_datapair.x = output_list[0]
@@ -269,8 +269,8 @@ class BlockEvaluate_DataAugmentation(BlockEvaluate_Standard):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def, #: BlockDefinition,
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         
         output_list = self.standard_evaluate(block_material, block_def, [training_datapair.pipeline])
@@ -294,8 +294,8 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         
         # going to treat training + validation as separate block_materials!
@@ -483,8 +483,8 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         '''
         stuff the old code has but unclear why
         
@@ -550,8 +550,8 @@ class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
 
         try:
@@ -638,8 +638,8 @@ class BlockEvaluate_TFKeras_TransferLearning2(BlockEvaluate_GraphAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
 
         try:
@@ -734,6 +734,12 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
             Augmentor.Pipeline as a method fed into tf.keras.preprocessing.image.ImadeDataGenerator
             https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_preprocess_func
             https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
+
+            keras_preprocess_func doc:
+            "The function will run after the image is resized and augmented. The function should take one
+            argument: one image (Numpy tensor with rank 3), and should output a Numpy tensor with the same shape."
+            So we can't have any Augmentor.Operations that change the shape of the data or else we'll get an
+            error like: 'ValueError: could not broadcast input array from shape (...) into shape (...)'
             '''
             training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
                                         preprocessing_function=training_datapair.pipeline.keras_preprocess_func()
@@ -778,7 +784,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
             if i == 31:
                 # why did I do this?
                 import pdb; pdb.set_trace()'''
-
+        
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
                                            verbose=1, # TODO set to 0 or 2 after done debugging
@@ -801,8 +807,8 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezDataSet,
-                 validation_datapair: ezDataSet):
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
             self.build_graph(block_material, block_def, training_datapair)

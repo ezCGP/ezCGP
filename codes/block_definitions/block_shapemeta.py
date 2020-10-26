@@ -18,7 +18,6 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from data.data_tools import data_types
 from codes.utilities.custom_logging import ezLogging
 
 

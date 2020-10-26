@@ -36,7 +36,7 @@ from codes.block_definitions.block_evaluate import BlockEvaluate_Abstract
 from codes.block_definitions.block_mutate import BlockMutate_Abstract
 from codes.block_definitions.block_mate import BlockMate_Abstract
 from codes.genetic_material import IndividualMaterial, BlockMaterial
-from data.data_tools.data_types import ezDataSet
+from data.data_tools.ezData import ezData
 from codes.utilities.custom_logging import ezLogging
 
 
@@ -332,7 +332,7 @@ class BlockDefinition():
         return children
 
 
-    def evaluate(self, block_material: BlockMaterial, training_datapair: ezDataSet, validation_datapair=None):
+    def evaluate(self, block_material: BlockMaterial, training_datapair: ezData, validation_datapair=None):
         '''
         wrapper method to call the block's evaluate definition
         NOTE: we take the output and attach to block_material in postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method

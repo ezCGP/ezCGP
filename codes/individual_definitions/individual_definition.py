@@ -23,7 +23,7 @@ from codes.individual_definitions.individual_evaluate import IndividualEvaluate_
 from codes.individual_definitions.individual_mutate import IndividualMutate_Abstract
 from codes.individual_definitions.individual_mate import IndividualMate_Abstract
 from codes.genetic_material import IndividualMaterial, BlockMaterial
-from data.data_tools.data_types import ezDataSet
+from data.data_tools.ezData import ezData
 from codes.utilities.custom_logging import ezLogging
 
 
@@ -96,7 +96,7 @@ class IndividualDefinition():
         return children
 
 
-    def evaluate(self, indiv_material: IndividualMaterial, training_datapair: ezDataSet, validation_datapair=None):
+    def evaluate(self, indiv_material: IndividualMaterial, training_datapair: ezData, validation_datapair=None):
         '''
         wrapper method that just directs evaluate call to the IndividualEvaluate class definition of mate
         '''

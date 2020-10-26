@@ -101,14 +101,16 @@ operator_dict[flip_top_bottom] = {"inputs": [Augmentor.Pipeline],
                                  }
 
 
+''' can't crop an image if using tf.keras.preprocessing.image.ImageDataGenerator.preprocessing_function since it expects image
+# stay the same size
 def crop_random(pipeline, probability, percentage_area, randomise_percentage_area=False):
-    '''
+    ''
     https://arxiv.org/pdf/1912.11370v2.pdf
     https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.crop_random
     prob: float (0,1]
     percentage_area: float [0.1,1)
     randomise_percentage_area: bool -> if True will use given percentage_area as an upper bound and 0 as lower
-    '''
+    ''
     if percentage_area < 0.1:
         # here we are using argument_types.ArgumentType_LimitedFloat0to1 which goes from [0.05,1] in 0.05 increments so
         # we are being a bit lazy by using it and adjusting the lowerlimit
@@ -125,6 +127,7 @@ operator_dict[crop_random] = {"inputs": [Augmentor.Pipeline],
                                        argument_types.ArgumentType_LimitedFloat0to1,
                                        argument_types.ArgumentType_Bool]
                              }
+'''
 
 
 def invert(pipeline, probability):
