@@ -45,7 +45,7 @@ def rotate(pipeline, probability=.5, max_rotation=10):
     pipeline.rotate(probability=probability,
                     max_left_rotation=max_rotation,
                     max_right_rotation=max_rotation)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[rotate] = {"inputs": [Augmentor.Pipeline],
                          "output": Augmentor.Pipeline,
@@ -62,7 +62,7 @@ def flip_left_right(pipeline, probability=.5):
     prob: float (0,1]
     '''
     pipeline.flip_left_right(probability=probability)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[flip_left_right] = {"inputs": [Augmentor.Pipeline],
                                   "output": Augmentor.Pipeline,
@@ -78,7 +78,7 @@ def flip_random(pipeline, probability=.5):
     prob: float (0,1]
     '''
     pipeline.flip_random(probability=probability)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[flip_random] = {"inputs": [Augmentor.Pipeline],
                               "output": Augmentor.Pipeline,
@@ -93,7 +93,7 @@ def flip_top_bottom(pipeline, probability=.5):
     prob: float (0,1]
     '''
     pipeline.flip_top_bottom(probability=probability)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[flip_top_bottom] = {"inputs": [Augmentor.Pipeline],
                                   "output": Augmentor.Pipeline,
@@ -101,22 +101,25 @@ operator_dict[flip_top_bottom] = {"inputs": [Augmentor.Pipeline],
                                  }
 
 
+''' can't crop an image if using tf.keras.preprocessing.image.ImageDataGenerator.preprocessing_function since it expects image
+# stay the same size
 def crop_random(pipeline, probability, percentage_area, randomise_percentage_area=False):
-    '''
+    ''
     https://arxiv.org/pdf/1912.11370v2.pdf
     https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.crop_random
     prob: float (0,1]
     percentage_area: float [0.1,1)
     randomise_percentage_area: bool -> if True will use given percentage_area as an upper bound and 0 as lower
-    '''
+    ''
     if percentage_area < 0.1:
         # here we are using argument_types.ArgumentType_LimitedFloat0to1 which goes from [0.05,1] in 0.05 increments so
         # we are being a bit lazy by using it and adjusting the lowerlimit
         percentage_area = 0.1
+
     pipeline.crop_random(probability=probability,
                          percentage_area=percentage_area,
                          randomise_percentage_area=randomise_percentage_area)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[crop_random] = {"inputs": [Augmentor.Pipeline],
                               "output": Augmentor.Pipeline,
@@ -124,6 +127,7 @@ operator_dict[crop_random] = {"inputs": [Augmentor.Pipeline],
                                        argument_types.ArgumentType_LimitedFloat0to1,
                                        argument_types.ArgumentType_Bool]
                              }
+'''
 
 
 def invert(pipeline, probability):
@@ -133,7 +137,7 @@ def invert(pipeline, probability):
     prob: float (0,1]
     '''
     pipeline.invert(probability=probability)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[invert] = {"inputs": [Augmentor.Pipeline],
                          "output": Augmentor.Pipeline,
@@ -153,7 +157,7 @@ def random_brightness(pipeline, probability, factor0, factor1):
     pipeline.random_brightness(probability=probability,
                                min_factor=min_factor,
                                max_factor=max_factor)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[random_brightness] = {"inputs": [Augmentor.Pipeline],
                                     "output": Augmentor.Pipeline,
@@ -174,7 +178,7 @@ def random_color(pipeline, probability, factor0, factor1):
     pipeline.random_color(probability=probability,
                           min_factor=min_factor,
                           max_factor=max_factor)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[random_color] = {"inputs": [Augmentor.Pipeline],
                                "output": Augmentor.Pipeline,
@@ -195,7 +199,7 @@ def random_contrast(pipeline, probability, factor0, factor1):
     pipeline.random_contrast(probability=probability,
                              min_factor=min_factor,
                              max_factor=max_factor)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[random_contrast] = {"inputs": [Augmentor.Pipeline],
                                   "output": Augmentor.Pipeline,
@@ -226,7 +230,7 @@ def random_distortion(pipeline, probability, grid_width, grid_height, magnitude)
                                grid_width=grid_width,
                                grid_height=grid_height,
                                magnitude=magnitude)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[random_distortion] = {"inputs": [Augmentor.Pipeline],
                                     "output": Augmentor.Pipeline,
@@ -248,7 +252,7 @@ def random_erasing(pipeline, probability, rectangle_area):
         rectangle_area += 0.1
     pipeline.random_erasing(probability=probability,
                             rectangle_area=rectangle_area)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[random_erasing] = {"inputs": [Augmentor.Pipeline],
                                  "output": Augmentor.Pipeline,
@@ -264,7 +268,7 @@ def rotate_random_90(pipeline, probability):
     prob: float (0,1]
     '''
     pipeline.rotate_random_90(probability=probability)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[rotate_random_90] = {"inputs": [Augmentor.Pipeline],
                                    "output": Augmentor.Pipeline,
@@ -284,7 +288,7 @@ def shear(pipeline, probability, max_shear):
     pipeline.shear(probability=probability,
                    max_shear_left=max_shear,
                    max_shear_right=max_shear)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[shear] = {"inputs": [Augmentor.Pipeline],
                         "output": Augmentor.Pipeline,
@@ -303,7 +307,7 @@ def skew(pipeline, probability, magnitude):
     '''
     pipeline.skew(probability=probability,
                   magnitude=magnitude)
-    return deepcopy(pipeline)
+    return pipeline
 
 operator_dict[skew] = {"inputs": [Augmentor.Pipeline],
                        "output": Augmentor.Pipeline,

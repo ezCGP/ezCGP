@@ -30,8 +30,6 @@ from codes.utilities.custom_logging import ezLogging
 # moved most imports to AFTER seed is set!
 
 
-
-
 def main(problem_filename: str,
          problem_output_directory: str=tempfile.mkdtemp(),
          seed: int=0,
@@ -49,7 +47,7 @@ def main(problem_filename: str,
         dst = join(problem_output_directory, problem_filename)
         shutil.copyfile(src, dst)
 
-    # create custom logging.logger for this node 
+    # create custom logging.logger for this node
     log_formatter = ezLogging.logging_setup(loglevel)
     if loglevel < logging.WARNING:
         # true only for DEBUG or INFO

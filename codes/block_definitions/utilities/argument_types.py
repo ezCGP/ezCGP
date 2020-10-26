@@ -82,7 +82,7 @@ class ArgumentType_Bool(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
-            self.value = np.random.choice([True,False])
+            self.value = bool(np.random.choice([True,False]))
         else:
             self.value = bool(value)
         ezLogging.debug("%s-%s - Initialize ArgumentType_Bool Class to %f" % (None, None, self.value))
@@ -152,7 +152,7 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
 
     def mutate(self):
         #choices = rnd.random_integers(1, 8)
-        choices = np.arange(1,8+1)
+        choices = list(np.arange(1,8+1))
         if self.value in choices:
             choices.remove(self.value) # works in-place
         pow2 = np.random.choice(choices)
@@ -174,7 +174,15 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_TFActivation Class to %f" % (None, None, self.value))
+            self.get_name()
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TFActivation Class to %s" % (None, None, self.name))
+
+
+    def get_name(self):
+        if self.value is None:
+            self.name = "None"
+        else:
+            self.name = self.value.__qualname__
 
 
     def mutate(self):
@@ -183,7 +191,8 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
-        ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %f" % (None, None, self.value))
+        self.get_name()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %s" % (None, None, self.name))
 
 
 
@@ -456,7 +465,7 @@ class ArgumentType_Int1to10(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
-            self.mutate_unif_int25()
+            self.mutate_unif_int10()
         else:
             self.value = value
         ezLogging.debug("%s-%s - Initialize ArgumentType_Int1to10 Class to %f" % (None, None, self.value))
@@ -504,7 +513,7 @@ class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
 
     def mutate(self):
         delta = 0.05
-        choices = np.arange(0, 1, delta) + delta #[0.05, 0.1, ..., 0.95, 1.0]
+        choices = list(np.arange(0, 1, delta) + delta) #[0.05, 0.1, ..., 0.95, 1.0]
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)

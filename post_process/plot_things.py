@@ -3,7 +3,6 @@ root/post_process/plot_things.py
 '''
 
 ### packages
-import logging
 import matplotlib.pyplot as plt
 
 ### sys relative to root dir

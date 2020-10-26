@@ -423,6 +423,7 @@ class FactoryDefinition():
             # error check that node got filled
             if block_material[node_index] is None:
                 print("GENOME ERROR: no primitive was able to fit into current genome arrangment")
+                import pdb; pdb.set_trace()
                 exit()
 
         # fill output nodes
