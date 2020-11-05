@@ -125,11 +125,11 @@ class GaussianBlur(Augmentor.Operations.Operation):
     '''
     https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#gaabe8c836e97159a9193fb0b11ac52cf1
     '''
-    def __init__(self, kernel_size=5, probability=1, sigma_x=1, sigma_y=1):
+    def __init__(self, kernel_size=5, sigma_x=1, sigma_y=1, probability=1):
         super().__init__(probability=probability)
         self.kernel = (kernel_size, kernel_size)
-        self.sigma_x = 1
-        self.sigma_y = 1
+        self.sigma_x = sigma_x
+        self.sigma_y = sigma_y
     
     def perform_operation(self, images):
         def do(image):
@@ -142,8 +142,8 @@ class GaussianBlur(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def gaussian_blur(pipeline, kernel_size):
-    pipeline.add_operation(GaussianBlur(kernel_size))
+def gaussian_blur(pipeline, kernel_size, sigma_x, sigma_y):
+    pipeline.add_operation(GaussianBlur(kernel_size, sigma_x, sigma_y))
     return pipeline
 
 
