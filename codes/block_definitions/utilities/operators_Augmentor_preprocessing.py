@@ -125,13 +125,15 @@ class GaussianBlur(Augmentor.Operations.Operation):
     '''
     https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#gaabe8c836e97159a9193fb0b11ac52cf1
     '''
-    def __init__(self, kernel_size=5, probability=1):
+    def __init__(self, kernel_size=5, sigma_x=1, sigma_y=1, probability=1):
         super().__init__(probability=probability)
         self.kernel = (kernel_size, kernel_size)
+        self.sigma_x = sigma_x
+        self.sigma_y = sigma_y
     
     def perform_operation(self, images):
         def do(image):
-            return cv2.GaussianBlur(image, ksize=self.kernel)
+            return cv2.GaussianBlur(image, ksize=self.kernel, sigmaX = self.sigma_x, sigmaY = self.sigma_y)
         
         augmented_images = []
         for image in images:
@@ -140,14 +142,14 @@ class GaussianBlur(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def gaussian_blur(pipeline, kernel_size):
-    pipeline.add_operation(GaussianBlur(kernel_size))
+def gaussian_blur(pipeline, kernel_size, sigma_x, sigma_y):
+    pipeline.add_operation(GaussianBlur(kernel_size, sigma_x, sigma_y))
     return pipeline
 
 
 operator_dict[gaussian_blur] = {"inputs": [Augmentor.Pipeline],
                                 "output": Augmentor.Pipeline,
-                                "args": [argument_types.ArgumentType_FilterSize]
+                                "args": [argument_types.ArgumentType_FilterSize, argument_types.ArgumentType_Float0to10, argument_types.ArgumentType_Float0to10]
                                }
 
 
@@ -241,13 +243,13 @@ operator_dict[bilateral_filter] = {"inputs": [Augmentor.Pipeline],
                                   }
 
 
-'''
+
 class Thresholding(Augmentor.Operations.Operation):
-    ''
+    '''
     https://docs.opencv.org/3.4.0/d7/d1b/group__imgproc__misc.html#gae8a4a146d1ca78c626a53577199e9c57
     
     going to pass a (0-1] float and multiply that by 255 to get the threshold
-    ''
+    '''
     def __init__(self, thresh, maxval=255, probability=1):
         super().__init__(probability=probability)
         self.maxval = maxval
@@ -255,9 +257,10 @@ class Thresholding(Augmentor.Operations.Operation):
     
     def perform_operation(self, images):
         def do(image):
-            retval, dst = cv2.threshold(src=image, thresh=self.thresh, maxval=self.maxval)
-            return dst
-        
+            if len(image.shape) == 2 or(len(image.shape) == 3 and image.shape[2] == 1):
+                _, dst = cv2.threshold(src=image, thresh=self.thresh, maxval=self.maxval, type=cv2.THRESH_BINARY)
+                return dst
+            return image
         augmented_images = []
         for image in images:
             augmented_images.append(do(image))
@@ -273,9 +276,8 @@ def thresholding(pipeline, threshold):
 operator_dict[thresholding] = {"inputs": [Augmentor.Pipeline],
                                "output": Augmentor.Pipeline,
                                "args": [argument_types.ArgumentType_LimitedFloat0to1]
-                              }'''
-
-
+                              }
+                              
 '''
 class AdaptiveThreshold(Augmentor.Operations.Operation):
     ''
