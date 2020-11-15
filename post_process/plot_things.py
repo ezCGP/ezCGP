@@ -50,19 +50,19 @@ def plot_regression(ax, indiv, problem):
 
     indiv has .output which should be the final regression
     '''
-    ax.plot(problem.data.x_train[0], problem.data.y_train[0], linestyle='-', color='k', label="true values1")
-    ax.plot(problem.data.x_train[0], indiv.output[0], linestyle='--', color='c', label="regression1")
+    ax.plot(problem.train_data.x[0], problem.train_data.y[0], linestyle='-', color='k', label="true values1")
+    ax.plot(problem.train_data.x[0], indiv.output[0], linestyle='--', color='c', label="regression1")
 
 
 def plot_gaussian(ax, indiv, problem):
 
-    for i, args in enumerate(problem.data.y_train[-1]): #goal_features
+    for i, args in enumerate(problem.train_data.y[-1]): #goal_features
         peak, std, intensity, ybump = args
-        curve = fake_mixturegauss.one_gauss(problem.data.x_train[0], peak, std, intensity, ybump)
+        curve = fake_mixturegauss.one_gauss(problem.train_data.x[0], peak, std, intensity, ybump)
         if i == 0:
-            ax.plot(problem.data.x_train[0], curve, linestyle='-', color='k', label="true values", alpha=1)
+            ax.plot(problem.train_data.x[0], curve, linestyle='-', color='k', label="true values", alpha=1)
         else:
-            ax.plot(problem.data.x_train[0], curve, linestyle='-', color='k', alpha=1)
+            ax.plot(problem.train_data.x[0], curve, linestyle='-', color='k', alpha=1)
 
     i = 0
     for node in indiv[0].active_nodes:
@@ -74,9 +74,9 @@ def plot_gaussian(ax, indiv, problem):
             indivargs.append(indiv[0].args[arg_index].value) #gotta do .value to get it as float
         peak, std, intensity = indivargs
         ybump = 0
-        curve = fake_mixturegauss.one_gauss(problem.data.x_train[0], peak, std, intensity, ybump)
+        curve = fake_mixturegauss.one_gauss(problem.train_data.x[0], peak, std, intensity, ybump)
         if i == 0:
-            ax.plot(problem.data.x_train[0], curve, linestyle='--', color='c', label="regression")
+            ax.plot(problem.train_data.x[0], curve, linestyle='--', color='c', label="regression")
         else:
-            ax.plot(problem.data.x_train[0], curve, linestyle='--', color='c')
+            ax.plot(problem.train_data.x[0], curve, linestyle='--', color='c')
         i+=1

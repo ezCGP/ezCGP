@@ -237,11 +237,13 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezData):
+                 training_datapair: ezData,
+                 validation_datapair: ezData=None):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        output_list = self.standard_evaluate(block_material, block_def, [training_datapair.x])
-        training_datapair.x = output_list[0]
-        block_material.output = training_datapair
+        output_list = self.standard_evaluate(block_material, block_def, training_datapair.x)
+        #training_datapair.x = output_list[0]
+        #block_material.output = training_datapair
+        block_material.output = output_list
 
 
     def preprocess_block_evaluate(self, block_material: BlockMaterial):
