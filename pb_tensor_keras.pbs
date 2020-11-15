@@ -4,7 +4,7 @@
 #PBS -l pmem=8gb                          	# job requires 8gb over all nodes
 #PBS -q pace-ice                                # job is submitted to pace-ice
 #PBS -j oe                                      # output and error is combined into the same file
-#PBS -o results.out                             # output file is named gettingStarted.out
+#PBS -o results.out                             # output file is named result.out
 #PBS -m abe                               	# Will send a status email based on any combination of a,b,e.
 #PBS -M hluu8@gatech.edu        
 cd ~/ezCGP                                
