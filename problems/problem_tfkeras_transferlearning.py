@@ -28,6 +28,7 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools.loader import ezDataLoader_CIFAR10
 from codes.utilities.custom_logging import ezLogging
+from post_process import save_things
 # Block Defs
 from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
                                                      BlockShapeMeta_DataPreprocessing,
@@ -174,3 +175,23 @@ class Problem(ProblemDefinition_Abstract):
             ezLogging.warning("TERMINATING...reached minimum scores.")
             universe.converged = True
 
+
+    def postprocess_generation(self, universe):
+        '''
+        after each generation, we want to save the scores (plot performance over time)
+        and save the population for seeding
+        '''
+        ezLogging.info("Post Processing Generation Run - pass")
+        save_things.save_fitness_scores(universe)
+        save_things.save_population(universe)
+
+
+    def postprocess_universe(self, universe):
+        '''
+        NOTE that this is not an abstractmethod because the user may choose not to do anything here
+
+        the idea here is that the universe.run() is about to exit but before it does,
+        we can export or plot things wrt the final population
+        '''
+        ezLogging.info("Post Processing Universe Run - pass")
+        pass
