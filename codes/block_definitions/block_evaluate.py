@@ -463,7 +463,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
-                                           verbose=1, # TODO set to 0 after done debugging
+                                           verbose=2, # TODO set to 0 after done debugging
                                            callbacks=None,
                                            validation_data=validation_generator,
                                            shuffle=True,
@@ -787,7 +787,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
-                                           verbose=1, # TODO set to 0 or 2 after done debugging
+                                           verbose=2, # TODO set to 0 or 2 after done debugging
                                            callbacks=None,
                                            validation_data=validation_generator,
                                            shuffle=True,
