@@ -9,7 +9,7 @@
 #PBS -M hluu8@gatech.edu        
 cd ~/ezCGP                                
 echo "Started on `/bin/hostname`"               # prints name of compute node job was started on
-                              			# computation starts here -s
+                              			# computation starts here -s123
 module load anaconda3
 source activate ezcgp-py
 python3 main.py -p problem_tfkeras_transferlearning -s 9
