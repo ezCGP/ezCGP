@@ -122,13 +122,10 @@ class ezDataLoader_CIFAR10(ezDataLoader):
 
         train_xy, validate_xy, test_xy= self.split(x, y)
 
-        ''' HACKED - TODO switch after done testing
+        # control the input dataset
         train_datapair = ezdata.ezData_Images(*train_xy)
         validate_datapair = ezdata.ezData_Images(*validate_xy)
-        test_datapair = ezdata.ezData_Images(*test_xy)'''
-        train_datapair = ezdata.ezData_Images(train_xy[0][:30], train_xy[1][:30])
-        validate_datapair = ezdata.ezData_Images(validate_xy[0][:30], validate_xy[1][:30])
-        test_datapair = [] #ezdata.ezData_Images(*test_xy)
+        test_datapair = ezdata.ezData_Images(*test_xy)
 
         return train_datapair, validate_datapair, test_datapair
 

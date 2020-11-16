@@ -168,5 +168,5 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
                          10)
         
         self.batch_size = 5
-        self.epochs = 2
+        self.epochs = 10
 

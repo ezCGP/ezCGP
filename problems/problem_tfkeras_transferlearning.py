@@ -68,7 +68,7 @@ class Problem(ProblemDefinition_Abstract):
         4) Custom Keras NN
     '''
     def __init__(self):
-        population_size = 4
+        population_size = 20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -123,7 +123,7 @@ class Problem(ProblemDefinition_Abstract):
         will return 3 ezData_Images objects
         with .pipeline, .x, .y attributes
         '''
-        train, validate, test = ezDataLoader_CIFAR10().load()
+        train, validate, test = ezDataLoader_CIFAR10(0.6, 0.2, 0.2).load()
         # remember that our input data has to be a list!
         self.train_data = train
         self.validate_data = validate
@@ -160,7 +160,7 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 5
+        GENERATION_LIMIT = 50
         SCORE_MIN = 1e-1
 
         # only going to look at the 2nd objective value which is f1
