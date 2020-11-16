@@ -25,7 +25,7 @@ def save_fitness_scores(universe):
        fitness_values = ting['fitness']
     '''
     output_fitness_file = os.path.join(universe.output_folder, "gen%04d_fitness.npz" % universe.generation)
-    np.savez(output_fitness_file, fitness=universe.fitness_scores)
+    np.savez(output_fitness_file, fitness=universe.pop_fitness_scores)
     ezLogging.debug("saved scores for generation %i" % universe.generation)
 
 
