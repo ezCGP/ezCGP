@@ -1,15 +1,20 @@
 #PBS -N ezCGP_problem_tensorflow_keras          # name of job
 #PBS -l nodes=1:ppn=4:gpus=1                    # resources allocated, 1 node 4 processors
 #PBS -l walltime=8:00:00                        # job will run at most 8 hours
+<<<<<<< HEAD:pb_tensor_keras.pbs
 #PBS -l pmem=8gb                          	# job requires 8gb over all nodes
 #PBS -q pace-ice-gpu                            # job is submitted to pace-ice
+=======
+#PBS -l pmem=8gb                          	    # job requires 8gb over all nodes
+#PBS -q pace-ice                                # job is submitted to pace-ice
+>>>>>>> 9477d5f9ae6b3d00f5396c72033df84e2360837d:pbs_files/pb_tensor_keras.pbs
 #PBS -j oe                                      # output and error is combined into the same file
 #PBS -o results.out                             # output file is named result.out
-#PBS -m abe                               	# Will send a status email based on any combination of a,b,e.
+#PBS -m abe                               	    # Will send a status email based on any combination of a,b,e.
 #PBS -M hluu8@gatech.edu        
 cd ~/ezCGP                                
 echo "Started on `/bin/hostname`"               # prints name of compute node job was started on
-                              			# computation starts here
+# computation starts here
 module load anaconda3
 source activate ezcgp-py
 python3 main.py -p problem_tfkeras_transferlearning -s 9

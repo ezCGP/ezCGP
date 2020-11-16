@@ -15,7 +15,8 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
-from data.data_tools import data_loader
+from data.data_tools import ezData
+from codes.utilities.custom_logging import ezLogging
 from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
 from codes.block_definitions.block_operators import BlockOperators_Gaussian
 from codes.block_definitions.block_arguments import BlockArguments_Gaussian
@@ -37,7 +38,7 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         population_size = 2**8 #must be divisible by 4 if doing mating
-        number_universe = 25
+        number_universe = 1
         factory = FactoryDefinition
         mpi = True
         super().__init__(population_size, number_universe, factory, mpi)
@@ -63,15 +64,17 @@ class Problem(ProblemDefinition_Abstract):
         x, y, noisy, goal_features = fake_mixturegauss.main()
         x = fake_mixturegauss.XLocations(x)
         starting_sum = fake_mixturegauss.RollingSum(np.zeros(x.shape))
-        self.data = data_loader.load_symbolicRegression([x, starting_sum], [y, noisy, goal_features])
+        #self.data = data_loader.load_symbolicRegression([x, starting_sum], [y, noisy, goal_features])
+        self.train_data = ezData.ezData([x, starting_sum], [y, noisy, goal_features])
+        self.validate_data = None
 
 
     def objective_functions(self, indiv):
         if indiv.dead:
             indiv.fitness.values = (np.inf, np.inf, np.inf)
         else:
-            clean_y, noisy_y, goal_features = self.data.y_train
-            predict_y = indiv.output
+            clean_y, noisy_y, goal_features = self.train_data.y
+            predict_y = indiv.output[0]
             # how to extract the arguments to match to goal_features as well?
             error = clean_y-predict_y
             rms_error = np.sqrt(np.mean(np.square(error)))
@@ -83,13 +86,13 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 500
+        GENERATION_LIMIT = 3 #500
         SCORE_MIN = 1e-1
 
         # only going to look at the first objective value which is rmse
         # CAREFUL, after we added the ids, the values are now strings not floats
-        min_firstobjective_index = universe.fitness_scores[:,0].astype(float).argmin()
-        min_firstobjective = universe.fitness_scores[min_firstobjective_index,:-1].astype(float)
+        min_firstobjective_index = universe.pop_fitness_scores[:,0].astype(float).argmin()
+        min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:-1].astype(float)
         logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
         if universe.generation >= GENERATION_LIMIT:
@@ -119,7 +122,7 @@ class Problem(ProblemDefinition_Abstract):
             self.roddcustom_bestscore = [best_indiv.fitness.values]
             self.roddcustom_bestactive = [active_count]
 
-        fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.data.y_train[0].max()*1.25)) #axes always 2dim
+        fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.train_data.y[0].max()*1.25)) #axes always 2dim
         plot_things.plot_regression(axes[0,0], best_indiv, self)
         plot_things.plot_gaussian(axes[1,0], best_indiv, self)
         plot_things.plot_legend()
