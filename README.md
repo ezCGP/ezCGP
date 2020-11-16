@@ -24,5 +24,5 @@ $ conda activate ezcgp-py
 $ mpiexec -n [number_cores] python main.py -p [problem_file].py
 ```
 
-test push from local
+test push from local 123
 
