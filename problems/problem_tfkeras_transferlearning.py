@@ -14,6 +14,7 @@ None
 '''
 ### packages
 import numpy as np
+import glob
 # Fitness imports
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score as accuracy
@@ -68,12 +69,16 @@ class Problem(ProblemDefinition_Abstract):
         4) Custom Keras NN
     '''
     def __init__(self):
+        import tensorflow as tf
+        assert(len(tf.config.experimental.list_physical_devices('GPU'))==1), "GPU NOT FOUND - ezCGP EXITING"
+
         population_size = 20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
         mpi = False
-        super().__init__(population_size, number_universe, factory, mpi)
+        genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("", 3))
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
         
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
                                                           shape_def=BlockShapeMeta_DataAugmentation,

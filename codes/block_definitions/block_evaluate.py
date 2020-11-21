@@ -803,7 +803,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
 
         #output = history.stuff # validation metrics
         # NOTE: this is essentially our individual.fitness.values
-        return [history.history['val_accuracy'][-1], history.history['val_precision'][-1], history.history['val_recall'][-1]]
+        return [-1*history.history['val_accuracy'][-1], -1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
 
         
     def evaluate(self,

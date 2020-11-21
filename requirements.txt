@@ -8,7 +8,7 @@ pillow #PIL
 opencv
 scikit-learn
 #mpi4py
-tensorflow
+#tensorflow
 #Augmentor #only with pip
 
 # these should already be included
