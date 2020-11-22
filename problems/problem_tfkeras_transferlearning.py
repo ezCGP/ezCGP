@@ -49,7 +49,7 @@ from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
                                                     BlockEvaluate_TFKeras,
                                                     BlockEvaluate_TFKeras_TransferLearning2,
                                                     BlockEvaluate_TFKeras_AfterTransferLearning)
-from codes.block_definitions.block_mutate import BlockMutate_OptB
+from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
 from codes.block_definitions.block_mate import BlockMate_WholeOnly, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
@@ -77,7 +77,8 @@ class Problem(ProblemDefinition_Abstract):
         factory = FactoryDefinition
         factory_instance = factory()
         mpi = False
-        genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("", 3))
+        genome_seeds = []
+        #genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("", 3))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
         
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
@@ -85,7 +86,7 @@ class Problem(ProblemDefinition_Abstract):
                                                           operator_def=BlockOperators_DataAugmentation,
                                                           argument_def=BlockArguments_DataAugmentation,
                                                           evaluate_def=BlockEvaluate_DataAugmentation,
-                                                          mutate_def=BlockMutate_OptB,
+                                                          mutate_def=BlockMutate_OptB_4Blocks,
                                                           mate_def=BlockMate_WholeOnly)
 
         preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
@@ -93,7 +94,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            operator_def=BlockOperators_DataPreprocessing,
                                                            argument_def=BlockArguments_DataPreprocessing,
                                                            evaluate_def=BlockEvaluate_TrainValidate,
-                                                           mutate_def=BlockMutate_OptB,
+                                                           mutate_def=BlockMutate_OptB_4Blocks,
                                                            mate_def=BlockMate_WholeOnly)
 
         transferlearning_block_def = self.construct_block_def(nickname="transferlearning_block",
@@ -101,7 +102,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            operator_def=BlockOperators_TFKeras_TransferLearning_CIFAR,
                                                            argument_def=BlockArguments_TransferLearning,
                                                            evaluate_def=BlockEvaluate_TFKeras_TransferLearning2,
-                                                           mutate_def=BlockMutate_OptB,
+                                                           mutate_def=BlockMutate_OptB_4Blocks,
                                                            mate_def=BlockMate_WholeOnly)
 
         tensorflow_block_def = self.construct_block_def(nickname="tensorflow_block",
@@ -109,7 +110,7 @@ class Problem(ProblemDefinition_Abstract):
                                                         operator_def=BlockOperators_TFKeras,
                                                         argument_def=BlockArguments_TFKeras,
                                                         evaluate_def=BlockEvaluate_TFKeras_AfterTransferLearning,
-                                                        mutate_def=BlockMutate_OptB,
+                                                        mutate_def=BlockMutate_OptB_4Blocks,
                                                         mate_def=BlockMate_WholeOnly)
         
         self.construct_individual_def(block_defs=[augmentation_block_def,
@@ -186,7 +187,7 @@ class Problem(ProblemDefinition_Abstract):
         after each generation, we want to save the scores (plot performance over time)
         and save the population for seeding
         '''
-        ezLogging.info("Post Processing Generation Run - pass")
+        ezLogging.info("Post Processing Generation Run - saving")
         save_things.save_fitness_scores(universe)
         save_things.save_population(universe)
 

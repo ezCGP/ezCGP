@@ -62,14 +62,14 @@ def conv2DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
                                            activation=activation,
                                            data_format="channels_last"
                                            )(input_tensor)
-
+'''
 operator_dict[conv2DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
                                         "args": [argument_types.ArgumentType_Pow2,
                                                  argument_types.ArgumentType_TFFilterSize,
                                                  argument_types.ArgumentType_TFActivation]
                                        }
-
+'''
 
 ''' not useful for images
 def conv3D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu):
