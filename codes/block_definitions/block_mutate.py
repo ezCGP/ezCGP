@@ -92,7 +92,7 @@ class BlockMutate_OptB_4Blocks(BlockMutate_OptB):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockMutate_OptB_4Blocks Class" % (None, None))
         self.prob_mutate = 0.33 #0.25
-        self.num_mutants = 4
+        self.num_mutants = 2 #4
 
 
 

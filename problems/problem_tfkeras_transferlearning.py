@@ -50,7 +50,7 @@ from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
                                                     BlockEvaluate_TFKeras_TransferLearning2,
                                                     BlockEvaluate_TFKeras_AfterTransferLearning)
 from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
-from codes.block_definitions.block_mate import BlockMate_WholeOnly, BlockMate_NoMate
+from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
@@ -70,9 +70,9 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         import tensorflow as tf
-        assert(len(tf.config.experimental.list_physical_devices('GPU'))==1), "GPU NOT FOUND - ezCGP EXITING"
+        assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 20
+        population_size = 4 #20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -87,7 +87,7 @@ class Problem(ProblemDefinition_Abstract):
                                                           argument_def=BlockArguments_DataAugmentation,
                                                           evaluate_def=BlockEvaluate_DataAugmentation,
                                                           mutate_def=BlockMutate_OptB_4Blocks,
-                                                          mate_def=BlockMate_WholeOnly)
+                                                          mate_def=BlockMate_WholeOnly_4Blocks)
 
         preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
                                                            shape_def=BlockShapeMeta_DataPreprocessing,
@@ -95,7 +95,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            argument_def=BlockArguments_DataPreprocessing,
                                                            evaluate_def=BlockEvaluate_TrainValidate,
                                                            mutate_def=BlockMutate_OptB_4Blocks,
-                                                           mate_def=BlockMate_WholeOnly)
+                                                           mate_def=BlockMate_WholeOnly_4Blocks)
 
         transferlearning_block_def = self.construct_block_def(nickname="transferlearning_block",
                                                            shape_def=BlockShapeMeta_TFKeras_TransferLearning,
@@ -103,7 +103,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            argument_def=BlockArguments_TransferLearning,
                                                            evaluate_def=BlockEvaluate_TFKeras_TransferLearning2,
                                                            mutate_def=BlockMutate_OptB_4Blocks,
-                                                           mate_def=BlockMate_WholeOnly)
+                                                           mate_def=BlockMate_WholeOnly_4Blocks)
 
         tensorflow_block_def = self.construct_block_def(nickname="tensorflow_block",
                                                         shape_def=BlockShapeMeta_TFKeras,
@@ -111,7 +111,7 @@ class Problem(ProblemDefinition_Abstract):
                                                         argument_def=BlockArguments_TFKeras,
                                                         evaluate_def=BlockEvaluate_TFKeras_AfterTransferLearning,
                                                         mutate_def=BlockMutate_OptB_4Blocks,
-                                                        mate_def=BlockMate_WholeOnly)
+                                                        mate_def=BlockMate_WholeOnly_4Blocks)
         
         self.construct_individual_def(block_defs=[augmentation_block_def,
                                                   #preprocessing_block_def,
@@ -167,17 +167,17 @@ class Problem(ProblemDefinition_Abstract):
         :return:
         """
         GENERATION_LIMIT = 50
-        SCORE_MIN = 1e-1
+        SCORE_MIN = 1 - 1e-5
 
         # only going to look at the 2nd objective value which is f1
-        min_firstobjective_index = universe.fitness_scores[:,1].argmin()
-        min_firstobjective = universe.fitness_scores[min_firstobjective_index,:]
+        min_firstobjective_index = universe.pop_fitness_scores[:,1].argmin()
+        min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:]
         ezLogging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
-        if min_firstobjective[0] < SCORE_MIN:
+        if np.abs(min_firstobjective[0]) > SCORE_MIN:
             ezLogging.warning("TERMINATING...reached minimum scores.")
             universe.converged = True
 
@@ -189,6 +189,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         ezLogging.info("Post Processing Generation Run - saving")
         save_things.save_fitness_scores(universe)
+        import pdb; pdb.set_trace()
         save_things.save_population(universe)
 
 
