@@ -28,6 +28,8 @@ from codes.genetic_material import IndividualMaterial, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.block_definitions.block_definition import BlockDefinition
 from codes.utilities.custom_logging import ezLogging
+from data.data_tools.loader import ezDataLoader_CIFAR10_old
+from data.data_tools.ezData import ezData
 
 
 
@@ -48,6 +50,10 @@ class FactoryDefinition():
         '''
         TODO
         '''
+        # MEGA HACK! load in images after deleted from seeding
+        if len(genome_seeds) > 0:
+            train_dp, validate_dp, test_dp = ezDataLoader_CIFAR10_old(.6,.2,.2).load()
+
         my_population = PopulationDefinition(population_size)
 
         for i, genome_seed in enumerate(genome_seeds):
@@ -67,6 +73,13 @@ class FactoryDefinition():
                                                     genome_seed,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
+                print("YAS2")
+                for block in indiv.blocks:
+                    if (len(block.output)==2) and (isinstance(block.output[0], ezData)):
+                        block.output[0].x = deepcopy(train_dp.x)
+                        block.output[0].y = deepcopy(train_dp.y)
+                        block.output[1].x = deepcopy(train_dp.x)
+                        block.output[1].y = deepcopy(train_dp.y)
                 # if build_individual failed then we don't want to add to population
                 my_population.population.append(indiv)
 
@@ -180,7 +193,7 @@ class FactoryDefinition():
                         indiv_material = None
                         break
                 indiv_material.blocks.append(block_material)
-                
+        
         return indiv_material
 
 

@@ -72,13 +72,13 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 4 #20
+        population_size = 20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
         mpi = False
         genome_seeds = []
-        #genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("", 3))
+        #genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("testing-20201124-120533", 1))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
         
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
@@ -166,7 +166,7 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 50
+        GENERATION_LIMIT = 1 #50
         SCORE_MIN = 1 - 1e-5
 
         # only going to look at the 2nd objective value which is f1
@@ -189,7 +189,6 @@ class Problem(ProblemDefinition_Abstract):
         '''
         ezLogging.info("Post Processing Generation Run - saving")
         save_things.save_fitness_scores(universe)
-        import pdb; pdb.set_trace()
         save_things.save_population_HACK(universe)
 
 
