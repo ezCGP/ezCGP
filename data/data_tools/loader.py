@@ -185,9 +185,9 @@ class ezDataLoader_CIFAR10_old(ezDataLoader):
         train_xy, validate_xy, test_xy= self.split(x, y)
 
         # control the input dataset
-        train_datapair = ezdata.ezData_Images(*train_xy)
-        validate_datapair = ezdata.ezData_Images(*validate_xy)
-        test_datapair = ezdata.ezData_Images(*test_xy)
+        train_datapair = ezdata.ezData_Images_depreciated(*train_xy)
+        validate_datapair = ezdata.ezData_Images_depreciated(*validate_xy)
+        test_datapair = ezdata.ezData_Images_depreciated(*test_xy)
 
         return train_datapair, validate_datapair, test_datapair
 
