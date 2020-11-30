@@ -458,3 +458,9 @@ def sweepB(best, worst, front):
         if 0 < idx <= len(stairs):
             fstair = max(fstairs[:idx], key=front.__getitem__)
             front[h] = max(front[h], front[fstair]+1)
+
+def ageFilter(individuals, age_limit):
+    """
+    helper method to prune individual that "die" of old age
+    """
+    return list(filter(individuals, lambda individual: individual.age <= age_limit))
