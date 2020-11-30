@@ -77,8 +77,8 @@ class Problem(ProblemDefinition_Abstract):
         factory = FactoryDefinition
         factory_instance = factory()
         mpi = False
-        genome_seeds = []
-        #genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("testing-20201124-120533", 1))
+        #genome_seeds = []
+        genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("20201127-145527-8th_run", 1))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
         
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
@@ -166,8 +166,8 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 1 #50
-        SCORE_MIN = 1 - 1e-5
+        GENERATION_LIMIT = 2 #50
+        SCORE_MIN = 1 - 1e-10
 
         # only going to look at the 2nd objective value which is f1
         min_firstobjective_index = universe.pop_fitness_scores[:,1].argmin()

@@ -73,7 +73,6 @@ class FactoryDefinition():
                                                     genome_seed,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
-                print("YAS2")
                 for block in indiv.blocks:
                     if (len(block.output)==2) and (isinstance(block.output[0], ezData)):
                         block.output[0].x = deepcopy(train_dp.x)
