@@ -23,4 +23,3 @@ To run with MPI...
 $ conda activate ezcgp-py
 $ mpiexec -n [number_cores] python main.py -p [problem_file].py
 ```
-

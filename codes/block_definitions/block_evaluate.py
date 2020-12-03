@@ -237,11 +237,13 @@ class BlockEvaluate_Standard(BlockEvaluate_Abstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition, 
-                 training_datapair: ezData):
+                 training_datapair: ezData,
+                 validation_datapair: ezData=None):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        output_list = self.standard_evaluate(block_material, block_def, [training_datapair.x])
-        training_datapair.x = output_list[0]
-        block_material.output = training_datapair
+        output_list = self.standard_evaluate(block_material, block_def, training_datapair.x)
+        #training_datapair.x = output_list[0]
+        #block_material.output = training_datapair
+        block_material.output = output_list
 
 
     def preprocess_block_evaluate(self, block_material: BlockMaterial):
@@ -463,7 +465,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
-                                           verbose=1, # TODO set to 0 after done debugging
+                                           verbose=2, # TODO set to 0 after done debugging
                                            callbacks=None,
                                            validation_data=validation_generator,
                                            shuffle=True,
@@ -787,7 +789,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
-                                           verbose=1, # TODO set to 0 or 2 after done debugging
+                                           verbose=2, # TODO set to 0 or 2 after done debugging
                                            callbacks=None,
                                            validation_data=validation_generator,
                                            shuffle=True,
@@ -801,7 +803,8 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
 
         #output = history.stuff # validation metrics
         # NOTE: this is essentially our individual.fitness.values
-        return [history.history['val_accuracy'][-1], history.history['val_precision'][-1], history.history['val_recall'][-1]]
+        return [-1*history.history['val_accuracy'][-1], -1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
+        #return [-1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
 
         
     def evaluate(self,

@@ -27,7 +27,55 @@ class ezData():
 
 
 
+class ezData_Augmentor(ezData):
+    def __init__(self, data_dir=None):
+        '''
+        always assume: BatchSize x Height x Width x Channels
+        Options:
+         (1) load data straight into Augmentor.Pipeline if there a parent directory and all images of each class
+            are in their own respective subdirectories
+         (2) load in the data as np.arrays of x and y, and eventually manually feed into Augmentor.Pipeline
+        '''
+        globals()['Augmentor'] = importlib.import_module('Augmentor')
+        #globals()['PIL'] = importlib.import_module('PIL')
+        
+        if (data_dir is not None) and (os.path.isdir(data_dir)):
+            self.option = 1
+            self.pipeline = Augmentor.Pipeline(source_directory=data_dir)
+            self.num_images = len(self.pipeline.augmentor_images)
+            self.num_classes = np.unique(self.pipeline.class_labels, axis=0).shape[0]
+            self.image_shape = (0,) # TODO get
+        else:
+            self.option = 2
+            self.pipeline = Augmentor.Pipeline()
+
+
+
 class ezData_Images(ezData):
+    def __init__(self, x=None, y=None):
+        self.x = x
+        self.y = y
+        self.num_images = len(self.x)
+        self.num_classes = np.unique(self.y, axis=0).shape[0]
+        self.image_shape = self.x[0].shape
+
+
+
+class ezData_AugmentorImages(ezData):
+    '''
+    def __init__(self, ez_Images, ez_Augmentor):
+        for ez_ting in [ez_Images, ez_Augmentor]:
+            for name, val in ez_ting.__dict__.items():
+                # quick way to take all attributes and add to self
+                setattr(self, name, val)
+    '''
+    def __init__(self, ez_Images, ez_Augmentor):
+        self.images_wrapper = ez_Images
+        self.pipeline_wrapper = ez_Augmentor
+
+
+
+class ezData_Images_depreciated(ezData):
     def __init__(self, x=None, y=None, data_dir=None):
         '''
         always assume: BatchSize x Height x Width x Channels
@@ -45,7 +93,7 @@ class ezData_Images(ezData):
             self.x = None #self.pipeline.augmentor_images
             self.y = None #self.pipeline.class_labels
             self.num_images = len(self.pipeline.augmentor_images)
-            self.num_classes = np.unique(self.class_labels, axis=0).shape[0] # TODO check
+            self.num_classes = np.unique(self.pipeline.class_labels, axis=0).shape[0] # TODO check
             self.image_shape = (0,) # TODO get
         elif (x is not None) and (y is not None):
             self.option = 2
