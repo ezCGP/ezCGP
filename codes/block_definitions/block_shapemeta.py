@@ -30,7 +30,8 @@ class BlockShapeMeta_Abstract():
     def __init__(self,
                  input_dtypes: list=[],
                  output_dtypes: list=[],
-                 main_count: int=20):
+                 main_count: int=20,
+                 **kwargs):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_Abstract Class" % (None, None))
         self.input_dtypes = input_dtypes
         self.input_count = len(input_dtypes)
@@ -38,6 +39,9 @@ class BlockShapeMeta_Abstract():
         self.output_count = len(output_dtypes)
         self.main_count = main_count
         self.genome_count = self.input_count + self.output_count + self.main_count
+        # add the misc kwargs
+        for key, value in kwargs.items():
+            self.__dict__[key] = value
 
 
 
