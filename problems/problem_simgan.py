@@ -11,19 +11,19 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
-from data.data_tools import ezData
+from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
-from codes.block_definitions.block_operators import BlockOperators_Gaussian
-from codes.block_definitions.block_arguments import BlockArguments_Gaussian
-from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-from codes.block_definitions.block_mutate import BlockMutate_NoFtn
-from codes.block_definitions.block_mate import BlockMate_NoMate
-from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
-from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
-from post_process import save_things
-from post_process import plot_things
+# from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
+# from codes.block_definitions.block_operators import BlockOperators_Gaussian
+# from codes.block_definitions.block_arguments import BlockArguments_Gaussian
+# from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
+# from codes.block_definitions.block_mutate import BlockMutate_NoFtn
+# from codes.block_definitions.block_mate import BlockMate_NoMate
+# from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
+# from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
+# from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
+# from post_process import save_things
+# from post_process import plot_things
 
 
 class Problem(ProblemDefinition_Abstract):
@@ -37,6 +37,9 @@ class Problem(ProblemDefinition_Abstract):
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
+
+        # where to put this?
+        self.construct_dataset()
 
         block_def = self.construct_block_def(nickname = "simgan",
                                             #  shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
@@ -52,23 +55,16 @@ class Problem(ProblemDefinition_Abstract):
                                     #   mate_def = IndividualMate_RollOnEachBlock,
                                     #   evaluate_def = IndividalEvaluate_Standard
                                       )
-        # where to put this?
-        self.construct_dataset()
 
 
     def construct_dataset(self):
         '''
-        TODO: add code for constructing the dataset, i.e. the simulated and real datasets
-        TODO: figure out if any of the below code is useful
+        Constructs a train and validation 1D signal datasets
         '''
-        # from misc import fake_mixturegauss
-        # x, y, noisy, goal_features = fake_mixturegauss.main()
-        # x = fake_mixturegauss.XLocations(x)
-        # starting_sum = fake_mixturegauss.RollingSum(np.zeros(x.shape))
-        # #self.data = data_loader.load_symbolicRegression([x, starting_sum], [y, noisy, goal_features])
-        # self.train_data = ezData.ezData([x, starting_sum], [y, noisy, goal_features])
-        # self.validate_data = None
-
+        # Can configure the real and simulated sizes + batch size, but we will use default
+        self.train_data = simganData.SimganFakeDataset(real_size=128**2, sim_size=256, batch_size=128)
+        self.valid_data = simganData.SimganFakeDataset(real_size=(128**2)/4, sim_size=128, batch_size=128)
+        # import pdb; pdb.set_trace()
 
     def objective_functions(self, indiv):
         '''
