@@ -170,3 +170,18 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         self.batch_size = 128
         self.epochs = 20
 
+class BlockShapeMeta_SimGAN(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        from torch import nn
+        input_dtypes = [nn]
+        output_dtypes = [nn]
+        main_count = 10 # TODO: see if this needs to be bumped up
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+        
+        self.batch_size = 128
+        # TODO: figure out if this needs to be used
+        # self.epochs = 20

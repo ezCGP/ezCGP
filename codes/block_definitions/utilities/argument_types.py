@@ -161,7 +161,7 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
 
 
 
-class ArgumentType_TFActivation(ArgumentType_Abstract):
+class ArgumentType_TFActivation(ArgumentType_Abstract)``:
     '''
     possible values:
     https://www.tensorflow.org/api_docs/python/tf/keras/activations
@@ -518,3 +518,56 @@ class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_LimitedFloat0to1 to %f" % (None, None, self.value))
+
+class ArgumentType_PyTorchFilterSize(ArgumentType_Abstract):
+    '''
+    quick way to pick [1,3,5]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_PyTorchFilterSize Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [1,3,5]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchFilterSize to %f" % (None, None, self.value))
+
+class ArgumentType_PyTorchActivation(ArgumentType_Abstract)``:
+    '''
+    possible values:
+    https://www.tensorflow.org/api_docs/python/tf/keras/activations
+
+    returns the actual function
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None
+            self.mutate()
+        else:
+            self.value = value
+            self.get_name()
+        ezLogging.debug("%s-%s - Initialize ArgumentType_PyTorchActivation Class to %s" % (None, None, self.name))
+
+
+    def get_name(self):
+        if self.value is None:
+            self.name = "None"
+        else:
+            self.name = self.value.__qualname__
+
+
+    def mutate(self):
+        from torch import nn
+        choices = [nn.ReLU, LeakyReLU, nn.Tanh, None]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        self.get_name()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchActivation to %s" % (None, None, self.name))

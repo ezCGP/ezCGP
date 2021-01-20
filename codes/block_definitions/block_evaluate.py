@@ -831,3 +831,8 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
             return
         
         block_material.output = [None, output] # TODO make sure it is a list
+
+class BlockEvaluate_SimGAN(BlockEvaluate_GraphAbstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN Class" % (None, None))
+        # TODO: add implementation

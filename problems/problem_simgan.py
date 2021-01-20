@@ -13,15 +13,15 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
-# from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
-# from codes.block_definitions.block_operators import BlockOperators_Gaussian
-# from codes.block_definitions.block_arguments import BlockArguments_Gaussian
-# from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-# from codes.block_definitions.block_mutate import BlockMutate_NoFtn
-# from codes.block_definitions.block_mate import BlockMate_NoMate
-# from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
-# from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-# from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
+from codes.block_definitions.block_shapemeta import BlockShapeMeta_SimGAN
+from codes.block_definitions.block_operators import BlockOperators_SimGAN
+from codes.block_definitions.block_arguments import BlockArguments_SimGAN
+from codes.block_definitions.block_evaluate import BlockEvaluate_SimGAN
+from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
+from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks
+from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
+from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
 # from post_process import save_things
 # from post_process import plot_things
 
@@ -38,23 +38,24 @@ class Problem(ProblemDefinition_Abstract):
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
-        # where to put this?
-        self.construct_dataset()
-
+        # TODO: maybe change the names of the modules to be <>_SimGAN instead of <>_SimGAN
         block_def = self.construct_block_def(nickname = "simgan",
-                                            #  shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
-                                            #  operator_def = BlockOperators_Gaussian, #only 1 operator...gauss taking in th right args
-                                            #  argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
-                                            #  evaluate_def = BlockEvaluate_Standard, #ya standard eval
-                                            #  mutate_def = BlockMutate_NoFtn, #maybe not mutate ftn
-                                            #  mate_def = BlockMate_NoMate # maybe not mate
-                                             )
+                                             shape_def = BlockShapeMeta_SimGAN, 
+                                             operator_def = BlockOperators_SimGAN, 
+                                             argument_def = BlockArguments_SimGAN,
+                                             evaluate_def = BlockEvaluate_SimGAN,
+                                             mutate_def=BlockMutate_OptB_4Blocks,
+                                             mate_def=BlockMate_WholeOnly_4Blocks
+                                            )
 
         self.construct_individual_def(block_defs = [block_def],
-                                    #   mutate_def = IndividualMutate_RollOnEachBlock,
-                                    #   mate_def = IndividualMate_RollOnEachBlock,
-                                    #   evaluate_def = IndividalEvaluate_Standard
+                                      mutate_def = IndividualMutate_RollOnEachBlock,
+                                      mate_def = IndividualMate_RollOnEachBlock,
+                                      evaluate_def = IndividualEvaluate_Standard # TODO: change this after adding class
                                       )
+
+        # where to put this?
+        self.construct_dataset()
 
 
     def construct_dataset(self):
