@@ -175,6 +175,7 @@ class BlockShapeMeta_SimGAN(BlockShapeMeta_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN Class" % (None, None))
         # don't want it imported all the time so we didn't put it at the top of script
         from torch import nn
+        # TODO:  this should have hyperparameters related to SimGANs, i.e. the stuff we kept in the simgan.xml
         input_dtypes = [nn]
         output_dtypes = [nn]
         main_count = 10 # TODO: see if this needs to be bumped up

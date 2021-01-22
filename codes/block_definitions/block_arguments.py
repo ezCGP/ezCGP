@@ -245,7 +245,8 @@ class BlockArguments_TFKeras(BlockArguments_Abstract):
     '''
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockArguments_TFKeras Class" % (None, None))
-        BlockArguments_Abstract.__init__(self) self.arg_count = 12*3
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 12*3
         arg_dict = {argument_types.ArgumentType_Pow2: 1,
                     argument_types.ArgumentType_TFFilterSize: 1,
                     argument_types.ArgumentType_TFActivation: 1}
@@ -259,14 +260,17 @@ class BlockArguments_SimGAN(BlockArguments_Abstract):
     argument_types.ArgumentType_Pow2 - ll
     argument_types.ArgumentType_PyTorchFilterSize - l
     argument_types.ArgumentType_PyTorchActivation - l
+    argument_types.ArgumentType_PyTorchPaddingSize - l
     '''
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN Class" % (None, None))
-        # TODO: add implementation - this should have hyperparameters related to SimGANs, i.e. the stuff we kept in the simgan.xml
-        BlockArguments_Abstract.__init__(self) self.arg_count = 4*3
-        arg_dict = {argument_types.ArgumentType_Pow2: 2,
-                    argument_types.ArgumentType_PyTorchFilterSize: 1,
-                    argument_types.ArgumentType_PyTorchActivation: 1}
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 5*3
+        arg_dict = {argument_types.ArgumentType_Pow2: .4, # Assigns this a 40% chance and then splits the remainin 60% between the last 3
+                    argument_types.ArgumentType_PyTorchKernelSize: 1,
+                    argument_types.ArgumentType_PyTorchActivation: 1,
+                    argument_types.ArgumentType_PyTorchPaddingSize: 1
+                   }
         self.init_from_weight_dict(arg_dict)
 
 

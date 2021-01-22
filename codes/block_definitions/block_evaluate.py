@@ -836,3 +836,101 @@ class BlockEvaluate_SimGAN(BlockEvaluate_GraphAbstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN Class" % (None, None))
         # TODO: add implementation
+
+    def build_graph(self, block_material, block_def, datapair):
+        '''
+        TODO: implement and add documentation 
+        '''
+        # TODO: see if any of the below code is useful
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
+
+        # output_layer = self.standard_build_graph(block_material,
+        #                                           block_def,
+        #                                           [datapair.final_pretrained_layer])[0]
+
+        # #  flatten the output node and perform a softmax
+        # output_flatten = tf.keras.layers.Flatten()(output_layer)
+        # logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
+        # softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
+
+        # #https://www.tensorflow.org/api_docs/python/tf/keras/Model
+        # block_material.graph = tf.keras.Model(inputs=datapair.graph_input_layer, outputs=softmax)
+
+        # #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
+        # block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        #                              loss="categorical_crossentropy",
+        #                              metrics=[tf.keras.metrics.Accuracy(),
+        #                                       tf.keras.metrics.Precision(),
+        #                                       tf.keras.metrics.Recall()],
+        #                              loss_weights=None,
+        #                              weighted_metrics=None,
+        #                              run_eagerly=None)
+
+    def train_graph(self,
+                    block_material,
+                    block_def,
+                    training_datapair,
+                    validation_datapair):
+        '''
+        TODO: implement and add documentation 
+        '''
+        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
+                                                                                      block_def.batch_size,
+                                                                                      training_datapair.num_images//block_def.batch_size,
+                                                                                      block_def.epochs))
+        # TODO: see if any of the below code is useful
+        # ezLogging.debug("%s - Building Generators" % (block_material.id))
+        # training_generator, validation_generator = self.get_generator(block_material,
+        #                                                               block_def,
+        #                                                               training_datapair,
+        #                                                               validation_datapair)
+
+        # history = block_material.graph.fit(x=training_generator,
+        #                                    epochs=block_def.epochs,
+        #                                    verbose=2, # TODO set to 0 or 2 after done debugging
+        #                                    callbacks=None,
+        #                                    validation_data=validation_generator,
+        #                                    shuffle=True,
+        #                                    steps_per_epoch=training_datapair.num_images//block_def.batch_size, # TODO
+        #                                    validation_steps=validation_datapair.num_images//block_def.batch_size,
+        #                                    max_queue_size=10,
+        #                                    workers=1,
+        #                                    use_multiprocessing=False,
+        #                                   )
+        # tf.keras.backend.clear_session()
+
+        # #output = history.stuff # validation metrics
+        # # NOTE: this is essentially our individual.fitness.values
+        # return [-1*history.history['val_accuracy'][-1], -1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
+        # #return [-1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
+
+
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition,
+                 training_datapair: ezData,
+                 validation_datapair: ezData):
+        '''
+        TODO: implement and add documentation 
+        '''
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+
+        # TODO: see if any of the below code is useful
+        # try:
+        #     self.build_graph(block_material, block_def, training_datapair)
+        # except Exception as err:
+        #     ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+        #     block_material.dead = True
+        #     import pdb; pdb.set_trace()
+        #     return
+
+        # try:
+        #     # outputs a list of the validation metrics
+        #     output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
+        # except Exception as err:
+        #     ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
+        #     block_material.dead = True
+        #     import pdb; pdb.set_trace()
+        #     return
+
+        # block_material.output = [None, output] # TODO make sure it is a list

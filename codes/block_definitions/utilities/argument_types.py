@@ -161,7 +161,7 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
 
 
 
-class ArgumentType_TFActivation(ArgumentType_Abstract)``:
+class ArgumentType_TFActivation(ArgumentType_Abstract):
     '''
     possible values:
     https://www.tensorflow.org/api_docs/python/tf/keras/activations
@@ -519,7 +519,7 @@ class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_LimitedFloat0to1 to %f" % (None, None, self.value))
 
-class ArgumentType_PyTorchFilterSize(ArgumentType_Abstract):
+class ArgumentType_PyTorchKernelSize(ArgumentType_Abstract):
     '''
     quick way to pick [1,3,5]
     '''
@@ -529,7 +529,7 @@ class ArgumentType_PyTorchFilterSize(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_PyTorchFilterSize Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_PyTorchKernelSize Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
@@ -537,9 +537,29 @@ class ArgumentType_PyTorchFilterSize(ArgumentType_Abstract):
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
-        ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchFilterSize to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchKernelSize to %f" % (None, None, self.value))
 
-class ArgumentType_PyTorchActivation(ArgumentType_Abstract)``:
+class ArgumentType_PyTorchPaddingSize(ArgumentType_Abstract):
+    '''
+    quick way to pick [0, 2, 4, -1], if -1 is chosen, should use automatic padding to cancel out kernel
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None # This way, we can mutate to None as well
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_PyTorchPaddingSize Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [0, 2, 4, -1]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchPaddingSize to %f" % (None, None, self.value))
+
+class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
     '''
     possible values:
     https://www.tensorflow.org/api_docs/python/tf/keras/activations
@@ -565,7 +585,7 @@ class ArgumentType_PyTorchActivation(ArgumentType_Abstract)``:
 
     def mutate(self):
         from torch import nn
-        choices = [nn.ReLU, LeakyReLU, nn.Tanh, None]
+        choices = [nn.ReLU, nn.LeakyReLU, nn.Tanh, None]
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)

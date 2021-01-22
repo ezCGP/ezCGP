@@ -64,7 +64,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
         self.train_data = simganData.SimganFakeDataset(real_size=128**2, sim_size=256, batch_size=128)
-        self.valid_data = simganData.SimganFakeDataset(real_size=(128**2)/4, sim_size=128, batch_size=128)
+        self.valid_data = simganData.SimganFakeDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)
         # import pdb; pdb.set_trace()
 
     def objective_functions(self, indiv):
