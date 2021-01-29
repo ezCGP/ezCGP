@@ -13,10 +13,10 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_SimGAN
-from codes.block_definitions.block_operators import BlockOperators_SimGAN
-from codes.block_definitions.block_arguments import BlockArguments_SimGAN
-from codes.block_definitions.block_evaluate import BlockEvaluate_SimGAN
+from codes.block_definitions.block_shapemeta import BlockShapeMeta_SimGAN_Network
+from codes.block_definitions.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator
+from codes.block_definitions.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator
+from codes.block_definitions.block_evaluate import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator
 from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
 from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
@@ -38,12 +38,20 @@ class Problem(ProblemDefinition_Abstract):
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
-        # TODO: maybe change the names of the modules to be <>_SimGAN instead of <>_SimGAN
-        block_def = self.construct_block_def(nickname = "simgan",
-                                             shape_def = BlockShapeMeta_SimGAN, 
-                                             operator_def = BlockOperators_SimGAN, 
-                                             argument_def = BlockArguments_SimGAN,
-                                             evaluate_def = BlockEvaluate_SimGAN,
+        block_def = self.construct_block_def(nickname = "refiner",
+                                             shape_def = BlockShapeMeta_SimGAN_Network, 
+                                             operator_def = BlockOperators_SimGAN_Refiner, 
+                                             argument_def = BlockArguments_SimGAN_Refiner,
+                                             evaluate_def = BlockEvaluate_SimGAN_Refiner,
+                                             mutate_def=BlockMutate_OptB_4Blocks,
+                                             mate_def=BlockMate_WholeOnly_4Blocks
+                                            )
+
+        block_def = self.construct_block_def(nickname = "discriminator",
+                                             shape_def = BlockShapeMeta_SimGAN_Network, 
+                                             operator_def = BlockOperators_SimGAN_Discriminator, 
+                                             argument_def = BlockArguments_SimGAN_Discriminator,
+                                             evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                              mutate_def=BlockMutate_OptB_4Blocks,
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
@@ -63,8 +71,8 @@ class Problem(ProblemDefinition_Abstract):
         Constructs a train and validation 1D signal datasets
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
-        self.train_data = simganData.SimganFakeDataset(real_size=128**2, sim_size=256, batch_size=128)
-        self.valid_data = simganData.SimganFakeDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)
+        self.train_data = simganData.SimganDataset(real_size=128**2, sim_size=256, batch_size=128)
+        self.validate_data = simganData.SimganDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)
         # import pdb; pdb.set_trace()
 
     def objective_functions(self, indiv):

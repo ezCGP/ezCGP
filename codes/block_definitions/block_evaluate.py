@@ -22,6 +22,8 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from data.data_tools.ezData import ezData
+from data.data_tools.simganData import SimganDataset
+from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
 from codes.genetic_material import BlockMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 from codes.utilities.custom_logging import ezLogging
@@ -344,6 +346,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                                   block_def,
                                                   [input_layer])[0]
 
+        import pdb; pdb.set_trace()
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
         logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
@@ -684,6 +687,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
+        import pdb; pdb.set_trace()
         output_layer = self.standard_build_graph(block_material,
                                                   block_def,
                                                   [datapair.final_pretrained_layer])[0]
@@ -832,21 +836,62 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         
         block_material.output = [None, output] # TODO make sure it is a list
 
-class BlockEvaluate_SimGAN(BlockEvaluate_GraphAbstract):
+class BlockEvaluate_PyTorch(BlockEvaluate_GraphAbstract):
+    @abstractmethod
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN Class" % (None, None))
+        pass
+
+    def standard_build_graph(block_material, block_def, data):
+        # NOTE: inputs just holds the shape of the input as we run through the network
+        inputs = [data.real_raw.shape[-1]]
+
+        # import pdb; pdb.set_trace()
+        for node_index in block_material.active_nodes:
+            if node_index < 0:
+                # do nothing. at input node
+                continue
+            elif node_index >= block_def.main_count:
+                # do nothing NOW. at output node. we'll come back to grab output after this loop
+                continue
+            else:
+                # main node. this is where we evaluate
+                function = block_material[node_index]["ftn"]
+                args = []
+                node_arg_indices = block_material[node_index]["args"]
+                for node_arg_index in node_arg_indices:
+                    args.append(block_material.args[node_arg_index].value)
+
+                ezLogging.debug("%s - Builing %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
+                node = function(inputs[-1], *args)
+                if isinstance(node, PyTorchLayerWrapper):
+                    inputs.append(node.get_out_size())
+                    node = node.get_layer()
+                
+                block_material.evaluated[node_index] = node
+
+        output = []
+        if not block_material.dead:
+            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
+                output.append(block_material.evaluated[block_material.genome[output_index]])
+        
+
+
+class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
         # TODO: add implementation
 
-    def build_graph(self, block_material, block_def, datapair):
+    def build_graph(self, block_material, block_def, data):
         '''
         TODO: implement and add documentation 
         '''
-        # TODO: see if any of the below code is useful
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        # output_layer = self.standard_build_graph(block_material,
-        #                                           block_def,
-        #                                           [datapair.final_pretrained_layer])[0]
+        output_layer = this.standard_build_graph(block_material, block_def, data)
+        ezLogging.info("%s - Ending building...%i output" % (block_material.id, len(output)))
+        import pdb; pdb.set_trace()
+
+        print(output_layer)
 
         # #  flatten the output node and perform a softmax
         # output_flatten = tf.keras.layers.Flatten()(output_layer)
@@ -908,22 +953,24 @@ class BlockEvaluate_SimGAN(BlockEvaluate_GraphAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 train_data: SimganDataset,
+                 validation_data: SimganDataset):
         '''
         TODO: implement and add documentation 
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        # import pdb; pdb.set_trace()
+
+        try:
+            self.build_graph(block_material, block_def, train_data)
+        except Exception as err:
+            ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            import pdb; pdb.set_trace()
+            return
+        print('hi')
 
         # TODO: see if any of the below code is useful
-        # try:
-        #     self.build_graph(block_material, block_def, training_datapair)
-        # except Exception as err:
-        #     ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
-        #     block_material.dead = True
-        #     import pdb; pdb.set_trace()
-        #     return
-
         # try:
         #     # outputs a list of the validation metrics
         #     output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
@@ -934,3 +981,54 @@ class BlockEvaluate_SimGAN(BlockEvaluate_GraphAbstract):
         #     return
 
         # block_material.output = [None, output] # TODO make sure it is a list
+
+
+class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
+        # TODO: add implementation
+
+    def build_graph(self, block_material, block_def, data):
+        '''
+        TODO: implement and add documentation 
+        '''
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
+
+        output_layer = this.standard_build_graph(block_material, block_def, data)
+        ezLogging.info("%s - Ending building...%i output" % (block_material.id, len(output)))
+        import pdb; pdb.set_trace()
+
+        print(output_layer)
+
+    def train_graph(self,
+                    block_material,
+                    block_def,
+                    training_datapair,
+                    validation_datapair):
+        '''
+        TODO: implement and add documentation 
+        '''
+        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
+                                                                                      block_def.batch_size,
+                                                                                      training_datapair.num_images//block_def.batch_size,
+                                                                                      block_def.epochs))
+
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition,
+                 train_data: SimganDataset,
+                 validation_data: SimganDataset):
+        '''
+        TODO: implement and add documentation 
+        '''
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        # import pdb; pdb.set_trace()
+
+        try:
+            self.build_graph(block_material, block_def, train_data)
+        except Exception as err:
+            ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            import pdb; pdb.set_trace()
+            return
+        print('hi')

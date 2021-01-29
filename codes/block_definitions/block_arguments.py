@@ -253,7 +253,25 @@ class BlockArguments_TFKeras(BlockArguments_Abstract):
         self.init_from_weight_dict(arg_dict)
 
 
-class BlockArguments_SimGAN(BlockArguments_Abstract):
+class BlockArguments_SimGAN_Refiner(BlockArguments_Abstract):
+    '''
+    usage tally:
+    // TODO: keep argument usage tally updated
+    argument_types.ArgumentType_Pow2 - ll
+    argument_types.ArgumentType_PyTorchFilterSize - l
+    argument_types.ArgumentType_PyTorchActivation - l
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 4*3
+        arg_dict = {argument_types.ArgumentType_Pow2: .5, # Assigns this a 50% chance and then splits the remainin 50% between the last 2
+                    argument_types.ArgumentType_PyTorchKernelSize: 1,
+                    argument_types.ArgumentType_PyTorchActivation: 1,
+                   }
+        self.init_from_weight_dict(arg_dict)
+
+class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
     '''
     usage tally:
     // TODO: keep argument usage tally updated
