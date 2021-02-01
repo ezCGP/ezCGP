@@ -189,7 +189,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         ezLogging.info("Post Processing Generation Run - saving")
         save_things.save_fitness_scores(universe)
-        save_things.save_population_HACK(universe)
+        save_things.save_population(universe)
 
 
     def postprocess_universe(self, universe):
