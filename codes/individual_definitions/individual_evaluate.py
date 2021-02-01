@@ -135,7 +135,7 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
         '''
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if (block_def.nickname == 'transferlearning_block') and (indiv_material[block_index+1].need_evaluate):
-                # always always always evaluate if tensorflow_block need_evaluate
+                # if the tensorflow_block need_evaluate, then we also need to evaluate the transferlearning_block
                 # otherwise we assume that all blocks of individual are need_evaluate False so it'll just grab indiv_material.output
                 block_material.need_evaluate = True
 

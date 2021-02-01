@@ -343,7 +343,6 @@ class BlockDefinition():
             if input_dtype != type(input_data):
                 ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None'''
-
         self.evaluate_def.preprocess_block_evaluate(block_material)
         ezLogging.debug("%s - Before evaluating list active nodes: %s, and args %s" % (block_material.id, block_material.active_nodes, block_material.active_args))
         self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
