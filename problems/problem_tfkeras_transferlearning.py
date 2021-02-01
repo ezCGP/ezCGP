@@ -129,7 +129,7 @@ class Problem(ProblemDefinition_Abstract):
         will return 3 ezData_Images objects
         with .pipeline, .x, .y attributes
         '''
-        train, validate, test = ezDataLoader_CIFAR10_old(0.6, 0.2, 0.2).load()
+        train, validate, test = ezDataLoader_CIFAR10(0.6, 0.2, 0.2).load()
         # remember that our input data has to be a list!
         self.train_data = train
         self.validate_data = validate
