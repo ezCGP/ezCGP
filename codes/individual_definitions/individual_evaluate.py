@@ -105,7 +105,7 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
 
 
 
-class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_Abstract):
+class IndividualEvaluate_withValidation_andTransferLearning_DEPRECIATED(IndividualEvaluate_Abstract):
     '''
     Pass both training + validation data through the blocks.
 
@@ -136,7 +136,7 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
 
 
 
-class IndividualEvaluate_withValidation_andTransferLearning_DEPRECIATED(IndividualEvaluate_Abstract):
+class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_Abstract):
     '''
     In IndividualEvaluate_Standard() it is assumed we don't have validation data, so each block
     only outputs the training_datapair for the next block.
