@@ -33,8 +33,8 @@ class PyTorchLayerWrapper():
     def __init__(self):
         pass
     
-    def get_out_size(self):
-        return self.out_size
+    def get_out_shape(self):
+        return self.out_shape
 
     def get_layer(self):
         return self.layer
@@ -44,13 +44,23 @@ def pooling_layer():
     pass
 
 
-def linear_layer(in_features, out_features):
+def linear_layer(in_shape, out_features):
     class Linear_Layer(PyTorchLayerWrapper):
-        def __init__(self, in_features, out_features):
-            self.out_size = out_features
-            self.layer = nn.Linear(in_features, out_features)
+        def __init__(self, in_shape, out_features):
+            # Store information from args
+            self.in_features = 1
+            for dim in list(in_shape): 
+                self.in_features *= dim
+            self.out_features = out_features
+
+            # Define out shape and instantiate layer
+            self.out_shape = (out_features,)
+            self.layer = nn.Sequential(
+                    nn.Flatten(start_dim=1), # gives us an NxD tensor (ideal for linear layer)
+                    nn.Linear(self.in_features, out_features)
+                )
         
-    return Linear_Layer(in_features, out_features)
+    return Linear_Layer(in_shape, out_features)
 
 operator_dict[linear_layer] = {"inputs": [Tensor],
                                "output": Tensor,
@@ -58,22 +68,31 @@ operator_dict[linear_layer] = {"inputs": [Tensor],
                               }
 
 
-def conv1d_layer(in_channels, out_channels, kernel_size=3, padding=None, activation=nn.ReLU):
+def conv1d_layer(in_shape, out_channels, kernel_size=3, padding=None, activation=nn.ReLU):
     class Conv1D_Layer(PyTorchLayerWrapper):
-        def __init__(self, in_channels, out_channels, kernel_size, padding, activation):
-            self.out_size = out_channels
+        def __init__(self, in_shape, out_channels, kernel_size, padding, activation):
+            # Store information from args
+            self.in_channels = in_shape[0]
+            self.out_channels = out_channels
             self.kernel_size = kernel_size
             self.padding = padding or kernel_size//2 # if padding is none, automatically match kernel_size//2 to maintain shape
             self.activation = activation
+
+            # Define out shape and instantiate layer
+            num_dims = len(in_shape)
+            self.out_shape = (out_channels, in_shape[-1])
+
+            layers = []
+            # Make sure we have 2-d shape for channels and signal length
+            if len(in_shape) == 1:
+                layers.append(nn.Unflatten(dim=0, unflattened_size=(1,)))
+            layers.append(nn.Conv1d(self.in_channels, out_channels, kernel_size, padding=padding)) # Add conv layer
+            # Add activation
             if activation is not None:
-                self.layer = nn.Sequential(
-                        nn.Conv1d(in_channels, out_channels, kernel_size, padding),
-                        activation()
-                    )
-            else:
-                self.layer = nn.Conv1d(in_channels, out_size, kernel_size, padding)
+                layers.append(activation())
+            self.layer = nn.Sequential(*layers)
     
-    return Conv1D_Layer(in_channels, out_channels, kernel_size, padding, activation)
+    return Conv1D_Layer(in_shape, out_channels, kernel_size, padding, activation)
 
 operator_dict[conv1d_layer] = {"inputs": [Tensor],
                                "output": Tensor,

@@ -32,13 +32,13 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 20 #must be divisible by 4 if doing mating
+        population_size = 12 #must be divisible by 4 if doing mating
         number_universe = 1 #10
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
-        block_def = self.construct_block_def(nickname = "refiner",
+        refiner_def = self.construct_block_def(nickname = "refiner",
                                              shape_def = BlockShapeMeta_SimGAN_Network, 
                                              operator_def = BlockOperators_SimGAN_Refiner, 
                                              argument_def = BlockArguments_SimGAN_Refiner,
@@ -47,7 +47,7 @@ class Problem(ProblemDefinition_Abstract):
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
-        block_def = self.construct_block_def(nickname = "discriminator",
+        discriminator_def = self.construct_block_def(nickname = "discriminator",
                                              shape_def = BlockShapeMeta_SimGAN_Network, 
                                              operator_def = BlockOperators_SimGAN_Discriminator, 
                                              argument_def = BlockArguments_SimGAN_Discriminator,
@@ -56,7 +56,7 @@ class Problem(ProblemDefinition_Abstract):
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
-        self.construct_individual_def(block_defs = [block_def],
+        self.construct_individual_def(block_defs = [refiner_def, discriminator_def],
                                       mutate_def = IndividualMutate_RollOnEachBlock,
                                       mate_def = IndividualMate_RollOnEachBlock,
                                       evaluate_def = IndividualEvaluate_Standard # TODO: change this after adding class

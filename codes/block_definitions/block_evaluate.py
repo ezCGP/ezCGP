@@ -841,17 +841,17 @@ class BlockEvaluate_PyTorch(BlockEvaluate_GraphAbstract):
     def __init__(self):
         pass
 
-    def standard_build_graph(block_material, block_def, data):
+    def standard_build_graph(self, block_material, block_def, data):
         # NOTE: inputs just holds the shape of the input as we run through the network
-        inputs = [data.real_raw.shape[-1]]
+        inputs = [(data.real_raw.shape[1], data.real_raw.shape[2])]
 
-        # import pdb; pdb.set_trace()
+        layers = []
         for node_index in block_material.active_nodes:
             if node_index < 0:
                 # do nothing. at input node
                 continue
             elif node_index >= block_def.main_count:
-                # do nothing NOW. at output node. we'll come back to grab output after this loop
+                # do nothing.
                 continue
             else:
                 # main node. this is where we evaluate
@@ -864,16 +864,12 @@ class BlockEvaluate_PyTorch(BlockEvaluate_GraphAbstract):
                 ezLogging.debug("%s - Builing %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
                 node = function(inputs[-1], *args)
                 if isinstance(node, PyTorchLayerWrapper):
-                    inputs.append(node.get_out_size())
-                    node = node.get_layer()
-                
+                    inputs.append((node.get_out_shape()))
                 block_material.evaluated[node_index] = node
+                layers.append(node.get_layer())
 
-        output = []
-        if not block_material.dead:
-            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
-                output.append(block_material.evaluated[block_material.genome[output_index]])
-        
+        output_shape = inputs[-1]
+        return layers, output_shape
 
 
 class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch):
@@ -885,31 +881,15 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch):
         '''
         TODO: implement and add documentation 
         '''
+        from torch import nn
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        output_layer = this.standard_build_graph(block_material, block_def, data)
-        ezLogging.info("%s - Ending building...%i output" % (block_material.id, len(output)))
+        layers, output_shape = self.standard_build_graph(block_material, block_def, data)
+        ezLogging.info("%s - Ending building...%i layers" % (block_material.id, len(layers)))
         import pdb; pdb.set_trace()
 
-        print(output_layer)
-
-        # #  flatten the output node and perform a softmax
-        # output_flatten = tf.keras.layers.Flatten()(output_layer)
-        # logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
-        # softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
-
-        # #https://www.tensorflow.org/api_docs/python/tf/keras/Model
-        # block_material.graph = tf.keras.Model(inputs=datapair.graph_input_layer, outputs=softmax)
-
-        # #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
-        # block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-        #                              loss="categorical_crossentropy",
-        #                              metrics=[tf.keras.metrics.Accuracy(),
-        #                                       tf.keras.metrics.Precision(),
-        #                                       tf.keras.metrics.Recall()],
-        #                              loss_weights=None,
-        #                              weighted_metrics=None,
-        #                              run_eagerly=None)
+        block_material.graph = nn.Sequential(*layers, nn.Tanh())
+        print(block_material.graph)
 
     def train_graph(self,
                     block_material,
@@ -968,7 +948,6 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch):
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
-        print('hi')
 
         # TODO: see if any of the below code is useful
         # try:
@@ -993,12 +972,19 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch):
         TODO: implement and add documentation 
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
+        from torch import nn
 
-        output_layer = this.standard_build_graph(block_material, block_def, data)
-        ezLogging.info("%s - Ending building...%i output" % (block_material.id, len(output)))
-        import pdb; pdb.set_trace()
+        layers, output_shape = self.standard_build_graph(block_material, block_def, data)
+        ezLogging.info("%s - Ending building...%i layers" % (block_material.id, len(layers)))
 
-        print(output_layer)
+        # Add a final linear layer and get the output in shape Nx2
+        in_features = 1
+        for dim in list(output_shape): 
+            in_features *= dim
+        out_layer = nn.Linear(in_features, 2)
+
+        # import pdb; pdb.set_trace()
+        block_material.graph = nn.Sequential(*layers, nn.Flatten(start_dim=1), out_layer)
 
     def train_graph(self,
                     block_material,
@@ -1031,4 +1017,3 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch):
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
-        print('hi')
