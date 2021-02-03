@@ -346,7 +346,6 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                                   block_def,
                                                   [input_layer])[0]
 
-        import pdb; pdb.set_trace()
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
         logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
@@ -687,7 +686,6 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        import pdb; pdb.set_trace()
         output_layer = self.standard_build_graph(block_material,
                                                   block_def,
                                                   [datapair.final_pretrained_layer])[0]
@@ -836,7 +834,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         
         block_material.output = [None, output] # TODO make sure it is a list
 
-class BlockEvaluate_PyTorch(BlockEvaluate_GraphAbstract):
+class BlockEvaluate_PyTorchAbstract(BlockEvaluate_GraphAbstract):
     @abstractmethod
     def __init__(self):
         pass
@@ -872,7 +870,7 @@ class BlockEvaluate_PyTorch(BlockEvaluate_GraphAbstract):
         return layers, output_shape
 
 
-class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch):
+class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorchAbstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
         # TODO: add implementation
@@ -886,7 +884,6 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch):
 
         layers, output_shape = self.standard_build_graph(block_material, block_def, data)
         ezLogging.info("%s - Ending building...%i layers" % (block_material.id, len(layers)))
-        import pdb; pdb.set_trace()
 
         block_material.graph = nn.Sequential(*layers, nn.Tanh())
         print(block_material.graph)
@@ -962,7 +959,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch):
         # block_material.output = [None, output] # TODO make sure it is a list
 
 
-class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch):
+class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorchAbstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
         # TODO: add implementation
