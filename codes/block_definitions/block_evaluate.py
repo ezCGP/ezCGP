@@ -22,7 +22,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from data.data_tools.ezData import ezData
-from data.data_tools.simganData import SimganDataset
+from data.data_tools.simganData import SimGANDataset
 from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
 from codes.genetic_material import BlockMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
@@ -834,7 +834,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         
         block_material.output = [None, output] # TODO make sure it is a list
 
-class BlockEvaluate_PyTorchAbstract(BlockEvaluate_GraphAbstract):
+class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_GraphAbstract):
     @abstractmethod
     def __init__(self):
         pass
@@ -870,7 +870,7 @@ class BlockEvaluate_PyTorchAbstract(BlockEvaluate_GraphAbstract):
         return layers, output_shape
 
 
-class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorchAbstract):
+class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
         # TODO: add implementation
@@ -884,6 +884,20 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorchAbstract):
 
         layers, output_shape = self.standard_build_graph(block_material, block_def, data)
         ezLogging.info("%s - Ending building...%i layers" % (block_material.id, len(layers)))
+        """
+        Per my conversation with Rodd:
+        - The way this is set up, we would only be able to have a single linear input
+        - We want to be able to concat other inputs in
+        - We can do this by changing the inputs list to be able to receive multiple inputs (main_input, misc_input1, misc_input2, ...)
+        - For most layers, we won't need to touch any input besides main_input (which is data that is being directly acted upon by the layers)
+        - We can make specialized layers that incorporate other misc_inputs into main_input
+        """
+
+        # Add a layer to get the output back into the right shape
+        # TODO: consider using a linear layer instead of a conv1d and then unflattening. Not sure what is the right move
+        if len(output_shape) == 1:
+            layers.append(nn.Unflatten(dim=0, unflattened_size=(1,)))
+        layers.append(nn.Conv1d(output_shape[0], 1, kernel_size=1))
 
         block_material.graph = nn.Sequential(*layers, nn.Tanh())
         print(block_material.graph)
@@ -930,8 +944,8 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorchAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 train_data: SimganDataset,
-                 validation_data: SimganDataset):
+                 train_data: SimGANDataset,
+                 validation_data: SimGANDataset):
         '''
         TODO: implement and add documentation 
         '''
@@ -959,7 +973,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorchAbstract):
         # block_material.output = [None, output] # TODO make sure it is a list
 
 
-class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorchAbstract):
+class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
         # TODO: add implementation
@@ -999,8 +1013,8 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorchAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 train_data: SimganDataset,
-                 validation_data: SimganDataset):
+                 train_data: SimGANDataset,
+                 validation_data: SimGANDataset):
         '''
         TODO: implement and add documentation 
         '''
@@ -1009,6 +1023,7 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorchAbstract):
 
         try:
             self.build_graph(block_material, block_def, train_data)
+            return "Hello"
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True

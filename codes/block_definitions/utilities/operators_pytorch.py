@@ -62,7 +62,7 @@ def linear_layer(in_shape, out_features):
         
     return Linear_Layer(in_shape, out_features)
 
-operator_dict[linear_layer] = {"inputs": [Tensor],
+operator_dict[linear_layer] = {"inputs": [Tensor, Tensor],
                                "output": Tensor,
                                "args": [argument_types.ArgumentType_Pow2]
                               }
@@ -94,7 +94,7 @@ def conv1d_layer(in_shape, out_channels, kernel_size=3, padding=None, activation
     
     return Conv1D_Layer(in_shape, out_channels, kernel_size, padding, activation)
 
-operator_dict[conv1d_layer] = {"inputs": [Tensor],
+operator_dict[conv1d_layer] = {"inputs": [Tensor, Tensor],
                                "output": Tensor,
                                "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_PyTorchKernelSize,
                                         argument_types.ArgumentType_PyTorchPaddingSize, argument_types.ArgumentType_PyTorchActivation]

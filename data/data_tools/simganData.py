@@ -23,7 +23,7 @@ class dataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-class SimganDataset():
+class SimGANDataset():
     """
     Holds a simulated and real dataset, each composed of 1D signals
     """

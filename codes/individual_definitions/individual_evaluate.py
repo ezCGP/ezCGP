@@ -17,6 +17,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from data.data_tools.ezData import ezData
+from data.data_tools.simganData import SimGANDataset
 from codes.genetic_material import IndividualMaterial
 #from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
 from codes.utilities.custom_logging import ezLogging
@@ -159,3 +160,35 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
 
         # training_datapair will be None, and validation_datapair will be the final fitness scores
         indiv_material.output = validation_datapair
+
+class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
+    '''
+    for loop over each block; evaluate, take the output, and pass that in as the input to the next block
+    check for dead blocks (errored during evaluation) and then just stop evaluating. Note, the remaining blocks
+    should continue to have the need_evaluate flag as True.
+    '''
+    def __init__(self):
+        pass
+
+    def evaluate(self,
+                 indiv_material: IndividualMaterial,
+                 indiv_def, #: IndividualDefinition,
+                 train_data: SimGANDataset,
+                 validation_data: SimGANDataset=None):
+        # Because the Refiner and Discriminator are two seperate blocks but require one another for their loss functions, they must be run together
+        # So instead of iterating through each block and evaluating them 1 by 1, we will evaluate 
+
+        for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
+            if block_material.need_evaluate:
+                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
+                block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
+                if block_material.dead:
+                    indiv_material.dead = True
+                    break
+                else:
+                    pass
+            else:
+                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+            training_datapair = block_material.output
+        
+        indiv_material.output = block_material.output

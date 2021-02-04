@@ -28,12 +28,6 @@ from codes.utilities.custom_logging import ezLogging
 ### init dict
 operator_dict = {}
 
-## Add methods from operators_pytorch
-operator_dict[linear_layer] = {"inputs": [Tensor],
-                               "output": Tensor,
-                               "args": [argument_types.ArgumentType_Pow2]
-                              }
-
 
 def conv1d_layer(in_shape, out_channels, kernel_size=3, activation=nn.ReLU):
     class Conv1D_Layer_Refiner(PyTorchLayerWrapper):
@@ -62,7 +56,7 @@ def conv1d_layer(in_shape, out_channels, kernel_size=3, activation=nn.ReLU):
     return Conv1D_Layer_Refiner(in_shape, out_channels, kernel_size, activation)
 
 
-operator_dict[conv1d_layer] = {"inputs": [Tensor],
+operator_dict[conv1d_layer] = {"inputs": [Tensor, Tensor],
                                "output": Tensor,
                                "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_PyTorchKernelSize, 
                                         argument_types.ArgumentType_PyTorchActivation]
