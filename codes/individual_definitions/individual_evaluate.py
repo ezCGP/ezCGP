@@ -161,6 +161,7 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
         # training_datapair will be None, and validation_datapair will be the final fitness scores
         indiv_material.output = validation_datapair
 
+#TODO: customize this
 class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
     '''
     for loop over each block; evaluate, take the output, and pass that in as the input to the next block
@@ -181,7 +182,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if block_material.need_evaluate:
                 ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-                block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
+                block_def.evaluate(block_material, deepcopy(train_data), deepcopy(validation_data))
                 if block_material.dead:
                     indiv_material.dead = True
                     break
@@ -189,6 +190,6 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
-            training_datapair = block_material.output
+            train_data = block_material.output
         
         indiv_material.output = block_material.output

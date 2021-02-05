@@ -39,12 +39,20 @@ class PyTorchLayerWrapper():
     def get_layer(self):
         return self.layer
 
+class InputLayer(PyTorchLayerWrapper):
+    def __init__(self, data):
+        self.data = data
+        self.out_shape = data.shape
+        self.layer = None
+
 
 def pooling_layer():
     pass
 
-
-def linear_layer(in_shape, out_features):
+def linear_layer(input_layer, misc_layer, out_features):
+    """
+    An operator that initializes a Linear_Layer object, which holds a PyTorch Linear layer. Ignores the misc_layer.
+    """
     class Linear_Layer(PyTorchLayerWrapper):
         def __init__(self, in_shape, out_features):
             # Store information from args
@@ -60,15 +68,18 @@ def linear_layer(in_shape, out_features):
                     nn.Linear(self.in_features, out_features)
                 )
         
-    return Linear_Layer(in_shape, out_features)
+    return Linear_Layer(input_layer.get_out_shape(), out_features)
 
-operator_dict[linear_layer] = {"inputs": [Tensor, Tensor],
-                               "output": Tensor,
+operator_dict[linear_layer] = {"inputs": [PyTorchLayerWrapper, PyTorchLayerWrapper],
+                               "output": PyTorchLayerWrapper,
                                "args": [argument_types.ArgumentType_Pow2]
                               }
 
 
-def conv1d_layer(in_shape, out_channels, kernel_size=3, padding=None, activation=nn.ReLU):
+def conv1d_layer(input_layer, misc_layer, out_channels, kernel_size=3, padding=None, activation=nn.ReLU):
+    """
+    An operator that initializes a Conv1D_Layer object, which holds a PyTorch Conv1d layer. Ignores the misc_layer.
+    """
     class Conv1D_Layer(PyTorchLayerWrapper):
         def __init__(self, in_shape, out_channels, kernel_size, padding, activation):
             # Store information from args
@@ -92,10 +103,10 @@ def conv1d_layer(in_shape, out_channels, kernel_size=3, padding=None, activation
                 layers.append(activation())
             self.layer = nn.Sequential(*layers)
     
-    return Conv1D_Layer(in_shape, out_channels, kernel_size, padding, activation)
+    return Conv1D_Layer(input_layer.get_out_shape(), out_channels, kernel_size, padding, activation)
 
-operator_dict[conv1d_layer] = {"inputs": [Tensor, Tensor],
-                               "output": Tensor,
+operator_dict[conv1d_layer] = {"inputs": [PyTorchLayerWrapper, PyTorchLayerWrapper],
+                               "output": PyTorchLayerWrapper,
                                "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_PyTorchKernelSize,
                                         argument_types.ArgumentType_PyTorchPaddingSize, argument_types.ArgumentType_PyTorchActivation]
                               }

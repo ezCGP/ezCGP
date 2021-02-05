@@ -174,10 +174,10 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN_Network Class" % (None, None))
         # don't want it imported all the time so we didn't put it at the top of script
-        from torch import Tensor
+        from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
         # TODO:  this should have hyperparameters related to SimGANs, i.e. the stuff we kept in the simgan.xml
-        input_dtypes = [Tensor]
-        output_dtypes = [Tensor]
+        input_dtypes = [PyTorchLayerWrapper, PyTorchLayerWrapper]
+        output_dtypes = [PyTorchLayerWrapper]
         main_count = 30 # TODO: see if this needs to be bumped up
         super().__init__(input_dtypes,
                          output_dtypes,

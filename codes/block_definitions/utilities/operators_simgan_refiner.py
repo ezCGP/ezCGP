@@ -29,9 +29,12 @@ from codes.utilities.custom_logging import ezLogging
 operator_dict = {}
 
 
-def conv1d_layer(in_shape, out_channels, kernel_size=3, activation=nn.ReLU):
+def conv1d_layer(input_layer, misc_layer, out_channels, kernel_size=3, activation=nn.ReLU):
+    """
+    An operator that initializes a Conv1D_Layer_Refiner object, which holds a PyTorch Conv1d layer that maintains the input shape. Ignores the misc_layer.
+    """
     class Conv1D_Layer_Refiner(PyTorchLayerWrapper):
-        def __init__(self, in_channels, out_channels, kernel_size, activation):
+        def __init__(self, in_shape, out_channels, kernel_size, activation):
             # Store information from args
             self.in_channels = in_shape[0]
             self.out_channels = out_channels
@@ -53,11 +56,11 @@ def conv1d_layer(in_shape, out_channels, kernel_size=3, activation=nn.ReLU):
                 layers.append(activation())
             self.layer = nn.Sequential(*layers)
     
-    return Conv1D_Layer_Refiner(in_shape, out_channels, kernel_size, activation)
+    return Conv1D_Layer_Refiner(input_layer.get_out_shape(), out_channels, kernel_size, activation)
 
 
-operator_dict[conv1d_layer] = {"inputs": [Tensor, Tensor],
-                               "output": Tensor,
+operator_dict[conv1d_layer] = {"inputs": [PyTorchLayerWrapper, PyTorchLayerWrapper],
+                               "output": PyTorchLayerWrapper,
                                "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_PyTorchKernelSize, 
                                         argument_types.ArgumentType_PyTorchActivation]
                               }

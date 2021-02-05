@@ -23,7 +23,6 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 ### absolute imports wrt root
 from data.data_tools.ezData import ezData
 from data.data_tools.simganData import SimGANDataset
-from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
 from codes.genetic_material import BlockMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 from codes.utilities.custom_logging import ezLogging
@@ -835,13 +834,47 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
         block_material.output = [None, output] # TODO make sure it is a list
 
 class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_GraphAbstract):
+    """
+    An abstract class defining the structure of a PyTorch neural network BlockEvaluate. Provides a function to build a PyTorch nueral network graph
+    from PyTorchLayerWrapper operators.
+    """
     @abstractmethod
     def __init__(self):
         pass
 
-    def standard_build_graph(self, block_material, block_def, data):
-        # NOTE: inputs just holds the shape of the input as we run through the network
-        inputs = [(data.real_raw.shape[1], data.real_raw.shape[2])]
+    @abstractmethod
+    def build_graph(self):
+        pass
+
+    @abstractmethod
+    def train_graph(self):
+        pass
+
+    @abstractmethod
+    def evaluate(self):
+        pass
+
+    def standard_build_graph(self, block_material, block_def, input_list):
+        """
+        Builds a PyTorch nueral network graph from PyTorchLayerWrapper operators. Because many PyTorch layers require you know information about
+        the shape of the input, PyTorchLayerWrappers are used to calculate output shapes and string together the PyTorch graph in this function
+        
+        Parameters:
+            block_material (BlockMaterial): an object containing the genetic material of the block
+            block_def (BlockDefinition): an object holding the functions of the block
+            input_list (list): list of inputs, each input should have a shape attribute
+        
+        Returns:
+            graph (torch.nn.Sequential): the built neural network up 
+
+        """
+        from codes.block_definitions.utilities.operators_pytorch import InputLayer
+        from torch import nn
+
+        # add input data
+        for i, input in enumerate(input_list):
+            input_layer = InputLayer(input)
+            block_material.evaluated[-1*(i+1)] = input_layer
 
         layers = []
         for node_index in block_material.active_nodes:
@@ -854,36 +887,46 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_GraphAbstract):
             else:
                 # main node. this is where we evaluate
                 function = block_material[node_index]["ftn"]
+                
+                inputs = []
+                node_input_indices = block_material[node_index]["inputs"]
+                for node_input_index in node_input_indices:
+                    inputs.append(block_material.evaluated[node_input_index])
+                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
+
                 args = []
                 node_arg_indices = block_material[node_index]["args"]
                 for node_arg_index in node_arg_indices:
                     args.append(block_material.args[node_arg_index].value)
 
                 ezLogging.debug("%s - Builing %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
-                node = function(inputs[-1], *args)
-                if isinstance(node, PyTorchLayerWrapper):
-                    inputs.append((node.get_out_shape()))
+                node = function(*inputs, *args)
                 block_material.evaluated[node_index] = node
                 layers.append(node.get_layer())
 
-        output_shape = inputs[-1]
-        return layers, output_shape
+        output_list = []
+        if not block_material.dead:
+            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
+                output_list.append(block_material.evaluated[block_material.genome[output_index]])
+
+        return nn.Sequential(*layers), output_list
 
 
 class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
-        # TODO: add implementation
 
     def build_graph(self, block_material, block_def, data):
         '''
-        TODO: implement and add documentation 
+        Build the SimGAN refiner network
         '''
         from torch import nn
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        layers, output_shape = self.standard_build_graph(block_material, block_def, data)
-        ezLogging.info("%s - Ending building...%i layers" % (block_material.id, len(layers)))
+        graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
+        output_shape = output_list[0].get_out_shape()
+        import pdb; pdb.set_trace()
+        ezLogging.info("%s - Ending building..." % (block_material.id))
         """
         Per my conversation with Rodd:
         - The way this is set up, we would only be able to have a single linear input
@@ -895,12 +938,13 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
 
         # Add a layer to get the output back into the right shape
         # TODO: consider using a linear layer instead of a conv1d and then unflattening. Not sure what is the right move
+        extra_layers = []
         if len(output_shape) == 1:
-            layers.append(nn.Unflatten(dim=0, unflattened_size=(1,)))
-        layers.append(nn.Conv1d(output_shape[0], 1, kernel_size=1))
+            extra_layers.append(nn.Unflatten(dim=0, unflattened_size=(1,)))
+        # Tanh to keep our output in the range of 0 to 1
+        extra_layers = extra_layers + [nn.Conv1d(output_shape[0], 1, kernel_size=1), nn.Tanh()]
 
-        block_material.graph = nn.Sequential(*layers, nn.Tanh())
-        print(block_material.graph)
+        block_material.graph = nn.Sequential(graph, *extra_layers)
 
     def train_graph(self,
                     block_material,
@@ -908,49 +952,19 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
                     training_datapair,
                     validation_datapair):
         '''
-        TODO: implement and add documentation 
+        The graph will be passed to the discriminator and trained there, so we pass here.
         '''
-        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
-                                                                                      block_def.batch_size,
-                                                                                      training_datapair.num_images//block_def.batch_size,
-                                                                                      block_def.epochs))
-        # TODO: see if any of the below code is useful
-        # ezLogging.debug("%s - Building Generators" % (block_material.id))
-        # training_generator, validation_generator = self.get_generator(block_material,
-        #                                                               block_def,
-        #                                                               training_datapair,
-        #                                                               validation_datapair)
-
-        # history = block_material.graph.fit(x=training_generator,
-        #                                    epochs=block_def.epochs,
-        #                                    verbose=2, # TODO set to 0 or 2 after done debugging
-        #                                    callbacks=None,
-        #                                    validation_data=validation_generator,
-        #                                    shuffle=True,
-        #                                    steps_per_epoch=training_datapair.num_images//block_def.batch_size, # TODO
-        #                                    validation_steps=validation_datapair.num_images//block_def.batch_size,
-        #                                    max_queue_size=10,
-        #                                    workers=1,
-        #                                    use_multiprocessing=False,
-        #                                   )
-        # tf.keras.backend.clear_session()
-
-        # #output = history.stuff # validation metrics
-        # # NOTE: this is essentially our individual.fitness.values
-        # return [-1*history.history['val_accuracy'][-1], -1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
-        # #return [-1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
-
-
+        pass
+       
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
                  train_data: SimGANDataset,
                  validation_data: SimGANDataset):
         '''
-        TODO: implement and add documentation 
+        All we have to do in evaluate is build the graph.
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        # import pdb; pdb.set_trace()
 
         try:
             self.build_graph(block_material, block_def, train_data)
@@ -960,19 +974,6 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
             import pdb; pdb.set_trace()
             return
 
-        # TODO: see if any of the below code is useful
-        # try:
-        #     # outputs a list of the validation metrics
-        #     output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
-        # except Exception as err:
-        #     ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
-        #     block_material.dead = True
-        #     import pdb; pdb.set_trace()
-        #     return
-
-        # block_material.output = [None, output] # TODO make sure it is a list
-
-
 class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
@@ -980,22 +981,22 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
 
     def build_graph(self, block_material, block_def, data):
         '''
-        TODO: implement and add documentation 
+        Build the SimGAN discriminator network
         '''
-        ezLogging.debug("%s - Building Graph" % (block_material.id))
         from torch import nn
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        layers, output_shape = self.standard_build_graph(block_material, block_def, data)
-        ezLogging.info("%s - Ending building...%i layers" % (block_material.id, len(layers)))
+        graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
+        output_shape = output_list[0].get_out_shape()
+        ezLogging.info("%s - Ending building..." % (block_material.id))
 
         # Add a final linear layer and get the output in shape Nx2
         in_features = 1
         for dim in list(output_shape): 
             in_features *= dim
-        out_layer = nn.Linear(in_features, 2)
+        extra_layers = [nn.Linear(in_features, 2), nn.Flatten(start_dim=1)]
 
-        # import pdb; pdb.set_trace()
-        block_material.graph = nn.Sequential(*layers, nn.Flatten(start_dim=1), out_layer)
+        block_material.graph = nn.Sequential(graph, *extra_layers)
 
     def train_graph(self,
                     block_material,
