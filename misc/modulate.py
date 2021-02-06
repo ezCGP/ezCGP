@@ -13,8 +13,7 @@ import Augmentor
 import cv2
 import tensorflow as tf
 import pdb
-
-
+np.random.seed(20)
 
 ####################################################################################################
 ### Modules
@@ -31,7 +30,7 @@ class Module_Abstract(ABC):
             print("ERROR BRO - wrong data type for expected_inputs")
             pdb.set_trace()
         for _input in expected_inputs:
-            if not isinstance(ting, tuple):
+            if not isinstance(_input, tuple):
                 print("ERROR BRO - wrong data type for elements in expected_inputs")
                 pdb.set_trace()
 
@@ -101,13 +100,13 @@ class Augment_MainNode(MainNode):
 
 class Preprocess_MainNode(MainNode):
     def __init__(self):
-        super().__init__(expected_inputs=[(Augment_MainNodee, Preprocess_MainNode)])
+        super().__init__(expected_inputs=[(Augment_MainNode, Preprocess_MainNode)])
 
 
 
 class StartGraph_MainNode(MainNode):
     def __init__(self):
-        super().__init__(expected_inputs=[(Pipeline_InputNode)])
+        super().__init__(expected_inputs=[(Pipeline_InputNode,)])
 
 
 
@@ -119,28 +118,29 @@ class BuildGraph_MainNode(MainNode):
 
 class EndGraph_MainNode(MainNode):
     def __init__(self):
-        super().__init__(expected_inputs=[(StartGraph_MainNode),
-                                          (BuildGraph_MainNode)])
+        super().__init__(expected_inputs=[(StartGraph_MainNode,),
+                                          (BuildGraph_MainNode,)])
 
 
 
 class ImageGenerator_MainNode(MainNode):
     def __init__(self):
-        super().__init__(expected_inputs=[(Images_InputNode),
-                                          (Preprocess_MainNode)])
+        super().__init__(expected_inputs=[(Preprocess_MainNode,),
+                                          (Images_InputNode,)])
 
 
 
 class TrainGraph_MainNode(MainNode):
     def __init__(self):
-        super().__init__(expected_inputs=[(EndGraph_MainNode),
-                                          (Pipeline_InputNode)])
+        super().__init__(expected_inputs=[(EndGraph_MainNode,),
+                                          (ImageGenerator_MainNode,),
+                                          (Pipeline_InputNode,)])
 
 
 
 class ScoreGraph_MainNode(MainNode):
     def __init__(self):
-        super().__init__(expected_inputs=[(TrainGraph_MainNode)])
+        super().__init__(expected_inputs=[(TrainGraph_MainNode,)])
 
 
 
@@ -158,7 +158,7 @@ class OutputNode(Module_Abstract):
 
 class FinalOutput(OutputNode):
     def __init__(self):
-        super().__init__(expected_inputs=[(ScoreGraph_MainNode)])
+        super().__init__(expected_inputs=[(ScoreGraph_MainNode,)])
 
 
 
@@ -171,15 +171,15 @@ operator_dict = {}
 
 ### Primitives - Image Augmentation
 
-def flip_left_right(pipeline, probability=.5):
+def flip_left_right(myPipeline, probability=.5):
     '''
     https://arxiv.org/pdf/1912.11370v2.pdf
     https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.flip_left_right
     "Flip (mirror) the image along its horizontal axis, i.e. from left to right."
     prob: float (0,1]
     '''
-    pipeline.flip_left_right(probability=probability)
-    return pipeline
+    myPipeline.pipeline.flip_left_right(probability=probability)
+    return myPipeline
 
 operator_dict[flip_left_right] = {"module": Augment_MainNode,
                                   "inputs": [Augmentor.Pipeline],
@@ -188,14 +188,14 @@ operator_dict[flip_left_right] = {"module": Augment_MainNode,
                                  }
 
 
-def flip_top_bottom(pipeline, probability=.5):
+def flip_top_bottom(myPipeline, probability=.5):
     '''
     https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.flip_top_bottom
     "Flip (mirror) the image along its vertical axis, i.e. from top to bottom."
     prob: float (0,1]
     '''
-    pipeline.flip_top_bottom(probability=probability)
-    return pipeline
+    myPipeline.pipeline.flip_top_bottom(probability=probability)
+    return myPipeline
 
 operator_dict[flip_top_bottom] = {"module": Augment_MainNode,
                                   "inputs": [Augmentor.Pipeline],
@@ -220,18 +220,18 @@ class Blur(Augmentor.Operations.Operation):
     
     def perform_operation(self, images):
         def do(image):
-            return cv2.blur(image, ksize=self.kernel, normalize=self.normalize)
+            return cv2.boxFilter(np.array(image), ksize=self.kernel, ddepth=3, normalize=self.normalize)
         
         augmented_images = []
         for image in images:
             augmented_images.append(do(image))
         
-        return augmented_images
+        return np.array(augmented_images)
 
 
-def blur(pipeline, kernel_size=5, normalize=True):
-    pipeline.add_operation(Blur(kernel_size, normalize))
-    return pipeline
+def blur(myPipeline, kernel_size=5, normalize=True):
+    myPipeline.pipeline.add_operation(Blur(kernel_size, normalize))
+    return myPipeline
 
 
 operator_dict[blur] = {"module": Preprocess_MainNode,
@@ -274,18 +274,18 @@ class BilateralFilter(Augmentor.Operations.Operation):
     
     def perform_operation(self, images):
         def do(image):
-            return cv2.bilateralFilter(image, d=self.d, sigmaColor=self.sigma_color, sigmaSpace=self.sigma_space)
+            return cv2.bilateralFilter(np.array(image), d=self.d, sigmaColor=self.sigma_color, sigmaSpace=self.sigma_space)
         
         augmented_images = []
         for image in images:
             augmented_images.append(do(image))
         
-        return augmented_images
+        return np.array(augmented_images)
 
 
-def bilateral_filter(pipeline, d=2, sigma_color=20.0, sigma_space=20.0):
-    pipeline.add_operation(BilateralFilter(d, sigma_color, sigma_space))
-    return pipeline
+def bilateral_filter(myPipeline, d=2, sigma_color=20.0, sigma_space=20.0):
+    myPipeline.pipeline.add_operation(BilateralFilter(d, sigma_color, sigma_space))
+    return myPipeline
 
 
 operator_dict[bilateral_filter] = {"module": Preprocess_MainNode,
@@ -389,7 +389,8 @@ operator_dict[conv2D_layer_elu] = {"module": BuildGraph_MainNode,
 
 def close_graph(first_layer, last_layer):
     output_flatten = tf.keras.layers.Flatten()(last_layer)
-    logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
+    # units -> number of labels
+    logits = tf.keras.layers.Dense(units=10, activation=None, use_bias=True)(output_flatten)
     softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
 
     graph = tf.keras.Model(inputs=first_layer, outputs=softmax)
@@ -416,14 +417,15 @@ operator_dict[close_graph] = {"module": EndGraph_MainNode,
 
 ### Primitives - Build Generator
 
-def build_generator(pipeline, images):
+def build_generator(myPipeline, images):
     training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                preprocessing_function=pipeline.keras_preprocess_func()
+                                preprocessing_function=myPipeline.pipeline.keras_preprocess_func(),
+                                data_format="channels_last"
                                 )
     #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
     training_generator = training_datagen.flow(x=images.x,
                                                y=images.y,
-                                               batch_size=pipeline.batch_size,
+                                               batch_size=myPipeline.batch_size,
                                                shuffle=True)
 
     return training_generator
@@ -439,25 +441,25 @@ operator_dict[build_generator] = {"module": ImageGenerator_MainNode,
 
 ### Primitives - Train Graph
 
-def train_graph(graph, generator):
+def train_graph(graph, generator, pipeline):
     history = graph.fit(x=generator,
-                                       epochs=block_def.epochs,
-                                       verbose=2, # TODO set to 0 or 2 after done debugging
-                                       callbacks=None,
-                                       validation_data=None,
-                                       shuffle=True,
-                                       steps_per_epoch=pipeline.num_images//pipeline.batch_size, # TODO
-                                       validation_steps=None,
-                                       max_queue_size=10,
-                                       workers=1,
-                                       use_multiprocessing=False,
-                                      )
+                       epochs=5,
+                       verbose=2, # TODO set to 0 or 2 after done debugging
+                       callbacks=None,
+                       validation_data=None,
+                       shuffle=True,
+                       steps_per_epoch=pipeline.num_images//pipeline.batch_size, # TODO
+                       validation_steps=None,
+                       max_queue_size=10,
+                       workers=1,
+                       use_multiprocessing=False,
+                      )
     tf.keras.backend.clear_session()
 
-    return train_graph
+    return history
 
 
-operator_dict[close_graph] = {"module": TrainGraph_MainNode,
+operator_dict[train_graph] = {"module": TrainGraph_MainNode,
                                    "inputs": [Augmentor.Pipeline],
                                    "output": Augmentor.Pipeline,
                                    "args": []
@@ -468,7 +470,9 @@ operator_dict[close_graph] = {"module": TrainGraph_MainNode,
 ### Primitives - Score
 
 def score_model(history):
-    return [-1*history.history['val_accuracy'][-1], -1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
+    #return [-1*history.history['val_accuracy'][-1], -1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
+    return [-1*history.history['accuracy'][-1], -1*history.history['precision'][-1], -1*history.history['recall'][-1]]
+
 
 
 operator_dict[score_model] = {"module": ScoreGraph_MainNode,
@@ -482,8 +486,8 @@ operator_dict[score_model] = {"module": ScoreGraph_MainNode,
 ### Compile
 module_dict = {}
 for method, method_dict in operator_dict.items():
-    module = method_dict.module
-    if module in module_dict:
+    module = method_dict['module']
+    if module not in module_dict:
         module_dict[module] = [method]
     else:
         module_dict[module].append(method)
@@ -499,13 +503,16 @@ class MyImages():
         self.batch_size = batch_size
         self.num_batches = num_images//batch_size
         self.image_shape = image_shape
-        self.x = np.random.randint(0, 256, (num_images,)+image_shape)
-        self.y = np.random.randint(0, 2, (num_images,))
+        self.num_classes = 10
+        self.x = np.random.randint(0, 256, (num_images,)+image_shape).astype(np.uint8)
+        #self.x = np.random.random((num_images,)+image_shape)
+        self.y = np.random.randint(0, self.num_classes, (num_images,))
+        self.y =tf.keras.utils.to_categorical(self.y, num_classes=self.num_classes)
 
 
 
 class MyPipeline():
-    def __init__(self, images)
+    def __init__(self, images):
         self.pipeline = Augmentor.Pipeline()
         self.num_images = images.num_images
         self.batch_size = images.batch_size
@@ -513,7 +520,7 @@ class MyPipeline():
         self.image_shape = images.image_shape
 
 
-data_images = MyImages(num_images=200, batch_size=5)
+data_images = MyImages(num_images=200, batch_size=20)
 data_pipeline = MyPipeline(data_images)
 
 
@@ -522,15 +529,15 @@ data_pipeline = MyPipeline(data_images)
 ### Genome
 
 class Genome():
-    def __init__(self, input_types, num_mains, output_types, module_dict):
+    def __init__(self, input_types, num_mains, output_types):
         self.is_dead = False
         self.num_inputs = len(input_types)
         self.num_mains = num_mains
         self.num_outputs = len(output_types)
-        self.num_nodes = num_inputs + num_mains + num_outputs
+        self.num_nodes = self.num_inputs + num_mains + self.num_outputs
 
         genome = []
-        for _ in range(self.num_main):
+        for _ in range(self.num_mains):
             node_dict = {'module': None,
                          'value': None,
                          'function': None,
@@ -563,11 +570,19 @@ class Genome():
         '''
         success = False
 
-        if ith_node < self.num_main:
+        if ith_node < self.num_mains:
             # ith node is a main node
             previous_node_modules = []
-            for node in self.genome[:ith_node]:
-                previous_node_modules.append(node['module'])
+            for ii in range(self.num_nodes):
+                if ii < ith_node:
+                    # for main nodes, this module gets instantiated so we have to call type()
+                    previous_node_modules.append(type(self.genome[ii]['module']))
+                elif ii >= self.num_mains + self.num_outputs:
+                    # input node
+                    previous_node_modules.append(self.genome[ii]['module'])
+                else:
+                    previous_node_modules.append(None)
+            previous_node_modules = np.array(previous_node_modules)
 
             # get operator choices
             operators = list(operator_dict.keys())
@@ -579,13 +594,13 @@ class Genome():
 
                 inputs = [None]*len(expected_inputs)
                 for ith_input, expected_input_tuple in enumerate(expected_inputs):
-                    for possible_input_type in np.random.choice(expected_input_tuple, size=len(expected_input_tuple), replace=False)
-                        if possible_input_type in random_operators:
-                            inputs[ith_input] = np.where[possible_input_type=random_operators][0][0]
+                    for possible_input_type in np.random.choice(expected_input_tuple, size=len(expected_input_tuple), replace=False):
+                        if possible_input_type in previous_node_modules:
+                            inputs[ith_input] = np.where(possible_input_type==previous_node_modules)[0][0]
                             break
 
                 if None in inputs:
-                    print("failed to find match with given operator")
+                    #print("failed to find match with given operator")
                     continue
                 else:
                     self.genome[ith_node]['inputs'] = inputs
@@ -597,29 +612,32 @@ class Genome():
         else:
             # assume output node
             previous_node_modules = []
-            for node in self.genome[:self.num_main]:
-                previous_node_modules.append(node['module'])
+            for node in self.genome[:self.num_mains]:
+                previous_node_modules.append(type(node['module']))
+            previous_node_modules = np.array(previous_node_modules)
 
             # module we want
             module_instance = self.genome[ith_node]['module']()
             expected_inputs = module_instance.expected_inputs
 
-            inputs = []
+
+            inputs = [None]*self.num_outputs
             for ith_input, expected_input_tuple in enumerate(expected_inputs):
-                for possible_input_type in np.random.choice(expected_input_tuple, size=len(expected_input_tuple), replace=False)
+                for possible_input_type in np.random.choice(expected_input_tuple, size=len(expected_input_tuple), replace=False):
                     if possible_input_type in previous_node_modules:
-                        inputs[ith_input] = np.where[possible_input_type=previous_node_modules][0][0]
+                        inputs[ith_input] = np.where(possible_input_type==previous_node_modules)[0][0]
                         break
 
             if None in inputs:
-                print("failed to find match with given output")
+                #print("failed to find match with given output")
+                pass
             else:
                 self.genome[ith_node]['inputs'] = inputs
                 success = True
 
         if not success:
             self.is_dead = True
-                import pdb; pdb.set_trace()
+            #pdb.set_trace()
 
 
     def build_genome(self, module_dict, operator_dict):
@@ -627,14 +645,126 @@ class Genome():
         genome should already have input and output modules filled in
         '''
         # main nodes
-        for ith_node in range(self.num_main+self.num_outputs):
+        for ith_node in range(self.num_mains+self.num_outputs):
             self.match_modules(ith_node, module_dict, operator_dict)
             if self.is_dead:
-                print("FAILED")
+                #print("FAILED")
                 break
 
+        if not self.is_dead:
+            self.get_actives()
+
+
+    def get_actives(self):
+        '''
+        method will go through and set the attributes block_material.active_nodes and active_args.
+        active_nodes will include all output_nodes, a subset of main_nodes and input_nodes.
+        '''
+        self.active_nodes = set(np.arange(self.num_mains, self.num_mains+self.num_outputs))
+
+        # add feeds into the output_nodes
+        for node_input in range(self.num_mains, self.num_mains+self.num_outputs):
+            self.active_nodes.update(self.genome[node_input]['inputs'])
+
+        for node_index in reversed(range(self.num_mains)):
+            if node_index in self.active_nodes:
+                # then add the input nodes to active list
+                self.active_nodes.update(self.genome[node_index]["inputs"])
+            else:
+                pass
+
+        # sort
+        self.active_nodes = sorted(list(self.active_nodes))
+
+
+    def evaluate(self, input_list):
+        '''
+        # verify that the input data matches the expected datatypes
+        for input_dtype, input_data in zip(block_def.input_dtypes, input_list):
+            if input_dtype != type(input_data):
+                ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
+                return None'''
+
+        # add input data
+        for i, data_input in enumerate(input_list):
+            self.genome[-1*(i+1)]['value'] = data_input
+
+        # go solve
+        for node_index in self.active_nodes:
+            if node_index < 0:
+                # do nothing. at input node
+                continue
+            elif node_index >= self.num_mains:
+                # do nothing NOW. at output node. we'll come back to grab output after this loop
+                continue
+            else:
+                # main node. this is where we evaluate
+                function = self.genome[node_index]["function"]
+                
+                inputs = []
+                node_input_indices = self.genome[node_index]["inputs"]
+                for node_input_index in node_input_indices:
+                    inputs.append(self.genome[node_input_index]['value'])
+
+                try:
+                    self.genome[node_index]['value'] = function(*inputs)
+                except Exception as err:
+                    print("oops: %s" % err)
+                    self.is_dead = True
+                    pdb.set_trace()
+                    break
+
+        output_list = []
+        if not self.is_dead:
+            for output_index in range(self.num_mains, self.num_mains+self.num_outputs):
+                output_list.append(self.genome[self.genome[output_index]["inputs"][0]]["value"])
+                
+        return output_list
+
+
+
+####################################################################################################
+### Population
+
+population = []
+population_size = 20
+failed_individuals = 0
+while len(population) < population_size:
+    ting = Genome(input_types=[Pipeline_InputNode, Images_InputNode],
+                  num_mains=20,
+                  output_types=[FinalOutput])
+
+    ting.build_genome(module_dict, operator_dict)
+    if ting.is_dead:
+        failed_individuals+=1
+    else:
+        for ith_node, node in enumerate(ting.genome):
+            if ith_node < ting.num_mains:
+                function = node['function'].__name__
+                inputs = node['inputs']
+                module = type(node['module']).__name__
+            elif ith_node < ting.num_mains + ting.num_outputs:
+                function = "-"
+                inputs = node['inputs']
+                module = node['module'].__name__
+            else:
+                function = "-"
+                inputs = "-"
+                module = node['module'].__name__
+            print("Node %i" % ith_node)
+            print("\tModule: %s" % (module))
+            print("\tFtn: %s" % (function))
+            print("\tInputs: %s" % (inputs))
+
+        #_ = input("Press ENTER to continue")
+        population.append(deepcopy(ting))
 
 
 
 
+####################################################################################################
+### Evaluate
 
+for individual in population:
+    individual.evaluate(input_list=[data_pipeline, data_images])
+    print("EVALUATED"); pdb.set_trace()
