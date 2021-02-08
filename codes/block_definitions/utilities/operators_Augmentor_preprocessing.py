@@ -27,6 +27,7 @@ import numpy as np
 import cv2
 import functools
 from copy import deepcopy
+import pdb
 
 ### sys relative to root dir
 import sys
@@ -53,8 +54,11 @@ def cv2_Augmentor_decorator(func):
     @functools.wraps(func)
     def wrapper_do(PIL_image):
         np_image = np.array(PIL_image).astype('uint8')
+        print("Converted to np", PIL_image.size)
         np_image = func(np_image)
+        print("Ran func")
         PIL_image = Augmentor.Operations.Image.fromarray(np_image) #in Augmentor.Operations they do `from PIL import Image`
+        print("Converted to PIL", PIL_image.size, "\n")
         return PIL_image
     return wrapper_do
 
@@ -84,6 +88,7 @@ class Normalize(Augmentor.Operations.Operation):
         @cv2_Augmentor_decorator
         def do(image):
             mod_image = np.asarray(image) / 255.0
+            pdb.set_trace()
             return mod_image
         
         augmented_images = []
@@ -119,7 +124,7 @@ class Blur(Augmentor.Operations.Operation):
     def perform_operation(self, images):
         @cv2_Augmentor_decorator
         def do(image):
-            return cv2.blur(image, ksize=self.kernel, normalize=self.normalize)
+            return cv2.boxFilter(image, ddepth=-1, ksize=self.kernel, normalize=self.normalize)
         
         augmented_images = []
         for image in images:
