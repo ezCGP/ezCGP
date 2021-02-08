@@ -29,6 +29,7 @@ from codes.block_definitions.utilities import operators_Augmentor_preprocessing 
 def create_fake_data(batch_size=20,
                      image_shape=(256, 256, 3),
                      asint=True):
+    np.random.seed(20)
     if asint:
         images = np.random.randint(0, 256, (batch_size,)+(image_shape)).astype(np.uint8)
     else:
@@ -45,7 +46,6 @@ def create_pipeline():
     primtives = []
     for name, execute in inspect.getmembers(globals()['ops']): # returns list of tuples of everything in that module
         if (inspect.isfunction(execute)) and  (execute.__module__.endswith('operators_Augmentor_preprocessing')) and (execute in ops.operator_dict):
-            print(name, execute)
             # check if what we are pulling is a function, then make sure it is a function defined in that module
             # as oposed to something imported like dirname from os.path
             primtives.append(execute)
