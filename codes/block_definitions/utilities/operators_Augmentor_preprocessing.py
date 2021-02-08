@@ -25,6 +25,7 @@ Probability should always be set to 1 for preprocessing methods.
 import Augmentor
 import numpy as np
 import cv2
+import functools
 from copy import deepcopy
 
 ### sys relative to root dir
@@ -39,6 +40,23 @@ from codes.utilities.custom_logging import ezLogging
 
 ### init dict
 operator_dict = {}
+
+
+### decorator to convert PIL -> np; do cv2 operation; np -> PIL
+def cv2_Augmentor_decorator(func):
+    '''
+    https://augmentor.readthedocs.io/en/master/userguide/extend.html
+
+    Augmentor.Pipeline uses PIL.Images, and cv2 expects np.ndarray,
+    so we have to convert from PIL to np, run func(), then convert np to PIL
+    '''
+    @functools.wraps(func)
+    def wrapper_do(PIL_image):
+        np_image = np.array(PIL_image).astype('uint8')
+        np_image = func(np_image)
+        PIL_image = Augmentor.Operations.Image.fromarray(np_image) #in Augmentor.Operations they do `from PIL import Image`
+        return PIL_image
+    return wrapper_do
 
 
 
@@ -63,6 +81,7 @@ class Normalize(Augmentor.Operations.Operation):
         
         NOTE here we assume that the image maxes out at 255
         '''
+        @cv2_Augmentor_decorator
         def do(image):
             mod_image = np.asarray(image) / 255.0
             return mod_image
@@ -98,6 +117,7 @@ class Blur(Augmentor.Operations.Operation):
         self.normalize = normalize
     
     def perform_operation(self, images):
+        @cv2_Augmentor_decorator
         def do(image):
             return cv2.blur(image, ksize=self.kernel, normalize=self.normalize)
         
@@ -132,6 +152,7 @@ class GaussianBlur(Augmentor.Operations.Operation):
         self.sigma_y = sigma_y
     
     def perform_operation(self, images):
+        @cv2_Augmentor_decorator
         def do(image):
             return cv2.GaussianBlur(image, ksize=self.kernel, sigmaX = self.sigma_x, sigmaY = self.sigma_y)
         
@@ -166,6 +187,7 @@ class MedianBlur(Augmentor.Operations.Operation):
         self.kernel = kernel_size # in this case, use an int not a tuple
     
     def perform_operation(self, images):
+        @cv2_Augmentor_decorator
         def do(image):
             return cv2.medianBlur(image, ksize=self.kernel)
         
@@ -220,6 +242,7 @@ class BilateralFilter(Augmentor.Operations.Operation):
         self.sigma_space = sigma_space
     
     def perform_operation(self, images):
+        @cv2_Augmentor_decorator
         def do(image):
             return cv2.bilateralFilter(image, d=self.d, sigmaColor=self.sigma_color, sigmaSpace=self.sigma_space)
         
@@ -256,6 +279,7 @@ class Thresholding(Augmentor.Operations.Operation):
         self.thresh = self.maxval*thresh
     
     def perform_operation(self, images):
+        @cv2_Augmentor_decorator
         def do(image):
             if len(image.shape) == 2 or(len(image.shape) == 3 and image.shape[2] == 1):
                 _, dst = cv2.threshold(src=image, thresh=self.thresh, maxval=self.maxval, type=cv2.THRESH_BINARY)
@@ -298,6 +322,7 @@ class AdaptiveThreshold(Augmentor.Operations.Operation):
         self.thresholdType = threshold_types[ith_threshold_type]
     
     def perform_operation(self, images):
+        @cv2_Augmentor_decorator
         def do(image):
             return cv2.adaptiveThreshold(image,
                                          maxValue=self.maxValue,
@@ -338,6 +363,7 @@ class OtsuThresholding(Augmentor.Operations.Operation):
         super().__init__(probability=probability)
     
     def perform_operation(self, images):
+        @cv2_Augmentor_decorator
         def do(image):
             import pdb; pdb.set_trace()
             retval, dst = cv2.threshold(src=image,
