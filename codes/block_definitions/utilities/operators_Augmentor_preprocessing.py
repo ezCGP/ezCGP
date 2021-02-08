@@ -54,11 +54,8 @@ def cv2_Augmentor_decorator(func):
     @functools.wraps(func)
     def wrapper_do(PIL_image):
         np_image = np.array(PIL_image).astype('uint8')
-        print("Converted to np", PIL_image.size)
         np_image = func(np_image)
-        print("Ran func")
         PIL_image = Augmentor.Operations.Image.fromarray(np_image) #in Augmentor.Operations they do `from PIL import Image`
-        print("Converted to PIL", PIL_image.size, "\n")
         return PIL_image
     return wrapper_do
 
@@ -102,11 +99,12 @@ def normalize(pipeline):
     pipeline.add_operation(Normalize())
     return pipeline
 
-
+'''
+# Augmentor.Pipeline wants uint8 values, so we cant normalize the values to (0,1) floats when using Augmentor
 operator_dict[normalize] = {"inputs": [Augmentor.Pipeline],
                             "output": Augmentor.Pipeline,
                             "args": [] # TODO: no argument because we always want prob=1 right?
-                           }
+                           }'''
 
 
 

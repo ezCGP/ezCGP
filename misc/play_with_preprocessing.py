@@ -24,7 +24,8 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import operators_Augmentor_preprocessing as ops
-#from codes import block_operations
+
+np.random.seed(20)
 
 
 ### create some fake data
