@@ -13,15 +13,15 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
-# from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
-# from codes.block_definitions.block_operators import BlockOperators_Gaussian
-# from codes.block_definitions.block_arguments import BlockArguments_Gaussian
-# from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-# from codes.block_definitions.block_mutate import BlockMutate_NoFtn
-# from codes.block_definitions.block_mate import BlockMate_NoMate
-# from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
-# from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-# from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
+from codes.block_definitions.block_shapemeta import BlockShapeMeta_SimGAN_Network
+from codes.block_definitions.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator
+from codes.block_definitions.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator
+from codes.block_definitions.block_evaluate import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator
+from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
+from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks
+from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
+from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 # from post_process import save_things
 # from post_process import plot_things
 
@@ -32,29 +32,38 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 20 #must be divisible by 4 if doing mating
+        population_size = 12 #must be divisible by 4 if doing mating
         number_universe = 1 #10
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
+        refiner_def = self.construct_block_def(nickname = "refiner",
+                                             shape_def = BlockShapeMeta_SimGAN_Network, 
+                                             operator_def = BlockOperators_SimGAN_Refiner, 
+                                             argument_def = BlockArguments_SimGAN_Refiner,
+                                             evaluate_def = BlockEvaluate_SimGAN_Refiner,
+                                             mutate_def=BlockMutate_OptB_4Blocks,
+                                             mate_def=BlockMate_WholeOnly_4Blocks
+                                            )
+
+        discriminator_def = self.construct_block_def(nickname = "discriminator",
+                                             shape_def = BlockShapeMeta_SimGAN_Network, 
+                                             operator_def = BlockOperators_SimGAN_Discriminator, 
+                                             argument_def = BlockArguments_SimGAN_Discriminator,
+                                             evaluate_def = BlockEvaluate_SimGAN_Discriminator,
+                                             mutate_def=BlockMutate_OptB_4Blocks,
+                                             mate_def=BlockMate_WholeOnly_4Blocks
+                                            )
+
+        self.construct_individual_def(block_defs = [refiner_def, discriminator_def],
+                                      mutate_def = IndividualMutate_RollOnEachBlock,
+                                      mate_def = IndividualMate_RollOnEachBlock,
+                                      evaluate_def = IndividualEvaluate_SimGAN
+                                      )
+
         # where to put this?
         self.construct_dataset()
-
-        block_def = self.construct_block_def(nickname = "simgan",
-                                            #  shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
-                                            #  operator_def = BlockOperators_Gaussian, #only 1 operator...gauss taking in th right args
-                                            #  argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
-                                            #  evaluate_def = BlockEvaluate_Standard, #ya standard eval
-                                            #  mutate_def = BlockMutate_NoFtn, #maybe not mutate ftn
-                                            #  mate_def = BlockMate_NoMate # maybe not mate
-                                             )
-
-        self.construct_individual_def(block_defs = [block_def],
-                                    #   mutate_def = IndividualMutate_RollOnEachBlock,
-                                    #   mate_def = IndividualMate_RollOnEachBlock,
-                                    #   evaluate_def = IndividalEvaluate_Standard
-                                      )
 
 
     def construct_dataset(self):
@@ -62,8 +71,8 @@ class Problem(ProblemDefinition_Abstract):
         Constructs a train and validation 1D signal datasets
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
-        self.train_data = simganData.SimganFakeDataset(real_size=128**2, sim_size=256, batch_size=128)
-        self.valid_data = simganData.SimganFakeDataset(real_size=(128**2)/4, sim_size=128, batch_size=128)
+        self.train_data = simganData.SimGANDataset(real_size=128**2, sim_size=256, batch_size=128)
+        self.validate_data = simganData.SimGANDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)
         # import pdb; pdb.set_trace()
 
     def objective_functions(self, indiv):

@@ -202,6 +202,7 @@ class UniverseDefinition():
         '''
         self.generation = 0
         self.population = self.factory.build_population(problem.indiv_def, problem.pop_size, problem.genome_seeds)
+        # import pdb; pdb.set_trace()
         self.evaluate_score_population(problem)
         self.population_selection(problem)
         while not self.converged:

@@ -23,12 +23,13 @@ class dataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-class SimganFakeDataset():
+class SimGANDataset():
     """
-    Holds a simulated and real dataset, each composed of waves meant to mimic the ones in the room.
-    The real dataset has an attenuated second and has some slightly different generation parameters.
+    Holds a simulated and real dataset, each composed of 1D signals
     """
     def __init__(self, real_size=128**2, sim_size=256, batch_size=128):
+        self.batch_size = batch_size
+        
         ### Get the real and simulated datasets
         # Can configure these, but they are a bit obtuse
         self.real_raw = self.gen_fake_dataset(real_size, [24,56], [0.5,0.5], [5,8], 
@@ -57,6 +58,12 @@ class SimganFakeDataset():
             shuffle=True,
             # **kwargs
         )
+    
+    def get_real_batch():
+        return self.real_loader.__iter__().next()
+    
+    def get_simulated_batch():
+        return self.simulated_loader.__iter__().next()
     
     def gen_fake_dataset(self, n_signals, peak_locs_mu, peak_locs_sigma, mu_sigma, avg_peak_std_dev, amp_mu, amp_sigma, freq_mu, freq_sigma, add_noise=False):
         """
