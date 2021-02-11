@@ -27,7 +27,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
-from data.data_tools.loader import ezDataLoader_CIFAR10_old
+from data.data_tools.loader import ezDataLoader_CIFAR10
 from codes.utilities.custom_logging import ezLogging
 from post_process import save_things
 # Block Defs

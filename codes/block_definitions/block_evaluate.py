@@ -710,8 +710,8 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
     def get_generator(self,
                       block_material,
                       block_def,
-                      training_pipeline,
-                      validation_pipeline):
+                      training_datapair, # called datapair but really only the pipeline
+                      validation_datapair):
         
         if training_datapair.images_wrapper.x is None:
             '''

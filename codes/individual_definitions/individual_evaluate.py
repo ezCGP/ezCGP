@@ -151,10 +151,11 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
 
     def evaluate_block(self,
                        indiv_id,
+                       block_index,
                        block_def,
                        block_material,
-                       training_data,
-                       validation_data):
+                       training_datapair,
+                       validation_datapair):
         '''
         since each block has a slightly different behavior about what exactly get's passed in as data,
         I made a generalized evaluate method here that can get called in several different ways in the
@@ -171,7 +172,6 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
                 block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
             if block_material.dead:
                 indiv_material.dead = True
-                break
             else:
                 pass
         else:
@@ -199,12 +199,12 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
                 then we only want to pass in the 'pipeline' of the data so all the images don't get dragged along
                 and also get saved as the output of the block
                 '''
-                self.evaluate_block(self,
-                                    indiv_material.id,
+                self.evaluate_block(indiv_material.id,
+                                    block_index,
                                     block_def,
                                     block_material,
                                     training_datapair.pipeline_wrapper,
-                                    validation_data.pipeline_wrapper)
+                                    validation_datapair.pipeline_wrapper)
                 training_datapair.pipeline_wrapper, validation_datapair.pipeline_wrapper = block_material.output
 
             elif ('transferlearning' in block_def.nickname.lower()) or ('transfer_learning' in block_def.nickname.lower()):
@@ -215,22 +215,22 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
                     '''
                     block_material.need_evaluate = True
 
-                self.evaluate_block(self,
-                                    indiv_material.id,
+                self.evaluate_block(indiv_material.id,
+                                    block_index,
                                     block_def,
                                     block_material,
                                     training_datapair.pipeline_wrapper,
-                                    validation_data.pipeline_wrapper)
+                                    validation_datapair.pipeline_wrapper)
                 training_datapair.pipeline_wrapper, validation_datapair.pipeline_wrapper = block_material.output
 
             else:
                 # must be tensorflow block
-                self.evaluate_block(self,
-                                    indiv_material.id,
+                self.evaluate_block(indiv_material.id,
+                                    block_index,
                                     block_def,
                                     block_material,
                                     training_datapair,
-                                    validation_data)
+                                    validation_datapair)
 
                 # training_datapair will be None, and validation_datapair will be the final fitness scores
                 _, indiv_material.output = block_material.output
