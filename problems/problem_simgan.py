@@ -38,7 +38,7 @@ class Problem(ProblemDefinition_Abstract):
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
 
-        refiner_def = self.construct_block_def(nickname = "refiner",
+        refiner_def = self.construct_block_def(nickname = "refiner_block",
                                              shape_def = BlockShapeMeta_SimGAN_Network, 
                                              operator_def = BlockOperators_SimGAN_Refiner, 
                                              argument_def = BlockArguments_SimGAN_Refiner,
@@ -47,7 +47,7 @@ class Problem(ProblemDefinition_Abstract):
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
-        discriminator_def = self.construct_block_def(nickname = "discriminator",
+        discriminator_def = self.construct_block_def(nickname = "discriminator_block",
                                              shape_def = BlockShapeMeta_SimGAN_Network, 
                                              operator_def = BlockOperators_SimGAN_Discriminator, 
                                              argument_def = BlockArguments_SimGAN_Discriminator,

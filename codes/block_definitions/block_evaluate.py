@@ -14,6 +14,7 @@ Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDe
 from abc import ABC, abstractmethod
 from copy import deepcopy
 import importlib
+from torch import nn
 
 ### sys relative to root dir
 import sys
@@ -869,7 +870,6 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_GraphAbstract):
 
         """
         from codes.block_definitions.utilities.operators_pytorch import InputLayer
-        from torch import nn
 
         # add input data
         for i, input in enumerate(input_list):
@@ -920,12 +920,10 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         '''
         Build the SimGAN refiner network
         '''
-        from torch import nn
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
         graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
         output_shape = output_list[0].get_out_shape()
-        import pdb; pdb.set_trace()
         ezLogging.info("%s - Ending building..." % (block_material.id))
         """
         Per my conversation with Rodd:
@@ -974,6 +972,9 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
             import pdb; pdb.set_trace()
             return
 
+        block_material.output = [train_data, validation_data, block_material.graph]
+
+
 class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
@@ -983,7 +984,6 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         Build the SimGAN discriminator network
         '''
-        from torch import nn
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
         graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
@@ -1002,7 +1002,8 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
                     block_material,
                     block_def,
                     training_datapair,
-                    validation_datapair):
+                    validation_datapair,
+                    refiner):
         '''
         TODO: implement and add documentation 
         '''
@@ -1021,12 +1022,14 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         # import pdb; pdb.set_trace()
-
+        train_data, refiner = train_data # we pack refiner in, hacky but convenient, we unpack it here
         try:
             self.build_graph(block_material, block_def, train_data)
-            return "Hello"
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
+        
+        import pdb; pdb.set_trace()
+        output = self.train_graph(block_material, block_def, train_data, validation_data, refiner)

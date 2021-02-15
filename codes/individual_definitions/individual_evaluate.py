@@ -171,25 +171,61 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
     def __init__(self):
         pass
 
+    def evaluate_block(self,
+                       indiv_material,
+                       block_index,
+                       block_def,
+                       block_material,
+                       train_data,
+                       validation_data):
+        '''
+        Generalized evaluate method since 
+        '''
+        if block_material.need_evaluate:
+            ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
+            import pdb; pdb.set_trace()
+            block_def.evaluate(block_material, train_data, validation_data)
+            if block_material.dead:
+                indiv_material.dead = True
+                return
+            else:
+                pass
+        else:
+            ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #: IndividualDefinition,
                  train_data: SimGANDataset,
                  validation_data: SimGANDataset=None):
-        # Because the Refiner and Discriminator are two seperate blocks but require one another for their loss functions, they must be run together
-        # So instead of iterating through each block and evaluating them 1 by 1, we will evaluate 
+        '''
+        Because the Refiner and Discriminator are two seperate blocks but require one another for their loss functions, they must be run together
+        So we will take the refiner graph and input it into the discriminator block and train/evaluate it there.
+        '''
 
+        import pdb; pdb.set_trace()
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
-            if block_material.need_evaluate:
-                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-                block_def.evaluate(block_material, deepcopy(train_data), deepcopy(validation_data))
-                if block_material.dead:
-                    indiv_material.dead = True
-                    break
-                else:
-                    pass
+            if (block_def.nickname == 'refiner_block') and (indiv_material[block_index+1].need_evaluate):
+                # If we are in the refiner block and the discriminator block needs to be reevaluated, then we also need to reevalute the refiner
+                block_material.need_evaluate = True
+                self.evaluate_block(indiv_material,
+                                    block_index,
+                                    block_def,
+                                    block_material,
+                                    train_data,
+                                    validation_data)
+                train_data, validation_data, refiner = block_material.output
+                train_data = (train_data, refiner) # Pack refiner into train data, hacky but allows us to pass in refiner easily to discriminator
             else:
-                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
-            train_data = block_material.output
+                # must be tensorflow block
+                self.evaluate_block(indiv_material,
+                                    block_index,
+                                    block_def,
+                                    block_material,
+                                    train_data,
+                                    validation_data)
+                train_data, validation_data = block_material.output
+
+            last_output = block_material.output
         
-        indiv_material.output = block_material.output
+        indiv_material.output = last_output
