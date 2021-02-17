@@ -4,7 +4,7 @@
 #PBS -l mem=128gb                          	# job requires 8gb per core
 #PBS -q pace-ice-gpu                            # job is submitted to pace-ice
 #PBS -j oe                                      # output and error is combined into the same file
-#PBS -o ../test_area/results_debugging.out               # output file is named result.out
+#PBS -o log_files/results_debugging.out               # output file is named result.out
 #PBS -m abe                               	# Will send a status email based on any combination of a,b,e.
 #PBS -M rtalebi3@gatech.edu        
 cd ~/ezCGP                                
