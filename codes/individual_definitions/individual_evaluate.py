@@ -164,10 +164,11 @@ class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_A
         if block_material.need_evaluate:
             ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_id, block_index, block_def.nickname))
             if block_def.nickname == 'tensorflow_block':
+                # don't deepcopy, just work off the same data-instances from transferlearning block
                 block_def.evaluate(block_material, training_datapair, validation_datapair)
-                # delete anything we don't need anymore that will break a 'deepcopy' call
-                del training_datapair.graph_input_layer
-                del training_datapair.final_pretrained_layer
+                # delete attributes we don't need that can't be "deepcopy"-ed
+                del training_datapair.pipeline_wrapper.graph_input_layer
+                del training_datapair.pipeline_wrapper.final_pretrained_layer
             else:
                 block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
             if block_material.dead:
