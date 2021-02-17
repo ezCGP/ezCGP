@@ -50,35 +50,13 @@ class FactoryDefinition():
         '''
         TODO
         '''
-        # MEGA HACK! load in images after deleted from seeding
-        if len(genome_seeds) > 0:
-            train_dp, validate_dp, test_dp = ezDataLoader_CIFAR10_old(.6,.2,.2).load()
-
         my_population = PopulationDefinition(population_size)
 
         for i, genome_seed in enumerate(genome_seeds):
-            '''# should be a filepath
-            if genome_seed.endswith("pkl"):
-                with open(genome_seed, "rb") as f:
-                    indiv = pkl.load(f)
-                if isinstance(indiv, IndividualMaterial):
-                    indiv.set_id("seededIndiv%i" % i)
-                elif "lisp" in genome_seed:
-                    # TODO which block?
-                    indiv = build_block_from_lisp(block_def, lisp=indiv, indiv_id="seededIndiv%i-%i" % (node_rank,i))
-                else:
-                    ezLogging.error("unable to interpret genome seed")
-                    return None'''
             indiv = self.build_individual_from_seed(indiv_def,
                                                     genome_seed,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
-                for block in indiv.blocks:
-                    if (len(block.output)==2) and (isinstance(block.output[0], ezData)):
-                        block.output[0].x = deepcopy(train_dp.x)
-                        block.output[0].y = deepcopy(train_dp.y)
-                        block.output[1].x = deepcopy(train_dp.x)
-                        block.output[1].y = deepcopy(train_dp.y)
                 # if build_individual failed then we don't want to add to population
                 my_population.population.append(indiv)
 
@@ -88,20 +66,6 @@ class FactoryDefinition():
             my_population.population.append(indiv)
 
         return my_population
-
-
-    '''
-    def build_subpopulation(self, indiv_def: IndividualDefinition, population_size, number_subpopulation=None, subpopulation_size=None):
-        ''
-        TODO
-        ''
-        my_population = SubPopulationDefinition(population_size, number_subpopulation, subpopulation_size)
-        for ith_subpop, subpop_size in my_population.subpop_size:
-            for _ in range(subpop_size):
-                indiv = self.build_individual(indiv_def)
-                my_population[ith_subpop].append(indiv)
-        return my_population
-    '''
 
 
     def build_individual(self, indiv_def: IndividualDefinition, indiv_id=None):

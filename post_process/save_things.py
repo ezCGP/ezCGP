@@ -44,30 +44,6 @@ def save_population(universe):
         indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s.pkl" % (universe.generation, indiv.id))
         with open(indiv_file, "wb") as f:
             pkl.dump(indiv, f)
-
-
-def save_population_HACK(universe):
-    '''
-    save each individual_material as a pickle file named with it's id
-
-    here is how to open a pickled file:
-        from codes.genetic_material import IndividualMaterial
-        with open(indiv_file, "rb") as f:
-            indiv = pkl.load(f)
-    '''
-    ezLogging.debug("HACK saved each individual from population for generation %i" % universe.generation)
-    for indiv in universe.population.population:
-        new = deepcopy(indiv)
-        for block in new.blocks:
-            for output in block.output:
-                if hasattr(output, 'x'):
-                    output.x = None
-                if hasattr(output, 'y'):
-                    output.y = None
-        indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s.pkl" % (universe.generation, indiv.id))
-        with open(indiv_file, "wb") as f:
-            pkl.dump(new, f)
-    del new
             
             
 def save_population_asLisp(universe, indiv_definition):

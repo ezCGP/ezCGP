@@ -4,7 +4,7 @@
 #PBS -l mem=128gb                          	# job requires 8gb per core
 #PBS -q pace-ice-gpu                            # job is submitted to pace-ice
 #PBS -j oe                                      # output and error is combined into the same file
-#PBS -o ../test_area/results9.out               # output file is named result.out
+#PBS -o log_files/results_debugging.out               # output file is named result.out
 #PBS -m abe                               	# Will send a status email based on any combination of a,b,e.
 #PBS -M rtalebi3@gatech.edu        
 cd ~/ezCGP                                
@@ -14,7 +14,7 @@ module load anaconda3/2020.02
 module load cuda/10.1
 conda activate ezcgp-py
 # conda install  https://anaconda.org/anaconda/cudnn/7.6.5/download/linux-64/cudnn-7.6.5-cuda10.1_0.tar.bz2
-python main.py -p problem_tfkeras_transferlearning -v -n 9th_run #-s 9
+python main.py -p problem_tfkeras_transferlearning -v -t #-s 9
 # got rid of accuracy as objective in 8th run...errored because some fitness had 3 values and some had 
 
 
