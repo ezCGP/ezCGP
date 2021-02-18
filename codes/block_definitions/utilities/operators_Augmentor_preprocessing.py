@@ -28,7 +28,7 @@ import cv2
 import functools
 from copy import deepcopy
 import pdb
-from PIL import ImageOps
+from PIL import Image, ImageOps
 
 ### sys relative to root dir
 import sys
@@ -85,7 +85,8 @@ class Equalize(Augmentor.Operations.Operation):
         '''
         @cv2_Augmentor_decorator
         def do(image):
-            mod_image = ImageOps.equalize(image)
+            channels = image.split()
+            mod_image = Image.merge('RGB', [ImageOps.equalize(channel)  for channel in channels[:3]])
             pdb.set_trace()
             return mod_image
         
