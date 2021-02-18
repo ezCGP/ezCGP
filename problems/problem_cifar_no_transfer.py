@@ -89,13 +89,13 @@ class Problem(ProblemDefinition_Abstract):
                                                           mutate_def=BlockMutate_OptB_4Blocks,
                                                           mate_def=BlockMate_WholeOnly_4Blocks)
 
-        preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
-                                                           shape_def=BlockShapeMeta_DataPreprocessing,
-                                                           operator_def=BlockOperators_DataPreprocessing,
-                                                           argument_def=BlockArguments_DataPreprocessing,
-                                                           evaluate_def=BlockEvaluate_TrainValidate,
-                                                           mutate_def=BlockMutate_OptB_4Blocks,
-                                                           mate_def=BlockMate_WholeOnly_4Blocks)
+        # preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
+        #                                                    shape_def=BlockShapeMeta_DataPreprocessing,
+        #                                                    operator_def=BlockOperators_DataPreprocessing,
+        #                                                    argument_def=BlockArguments_DataPreprocessing,
+        #                                                    evaluate_def=BlockEvaluate_TrainValidate,
+        #                                                    mutate_def=BlockMutate_OptB_4Blocks,
+        #                                                    mate_def=BlockMate_WholeOnly_4Blocks)
 
         # transferlearning_block_def = self.construct_block_def(nickname="transferlearning_block",
         #                                                    shape_def=BlockShapeMeta_TFKeras_TransferLearning,
@@ -114,7 +114,7 @@ class Problem(ProblemDefinition_Abstract):
                                                         mate_def=BlockMate_WholeOnly_4Blocks)
 
         self.construct_individual_def(block_defs=[augmentation_block_def,
-                                                  preprocessing_block_def,
+                                                #   preprocessing_block_def,
                                                 #   transferlearning_block_def,
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,

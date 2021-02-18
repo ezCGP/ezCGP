@@ -465,7 +465,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
         import pdb
         pdb.set_trace()
-        
+
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
                                            verbose=2, # TODO set to 0 after done debugging
