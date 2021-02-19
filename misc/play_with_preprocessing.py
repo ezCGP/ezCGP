@@ -12,6 +12,7 @@ https://augmentor.readthedocs.io/en/master/_modules/Augmentor/Pipeline.html#Pipe
 import os
 import numpy as np
 from copy import deepcopy
+import importlib
 import inspect
 import pdb
 import Augmentor
@@ -22,7 +23,8 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from codes.block_definitions.utilities import operators_Augmentor_preprocessing as ops
+from codes.block_definitions.utilities import operators_Augmentor_augmentation as ops_0
+from codes.block_definitions.utilities import operators_Augmentor_preprocessing as ops_1
 
 
 ### create some fake data
@@ -43,20 +45,25 @@ def create_fake_data(batch_size=20,
 ### create pipeline
 def create_pipeline():
     pipeline = Augmentor.Pipeline()
+    operator_dict = {}
     primtives = []
-    for name, execute in inspect.getmembers(globals()['ops']): # returns list of tuples of everything in that module
-        if (inspect.isfunction(execute)) and  (execute.__module__.endswith('operators_Augmentor_preprocessing')) and (execute in ops.operator_dict):
-            # check if what we are pulling is a function, then make sure it is a function defined in that module
-            # as oposed to something imported like dirname from os.path
-            primtives.append(execute)
+    for module in ["operators_Augmentor_augmentation",
+                   "operators_Augmentor_preprocessing"]:
+        globals()[module] = importlib.import_module("codes.block_definitions.utilities.%s" % module)
+        operator_dict.update(globals()[module].operator_dict)
+        for name, execute in inspect.getmembers(globals()[module]): # returns list of tuples of everything in that module
+            if (inspect.isfunction(execute)) and  (execute.__module__.endswith(module)) and (execute in operator_dict):
+                # check if what we are pulling is a function, then make sure it is a function defined in that module
+                # as oposed to something imported like dirname from os.path
+                primtives.append(execute)
 
-            # build out args
-            args = []
-            for arg_type in ops.operator_dict[execute]["args"]:
-                arg_instance = arg_type()
-                args.append(arg_instance.value)
+                # build out args
+                args = []
+                for arg_type in operator_dict[execute]["args"]:
+                    arg_instance = arg_type()
+                    args.append(arg_instance.value)
 
-            pipeline = execute(pipeline, *args)
+                pipeline = execute(pipeline, *args)
 
     return pipeline
 
@@ -87,3 +94,5 @@ if __name__ == "__main__":
     
     for image in images:
         image = mimic_keras_preprocess_func(pipeline, image)
+        print("Final Shape of Image:", np.array(image).shape)
+        break

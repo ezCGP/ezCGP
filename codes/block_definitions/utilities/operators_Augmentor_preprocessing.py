@@ -54,7 +54,7 @@ def cv2_Augmentor_decorator(func):
     '''
     @functools.wraps(func)
     def wrapper_do(PIL_image):
-        print("inside %s: type %s, max %s" % (func.__name__, type(PIL_image), np.array(PIL_image).max()))
+        #print("inside %s: type %s, max %s" % (func.__name__, type(PIL_image), np.array(PIL_image).max()))
         np_image = np.array(PIL_image).astype('uint8')
         np_image = func(np_image)
         PIL_image = Augmentor.Operations.Image.fromarray(np_image) #in Augmentor.Operations they do `from PIL import Image`
@@ -67,6 +67,10 @@ class Equalize(Augmentor.Operations.Operation):
     '''
     we're going to follow the syntax in the other Operations given in the doc
     https://augmentor.readthedocs.io/en/master/_modules/Augmentor/Operations.html
+
+    This is our reqplacement for Normalize...since Augmentor uses PIL.Images which
+    are uint8 datatypes, they can't be normalized. Next best thing is to use Equalize
+    which is a PIL.Image method so we don't have to use the cv2_Augmentor_decorator
     '''
     # Here you can accept as many custom parameters as required:
     def __init__(self, probability=1):
@@ -84,11 +88,9 @@ class Equalize(Augmentor.Operations.Operation):
         
         NOTE here we assume that the image maxes out at 255
         '''
-        @cv2_Augmentor_decorator
         def do(image):
             channels = image.split()
             mod_image = Image.merge('RGB', [ImageOps.equalize(channel)  for channel in channels[:3]])
-            pdb.set_trace()
             return mod_image
         
         augmented_images = []
