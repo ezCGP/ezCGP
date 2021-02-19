@@ -14,7 +14,6 @@ import numpy as np
 from copy import deepcopy
 import inspect
 import pdb
-#import functools
 import Augmentor
 
 ### sys relative to root dir
@@ -25,34 +24,41 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from codes.block_definitions.utilities import operators_Augmentor_preprocessing as ops
 
-np.random.seed(20)
-
 
 ### create some fake data
-batch_size = 20
-image_shape = (256, 256, 3)
-images = np.random.random((batch_size,)+image_shape)
-#images = np.random.randint(0, 256, (batch_size,)+(image_shape)).astype(np.uint8)
-labels = np.random.randint(0, 2, (batch_size,))
+def create_fake_data(batch_size=20,
+                     image_shape=(256, 256, 3),
+                     asint=True):
+    np.random.seed(20)
+    if asint:
+        images = np.random.randint(0, 256, (batch_size,)+(image_shape)).astype(np.uint8)
+    else:
+        images = np.random.random((batch_size,)+image_shape)
+
+    labels = np.random.randint(0, 2, (batch_size,))
+    
+    return images, labels
 
 
 ### create pipeline
-pipeline = Augmentor.Pipeline()
-primtives = []
-for name, execute in inspect.getmembers(globals()['ops']): # returns list of tuples of everything in that module
-    if (inspect.isfunction(execute)) and  (execute.__module__.endswith('operators_Augmentor_preprocessing')) and (execute in ops.operator_dict):
-        print(name, execute)
-        # check if what we are pulling is a function, then make sure it is a function defined in that module
-        # as oposed to something imported like dirname from os.path
-        primtives.append(execute)
-        
-        # build out args
-        args = []
-        for arg_type in ops.operator_dict[execute]["args"]:
-            arg_instance = arg_type()
-            args.append(arg_instance.value)
-        
-        pipeline = execute(pipeline, *args)
+def create_pipeline():
+    pipeline = Augmentor.Pipeline()
+    primtives = []
+    for name, execute in inspect.getmembers(globals()['ops']): # returns list of tuples of everything in that module
+        if (inspect.isfunction(execute)) and  (execute.__module__.endswith('operators_Augmentor_preprocessing')) and (execute in ops.operator_dict):
+            # check if what we are pulling is a function, then make sure it is a function defined in that module
+            # as oposed to something imported like dirname from os.path
+            primtives.append(execute)
+
+            # build out args
+            args = []
+            for arg_type in ops.operator_dict[execute]["args"]:
+                arg_instance = arg_type()
+                args.append(arg_instance.value)
+
+            pipeline = execute(pipeline, *args)
+
+    return pipeline
 
 
 ### mimic Augmentor.Pipeline.keras_preprocess_func
@@ -73,5 +79,11 @@ def mimic_keras_preprocess_func(pipeline, image):
     
     
 
-
-mimic_keras_preprocess_func(pipeline, images[0])
+if __name__ == "__main__":
+    np.random.seed(20)
+    
+    pipeline = create_pipeline()
+    images, labels = create_fake_data(asint=False)
+    
+    for image in images:
+        image = mimic_keras_preprocess_func(pipeline, image)

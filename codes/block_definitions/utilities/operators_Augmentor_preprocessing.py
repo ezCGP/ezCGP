@@ -54,6 +54,7 @@ def cv2_Augmentor_decorator(func):
     '''
     @functools.wraps(func)
     def wrapper_do(PIL_image):
+        print("inside %s: type %s, max %s" % (func.__name__, type(PIL_image), np.array(PIL_image).max()))
         np_image = np.array(PIL_image).astype('uint8')
         np_image = func(np_image)
         PIL_image = Augmentor.Operations.Image.fromarray(np_image) #in Augmentor.Operations they do `from PIL import Image`
