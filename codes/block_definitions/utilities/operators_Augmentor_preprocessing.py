@@ -28,6 +28,7 @@ import cv2
 import functools
 from copy import deepcopy
 import pdb
+from PIL import Image, ImageOps
 
 ### sys relative to root dir
 import sys
@@ -61,7 +62,7 @@ def cv2_Augmentor_decorator(func):
 
 
 
-class Normalize(Augmentor.Operations.Operation):
+class Equalize(Augmentor.Operations.Operation):
     '''
     we're going to follow the syntax in the other Operations given in the doc
     https://augmentor.readthedocs.io/en/master/_modules/Augmentor/Operations.html
@@ -84,7 +85,8 @@ class Normalize(Augmentor.Operations.Operation):
         '''
         @cv2_Augmentor_decorator
         def do(image):
-            mod_image = np.asarray(image) / 255.0
+            channels = image.split()
+            mod_image = Image.merge('RGB', [ImageOps.equalize(channel)  for channel in channels[:3]])
             pdb.set_trace()
             return mod_image
         
@@ -95,16 +97,14 @@ class Normalize(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def normalize(pipeline):
-    pipeline.add_operation(Normalize())
+def equalize(pipeline):
+    pipeline.add_operation(Equalize())
     return pipeline
 
-'''
-# Augmentor.Pipeline wants uint8 values, so we cant normalize the values to (0,1) floats when using Augmentor
-operator_dict[normalize] = {"inputs": [Augmentor.Pipeline],
+operator_dict[equalize] = {"inputs": [Augmentor.Pipeline],
                             "output": Augmentor.Pipeline,
                             "args": [] # TODO: no argument because we always want prob=1 right?
-                           }'''
+                           }
 
 
 
