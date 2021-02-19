@@ -26,7 +26,7 @@ $ mpiexec -n [number_cores] python main.py -p [problem_file].py
 ```
 
 Other arguments for main.py
-* `-v` or `-d` to set the logging level to 'Verbose' or 'Debug'. The latter will not print to stdout.
+* `-v` or `-d` to set the logging level to 'verbose' or 'debug'. The latter will not print to stdout.
 * `-s [int]` to set the random seed
 * `-t` to change the name of the output folder for this run to lead with the word 'testing'
 * `-n [str]` to change the name of the output folder for this run to trail with a custom string tag
