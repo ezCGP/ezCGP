@@ -1,0 +1,1 @@
+../linux/cifar10.sh

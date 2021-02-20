@@ -134,25 +134,30 @@ class UniverseDefinition():
         '''
         # MATE
         self.mate_population(problem)
+        ezLogging.info("Population size after Mating: %i" % (len(self.population.population)))
 
         # MUTATE
         self.mutate_population(problem)
+        ezLogging.info("Population size after Mutating: %i" % (len(self.population.population)))
 
 
     def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
         '''
         TODO
         '''
-        self.fitness_scores = []
+        self.pop_fitness_scores = []
+        self.pop_individual_ids = []
+        ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
         for indiv in self.population.population:
             # EVALUATE
-            problem.indiv_def.evaluate(indiv, problem.data.x_train)
+            problem.indiv_def.evaluate(indiv, problem.train_data, problem.validate_data)
             # SCORE
             problem.objective_functions(indiv)
-            # ATTACH TO ID
-            id_scores = indiv.fitness.values + (indiv.id,)
-            self.fitness_scores.append(id_scores)
-        self.fitness_scores = np.array(self.fitness_scores)
+            self.pop_fitness_scores.append(indiv.fitness.values)
+            # ATTACH ID
+            self.pop_individual_ids.append(indiv.id)
+        self.pop_fitness_scores = np.array(self.pop_fitness_scores)
+        self.pop_individual_ids = np.array(self.pop_individual_ids)
 
 
     def population_selection(self, problem: ProblemDefinition_Abstract):
@@ -201,6 +206,7 @@ class UniverseDefinition():
         self.population_selection(problem)
         while not self.converged:
             self.generation += 1
+            ezLogging.info("Starting Generation %i" % self.generation)
             self.evolve_population(problem)
             self.evaluate_score_population(problem)
             self.population_selection(problem)

@@ -12,7 +12,6 @@ mention any assumptions made in the code or rules about code structure should go
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
-import logging
 
 ### sys relative to root dir
 import sys
@@ -22,6 +21,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from codes.factory import FactoryDefinition
 #from codes.universe import UniverseDefinition # can't import because will create import loop
+from codes.utilities.custom_logging import ezLogging
 from codes.genetic_material import IndividualMaterial#, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Abstract
@@ -52,8 +52,14 @@ class ProblemDefinition_Abstract(ABC):
                  number_universe: int,
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
-                 seeds: List[str]=[]):
+                 genome_seeds: List=[]):
         '''
+        genome_seeds:
+        * each element in outer list is an inividual to be seeded
+        * each element in the inner list is the seed for that positional block of the individual
+        * an inner element of 'None' will get a randomly built block
+        * an element could be a pkl file instead of another list if we are loading in a whole pickled IndividualMaterial
+        
         self.construct_dataset()
 
         the build out each block and build individual_def
@@ -64,7 +70,7 @@ class ProblemDefinition_Abstract(ABC):
         self.number_universe = number_universe
         self.Factory = factory_def
         self.mpi = mpi
-        self.genome_seeds = seeds
+        self.genome_seeds = genome_seeds
 
 
     @abstractmethod
@@ -110,7 +116,7 @@ class ProblemDefinition_Abstract(ABC):
         currently it is at the end of the loop so population selection has already occured.
         that may change
         '''
-        logging.info("Post Processing Generation Run - pass")
+        ezLogging.info("Post Processing Generation Run - pass")
         pass
 
 
@@ -121,7 +127,7 @@ class ProblemDefinition_Abstract(ABC):
         the idea here is that the universe.run() is about to exit but before it does,
         we can export or plot things wrt the final population
         '''
-        logging.info("Post Processing Universe Run - pass")
+        ezLogging.info("Post Processing Universe Run - pass")
         pass
 
 
@@ -141,15 +147,15 @@ class ProblemDefinition_Abstract(ABC):
 
     # Note to user: these last two methods are already defined
     def construct_block_def(self,
-                       	    nickname: str,
-	                        shape_def: BlockShapeMeta_Abstract,
-	                        operator_def: BlockOperators_Abstract,
-	                        argument_def: BlockArguments_Abstract,
-	                        evaluate_def: BlockEvaluate_Abstract,
-	                        mutate_def: BlockMutate_Abstract,
-	                        mate_def: BlockMate_Abstract):
+                            nickname: str,
+                            shape_def: BlockShapeMeta_Abstract,
+                            operator_def: BlockOperators_Abstract,
+                            argument_def: BlockArguments_Abstract,
+                            evaluate_def: BlockEvaluate_Abstract,
+                            mutate_def: BlockMutate_Abstract,
+                            mate_def: BlockMate_Abstract):
         return BlockDefinition(nickname,
-                        	   shape_def,
+                               shape_def,
                                operator_def,
                                argument_def,
                                evaluate_def,
@@ -158,10 +164,10 @@ class ProblemDefinition_Abstract(ABC):
 
 
     def construct_individual_def(self,
-	                             block_defs: List[BlockDefinition],
-	                             mutate_def: IndividualMutate_Abstract,
-	                             mate_def: IndividualMate_Abstract,
-	                             evaluate_def: IndividualEvaluate_Abstract):
+                                 block_defs: List[BlockDefinition],
+                                 mutate_def: IndividualMutate_Abstract,
+                                 mate_def: IndividualMate_Abstract,
+                                 evaluate_def: IndividualEvaluate_Abstract):
         self.indiv_def = IndividualDefinition(block_defs,
                                               evaluate_def,
                                               mutate_def,

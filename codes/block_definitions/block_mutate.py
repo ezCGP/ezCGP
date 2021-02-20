@@ -85,6 +85,17 @@ class BlockMutate_OptB(BlockMutate_Abstract):
 
 
 
+class BlockMutate_OptB_4Blocks(BlockMutate_OptB):
+    '''
+    just wanted to decrease prob of mutate by 1/number of blocks
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockMutate_OptB_4Blocks Class" % (None, None))
+        self.prob_mutate = 0.33 #0.25
+        self.num_mutants = 2 #4
+
+
+
 class BlockMutate_NoFtn(BlockMutate_Abstract):
     '''
     used for guassian sum...we only have 1 primitive so no point in mutating ftns

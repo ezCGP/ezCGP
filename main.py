@@ -13,6 +13,7 @@ import os
 import shutil
 import time
 import numpy as np
+import random
 import tempfile
 import logging
 import gc
@@ -27,8 +28,6 @@ sys.path.append(join(dirname(realpath(__file__)), "problems"))
 ### absolute imports wrt root
 from codes.utilities.custom_logging import ezLogging
 # moved most imports to AFTER seed is set!
-
-
 
 
 def main(problem_filename: str,
@@ -48,7 +47,7 @@ def main(problem_filename: str,
         dst = join(problem_output_directory, problem_filename)
         shutil.copyfile(src, dst)
 
-    # create custom logging.logger for this node 
+    # create custom logging.logger for this node
     log_formatter = ezLogging.logging_setup(loglevel)
     if loglevel < logging.WARNING:
         # true only for DEBUG or INFO
@@ -60,6 +59,7 @@ def main(problem_filename: str,
     # NOTE will set another seed when we start the universe
     ezLogging.warning("Setting seed, for file imports, to %i" % (seed))
     np.random.seed(seed)
+    random.seed(seed) # shouldn't be using 'random' module but setting seed jic
     problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
     problem = problem_module.Problem()
     from codes.universe import UniverseDefinition, MPIUniverseDefinition
@@ -84,6 +84,7 @@ def main(problem_filename: str,
         log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
         np.random.seed(universe_seed)
+        random.seed(seed)
         ezLogging.warning("STARTING UNIVERSE %i" % ith_universe)
         universe = ThisUniverse(problem, universe_output_directory)
 

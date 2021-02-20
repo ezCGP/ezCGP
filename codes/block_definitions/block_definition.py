@@ -36,7 +36,7 @@ from codes.block_definitions.block_evaluate import BlockEvaluate_Abstract
 from codes.block_definitions.block_mutate import BlockMutate_Abstract
 from codes.block_definitions.block_mate import BlockMate_Abstract
 from codes.genetic_material import IndividualMaterial, BlockMaterial
-from data.data_tools.data_types import ezDataSet
+from data.data_tools.ezData import ezData
 from codes.utilities.custom_logging import ezLogging
 
 
@@ -103,11 +103,11 @@ class BlockDefinition():
         _active_dict = {}
         #output_node = self.main_count+ith_output
         #_active_dict['output'] = block_material[output_node]
-        for ith_node in reversed(self.active_nodes):
+        for ith_node in reversed(block_material.active_nodes):
             if (ith_node<0) or (ith_node>=self.main_count):
                 #input or ouptput node
                 continue
-            func = block_material[ith_node]['function']
+            func = block_material[ith_node]['ftn']
             inputs = block_material[ith_node]['inputs']
             args = block_material[ith_node]['args']
 
@@ -116,10 +116,7 @@ class BlockDefinition():
             for _input in inputs:
                 # attach an 'n' to remind us that this is a node number and not an arg
                 # later we'll go through and replace each node with it's own entry in _active_dict
-                #lisp.append('%in' % _input)
-                # TODO: consider just leaving it as '-1n' or something...converting to data type and
-                # passing as string and then removing quotes n spaces will likely make it unusable to compare anyways
-                pass
+                lisp.append('%in' % _input)
             for _arg in args:
                 lisp.append('%s' % str(block_material.args[_arg]))
 
@@ -129,7 +126,10 @@ class BlockDefinition():
         # at this point we have the ith node and arg values for each active node
         # now we'll go through the list and replace each node with each entry from the dict
         # this is how we slowly build out the branches of the trees
-        for ith_node in self.active_args:
+        for ith_node in block_material.active_nodes:
+            if (ith_node<0) or (ith_node>=self.main_count):
+                #input or ouptput node
+                continue
             lisp = _active_dict[str(ith_node)]
             new_lisp = []
             for i, val in enumerate(lisp):
@@ -138,10 +138,17 @@ class BlockDefinition():
                     pass
                 elif val.endswith('n'):
                     if int(val[:-1]) < 0:
-                        # input node so we want to instead pass in the datatype we expect
+                        '''
+                        decided not to use the datatype and just assume that input datatypes match
+                        ...this stuff unecessarily complicates loading in an individual
+                        so going to just pass it as -1n or -2n etc
+                        
+                        #input node so we want to instead pass in the datatype we expect
                         # -1th genome is 0th input
                         # -2nd genome is 1th input... genome_node*-1 - 1 = input_node
-                        val = self.input_dtypes[(i*-1)-1]
+                        val = self.input_dtypes[(int(val[:-1])*-1)-1]'''
+                        pass
+                        
                     else:
                         # then it's a node number, replace with that node's new_lisp
                         val = _active_dict[str(val[:-1])] #[:-1] to remove 'n'
@@ -157,7 +164,7 @@ class BlockDefinition():
         for ith_output in range(self.output_count):
             final_node = block_material[self.main_count+ith_output]
             # convert the final list into a string
-            lisp_str = str(_active_dict[final_node])
+            lisp_str = str(_active_dict[str(final_node)])
             # since it was a list of strings, there will be a mess of quotes inside
             # so replace any quotes, and spaces while we're at it
             lisp_str = lisp_str.replace("'","").replace('"','').replace(" ", "")
@@ -325,20 +332,18 @@ class BlockDefinition():
         return children
 
 
-    def evaluate(self, block_material: BlockMaterial, training_datapair: ezDataSet, validation_datapair=None):
+    def evaluate(self, block_material: BlockMaterial, training_datapair: ezData, validation_datapair=None):
         '''
         wrapper method to call the block's evaluate definition
         NOTE: we take the output and attach to block_material in postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
         '''
         ezLogging.debug("%s - Sending to Block Evaluate Definition" % (block_material.id))
-        # verify that the input data matches the expected datatypes
+        '''# verify that the input data matches the expected datatypes
         for input_dtype, input_data in zip(self.input_dtypes, training_datapair):
             if input_dtype != type(input_data):
-                ezLogging.critical("%s - Input data type (%s) doesn't match excted type (%s)" % (block_material.id, type(input_data), input_dtype))
-                return None
-
-        self.evaluate_def.reset_evaluation(block_material)
+                ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
+                return None'''
+        self.evaluate_def.preprocess_block_evaluate(block_material)
         ezLogging.debug("%s - Before evaluating list active nodes: %s, and args %s" % (block_material.id, block_material.active_nodes, block_material.active_args))
-        output = self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
-        self.evaluate_def.postprocess_evaluated_block(block_material, output)
-        return output
+        self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
+        self.evaluate_def.postprocess_block_evaluate(block_material)

@@ -78,7 +78,7 @@ class BlockOperators_Abstract():
         ezLogging.debug("%s-%s - Inside get_all_functions" % (None, None))
         all_functions = []
         for name, execute in inspect.getmembers(globals()[module]): # returns list of tuples of everything in that module
-            if inspect.isfunction(execute) and  execute.__module__.endswith(module):
+            if (inspect.isfunction(execute)) and  (execute.__module__.endswith(module)) and (execute in self.operator_dict):
                 # check if what we are pulling is a function, then make sure it is a function defined in that module
                 # as oposed to something imported like dirname from os.path
                 all_functions.append(execute)
@@ -151,3 +151,118 @@ class BlockOperators_Gaussian(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_DataAugmentation(BlockOperators_Abstract):
+    '''
+    augment our data to increase dataset size for training only
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_DataAugmentation Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_Augmentor_augmentation']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_DataPreprocessing(BlockOperators_Abstract):
+    '''
+    preprocess images prior to feed to some classifier block
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_DataPreprocessing Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_Augmentor_preprocessing']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_Augmentor_TransferLearning(BlockOperators_Abstract):
+    '''
+    pass data through some pretrained network
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_TransferLearning Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_Augmentor_TFKeras_transferlearning']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_TFKeras_TransferLearning(BlockOperators_Abstract):
+    '''
+    pass data through some pretrained network
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TFKeras_transferlearning']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_TFKeras_TransferLearning_CIFAR(BlockOperators_Abstract):
+    '''
+    pass data through some pretrained network
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TFKeras_transferlearning']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        # remove inception() for CIFAR dataset since image size is too small
+        weight_dict[operators_TFKeras_transferlearning.inception] = 0
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_TFKeras(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_TFKeras Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TensorFlow_Keras']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+

@@ -9,14 +9,13 @@ Just a miscellaneous file to hold any methods useful to in the block_definitions
 import numpy as np
 import logging
 
-'''
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
-'''
+from codes.utilities.custom_logging import ezLogging
 
 
 def build_weights(method_dict):
@@ -43,21 +42,23 @@ def build_weights(method_dict):
               method4: 0.125}
              
     '''
-    logging.debug("%s-%s - Inside build_weights" % (None, None))
+    ezLogging.debug("%s-%s - Inside build_weights" % (None, None))
 
     prob_remaining = 1.0
     methods = [None] * len(method_dict)
     weights = [None] * len(method_dict)
     equally_distribute = []
+    remove = []
     for i, (meth_type, prob) in enumerate(method_dict.items()):
         methods[i] = meth_type
         if prob <= 0:
             weights[i] = 0
+            remove.append(i)
             continue
         elif prob < 1:
             prob_remaining -= prob
             if prob_remaining < 0:
-                logging.error("%s-%s - Current sum of prob/weights for %s is > 1" % (None, None, meth_type))
+                ezLogging.error("%s-%s - Current sum of prob/weights for %s is > 1" % (None, None, meth_type))
                 exit()
             else:
                 weights[i] = prob
@@ -69,10 +70,15 @@ def build_weights(method_dict):
         eq_weight = round(prob_remaining/len(equally_distribute), 4)
         for i in equally_distribute:
             weights[i] = eq_weight
+    # remove anything flagged as such
+    remove.sort()
+    for i in remove[::-1]:
+        del weights[i]
+        del methods[i]
     # now clean up any rounding errors by appending any remainder to the last method
     remainder = 1 - sum(weights)
     if remainder > .01:
-        logging.error("%s-%s - Total sum of prob/weights for %s is < .99" % (None, None, method))
+        ezLogging.error("%s-%s - Total sum of prob/weights for %s is < .99" % (None, None, method))
         # TODO, maybe just normalize instead of exit()
         exit()
     else:

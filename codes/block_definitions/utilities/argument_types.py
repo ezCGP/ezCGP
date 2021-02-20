@@ -82,7 +82,7 @@ class ArgumentType_Bool(ArgumentType_Abstract):
     '''
     def __init__(self, value=None):
         if value is None:
-            self.value = np.random.choice([True,False])
+            self.value = bool(np.random.choice([True,False]))
         else:
             self.value = bool(value)
         ezLogging.debug("%s-%s - Initialize ArgumentType_Bool Class to %f" % (None, None, self.value))
@@ -152,7 +152,7 @@ class ArgumentType_Pow2(ArgumentType_Abstract):
 
     def mutate(self):
         #choices = rnd.random_integers(1, 8)
-        choices = np.arange(1,8+1)
+        choices = list(np.arange(1,8+1))
         if self.value in choices:
             choices.remove(self.value) # works in-place
         pow2 = np.random.choice(choices)
@@ -174,7 +174,15 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_TFActivation Class to %f" % (None, None, self.value))
+            self.get_name()
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TFActivation Class to %s" % (None, None, self.name))
+
+
+    def get_name(self):
+        if self.value is None:
+            self.name = "None"
+        else:
+            self.name = self.value.__qualname__
 
 
     def mutate(self):
@@ -183,7 +191,8 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
-        ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %f" % (None, None, self.value))
+        self.get_name()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %s" % (None, None, self.name))
 
 
 
@@ -206,6 +215,28 @@ class ArgumentType_TFFilterSize(ArgumentType_Abstract):
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TFFilterSize to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_FilterSize(ArgumentType_Abstract):
+    '''
+    quick way to pick [3,5,7]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_FilterSize Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [3,5,7]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_FilterSize to %f" % (None, None, self.value))
 
 
 
@@ -332,7 +363,6 @@ class ArgumentType_Float0to1(ArgumentType_Abstract):
 
 
     def mutate_unif_local(self):
-        # make it a range of 10
         low = self.value-.05
         high = self.value+.05
         self.value = rnd.uniform(low, high)
@@ -348,6 +378,41 @@ class ArgumentType_Float0to1(ArgumentType_Abstract):
         else:
             self.mutate_unif_local()
         ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to1 to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_Float0to10(ArgumentType_Float0to1):
+    '''
+    go from [0 to 10)
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate_unif1()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Float0to10 Class to %f" % (None, None, self.value))
+
+
+    def mutate_unif10(self):
+        self.value = np.random.random()*10 #NOTE: [0,10) not (0,10)
+
+
+    def mutate_unif_local(self):
+        low = self.value-.5
+        high = self.value+.5
+        self.value = rnd.uniform(low, high)
+        # force value to be within 0 to 1
+        if (self.value < 0) or (self.value > 1):
+            self.mutate_unif1()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif1()
+        else:
+            self.mutate_unif_local()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Float0to10 to %f" % (None, None, self.value))
 
 
 
@@ -389,6 +454,45 @@ class ArgumentType_Int0to25(ArgumentType_Abstract):
             self.mutate_unif_localint()
         ezLogging.debug("%s-%s - Mutated ArgumentType_Int0to25 to %f" % (None, None, self.value))
 
+        
+        
+class ArgumentType_Int1to10(ArgumentType_Abstract):
+    '''
+    [1,2,3,4,5,6,7,8,9,10]
+    NOTE:
+        np.random.randint(low, high) ->[low, high)
+        np.random.random_integers(low, high) -> [low,high]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate_unif_int10()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Int1to10 Class to %f" % (None, None, self.value))
+
+
+    def mutate_unif_int10(self):
+        self.value = rnd.random_integers(low=1, high=10)
+
+
+    def mutate_unif_localint(self):
+        # make it a range of 6
+        low = self.value-3
+        high = self.value+3
+        self.value = rnd.random_integers(low, high)
+        # force value to be within 0 to 100
+        if (self.value < 1) or (self.value > 10):
+            self.mutate_unif_int10()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif_int10()
+        else:
+            self.mutate_unif_localint()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Int1to10 to %f" % (None, None, self.value))
+
 
 
 class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
@@ -409,7 +513,7 @@ class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
 
     def mutate(self):
         delta = 0.05
-        choices = np.arange(0, 1, delta) + delta #[0.05, 0.1, ..., 0.95, 1.0]
+        choices = list(np.arange(0, 1, delta) + delta) #[0.05, 0.1, ..., 0.95, 1.0]
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
