@@ -77,8 +77,8 @@ class Problem(ProblemDefinition_Abstract):
         factory = FactoryDefinition
         factory_instance = factory()
         mpi = False
-        #genome_seeds = []
-        genome_seeds = glob.glob("outputs/problem_cifar/%s/univ0000/gen_%04d_*.pkl" % ("20201127-145527-8th_run", 1))
+        genome_seeds = []
+        #genome_seeds = glob.glob("outputs/problem_cifar/%s/univ0000/gen_%04d_*.pkl" % ("20201127-145527-8th_run", 1))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
 
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
@@ -129,7 +129,7 @@ class Problem(ProblemDefinition_Abstract):
         will return 3 ezData_Images objects
         with .pipeline, .x, .y attributes
         '''
-        train, validate, test = ezDataLoader_CIFAR10_old(0.6, 0.2, 0.2).load()
+        train, validate, test = ezDataLoader_CIFAR10(0.6, 0.2, 0.2).load()
         # remember that our input data has to be a list!
         self.train_data = train
         self.validate_data = validate

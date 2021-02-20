@@ -468,11 +468,11 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
-                                           verbose=2, # TODO set to 0 after done debugging
+                                           verbose=2,
                                            callbacks=None,
                                            validation_data=validation_generator,
                                            shuffle=True,
-                                           steps_per_epoch=training_datapair.num_images//block_def.batch_size, # TODO
+                                           steps_per_epoch=training_datapair.num_images//block_def.batch_size,
                                            validation_steps=validation_datapair.num_images//block_def.batch_size,
                                            max_queue_size=10,
                                            workers=1,
