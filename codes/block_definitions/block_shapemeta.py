@@ -18,7 +18,6 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from data.data_tools import data_types
 from codes.utilities.custom_logging import ezLogging
 
 
@@ -31,7 +30,8 @@ class BlockShapeMeta_Abstract():
     def __init__(self,
                  input_dtypes: list=[],
                  output_dtypes: list=[],
-                 main_count: int=20):
+                 main_count: int=20,
+                 **kwargs):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_Abstract Class" % (None, None))
         self.input_dtypes = input_dtypes
         self.input_count = len(input_dtypes)
@@ -39,6 +39,9 @@ class BlockShapeMeta_Abstract():
         self.output_count = len(output_dtypes)
         self.main_count = main_count
         self.genome_count = self.input_count + self.output_count + self.main_count
+        # add the misc kwargs
+        for key, value in kwargs.items():
+            self.__dict__[key] = value
 
 
 
@@ -90,4 +93,84 @@ class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
                                          input_dtypes,
                                          output_dtypes,
                                          main_count)
+
+
+
+class BlockShapeMeta_DataAugmentation(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataAugmentation Class" % (None, None))
+        import Augmentor
+        input_dtypes = [Augmentor.Pipeline]
+        output_dtypes = [Augmentor.Pipeline]
+        main_count = 10
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_DataPreprocessing(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataPreprocessing Class" % (None, None))
+        import Augmentor
+        input_dtypes = [Augmentor.Pipeline]
+        output_dtypes = [Augmentor.Pipeline]
+        main_count = 10
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_Augmentor_TransferLearning(BlockShapeMeta_Abstract):
+    '''
+    Note that even though the models are type tf.keras.Models,
+    we are adding them as 'Augmentor.Operations.Operation' so the
+    input/output data types are Augmentor.Pipelines
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TransferLearning Class" % (None, None))
+        import Augmentor
+        input_dtypes = [Augmentor.Pipeline]
+        output_dtypes = [Augmentor.Pipeline]
+        main_count = 3
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_TFKeras_TransferLearning(BlockShapeMeta_Abstract):
+    '''
+    Note that even though the models are type tf.keras.Models,
+    we are adding them as 'Augmentor.Operations.Operation' so the
+    input/output data types are Augmentor.Pipelines
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TransferLearning Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        import tensorflow as tf
+        input_dtypes = [tf.keras.layers]
+        output_dtypes = [tf.keras.layers]
+        main_count = 1 #has to be one if using BlockEvaluate_TFKeras_TransferLearning2()
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TFKeras Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        import tensorflow as tf
+        input_dtypes = [tf.keras.layers]
+        output_dtypes = [tf.keras.layers]
+        main_count = 10
+        super().__init__([tf.keras.layers],
+                         [tf.keras.layers],
+                         10)
+        
+        self.batch_size = 128
+        self.epochs = 20
 

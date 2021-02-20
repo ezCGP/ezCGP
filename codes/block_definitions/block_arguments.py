@@ -173,3 +173,84 @@ class BlockArguments_Gaussian(BlockArguments_Abstract):
                     argument_types.ArgumentType_Int0to100: 1,
                     argument_types.ArgumentType_Float0to1: 1}
         self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_DataAugmentation(BlockArguments_Abstract):
+    '''
+    usage tally:
+    argument_types.ArgumentType_LimitedFloat0to1 - lllll lllll lllll ll
+    argument_types.ArgumentType_Int1to10 - lll
+    argument_types.ArgumentType_Int0to25 - ll
+    argument_types.ArgumentType_Float0to10 - lllll l
+    argument_types.ArgumentType_Bool - l
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_DataAugmentation Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 30*3
+        arg_dict = {argument_types.ArgumentType_LimitedFloat0to1: 0.5, # 17/30 of all args
+                    argument_types.ArgumentType_Int1to10: 1,
+                    argument_types.ArgumentType_Int0to25: 1,
+                    argument_types.ArgumentType_Float0to10: 0.2, # 6/30
+                    argument_types.ArgumentType_Bool: 1}
+        self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_DataPreprocessing(BlockArguments_Abstract):
+    '''
+    usage tally:
+    argument_types.ArgumentType_FilterSize - llll
+    argument_types.ArgumentType_Bool - l
+    argument_types.ArgumentType_Int1to10 - l
+    argument_types.ArgumentType_Float0to100- lll
+    argument_types.ArgumentType_LimitedFloat0to1 - ll
+    argument_types.ArgumentType_Int0to25 - ll
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_DataPreprocessing Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 13*3
+        arg_dict = {argument_types.ArgumentType_FilterSize: 0.33, # 4/13
+                    argument_types.ArgumentType_Bool: 1,
+                    argument_types.ArgumentType_Int1to10: 1,
+                    argument_types.ArgumentType_Float0to100: 0.25, # 3/13
+                    argument_types.ArgumentType_LimitedFloat0to1: 0.15, #2/13
+                    argument_types.ArgumentType_Int0to25: 1}
+        self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_TransferLearning(BlockArguments_Abstract):
+    '''
+    usage tally:
+    argument_types.ArgumentType_Int0to25 - l
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_TransferLearning Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 1*3
+        arg_dict = {argument_types.ArgumentType_Int0to25: 1}
+        self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_TFKeras(BlockArguments_Abstract):
+    '''
+    usage tally:
+    argument_types.ArgumentType_Pow2 - llll
+    argument_types.ArgumentType_TFFilterSize - llll
+    argument_types.ArgumentType_TFActivation - llll
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_TFKeras Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 12*3
+        arg_dict = {argument_types.ArgumentType_Pow2: 1,
+                    argument_types.ArgumentType_TFFilterSize: 1,
+                    argument_types.ArgumentType_TFActivation: 1}
+        self.init_from_weight_dict(arg_dict)
+
+
+

@@ -6,9 +6,10 @@ Be sure to checkout the [Wiki](https://github.com/ezCGP/ezCGP/wiki) for more doc
 # Quickstart
 Create environment and download dependencies
 ```
-$ conda create -n ezcgp-py --file conda_environment.yaml
+$ git clone https://github.com/ezCGP/ezCGP.git
+$ cd ezcgp
+$ conda env create -f python_envs/conda_environment.yml
 $ conda activate ezcgp-py
-$ pip install Augmentor
 $ conda deactivate
 ```
 
@@ -23,4 +24,10 @@ To run with MPI...
 $ conda activate ezcgp-py
 $ mpiexec -n [number_cores] python main.py -p [problem_file].py
 ```
+
+Other arguments for main.py
+* `-v` or `-d` to set the logging level to 'verbose' or 'debug'. The latter will not print to stdout.
+* `-s [int]` to set the random seed
+* `-t` to change the name of the output folder for this run to lead with the word 'testing'
+* `-n [str]` to change the name of the output folder for this run to trail with a custom string tag
 

@@ -81,6 +81,9 @@ class IndividualMutate_RollOnEachBlock(IndividualMutate_Abstract):
                indiv_material: IndividualMaterial,
                indiv_def): #: IndividualDefinition):
         mutants = []
+        if rnd.random() < 0.5:
+            # do not mutate
+            return mutants
         for block_index, block_def in enumerate(indiv_def.block_defs):
             roll = rnd.random()
             if roll < block_def.mutate_def.prob_mutate:

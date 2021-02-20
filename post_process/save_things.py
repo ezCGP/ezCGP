@@ -3,9 +3,9 @@ root/post_process/save_things.py
 '''
 
 ### packages
-import logging
 import pickle as pkl
 import numpy as np
+from copy import deepcopy
 import os
 
 ### sys relative to root dir
@@ -14,6 +14,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
+from codes.utilities.custom_logging import ezLogging
 
 
 def save_fitness_scores(universe):
@@ -25,8 +26,8 @@ def save_fitness_scores(universe):
        fitness_values = ting['fitness']
     '''
     output_fitness_file = os.path.join(universe.output_folder, "gen%04d_fitness.npz" % universe.generation)
-    np.savez(output_fitness_file, fitness=universe.fitness_scores)
-    logging.debug("saved scores for generation %i" % universe.generation)
+    np.savez(output_fitness_file, fitness=universe.pop_fitness_scores)
+    ezLogging.debug("saved scores for generation %i" % universe.generation)
 
 
 def save_population(universe):
@@ -38,7 +39,7 @@ def save_population(universe):
         with open(indiv_file, "rb") as f:
             indiv = pkl.load(f)
     '''
-    logging.debug("saved each individual from population for generation %i" % universe.generation)
+    ezLogging.debug("saved each individual from population for generation %i" % universe.generation)
     for indiv in universe.population.population:
         indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s.pkl" % (universe.generation, indiv.id))
         with open(indiv_file, "wb") as f:
@@ -54,7 +55,7 @@ def save_population_asLisp(universe, indiv_definition):
     
     get_lisp() should return a list with length the number of outputs for each block (should only work for 1 output rn)
     '''
-    logging.debug("saved each individual from population as lisp-string for generation %i" % universe.generation)
+    ezLogging.debug("saved each individual from population as lisp-string for generation %i" % universe.generation)
     for indiv_material in universe.population.population:
         indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_lisp.txt" % (universe.generation, indiv_material.id))
         with open(indiv_file, "w") as f:

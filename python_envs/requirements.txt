@@ -6,8 +6,9 @@ scipy
 six
 pillow #PIL
 opencv
-mpi4py
-tensorflow
+scikit-learn
+#mpi4py
+#tensorflow
 #Augmentor #only with pip
 
 # these should already be included

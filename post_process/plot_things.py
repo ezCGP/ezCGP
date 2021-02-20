@@ -3,8 +3,9 @@ root/post_process/plot_things.py
 '''
 
 ### packages
-import logging
+import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 ### sys relative to root dir
 import sys
@@ -51,19 +52,19 @@ def plot_regression(ax, indiv, problem):
 
     indiv has .output which should be the final regression
     '''
-    ax.plot(problem.data.x_train[0], problem.data.y_train[0], linestyle='-', color='k', label="true values1")
-    ax.plot(problem.data.x_train[0], indiv.output[0], linestyle='--', color='c', label="regression1")
+    ax.plot(problem.train_data.x[0], problem.train_data.y[0], linestyle='-', color='k', label="true values1")
+    ax.plot(problem.train_data.x[0], indiv.output[0], linestyle='--', color='c', label="regression1")
 
 
 def plot_gaussian(ax, indiv, problem):
 
-    for i, args in enumerate(problem.data.y_train[-1]): #goal_features
+    for i, args in enumerate(problem.train_data.y[-1]): #goal_features
         peak, std, intensity, ybump = args
-        curve = fake_mixturegauss.one_gauss(problem.data.x_train[0], peak, std, intensity, ybump)
+        curve = fake_mixturegauss.one_gauss(problem.train_data.x[0], peak, std, intensity, ybump)
         if i == 0:
-            ax.plot(problem.data.x_train[0], curve, linestyle='-', color='k', label="true values", alpha=1)
+            ax.plot(problem.train_data.x[0], curve, linestyle='-', color='k', label="true values", alpha=1)
         else:
-            ax.plot(problem.data.x_train[0], curve, linestyle='-', color='k', alpha=1)
+            ax.plot(problem.train_data.x[0], curve, linestyle='-', color='k', alpha=1)
 
     i = 0
     for node in indiv[0].active_nodes:
@@ -75,9 +76,75 @@ def plot_gaussian(ax, indiv, problem):
             indivargs.append(indiv[0].args[arg_index].value) #gotta do .value to get it as float
         peak, std, intensity = indivargs
         ybump = 0
-        curve = fake_mixturegauss.one_gauss(problem.data.x_train[0], peak, std, intensity, ybump)
+        curve = fake_mixturegauss.one_gauss(problem.train_data.x[0], peak, std, intensity, ybump)
         if i == 0:
-            ax.plot(problem.data.x_train[0], curve, linestyle='--', color='c', label="regression")
+            ax.plot(problem.train_data.x[0], curve, linestyle='--', color='c', label="regression")
         else:
-            ax.plot(problem.data.x_train[0], curve, linestyle='--', color='c')
+            ax.plot(problem.train_data.x[0], curve, linestyle='--', color='c')
         i+=1
+
+
+def find_pareto(data, miniminzation=True):
+    is_pareto = np.ones(data.shape[0], dtype = bool)
+    for i, c in enumerate(data):
+        # Keep any point with a lower cost
+        if is_pareto[i]:
+            if miniminzation:
+                is_pareto[is_pareto] = np.any(data[is_pareto]<c, axis=1)
+            else:
+                # Maximization
+                is_pareto[is_pareto] = np.any(data[is_pareto]>c, axis=1)
+            # And keep self
+            is_pareto[i] = True
+
+    # Downsample from boolean array + sort
+    pareto_data = data[is_pareto, :]
+    pareto_data =  pareto_data[np.argsort(pareto_data[:,0])]
+
+    # add 2 extreme performances
+    if miniminzation:
+        x_limit = [1, pareto_data[:,1].min()]
+        y_limit = [pareto_data[:,0].min(), 1]
+    else:
+        x_limit = [pareto_data[:,0].max(), 0]
+        y_limit = [0, pareto_data[:,1].max()]
+    pareto_data = np.vstack((y_limit, pareto_data))
+    pareto_data = np.vstack((pareto_data, x_limit))
+
+    return pareto_data
+
+
+def plot_pareto_front_from_fitness_npz(population_fitness_npz, **kwargs):
+    npz_values = np.load(population_fitness_npz)
+    fitness_values = npz_values['fitness']
+    plot_pareto_front(fitness_values, **kwargs)
+
+
+def plot_pareto_front(axis,
+                      fitness_scores,
+                      minimization=True,
+                      color='c', label='',
+                      x_objective_index=0, y_objective_index=1):
+    '''
+    fitness_scores -> np array of shape (population size before population selection, number of objective scores defined in problem())
+    x/y_objective_index -> say we have 4 objective scores, which of the 4 should be plotted on the x-axis and which on the y-axis...by index
+    '''
+    # redcue fitness scores to the 2 objectives we care about
+    fitness_scores = fitness_scores[:, [x_objective_index,y_objective_index]]
+
+    # reduce to pareto
+    pareto_scores = find_pareto(fitness_scores, minimization)
+    # Plot Pareto steps.
+    if minimization:
+        where = 'post'
+    else:
+        where = 'pre'
+    axis.step(pareto_scores[:,0], pareto_scores[:,1], where=where, color=color, label=label)
+    ''' in the legend, change the line to a rectangle block; you will have to remove label from the axis.step() call as well
+    red_patch = mpatches.Patch(color=color, label=label)
+    axis.legend(handles=[red_patch])
+    '''
+
+    # Calculate the Area under the Curve as a Riemann sum
+    auc = np.sum(np.diff(pareto_scores[:,0])*pareto_scores[0:-1,1])
+    return auc

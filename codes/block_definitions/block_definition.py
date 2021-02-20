@@ -36,7 +36,7 @@ from codes.block_definitions.block_evaluate import BlockEvaluate_Abstract
 from codes.block_definitions.block_mutate import BlockMutate_Abstract
 from codes.block_definitions.block_mate import BlockMate_Abstract
 from codes.genetic_material import IndividualMaterial, BlockMaterial
-from data.data_tools.data_types import ezDataSet
+from data.data_tools.ezData import ezData
 from codes.utilities.custom_logging import ezLogging
 
 
@@ -332,20 +332,18 @@ class BlockDefinition():
         return children
 
 
-    def evaluate(self, block_material: BlockMaterial, training_datapair: ezDataSet, validation_datapair=None):
+    def evaluate(self, block_material: BlockMaterial, training_datapair: ezData, validation_datapair=None):
         '''
         wrapper method to call the block's evaluate definition
         NOTE: we take the output and attach to block_material in postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
         '''
         ezLogging.debug("%s - Sending to Block Evaluate Definition" % (block_material.id))
-        # verify that the input data matches the expected datatypes
+        '''# verify that the input data matches the expected datatypes
         for input_dtype, input_data in zip(self.input_dtypes, training_datapair):
             if input_dtype != type(input_data):
-                ezLogging.critical("%s - Input data type (%s) doesn't match excted type (%s)" % (block_material.id, type(input_data), input_dtype))
-                return None
-
-        self.evaluate_def.reset_evaluation(block_material)
+                ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
+                return None'''
+        self.evaluate_def.preprocess_block_evaluate(block_material)
         ezLogging.debug("%s - Before evaluating list active nodes: %s, and args %s" % (block_material.id, block_material.active_nodes, block_material.active_args))
-        output = self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
-        self.evaluate_def.postprocess_evaluated_block(block_material, output)
-        return output
+        self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
+        self.evaluate_def.postprocess_block_evaluate(block_material)
