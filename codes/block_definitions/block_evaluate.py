@@ -363,46 +363,13 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                      run_eagerly=None)
 
 
-    def old_train_graph(self,
-                    block_material,
-                    block_def,
-                    training_datapair,
-                    validation_datapair):
-        '''
-        https://www.tensorflow.org/api_docs/python/tf/keras/Model#train_on_batch
-        '''
-        train_batch_count = len(training_datapair.x_train) // block_def.batch_size
-        validate_batch_count = len(validate_datapair.x_train) // block_def.batch_size
-        for ith_epoch in range(block_def.epochs):
-
-            train_batch_loss = 0
-            for ith_batch in range(train_batch_count):
-                input_batch, y_batch = training_datapair.next_batch(block_def.batch_size) #next_batch_train()
-                train_batch_loss += block_material.graph.train_on_batch(x=input_batch, y=y_batch)
-            train_batch_loss /= train_batch_count
-
-            if i % 5 == 0:
-                # get validation score
-                validate_batch_loss = 0
-                for ith_batch in range(train_batch_count):
-                    input_batch, y_batch = validate_datapair.next_batch(block_def.batch_size) #next_batch_train()
-                    validate_batch_loss += block_material.graph.test_on_batch(x=input_batch, y=y_batch)
-                validate_batch_loss /= train_batch_count
-
-                # TODO get accuracy metrics
-
-        tf.keras.backend.clear_session()
-        output = ting # validation metrics
-        return output
-
-
     def get_generator(self,
                       block_material,
                       block_def,
                       training_datapair,
                       validation_datapair):
 
-        if training_datapair.x is None:
+        if training_datapair.images_wrapper.x is None:
             '''
             Here we assume that all our images are in directories that were fed directly into Augmentor.Pipeline at init
             so that we don't have to read in all the images at once before we batch them out.
@@ -411,14 +378,14 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
             NOT YET TESTED
             '''
-            training_generator = training_datapair.keras_generator(batch_size=block_def.batch_size,
-                                                                   scaled=True, #if errors, try setting to False
-                                                                   image_data_format="channels_last", #or "channels_last"
-                                                                  )
-            validation_generator = validation_datapair.keras_generator(batch_size=block_def.batch_size,
-                                                                       scaled=True, #if errors, try setting to False
-                                                                       image_data_format="channels_last", #or "channels_last"
-                                                                      )
+            training_generator = training_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
+                                                                                    scaled=True, #if errors, try setting to False
+                                                                                    image_data_format="channels_last", #or "channels_last"
+                                                                                   )
+            validation_generator = validation_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
+                                                                                        scaled=True, #if errors, try setting to False
+                                                                                        image_data_format="channels_last", #or "channels_last"
+                                                                                       )
         else:
             '''
             Here we assume that we have to load all the data into datapair.x and .y so we have to pass the
@@ -427,20 +394,20 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
             '''
             training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                        preprocessing_function=training_datapair.pipeline.keras_preprocess_func()
+                                        preprocessing_function=training_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
                                         )
             #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
-            training_generator = training_datagen.flow(x=training_datapair.x,
-                                                       y=training_datapair.y,
+            training_generator = training_datagen.flow(x=training_datapair.images_wrapper.x,
+                                                       y=training_datapair.images_wrapper.y,
                                                        batch_size=block_def.batch_size,
                                                        shuffle=True)
 
             validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                        preprocessing_function=validation_datapair.pipeline.keras_preprocess_func()
+                                        preprocessing_function=validation_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
                                         )
             #validation_datagen.fit(validation_datapair.x) # don't need to call fit(); see documentation
-            validation_generator = training_datagen.flow(x=validation_datapair.x,
-                                                         y=validation_datapair.y,
+            validation_generator = training_datagen.flow(x=validation_datapair.images_wrapper.x,
+                                                         y=validation_datapair.images_wrapper.y,
                                                          batch_size=block_def.batch_size,
                                                          shuffle=True)
 
@@ -460,7 +427,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
         ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
                                                                                       block_def.batch_size,
-                                                                                      training_datapair.num_images//block_def.batch_size,
+                                                                                      training_datapair.images_wrapper.num_images//block_def.batch_size,
                                                                                       block_def.epochs))
 
         import pdb
@@ -472,8 +439,8 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                            callbacks=None,
                                            validation_data=validation_generator,
                                            shuffle=True,
-                                           steps_per_epoch=training_datapair.num_images//block_def.batch_size,
-                                           validation_steps=validation_datapair.num_images//block_def.batch_size,
+                                           steps_per_epoch=training_datapair.images_wrapper.num_images//block_def.batch_size,
+                                           validation_steps=validation_datapair.images_wrapper.num_images//block_def.batch_size,
                                            max_queue_size=10,
                                            workers=1,
                                            use_multiprocessing=False,
@@ -781,13 +748,6 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
                                                                                       block_def.batch_size,
                                                                                       training_datapair.images_wrapper.num_images//block_def.batch_size,
                                                                                       block_def.epochs))
-        '''
-        for i, data in enumerate(training_generator):
-            print(i, data[0].shape, data[1].shape)
-            # 0 (5, 32, 32, 3) (5, 10)
-            if i == 31:
-                # why did I do this?
-                import pdb; pdb.set_trace()'''
 
         history = block_material.graph.fit(x=training_generator,
                                            epochs=block_def.epochs,
