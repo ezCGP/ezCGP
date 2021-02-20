@@ -63,7 +63,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
             training_datapair = block_material.output
-        
+
         indiv_material.output = block_material.output
 
 
@@ -77,8 +77,8 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
     '''
     def __init__(self):
         pass
-    
-    
+
+
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
@@ -95,8 +95,6 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
                 if block_material.dead:
                     indiv_material.dead = True
                     break
-                else:
-                    pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
             training_datapair, validation_datapair = block_material.output
