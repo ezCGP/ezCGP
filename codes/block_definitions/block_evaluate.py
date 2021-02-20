@@ -337,9 +337,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        input_layer = tf.keras.Input(shape=datapair.image_shape,
-                                     batch_size=block_def.batch_size,
-                                     dtype=None)
+        input_layer = tf.keras.Input(shape=datapair.image_shape, dtype=None)
         output_layer = self.standard_build_graph(block_material,
                                                   block_def,
                                                   [input_layer])[0]
