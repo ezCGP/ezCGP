@@ -339,8 +339,8 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
         input_layer = tf.keras.Input(shape=datapair.image_shape, dtype=None)
         output_layer = self.standard_build_graph(block_material,
-                                                  block_def,
-                                                  [input_layer])[0]
+                                                 block_def,
+                                                 [input_layer])[0]
 
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
@@ -357,92 +357,92 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                               tf.keras.metrics.Precision(),
                                               tf.keras.metrics.Recall()],
                                      loss_weights=None,
-					     weighted_metrics=None,
-					     run_eagerly=None)
+                                     weighted_metrics=None,
+                                     run_eagerly=None)
 
 
-	    def get_generator(self,
-			      block_material,
-			      block_def,
-			      training_datapair,
-			      validation_datapair):
+    def get_generator(self,
+                      block_material,
+                      block_def,
+                      training_datapair,
+                      validation_datapair):
 
-		if training_datapair.images_wrapper.x is None:
-		    '''
-		    Here we assume that all our images are in directories that were fed directly into Augmentor.Pipeline at init
-		    so that we don't have to read in all the images at once before we batch them out.
-		    This means we can use the Augmentor.Pipeline.keras_generator() method
-		    https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_generator
+        if training_datapair.images_wrapper.x is None:
+            '''
+            Here we assume that all our images are in directories that were fed directly into Augmentor.Pipeline at init
+            so that we don't have to read in all the images at once before we batch them out.
+            This means we can use the Augmentor.Pipeline.keras_generator() method
+            https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_generator
 
-		    NOT YET TESTED
-		    '''
-		    training_generator = training_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
-											    scaled=True, #if errors, try setting to False
-											    image_data_format="channels_last", #or "channels_last"
-											   )
-		    validation_generator = validation_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
-												scaled=True, #if errors, try setting to False
-												image_data_format="channels_last", #or "channels_last"
-											       )
-		else:
-		    '''
-		    Here we assume that we have to load all the data into datapair.x and .y so we have to pass the
-		    Augmentor.Pipeline as a method fed into tf.keras.preprocessing.image.ImadeDataGenerator
-		    https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_preprocess_func
-		    https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
-		    '''
-		    training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-						preprocessing_function=training_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
-						)
-		    #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
-		    training_generator = training_datagen.flow(x=training_datapair.images_wrapper.x,
-							       y=training_datapair.images_wrapper.y,
-							       batch_size=block_def.batch_size,
-							       shuffle=True)
+            NOT YET TESTED
+            '''
+            training_generator = training_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
+                                                scaled=True, #if errors, try setting to False
+                                                image_data_format="channels_last", #or "channels_last"
+                                               )
+            validation_generator = validation_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
+                                                scaled=True, #if errors, try setting to False
+                                                image_data_format="channels_last", #or "channels_last"
+                                                   )
+        else:
+            '''
+            Here we assume that we have to load all the data into datapair.x and .y so we have to pass the
+            Augmentor.Pipeline as a method fed into tf.keras.preprocessing.image.ImadeDataGenerator
+            https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_preprocess_func
+            https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
+            '''
+            training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+                        preprocessing_function=training_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
+                        )
+            #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
+            training_generator = training_datagen.flow(x=training_datapair.images_wrapper.x,
+                                   y=training_datapair.images_wrapper.y,
+                                   batch_size=block_def.batch_size,
+                                   shuffle=True)
 
-		    validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-						preprocessing_function=validation_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
-						)
-		    #validation_datagen.fit(validation_datapair.x) # don't need to call fit(); see documentation
-		    validation_generator = training_datagen.flow(x=validation_datapair.images_wrapper.x,
-								 y=validation_datapair.images_wrapper.y,
-								 batch_size=block_def.batch_size,
-								 shuffle=True)
+            validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+                        preprocessing_function=validation_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
+                        )
+            #validation_datagen.fit(validation_datapair.x) # don't need to call fit(); see documentation
+            validation_generator = training_datagen.flow(x=validation_datapair.images_wrapper.x,
+                                 y=validation_datapair.images_wrapper.y,
+                                 batch_size=block_def.batch_size,
+                                 shuffle=True)
 
-		return training_generator, validation_generator
+        return training_generator, validation_generator
 
 
-	    def train_graph(self,
-			    block_material,
-			    block_def,
-			    training_datapair,
-			    validation_datapair):
-		ezLogging.debug("%s - Building Generators" % (block_material.id))
-		training_generator, validation_generator = self.get_generator(block_material,
-									      block_def,
-									      training_datapair,
-									      validation_datapair)
+    def train_graph(self,
+                    block_material,
+                    block_def,
+                    training_datapair,
+                    validation_datapair):
+        ezLogging.debug("%s - Building Generators" % (block_material.id))
+        training_generator, validation_generator = self.get_generator(block_material,
+                                          block_def,
+                                          training_datapair,
+                                          validation_datapair)
 
-		ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
-											      block_def.batch_size,
-											      training_datapair.images_wrapper.num_images//block_def.batch_size,
-											      block_def.epochs))
+        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
+                                                  block_def.batch_size,
+                                                  training_datapair.images_wrapper.num_images//block_def.batch_size,
+                                                  block_def.epochs))
 
-		history = block_material.graph.fit(x=training_generator,
-						   epochs=block_def.epochs,
-						   verbose=2,
-						   callbacks=None,
-						   validation_data=validation_generator,
-						   shuffle=True,
-						   steps_per_epoch=training_datapair.images_wrapper.num_images//block_def.batch_size,
-						   validation_steps=validation_datapair.images_wrapper.num_images//block_def.batch_size,
-						   max_queue_size=10,
-						   workers=1,
-						   use_multiprocessing=False,
-						  )
-		tf.keras.backend.clear_session()
+        history = block_material.graph.fit(x=training_generator,
+                           epochs=block_def.epochs,
+                           verbose=2,
+                           callbacks=None,
+                           validation_data=validation_generator,
+                           shuffle=True,
+                           steps_per_epoch=training_datapair.images_wrapper.num_images//block_def.batch_size,
+                           validation_steps=validation_datapair.images_wrapper.num_images//block_def.batch_size,
+                           max_queue_size=10,
+                           workers=1,
+                           use_multiprocessing=False,
+                          )
+        tf.keras.backend.clear_session()
                 import pdb; pdb.set_trace()
-		return [-1 * history.history['val_categoricalaccuracy'][-1], #mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
+        return [-1 * history.history['val_categoricalaccuracy'][-1], #mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
                         -1 * history.history['val_precision'][-1],
                         -1 * history.history['val_recall'][-1]]
 
