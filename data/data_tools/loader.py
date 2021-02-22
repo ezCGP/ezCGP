@@ -83,9 +83,9 @@ class ezDataLoader_numpy(ezDataLoader):
 
     def load(self, x, y):
         return ezdata.ezData(np.array(x), np.array(y))
-
-
-
+    
+    
+    
 class ezDataLoader_CIFAR10(ezDataLoader):
     '''
     the way we download the cifar data, it doesn't download
@@ -123,15 +123,75 @@ class ezDataLoader_CIFAR10(ezDataLoader):
 
         train_xy, validate_xy, test_xy= self.split(x, y)
 
-        ''' HACKED - TODO switch after done testing
+        # control the input dataset
+        ''' old
         train_datapair = ezdata.ezData_Images(*train_xy)
         validate_datapair = ezdata.ezData_Images(*validate_xy)
         test_datapair = ezdata.ezData_Images(*test_xy)'''
-        train_datapair = ezdata.ezData_Images(train_xy[0][:30], train_xy[1][:30])
-        validate_datapair = ezdata.ezData_Images(validate_xy[0][:30], validate_xy[1][:30])
-        test_datapair = [] #ezdata.ezData_Images(*test_xy)
+        
+        # load in images
+        train_images = ezdata.ezData_Images(*train_xy)
+        validate_images = ezdata.ezData_Images(*validate_xy)
+        test_images = ezdata.ezData_Images(*test_xy)
+        
+        # load in Augmentor pipeline
+        train_augmentor = ezdata.ezData_Augmentor()
+        validate_augmentor = ezdata.ezData_Augmentor()
+        test_augmentor = ezdata.ezData_Augmentor()
+        
+        # load together
+        train_datapair = ezdata.ezData_AugmentorImages(train_images, train_augmentor)
+        validate_datapair = ezdata.ezData_AugmentorImages(validate_images, validate_augmentor)
+        test_datapair = ezdata.ezData_AugmentorImages(test_images, test_augmentor)
 
         return train_datapair, validate_datapair, test_datapair
+
+
+>
+class ezDataLoader_CIFAR10_old(ezDataLoader):
+    '''
+    the way we download the cifar data, it doesn't download
+    single png images. it downloads massive 5 30+MB files, so
+    we can't initialize Augmentor.Pipeline with a folder of images
+    '''
+    def __init__(self,
+                 train_split=0.5,
+                 validate_split=0.25,
+                 test_split=0.25):
+        super().__init__(train_split, validate_split, test_split)
+        self.data_dir = os.path.join(os.path.dirname(__file__), '../datasets/cifar10/cifar-10-batches-py')
+        globals()['tf'] = importlib.import_module('tensorflow')
+
+
+    def load(self):
+        data = []
+        image_shape = (10000, 3, 32, 32)  # (Samples, channels, width, height)
+        for ith_file in range(1, 6):
+            filepath = os.path.join(self.data_dir, 'data_batch_%i' % (ith_file))
+            with open(filepath, 'rb') as f:
+                if six.PY2:
+                    datadict = pickle.load(f)
+                elif six.PY3:
+                    datadict = pickle.load(f, encoding='latin1')
+            X = datadict['data']
+            Y = datadict['labels']
+            X = X.reshape(*image_shape).transpose(0, 2, 3, 1).astype("float")
+            Y = np.array(Y)
+            data.append((X,Y))
+
+        x = np.concatenate([x[0] for x in data]).astype(np.uint8) # 2020S code eventually calls PIL.Image.fromarray; I don't think needed
+        y = np.concatenate([x[1] for x in data])
+        y = tf.keras.utils.to_categorical(y, num_classes=10)
+
+        train_xy, validate_xy, test_xy= self.split(x, y)
+
+        # control the input dataset
+        train_datapair = ezdata.ezData_Images_depreciated(*train_xy)
+        validate_datapair = ezdata.ezData_Images_depreciated(*validate_xy)
+        test_datapair = ezdata.ezData_Images_depreciated(*test_xy)
+
+        return train_datapair, validate_datapair, test_datapair
+
 
 
 

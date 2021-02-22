@@ -28,6 +28,8 @@ from codes.genetic_material import IndividualMaterial, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.block_definitions.block_definition import BlockDefinition
 from codes.utilities.custom_logging import ezLogging
+from data.data_tools.loader import ezDataLoader_CIFAR10_old
+from data.data_tools.ezData import ezData
 
 
 
@@ -51,18 +53,6 @@ class FactoryDefinition():
         my_population = PopulationDefinition(population_size)
 
         for i, genome_seed in enumerate(genome_seeds):
-            '''# should be a filepath
-            if genome_seed.endswith("pkl"):
-                with open(genome_seed, "rb") as f:
-                    indiv = pkl.load(f)
-                if isinstance(indiv, IndividualMaterial):
-                    indiv.set_id("seededIndiv%i" % i)
-                elif "lisp" in genome_seed:
-                    # TODO which block?
-                    indiv = build_block_from_lisp(block_def, lisp=indiv, indiv_id="seededIndiv%i-%i" % (node_rank,i))
-                else:
-                    ezLogging.error("unable to interpret genome seed")
-                    return None'''
             indiv = self.build_individual_from_seed(indiv_def,
                                                     genome_seed,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
@@ -76,20 +66,6 @@ class FactoryDefinition():
             my_population.population.append(indiv)
 
         return my_population
-
-
-    '''
-    def build_subpopulation(self, indiv_def: IndividualDefinition, population_size, number_subpopulation=None, subpopulation_size=None):
-        ''
-        TODO
-        ''
-        my_population = SubPopulationDefinition(population_size, number_subpopulation, subpopulation_size)
-        for ith_subpop, subpop_size in my_population.subpop_size:
-            for _ in range(subpop_size):
-                indiv = self.build_individual(indiv_def)
-                my_population[ith_subpop].append(indiv)
-        return my_population
-    '''
 
 
     def build_individual(self, indiv_def: IndividualDefinition, indiv_id=None):
@@ -117,7 +93,7 @@ class FactoryDefinition():
                 # try and catch anything...also makes it easy to catch when seeded material doesn't match defs
                 if block_seeds.endswith(".pkl"):
                     with open(block_seeds, "rb") as f:
-                        indiv_material = pickle.load(f)
+                        indiv_material = pkl.load(f)
                     if not isinstance(indiv_material, IndividualMaterial):
                         raise Exception("pickled file was not an IndividualMaterial type but %s" % (type(indiv_material)))
                     indiv_material.set_id(indiv_id)
@@ -180,7 +156,7 @@ class FactoryDefinition():
                         indiv_material = None
                         break
                 indiv_material.blocks.append(block_material)
-                
+        
         return indiv_material
 
 
