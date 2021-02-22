@@ -220,7 +220,10 @@ class ezDataLoader_CIFAR100(ezDataLoader):
 
 
 
-class ezDataLoader_MNIST(ezDataLoader):
+class ezDataLoader_MNIST_TF(ezDataLoader):
+    '''
+    downloading mnist dataset with tensorflow
+    '''
     def __init__(self,
                  train_split=0.5,
                  validate_split=0.25,
@@ -237,6 +240,151 @@ class ezDataLoader_MNIST(ezDataLoader):
         train_datapair = ezdata.ezData_Images(x_train, y_train)
         validate_datapair = ezdata.ezData_Images(x_test, y_test)
         return train_datapair, validate_datapair
+
+
+
+class ezDataLoader_MNIST(ezDataLoader):
+    '''
+    another mnist dataloader but without tensorflow.
+    good if not using neural networks
+
+    resource:
+    http://rasbt.github.io/mlxtend/user_guide/data/loadlocal_mnist/
+
+     - Training set images: train-images-idx3-ubyte.gz (9.9 MB, 47 MB unzipped, and 60,000 samples)
+     - Training set labels: train-labels-idx1-ubyte.gz (29 KB, 60 KB unzipped, and 60,000 labels)
+     - Test set images: t10k-images-idx3-ubyte.gz (1.6 MB, 7.8 MB, unzipped and 10,000 samples)
+     - Test set labels: t10k-labels-idx1-ubyte.gz (5 KB, 10 KB unzipped, and 10,000 labels)
+    All images are (784,) arrays flattened from 28x28 images
+    '''
+    def __init__(self,
+                 train_split=5/7,
+                 validate_split=1/7,
+                 test_split=1/7):
+        super().__init__(train_split, validate_split, test_split)
+        self.data_dir = os.path.join(os.path.dirname(__file__), '../datasets/mnist')
+
+
+    def load(self):
+        '''
+        using mlxtend to deal with opeing the data
+        http://rasbt.github.io/mlxtend/installation/
+        use $ conda/pip install mlxtend
+
+        see 'resource' in class documentation
+        '''
+        from mlxtend.data import loadlocal_mnist
+        import platform
+        if not platform.system() == 'Windows':
+            x_train, y_train = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 'train-images-idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 'train-labels-idx1-ubyte'))
+            x_test, y_test = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 't10k-images-idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 't10k-labels-idx1-ubyte'))
+
+        else:
+            x_train, y_train = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 'train-images.idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 'train-labels.idx1-ubyte'))
+            x_test, y_test = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 't10k-images.idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 't10k-labels.idx1-ubyte'))
+
+        # currently train 6/7 of data, test 1/7, but we need validation
+        # so take 1/6 of train to make into validation
+        validation_indx = np.random.choice(np.arange(x_train.shape[0]), size=x_train.shape[0]//6, replace=False)
+        x_val = x_train[validation_indx]
+        y_val = y_train[validation_indx]
+        x_train = np.delete(x_train, validation_indx, axis=0)
+        y_train = np.delete(y_train, validation_indx, axis=0)
+
+        train_datapair = ezdata.ezData_Images(x_train, y_train)
+        validate_datapair = ezdata.ezData_Images(x_val, y_val)
+        test_datapair = ezdata.ezData_Images(x_test, y_test)
+
+        return train_datapair, validate_datapair, test_datapair
+
+
+
+class ezDataLoader_EmadeData(ezDataLoader):
+    '''
+    mimic emade.GPFramework.data.load_feature_data_from_file()
+    but where we have already split our data into x and y for train, validate, test
+    '''
+    def __init__(self):
+        super().__init__(1, 1, 1)
+        self.data_dir = ""
+
+
+    def load(self, ezDataLoaderClass, **kwargs):
+        '''
+        pass in the loader we would normally use to load the data, and 
+        instead we'll use that to load the data into an EmadeData Object
+        '''
+        # first import emade stuff
+        data_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        emade_dir = os.path.join(data_dir, 'datasets', 'emade')
+        emade_src_dir = os.path.join(emade_dir, 'src')
+        sys.path.append(emade_src_dir)
+        from GPFramework import data as emade_data
+
+        ezcgp_data_list = ezDataLoaderClass(**kwargs).load() # list is -> [train datapair, validate datapair, test datapair]
+        emade_data_list = []
+
+        # mimic emade.GPFramework.data.load_feature_data_from_file()
+        # https://github.gatech.edu/emade/emade/blob/CacheV2/src/GPFramework/data.py#L88
+        def load_function(ezcgp_data):
+            feature_array = []
+            label_list = []
+            points = []
+            for feature, label in zip(ezcgp_data.x, ezcgp_data.y):
+                class_data = np.array([np.float(label)])
+                label_list.append(class_data)
+                feature_data = np.array([feature], dtype='d')
+                feature_array.append(feature_data)
+
+                point = emade_data.EmadeDataInstance(target=class_data)
+                point.set_stream(
+                    StreamData(np.array([[]]))
+                    )
+                point.set_features(
+                    FeatureData(feature_data)
+                    )
+                points.append(point)
+
+            return (emade_data.EmadeData(points), None)
+
+        # now mimic emade.GPFramework.EMADE.buildClassifier
+        # https://github.gatech.edu/emade/emade/blob/CacheV2/src/GPFramework/EMADE.py#L343
+        def reduce_instances(emadeDataTuple):
+            '''
+            wtf ...this method doesn't even use subset. gonna comment that ish out
+            '''
+            #proportion = self.datasetDict[dataset]['reduceInstances']
+            emadeData, cache = emadeDataTuple
+            #subset = emadeData.get_instances()[:round(len(emadeData.get_instances()) * proportion)]
+            return emadeData, cache
+
+        train_data_array = reduce_instances(load_function(ezcgp_data_list[0]))
+        validate_data_array = reduce_instances(load_function(ezcgp_data_list[1]))
+        test_data_array = reduce_instances(load_function(ezcgp_data_list[2]))
+
+        # Copy the truth data in to its own location
+        truth_data_array = [test_data[0].get_target() for test_data in test_data_array]
+
+        # Clear out the truth data from the test data
+        [test_data[0].set_target(np.full(test_data[0].get_target().shape,np.nan)) for test_data in test_data_array]
+
+        # Stores DataPair object
+        dataPairArray = [emade_data.EmadeDataPair(
+                            train_data, test_data
+                            ) for train_data, test_data in
+                                zip(train_data_array, test_data_array)]
+
+        truthDataArray = truth_data_array
+        
+        return dataPairArray, truthDataArray
 
 
 
@@ -271,3 +419,4 @@ class ezDataLoader_EMADE_Titanic(ezDataLoader):
         test_datapair = []
 
         return train_datapair, validate_datapair, test_datapair
+
