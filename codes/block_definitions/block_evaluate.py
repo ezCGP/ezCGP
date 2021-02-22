@@ -337,14 +337,14 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        input_layer = tf.keras.Input(shape=datapair.image_shape, dtype=None)
+        input_layer = tf.keras.Input(shape=datapair.pipeline_wrapper.image_shape, dtype=None)
         output_layer = self.standard_build_graph(block_material,
                                                  block_def,
                                                  [input_layer])[0]
 
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
-        logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
+        logits = tf.keras.layers.Dense(units=datapair.pipeline_wrapper.num_classes, activation=None, use_bias=True)(output_flatten)
         softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
 
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model
@@ -441,10 +441,9 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                            use_multiprocessing=False,
                           )
         tf.keras.backend.clear_session()
-                import pdb; pdb.set_trace()
-        return [-1 * history.history['val_categoricalaccuracy'][-1], #mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
-                        -1 * history.history['val_precision'][-1],
-                        -1 * history.history['val_recall'][-1]]
+        return [-1 * history.history['val_categorical_accuracy'][-1], #mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
+                -1 * history.history['val_precision'][-1],
+                -1 * history.history['val_recall'][-1]]
 
 
     def evaluate(self,
@@ -477,7 +476,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             import pdb; pdb.set_trace()
             return
 
-        block_material.output = output # TODO make sure it is a list
+        block_material.output = [None, output]
 
 
 
@@ -787,4 +786,4 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
             import pdb; pdb.set_trace()
             return
 
-        block_material.output = [None, output] # TODO make sure it is a list
+        block_material.output = [None, output]

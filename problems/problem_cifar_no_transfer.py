@@ -67,7 +67,7 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 4 #20
+        population_size = 20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
