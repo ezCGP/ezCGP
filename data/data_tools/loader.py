@@ -147,7 +147,7 @@ class ezDataLoader_CIFAR10(ezDataLoader):
         return train_datapair, validate_datapair, test_datapair
 
 
->
+
 class ezDataLoader_CIFAR10_old(ezDataLoader):
     '''
     the way we download the cifar data, it doesn't download
@@ -346,10 +346,10 @@ class ezDataLoader_EmadeData(ezDataLoader):
 
                 point = emade_data.EmadeDataInstance(target=class_data)
                 point.set_stream(
-                    StreamData(np.array([[]]))
+                    emade_data.StreamData(np.array([[]]))
                     )
                 point.set_features(
-                    FeatureData(feature_data)
+                    emade_data.FeatureData(feature_data)
                     )
                 points.append(point)
 
@@ -366,25 +366,27 @@ class ezDataLoader_EmadeData(ezDataLoader):
             #subset = emadeData.get_instances()[:round(len(emadeData.get_instances()) * proportion)]
             return emadeData, cache
 
-        train_data_array = reduce_instances(load_function(ezcgp_data_list[0]))
-        validate_data_array = reduce_instances(load_function(ezcgp_data_list[1]))
-        test_data_array = reduce_instances(load_function(ezcgp_data_list[2]))
+        train_data_array = [reduce_instances(load_function(ezcgp_data_list[0]))]
+        validate_data_array = [reduce_instances(load_function(ezcgp_data_list[1]))]
+        test_data_array = [reduce_instances(load_function(ezcgp_data_list[2]))]
 
         # Copy the truth data in to its own location
-        truth_data_array = [test_data[0].get_target() for test_data in test_data_array]
+        truth_data_array = [test_data[0].get_target() for test_data in validate_data_array]
 
         # Clear out the truth data from the test data
-        [test_data[0].set_target(np.full(test_data[0].get_target().shape,np.nan)) for test_data in test_data_array]
+        [test_data[0].set_target(np.full(test_data[0].get_target().shape,np.nan)) for test_data in validate_data_array]
 
         # Stores DataPair object
         dataPairArray = [emade_data.EmadeDataPair(
                             train_data, test_data
                             ) for train_data, test_data in
-                                zip(train_data_array, test_data_array)]
+                                zip(train_data_array, validate_data_array)]
 
         truthDataArray = truth_data_array
+
+        import pdb; print("about to finish...let's check this out\n"); pdb.set_trace()
         
-        return dataPairArray, truthDataArray
+        return dataPairArray, truthDataArray, test_data_array
 
 
 
