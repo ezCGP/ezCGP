@@ -27,28 +27,23 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
-from data.data_tools.loader import ezDataLoader_CIFAR10_old
+from data.data_tools.loader import ezDataLoader_CIFAR10
 from codes.utilities.custom_logging import ezLogging
 from post_process import save_things
 # Block Defs
 from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
                                                      BlockShapeMeta_DataPreprocessing,
-                                                    #  BlockShapeMeta_TFKeras_TransferLearning,
                                                      BlockShapeMeta_TFKeras)
 from codes.block_definitions.block_operators import (BlockOperators_DataAugmentation,
                                                      BlockOperators_DataPreprocessing,
-                                                    #  BlockOperators_TFKeras_TransferLearning_CIFAR,
                                                      BlockOperators_TFKeras)
 from codes.block_definitions.block_arguments import (BlockArguments_DataAugmentation,
                                                      BlockArguments_DataPreprocessing,
-                                                    #  BlockArguments_TransferLearning,
                                                      BlockArguments_TFKeras)
 from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
                                                     BlockEvaluate_DataAugmentation,
                                                     BlockEvaluate_TrainValidate,
                                                     BlockEvaluate_TFKeras
-                                                    # BlockEvaluate_TFKeras_AfterTransferLearning,
-                                                    # BlockEvaluate_TFKeras_TransferLearning2
                                                     )
 from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
 from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
@@ -72,7 +67,7 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 20
+        population_size = 4 #20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -89,21 +84,13 @@ class Problem(ProblemDefinition_Abstract):
                                                           mutate_def=BlockMutate_OptB_4Blocks,
                                                           mate_def=BlockMate_WholeOnly_4Blocks)
 
-        # preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
-        #                                                    shape_def=BlockShapeMeta_DataPreprocessing,
-        #                                                    operator_def=BlockOperators_DataPreprocessing,
-        #                                                    argument_def=BlockArguments_DataPreprocessing,
-        #                                                    evaluate_def=BlockEvaluate_TrainValidate,
-        #                                                    mutate_def=BlockMutate_OptB_4Blocks,
-        #                                                    mate_def=BlockMate_WholeOnly_4Blocks)
-
-        # transferlearning_block_def = self.construct_block_def(nickname="transferlearning_block",
-        #                                                    shape_def=BlockShapeMeta_TFKeras_TransferLearning,
-        #                                                    operator_def=BlockOperators_TFKeras_TransferLearning_CIFAR,
-        #                                                    argument_def=BlockArguments_TransferLearning,
-        #                                                    evaluate_def=BlockEvaluate_TFKeras_TransferLearning2,
-        #                                                    mutate_def=BlockMutate_OptB_4Blocks,
-        #                                                    mate_def=BlockMate_WholeOnly_4Blocks)
+        preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
+                                                           shape_def=BlockShapeMeta_DataPreprocessing,
+                                                           operator_def=BlockOperators_DataPreprocessing,
+                                                           argument_def=BlockArguments_DataPreprocessing,
+                                                           evaluate_def=BlockEvaluate_TrainValidate,
+                                                           mutate_def=BlockMutate_OptB_4Blocks,
+                                                           mate_def=BlockMate_WholeOnly_4Blocks)
 
         tensorflow_block_def = self.construct_block_def(nickname="tensorflow_block",
                                                         shape_def=BlockShapeMeta_TFKeras,
@@ -114,8 +101,7 @@ class Problem(ProblemDefinition_Abstract):
                                                         mate_def=BlockMate_WholeOnly_4Blocks)
 
         self.construct_individual_def(block_defs=[augmentation_block_def,
-                                                #   preprocessing_block_def,
-                                                #   transferlearning_block_def,
+                                                  preprocessing_block_def,
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
