@@ -217,7 +217,10 @@ class ezDataLoader_CIFAR100(ezDataLoader):
 
 
 
-class ezDataLoader_MNIST(ezDataLoader):
+class ezDataLoader_MNIST_TF(ezDataLoader):
+    '''
+    downloading mnist dataset with tensorflow
+    '''
     def __init__(self,
                  train_split=0.5,
                  validate_split=0.25,
@@ -233,3 +236,67 @@ class ezDataLoader_MNIST(ezDataLoader):
         train_datapair = ezdata.ezData_Images(x_train, y_train)
         validate_datapair = ezdata.ezData_Images(x_test, y_test)
         return train_datapair, validate_datapair
+
+
+
+class ezDataLoader_MNIST(ezDataLoader):
+    '''
+    another mnist dataloader but without tensorflow.
+    good if not using neural networks
+
+    resource:
+    http://rasbt.github.io/mlxtend/user_guide/data/loadlocal_mnist/
+
+     - Training set images: train-images-idx3-ubyte.gz (9.9 MB, 47 MB unzipped, and 60,000 samples)
+     - Training set labels: train-labels-idx1-ubyte.gz (29 KB, 60 KB unzipped, and 60,000 labels)
+     - Test set images: t10k-images-idx3-ubyte.gz (1.6 MB, 7.8 MB, unzipped and 10,000 samples)
+     - Test set labels: t10k-labels-idx1-ubyte.gz (5 KB, 10 KB unzipped, and 10,000 labels)
+    All images are (784,) arrays flattened from 28x28 images
+    '''
+    def __init__(self,
+                 train_split=5/7,
+                 validate_split=1/7,
+                 test_split=1/7):
+        super().__init__(train_split, validate_split, test_split)
+        self.data_dir = os.path.join(os.path.dirname(__file__), '../datasets/mnist')
+
+
+    def load(self):
+        '''
+        using mlxtend to deal with opeing the data
+        http://rasbt.github.io/mlxtend/installation/
+        use $ conda install mlxtend
+
+        see 'resource' in class documentation
+        '''
+        from mlxtend.data import loadlocal_mnist
+        import platform
+        if not platform.system() == 'Windows':
+            x_train, y_train = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 'train-images-idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 'train-labels-idx1-ubyte'))
+            x_test, y_test = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 't10k-images-idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 't10k-labels-idx1-ubyte'))
+
+        else:
+            x_train, y_train = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 'train-images.idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 'train-labels.idx1-ubyte'))
+            x_test, y_test = loadlocal_mnist(
+                                images_path=os.path.join(self.data_dir, 't10k-images.idx3-ubyte'), 
+                                labels_path=os.path.join(self.data_dir, 't10k-labels.idx1-ubyte'))
+
+        # currently train 6/7 of data, test 1/7, but we need validation
+        # so take 1/6 of train to make into validation
+        validation_indx = np.random.choice(np.arange(x_train.shape[0]), size=x_train.shape[0]//6, replace=False)
+        x_val = x_train[validation_indx]
+        y_val = y_train[validation_indx]
+        x_train = np.delete(x_train, validation_indx, axis=0)
+        y_train = np.delete(y_train, validation_indx, axis=0)
+
+        train_datapair = ezdata.ezData_Images(x_train, y_train)
+        validate_datapair = ezdata.ezData_Images(x_val, y_val)
+        test_datapair = ezdata.ezData_Images(x_test, y_test)
+
+        return train_datapair, validate_datapair, test_datapair
