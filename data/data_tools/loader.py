@@ -265,7 +265,7 @@ class ezDataLoader_MNIST(ezDataLoader):
         '''
         using mlxtend to deal with opeing the data
         http://rasbt.github.io/mlxtend/installation/
-        use $ conda install mlxtend
+        use $ conda/pip install mlxtend
 
         see 'resource' in class documentation
         '''
@@ -300,3 +300,84 @@ class ezDataLoader_MNIST(ezDataLoader):
         test_datapair = ezdata.ezData_Images(x_test, y_test)
 
         return train_datapair, validate_datapair, test_datapair
+
+
+
+class ezDataLoader_EmadeData(ezDataLoader):
+    '''
+    mimic emade.GPFramework.data.load_feature_data_from_file()
+    but where we have already split our data into x and y for train, validate, test
+    '''
+    def __init__(self):
+        super().__init__(1, 1, 1)
+        self.data_dir = ""
+
+
+    def load(self, ezDataLoaderClass, **kwargs):
+        '''
+        pass in the loader we would normally use to load the data, and 
+        instead we'll use that to load the data into an EmadeData Object
+        '''
+        # first import emade stuff
+        data_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        emade_dir = os.path.join(data_dir, 'datasets', 'emade')
+        emade_src_dir = os.path.join(emade_dir, 'src')
+        sys.path.append(emade_src_dir)
+        from GPFramework import data as emade_data
+
+        ezcgp_data_list = ezDataLoaderClass(**kwargs).load() # list is -> [train datapair, validate datapair, test datapair]
+        emade_data_list = []
+
+        # mimic emade.GPFramework.data.load_feature_data_from_file()
+        # https://github.gatech.edu/emade/emade/blob/CacheV2/src/GPFramework/data.py#L88
+        def load_function(ezcgp_data):
+            feature_array = []
+            label_list = []
+            points = []
+            for feature, label in zip(ezcgp_data.x, ezcgp_data.y):
+                class_data = np.array([np.float(label)])
+                label_list.append(class_data)
+                feature_data = np.array([feature], dtype='d')
+                feature_array.append(feature_data)
+
+                point = emade_data.EmadeDataInstance(target=class_data)
+                point.set_stream(
+                    StreamData(np.array([[]]))
+                    )
+                point.set_features(
+                    FeatureData(feature_data)
+                    )
+                points.append(point)
+
+            return (emade_data.EmadeData(points), None)
+
+        # now mimic emade.GPFramework.EMADE.buildClassifier
+        # https://github.gatech.edu/emade/emade/blob/CacheV2/src/GPFramework/EMADE.py#L343
+        def reduce_instances(emadeDataTuple):
+            '''
+            wtf ...this method doesn't even use subset. gonna comment that ish out
+            '''
+            #proportion = self.datasetDict[dataset]['reduceInstances']
+            emadeData, cache = emadeDataTuple
+            #subset = emadeData.get_instances()[:round(len(emadeData.get_instances()) * proportion)]
+            return emadeData, cache
+
+        train_data_array = reduce_instances(load_function(ezcgp_data_list[0]))
+        validate_data_array = reduce_instances(load_function(ezcgp_data_list[1]))
+        test_data_array = reduce_instances(load_function(ezcgp_data_list[2]))
+
+        # Copy the truth data in to its own location
+        truth_data_array = [test_data[0].get_target() for test_data in test_data_array]
+
+        # Clear out the truth data from the test data
+        [test_data[0].set_target(np.full(test_data[0].get_target().shape,np.nan)) for test_data in test_data_array]
+
+        # Stores DataPair object
+        dataPairArray = [emade_data.EmadeDataPair(
+                            train_data, test_data
+                            ) for train_data, test_data in
+                                zip(train_data_array, test_data_array)]
+
+        truthDataArray = truth_data_array
+        
+        return dataPairArray, truthDataArray
