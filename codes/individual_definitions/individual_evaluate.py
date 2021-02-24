@@ -79,6 +79,29 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
         pass
 
 
+    def evaluate_block(self,
+                       indiv_id,
+                       block_index,
+                       block_def,
+                       block_material,
+                       training_datapair,
+                       validation_datapair):
+        '''
+        since each block has a slightly different behavior about what exactly get's passed in as data,
+        I made a generalized evaluate method here that can get called in several different ways in the
+        other evaluate method
+        '''
+        if block_material.need_evaluate:
+            ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_id, block_index, block_def.nickname))
+            block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))  
+            if block_material.dead:
+                indiv_material.dead = True
+            else:
+                pass
+        else:
+            ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_id, block_index, block_def.nickname))
+
+
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
@@ -89,17 +112,30 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
         block_material.output and it will be unique to that block not shared with whole individual.
         '''
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
-            if block_material.need_evaluate:
-                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-                block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
-                if block_material.dead:
-                    indiv_material.dead = True
-                    break
-            else:
-                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
-            training_datapair, validation_datapair = block_material.output
+            if ('augment' in block_def.nickname.lower()) or ('preprocess' in block_def.nickname.lower()):
+                '''
+                then we only want to pass in the 'pipeline' of the data so all the images don't get dragged along
+                and also get saved as the output of the block
+                '''
+                self.evaluate_block(indiv_material.id,
+                                    block_index,
+                                    block_def,
+                                    block_material,
+                                    training_datapair.pipeline_wrapper,
+                                    validation_datapair.pipeline_wrapper)
+                training_datapair.pipeline_wrapper, validation_datapair.pipeline_wrapper = block_material.output
 
-        indiv_material.output = training_datapair, validation_datapair
+            else:
+                # must be tensorflow block
+                self.evaluate_block(indiv_material.id,
+                                    block_index,
+                                    block_def,
+                                    block_material,
+                                    training_datapair,
+                                    validation_datapair)
+
+                # training_datapair will be None, and validation_datapair will be the final fitness scores
+                _, indiv_material.output = block_material.output
 
 
 
