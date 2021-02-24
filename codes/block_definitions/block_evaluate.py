@@ -14,7 +14,6 @@ Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDe
 from abc import ABC, abstractmethod
 from copy import deepcopy
 import importlib
-from torch import nn
 
 ### sys relative to root dir
 import sys
@@ -870,6 +869,7 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_GraphAbstract):
 
         """
         from codes.block_definitions.utilities.operators_pytorch import InputLayer
+        from torch import nn
 
         # add input data
         for i, input in enumerate(input_list):
@@ -920,19 +920,12 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         '''
         Build the SimGAN refiner network
         '''
+        from torch import nn
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
         graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
         output_shape = output_list[0].get_out_shape()
         ezLogging.info("%s - Ending building..." % (block_material.id))
-        """
-        Per my conversation with Rodd:
-        - The way this is set up, we would only be able to have a single linear input
-        - We want to be able to concat other inputs in
-        - We can do this by changing the inputs list to be able to receive multiple inputs (main_input, misc_input1, misc_input2, ...)
-        - For most layers, we won't need to touch any input besides main_input (which is data that is being directly acted upon by the layers)
-        - We can make specialized layers that incorporate other misc_inputs into main_input
-        """
 
         # Add a layer to get the output back into the right shape
         # TODO: consider using a linear layer instead of a conv1d and then unflattening. Not sure what is the right move
@@ -976,14 +969,16 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
 
 
 class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
+    #TODO: Move the training part of this code to a 3rd block that takes in refiner and discrinator
+    # and then evolves hyperparameter data related to training
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
-        # TODO: add implementation
 
     def build_graph(self, block_material, block_def, data):
         '''
         Build the SimGAN discriminator network
         '''
+        from torch import nn
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
         graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
@@ -997,20 +992,84 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         extra_layers = [nn.Linear(in_features, 2), nn.Flatten(start_dim=1)]
 
         block_material.graph = nn.Sequential(graph, *extra_layers)
+    
+    def pretrain_graphs(self, block_material, block_def, train_data, R, D, opt_R, opt_D):
+        '''
+        Pretrain the refiner to learn the identity function and discriminator to learn the difference
+        between simulated and real data.
+        '''
+        from torch import Tensor, LongTensor, mul
+        # Pretrain Refiner to learn the identity function
+        print("Pretraining refiner for %i steps" % (block_def.r_pretrain_steps))
+        for i in range(block_def.r_pretrain_steps):
+            opt_R.zero_grad()
+            
+            # Load data
+            simulated, _ = train_data.simulated_loader.__iter__().next()
+            simulated = Tensor(simulated).to(block_def.device)
 
-    def train_graph(self,
-                    block_material,
-                    block_def,
-                    training_datapair,
-                    validation_datapair,
-                    refiner):
+            # Run refiner and get self_regularization loss
+            refined = R(simulated)
+            r_loss = block_def.self_regularization_loss(simulated, refined)
+            r_loss = mul(r_loss, block_def.delta)
+
+            # Compute the gradients and backprop
+            r_loss.backward()
+            opt_R.step()
+
+            # log every `steps_per_log` steps
+            if (i % block_def.steps_per_log == 0) or (i == block_def.r_pretrain_steps - 1):
+                print('[%d/%d] (R)reg_loss: %.4f' % (i, block_def.r_pretrain_steps, r_loss.data.item()))
+        
+        # Pretrain Discriminator (basically to learn the difference between simulated and real data)
+        print("Pretraining discriminator for %i steps" % (block_def.d_pretrain_steps))
+        for i in range(block_def.d_pretrain_steps):
+            opt_D.zero_grad()
+
+            # Get data
+            real, labels_real = train_data.real_loader.__iter__().next()
+            real = Tensor(real).to(block_def.device)
+            labels_real = LongTensor(labels_real).to(block_def.device)
+
+            simulated, labels_refined = train_data.simulated_loader.__iter__().next()
+            simulated = Tensor(simulated).to(block_def.device)
+            labels_refined = LongTensor(labels_refined).to(block_def.device)
+
+            # import pdb; pdb.set_trace()
+            # Run the real batch through discriminator and calc loss
+            pred_real = D(real)
+            d_loss_real = block_def.local_adversarial_loss(pred_real, labels_real)
+
+            # Run the refined batch through discriminator and calc loss
+            refined = R(simulated)
+            pred_refined = D(refined)
+            d_loss_ref = block_def.local_adversarial_loss(pred_refined, labels_refined)
+
+            # Compute the gradients.
+            d_loss = d_loss_real + d_loss_ref
+            d_loss.backward()
+
+            # Backpropogate the gradient through the discriminator.
+            opt_D.step()
+
+            # log every `steps_per_log` steps
+            if (i % block_def.steps_per_log == 0) or (i == block_def.d_pretrain_steps - 1):
+                print('[%d/%d] (D)real_loss: %.4f, ref_loss: %.4f' % (i, block_def.d_pretrain_steps, 
+                      d_loss_real.data.item(), d_loss_ref.data.item()))
+
+    def train_graph(self, block_material, block_def, train_data, validation_data, R):
         '''
         TODO: implement and add documentation 
         '''
-        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
-                                                                                      block_def.batch_size,
-                                                                                      training_datapair.num_images//block_def.batch_size,
-                                                                                      block_def.epochs))
+        from torch import optim
+        ezLogging.debug("%s - Training Graph - %i batch size, %i steps" % (block_material.id,
+                                                                           train_data.batch_size,
+                                                                           block_def.train_steps))
+        D = block_material.graph
+        opt_R = optim.Adam(R.parameters(), lr=block_def.r_lr, betas=(0.5,0.999))
+        opt_D = optim.Adam(D.parameters(), lr=block_def.d_lr, betas=(0.5,0.999))
+        self.pretrain_graphs(block_material, block_def, train_data, R, D, opt_R, opt_D)
+        
 
     def evaluate(self,
                  block_material: BlockMaterial,
@@ -1031,5 +1090,4 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
             import pdb; pdb.set_trace()
             return
         
-        import pdb; pdb.set_trace()
         output = self.train_graph(block_material, block_def, train_data, validation_data, refiner)

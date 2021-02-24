@@ -49,9 +49,9 @@ class InputLayer(PyTorchLayerWrapper):
 def pooling_layer():
     pass
 
-def linear_layer(input_layer, misc_layer, out_features):
+def linear_layer(input_layer, out_features):
     """
-    An operator that initializes a Linear_Layer object, which holds a PyTorch Linear layer. Ignores the misc_layer.
+    An operator that initializes a Linear_Layer object, which holds a PyTorch Linear layer.
     """
     class Linear_Layer(PyTorchLayerWrapper):
         def __init__(self, in_shape, out_features):
@@ -70,15 +70,15 @@ def linear_layer(input_layer, misc_layer, out_features):
         
     return Linear_Layer(input_layer.get_out_shape(), out_features)
 
-operator_dict[linear_layer] = {"inputs": [PyTorchLayerWrapper, PyTorchLayerWrapper],
+operator_dict[linear_layer] = {"inputs": [PyTorchLayerWrapper],
                                "output": PyTorchLayerWrapper,
                                "args": [argument_types.ArgumentType_Pow2]
                               }
 
 
-def conv1d_layer(input_layer, misc_layer, out_channels, kernel_size=3, padding=None, activation=nn.ReLU):
+def conv1d_layer(input_layer, out_channels, kernel_size=3, padding=None, activation=nn.ReLU):
     """
-    An operator that initializes a Conv1D_Layer object, which holds a PyTorch Conv1d layer. Ignores the misc_layer.
+    An operator that initializes a Conv1D_Layer object, which holds a PyTorch Conv1d layer.
     """
     class Conv1D_Layer(PyTorchLayerWrapper):
         def __init__(self, in_shape, out_channels, kernel_size, padding, activation):
@@ -105,7 +105,7 @@ def conv1d_layer(input_layer, misc_layer, out_channels, kernel_size=3, padding=N
     
     return Conv1D_Layer(input_layer.get_out_shape(), out_channels, kernel_size, padding, activation)
 
-operator_dict[conv1d_layer] = {"inputs": [PyTorchLayerWrapper, PyTorchLayerWrapper],
+operator_dict[conv1d_layer] = {"inputs": [PyTorchLayerWrapper],
                                "output": PyTorchLayerWrapper,
                                "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_PyTorchKernelSize,
                                         argument_types.ArgumentType_PyTorchPaddingSize, argument_types.ArgumentType_PyTorchActivation]

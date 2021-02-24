@@ -183,7 +183,6 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         '''
         if block_material.need_evaluate:
             ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-            import pdb; pdb.set_trace()
             block_def.evaluate(block_material, train_data, validation_data)
             if block_material.dead:
                 indiv_material.dead = True
@@ -203,7 +202,6 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         So we will take the refiner graph and input it into the discriminator block and train/evaluate it there.
         '''
 
-        import pdb; pdb.set_trace()
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if (block_def.nickname == 'refiner_block') and (indiv_material[block_index+1].need_evaluate):
                 # If we are in the refiner block and the discriminator block needs to be reevaluated, then we also need to reevalute the refiner
