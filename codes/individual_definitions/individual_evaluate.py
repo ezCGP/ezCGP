@@ -111,6 +111,7 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
         we want to deepcopy the data before evaluate so that in future if need_evaluate is False, we can grab the
         block_material.output and it will be unique to that block not shared with whole individual.
         '''
+        original_pipeline_wrapper = deepcopy(training_datapair.pipeline_wrapper)  # HACK
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if ('augment' in block_def.nickname.lower()) or ('preprocess' in block_def.nickname.lower()):
                 '''
@@ -136,6 +137,8 @@ class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
 
                 # training_datapair will be None, and validation_datapair will be the final fitness scores
                 _, indiv_material.output = block_material.output
+
+        training_datapair.pipeline_wrapper = original_pipeline_wrapper # HACK
 
 
 
