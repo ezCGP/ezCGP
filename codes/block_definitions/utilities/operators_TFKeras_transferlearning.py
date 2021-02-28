@@ -72,7 +72,7 @@ def vgg16(input_layer):
     check_size_compatibility(input_layer, 32)
     next_layer = tf.keras.applications.vgg16.preprocess_input(input_layer)
     pretrained_model = tf.keras.applications.VGG16(include_top=False,
-                                                   weights='imagenet',
+                                                   weights='None',
                                                    input_tensor=None,
                                                    input_shape=input_layer.shape[1:], #ignore 0th element batch_size
                                                    pooling=None)
@@ -102,7 +102,7 @@ def resnet(input_layer, ith_model):
     models = [tf.keras.applications.ResNet101V2, tf.keras.applications.ResNet152V2, tf.keras.applications.ResNet50V2]
     ith_model = ith_model % len(models)
     pretrained_model = models[ith_model](include_top=False,
-                                         weights='imagenet',
+                                         weights='None',
                                          input_tensor=None,
                                          input_shape=input_layer.shape[1:], #ignore 0th element batch_size
                                          pooling=None
@@ -126,7 +126,7 @@ def inception(input_layer):
     check_size_compatibility(input_layer, 75)
     next_layer = tf.keras.applications.inception_v3.preprocess_input(input_layer)
     pretrained_model = tf.keras.applications.InceptionV3(include_top=False,
-                                                         weights='imagenet',
+                                                         weights='None',
                                                          input_tensor=None,
                                                          input_shape=input_layer.shape[1:], #ignore 0th element batch_size
                                                          pooling=None)
