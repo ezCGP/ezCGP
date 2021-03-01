@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_arguments.py
+root/code/block_definitions/arguments/block_arguments.py
 
 Overview:
 In the first ever iteration of creating a CGP framework, it was suggested by Dr. Greg Rohling to remove hyperparamters from the genome and keep them in their own space and perform basic GA on them instead; that way, all the primitives only deal with data manipulation or classification rather than also including basic operations like addition or multiplication to evolve hyperparamter floats or booleans. The problem with this is that it leaves a lot of room for experimentation with how exactly we build out these list of arguments; so a lot more work has to be done to optimize what arguments are introduced and how they can be evolved with GA.

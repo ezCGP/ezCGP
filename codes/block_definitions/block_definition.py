@@ -29,12 +29,12 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_Abstract
-from codes.block_definitions.block_operators import BlockOperators_Abstract
-from codes.block_definitions.block_arguments import BlockArguments_Abstract
-from codes.block_definitions.block_evaluate import BlockEvaluate_Abstract
-from codes.block_definitions.block_mutate import BlockMutate_Abstract
-from codes.block_definitions.block_mate import BlockMate_Abstract
+from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Abstract
+from codes.block_definitions.operators.block_operators import BlockOperators_Abstract
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Abstract
+from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Abstract
+from codes.block_definitions.mutate.block_mutate import BlockMutate_Abstract
+from codes.block_definitions.mate.block_mate import BlockMate_Abstract
 from codes.genetic_material import IndividualMaterial, BlockMaterial
 from data.data_tools.ezData import ezData
 from codes.utilities.custom_logging import ezLogging

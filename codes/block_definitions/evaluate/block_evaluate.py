@@ -1,5 +1,5 @@
 '''
-root/codes/block_definitions/block_evaluate.py
+root/codes/block_definitions/evaluate/block_evaluate.py
 
 Overview:
 Here we define how our block will be 'evaluated'...Of course there is typical concept of evaluating where we just apply methods to data and we're done; then there is 'evaluation' when we are dealing with neural networks where we have to build a graph, train it, and then evaluate it against a different dataset; there have also been cases where we pass through an instantiated class object through the graph and each primitive addes or changes an attribute so evaluation is decorating a class object. This may change in the future, but right now we have generalized the inputs for evaluation to:

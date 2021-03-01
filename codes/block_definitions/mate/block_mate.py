@@ -1,5 +1,5 @@
 '''
-root/codes/block_definitions/block_mate.py
+root/codes/block_definitions/mate/block_mate.py
 
 Overview:
 Block level definition on how to mate 2 parent blocks. We do define an ABC with a mate method that takes in full IndividualMaterial instances (rather than BlockMaterials); in first developping, it seemed easier to send in the full individual genome because while it was clear how the parent's would exchange the block genome, it was not clear how the child would populate itself in the other blocks. So in these mate() methods, we force the user to define how it will perform crossover on the block but also how it will distribute the rest of the blocks to the child.
@@ -17,7 +17,7 @@ from abc import ABC, abstractmethod
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.genetic_material import IndividualMaterial

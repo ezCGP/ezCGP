@@ -111,15 +111,8 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def construct_dataset(self):
-        '''
-        will return 3 ezData_Images objects
-        with .pipeline, .x, .y attributes
-        '''
-        train, validate, test = ezDataLoader_CIFAR10(0.6, 0.2, 0.2).load()
-        # remember that our input data has to be a list!
-        self.train_data = train
-        self.validate_data = validate
-        self.test_data = test
+        loader = ezDataLoader_CIFAR10(0.6, 0.2, 0.2)
+        self.training_datalist, self.validating_datalist, self.testing_datalist = loader.load()
 
 
     def objective_functions(self, indiv):

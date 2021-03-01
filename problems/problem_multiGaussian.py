@@ -17,12 +17,12 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import ezData
 from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
-from codes.block_definitions.block_operators import BlockOperators_Gaussian
-from codes.block_definitions.block_arguments import BlockArguments_Gaussian
-from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-from codes.block_definitions.block_mutate import BlockMutate_NoFtn
-from codes.block_definitions.block_mate import BlockMate_NoMate
+from codes.block_definitions.shape_meta.block_shapemeta import BlockShapeMeta_Gaussian
+from codes.block_definitions.operators.block_operators import BlockOperators_Gaussian
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Gaussian
+from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Standard
+from codes.block_definitions.mutate.block_mutate import BlockMutate_NoFtn
+from codes.block_definitions.mate.block_mate import BlockMate_NoMate
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
@@ -37,8 +37,8 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 52 #must be divisible by 4 if doing mating
-        number_universe = 1 #10
+        population_size = 2**8 #must be divisible by 4 if doing mating
+        number_universe = 1
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
@@ -61,12 +61,25 @@ class Problem(ProblemDefinition_Abstract):
 
     def construct_dataset(self):
         from misc import fake_mixturegauss
+        ''' old part:
         x, y, noisy, goal_features = fake_mixturegauss.main()
         x = fake_mixturegauss.XLocations(x)
         starting_sum = fake_mixturegauss.RollingSum(np.zeros(x.shape))
         #self.data = data_loader.load_symbolicRegression([x, starting_sum], [y, noisy, goal_features])
         self.train_data = ezData.ezData([x, starting_sum], [y, noisy, goal_features])
         self.validate_data = None
+        '''
+        x, y, noisy, goal_features = fake_mixturegauss.main()
+        rolling_sum = ezData.ezData_numpy(x=np.zeros(x.shape), y=None)
+
+        clean_data = ezData.ezData_numpy(x, y)
+        clean_data.goal_features = goal_features
+
+        noisy_data = ezData.ezData_numpy(x, noisy)
+        noisy_data.goal_features = goal_features
+
+        self.training_datalist = [clean_data, rolling_sum]
+        self.validating_datalist = None
 
 
     def objective_functions(self, indiv):

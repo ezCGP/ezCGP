@@ -101,7 +101,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            shape_def=BlockShapeMeta_TFKeras_TransferLearning,
                                                            operator_def=BlockOperators_TFKeras_TransferLearning_CIFAR,
                                                            argument_def=BlockArguments_TransferLearning,
-                                                           evaluate_def=BlockEvaluate_TFKeras_TransferLearning2,
+                                                           evaluate_def=BlockEvaluate_TFKeras_TransferLearning,
                                                            mutate_def=BlockMutate_OptB_4Blocks,
                                                            mate_def=BlockMate_WholeOnly_4Blocks)
 
@@ -114,7 +114,7 @@ class Problem(ProblemDefinition_Abstract):
                                                         mate_def=BlockMate_WholeOnly_4Blocks)
         
         self.construct_individual_def(block_defs=[augmentation_block_def,
-                                                  #preprocessing_block_def,
+                                                  preprocessing_block_def,
                                                   transferlearning_block_def,
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
@@ -125,15 +125,8 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def construct_dataset(self):
-        '''
-        will return 3 ezData_Images objects
-        with .pipeline, .x, .y attributes
-        '''
-        train, validate, test = ezDataLoader_CIFAR10(0.6, 0.2, 0.2).load()
-        # remember that our input data has to be a list!
-        self.train_data = train
-        self.validate_data = validate
-        self.test_data = test
+        loader = ezDataLoader_CIFAR10(0.6, 0.2, 0.2)
+        self.training_datalist, self.validating_datalist, self.testing_datalist = loader.load()
 
         
     def objective_functions(self, indiv):

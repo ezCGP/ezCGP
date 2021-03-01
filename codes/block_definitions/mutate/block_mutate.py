@@ -1,5 +1,5 @@
 '''
-root/codes/block_definitions/block_mutate.py
+root/codes/block_definitions/mutate/block_mutate.py
 
 Overview:
 Pretty simple class; basically just a wrapper to the mutate_methods. Deepcopies of the original individual happened at the IndividualMutate_Abstract level so we don't have to do anything fancy here...just pass the mutant along.
@@ -15,7 +15,7 @@ from numpy import random as rnd
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.genetic_material import BlockMaterial
