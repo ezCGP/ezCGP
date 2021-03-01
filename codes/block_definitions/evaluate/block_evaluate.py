@@ -5,9 +5,20 @@ Overview:
 Here we define how our block will be 'evaluated'...Of course there is typical concept of evaluating where we just apply methods to data and we're done; then there is 'evaluation' when we are dealing with neural networks where we have to build a graph, train it, and then evaluate it against a different dataset; there have also been cases where we pass through an instantiated class object through the graph and each primitive addes or changes an attribute so evaluation is decorating a class object. This may change in the future, but right now we have generalized the inputs for evaluation to:
 * block_material to get the genome and args
 * block_def to get metadata about the block
-* training and validation data
+* training and validating data
 
 Here we have 2 methods: evaluate() and reset_evaluation(). We expect the BlockDefinition.evaluate() to run reset_evaluation() and then run evaluate().
+
+CopyPaste from individual_evaluate:
+A coding law we use is that blocks will take in and output these 3 things:
+    * training_datalist
+    * validating_datalist
+    * supplements
+Sometimes those things can be None, but they should still always be used.
+Training + validating datalist are mostly used for when we have multiple blocks and we want to pass
+the same data types from one block to the next.
+The exception comes at the last block; we mostly aways assume that we no longer car about the datalist,
+and only want what is in supplements.
 '''
 
 ### packages
@@ -38,15 +49,16 @@ class BlockEvaluate_Abstract(ABC):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData=None):
+                 training_datalist: ezData,
+                 validating_datalist: ezData=None,
+                 supplements=None):
         pass
 
 
     def standard_evaluate(self,
-                          block_material,
+                          block_material: BlockMaterial,
                           block_def,
-                          input_list):
+                          input_datalist: ezData):
         '''
         After a while of developing, we noticed that ALL our blocks followed the same eval process.
         the main difference was WHAT data was passed in...that's it!
@@ -54,13 +66,13 @@ class BlockEvaluate_Abstract(ABC):
         be used where needed.
         '''
         # verify that the input data matches the expected datatypes
-        for input_dtype, input_data in zip(block_def.input_dtypes, input_list):
+        for input_dtype, input_data in zip(block_def.input_dtypes, input_datalist):
             if input_dtype != type(input_data):
                 ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None
 
         # add input data
-        for i, data_input in enumerate(input_list):
+        for i, data_input in enumerate(input_datalist):
             block_material.evaluated[-1*(i+1)] = data_input
 
         # go solve
@@ -102,7 +114,7 @@ class BlockEvaluate_Abstract(ABC):
             for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
                 output_list.append(block_material.evaluated[block_material.genome[output_index]])
 
-        ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, len(output_list)))
+        ezLogging.info("%s - Ending standard_evaluate...%i output" % (block_material.id, len(output_list)))
         return output_list
 
 
@@ -130,66 +142,88 @@ class BlockEvaluate_Abstract(ABC):
 
 
 
-class BlockEvaluate_Standard(BlockEvaluate_Abstract):
+class BlockEvaluate_MiddleBlock(BlockEvaluate_Abstract):
     '''
-    This could be used for any basic application of methods onto data, like symbolic regression.
+    For a middle-block, we assume that the output of the block is the input of the next block,
+    so we replace it with training/validating_datalist instead of passing it through supplements.
     '''
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockEvaluate_Standard Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_MiddleBlock Class" % (None, None))
 
 
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData=None):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        output_list = self.standard_evaluate(block_material, block_def, training_datapair.x)
-        #training_datapair.x = output_list[0]
-        #block_material.output = training_datapair
-        block_material.output = output_list
 
+        training_datalist = self.standard_evaluate(block_material, block_def, training_datalist)
+        if validating_datalist is not None:
+            self.preprocess_block_evaluate(block_material) # reset evaluation attributes for validating
+            training_datalist = self.standard_evaluate(block_material, block_def, validating_datalist)
 
-    def preprocess_block_evaluate(self, block_material: BlockMaterial):
-        '''
-        we really could just remove this method...I think we're
-        keeping it here as a reminder that we can change it
-        '''
-        super().preprocess_block_evaluate(block_material)
+        supplements = None
+        block_material.output = (training_datalist, validating_datalist, supplements)
 
 
 
-class BlockEvaluate_DataAugmentation(BlockEvaluate_Standard):
+class BlockEvaluate_FinalBlock(BlockEvaluate_Abstract):
     '''
-    the primitives are unique but the evaluation methods shouldn't be unique, so
-    just opting to import BlockEvaluate_Standard
+    Unlike BlockEvaluate_MiddleBlock, we pass the output of evaluate() to supplements
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_FinalBlock Class" % (None, None))
 
-    NOTE that we want to add augmentation methods to the 'training data pipeline'
-        BUT not to the 'validation/testing data pipeline'
+
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition,
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+
+        supplements = []
+        supplements.append(self.standard_evaluate(block_material, block_def, training_datalist))
+        if validating_datalist is not None:
+            supplements.append(self.standard_evaluate(block_material, block_def, validating_datalist))
+        else:
+            supplements.append(None)
+
+        block_material.output = (None, None, supplements)
+
+
+
+class BlockEvaluate_MiddleBlock_SkipValidating(BlockEvaluate_Standard):
+    '''
+    Say for data augmentation; this is a step useful in improving your datasete for training,
+    so it is useless to use on validating data
     '''
     def __init__(self):
         super().__init__()
-        ezLogging.debug("%s-%s - Initialize BlockEvaluate_DataAugmentation Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_MiddleBlock_SkipValidating Class" % (None, None))
 
 
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def, #: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
 
-        output_list = self.standard_evaluate(block_material, block_def, [training_datapair.pipeline])
-        training_datapair.pipeline = output_list[0] #assuming only outputs the pipeline
-
-        block_material.output = [training_datapair, validation_datapair]
+        training_datalist = self.standard_evaluate(block_material, block_def, training_datalist)
+        supplements = None
+        block_material.output = (training_datalist, validating_datalist, supplements)
 
 
 
 class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
     '''
-    In BlockEvaluate_Standard.evaluate() we only evaluate on the training_datapair.
-    But here we want to evaluate both training and validation.
+    In BlockEvaluate_Standard.evaluate() we only evaluate on the training_datalist.
+    But here we want to evaluate both training and validating.
     The process flow will be almost identical otherwise.
     '''
     def __init__(self):
@@ -200,19 +234,20 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
 
-        # going to treat training + validation as separate block_materials!
+        # going to treat training + validating as separate block_materials!
         output = []
-        for datapair in [training_datapair, validation_datapair]:
-            single_output_list = self.standard_evaluate(block_material, block_def, [datapair.pipeline])
-            datapair.pipeline = single_output_list[0]
+        for datalist in [training_datalist, validating_datalist]:
+            single_output_list = self.standard_evaluate(block_material, block_def, [datalist.pipeline])
+            datalist.pipeline = single_output_list[0]
             if block_material.dead:
                 return []
             else:
-                output.append(datapair)
-                self.preprocess_block_evaluate(block_material) #prep for next loop through datapair
+                output.append(datalist)
+                self.preprocess_block_evaluate(block_material) #prep for next loop through datalist
 
         block_material.output = output

@@ -1,5 +1,8 @@
 '''
+Since the evaluate method for graphs (think NN), are so different from normal 'algorithm evaluation',
+we've moved all classes to their own file...easier visually and for organization.
 
+Checkout BlockEvaluate_GraphAbstract() to see the main differences
 '''
 
 ### packages
@@ -12,7 +15,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
-from data.data_tools.ezData import ezData
+from data.data_tools.ezData import ezData, ezData_Augmentor, ezData_Images
 from codes.genetic_material import BlockMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Abstract
@@ -29,6 +32,9 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
 
     Edit notes (Sam): TF 2.0 has a tf.function class that builds computational graphs automatically (is recommended), see operators.py
     '''
+    def __init__(self):
+        globals()['tf'] = importlib.import_module('tensorflow')
+
     @abstractmethod
     def build_graph(self):
         pass
@@ -44,7 +50,7 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
     def standard_build_graph(self,
                              block_material: BlockMaterial,
                              block_def,#: BlockDefinition,
-                             input_layers = None):
+                             input_layers=None):
         '''
         trying to generalize the graph building process similar to standard_evaluate()
 
@@ -96,6 +102,21 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         return output
 
 
+    def parse_datalist(self, datalist):
+        my_augmentor = None
+        my_images = None
+        other = []
+        for data_instance in datalist:
+            if isinstance(data_instance, ezData_Augmentor):
+                my_augmentor = data_instance
+            elif isinstance(data_instance, ezData_Images):
+                my_images = data_instance
+            else:
+                other.append(data_instance)
+
+        return data_augmentor, data_images, other
+
+
     def preprocess_block_evaluate(self, block_material):
         '''
         should always happen before we evaluate...should be in BlockDefinition.evaluate()
@@ -104,6 +125,7 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         '''
         super().preprocess_block_evaluate(block_material)
         block_material.graph = None
+        tf.keras.backend.clear_session()
 
 
     def postprocess_block_evaluate(self, block_material):
@@ -114,6 +136,7 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         '''
         super().postprocess_block_evaluate(block_material)
         block_material.graph = None
+        tf.keras.backend.clear_session()
 
 
 
@@ -125,11 +148,10 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
     '''
     def __init__(self):
         super().__init__()
-        globals()['tf'] = importlib.import_module('tensorflow')
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras Class" % (None, None))
 
 
-    def build_graph(self, block_material, block_def, datapair):
+    def build_graph(self, block_material, block_def, augmentor):
         '''
         Assume input+output layers are going to be lists with only one element
 
@@ -138,15 +160,16 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         https://www.tensorflow.org/api_docs/python/tf/keras/Input
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
+        augmentor, images, _ = self.parse_datalist(datalist)
 
-        input_layer = tf.keras.Input(shape=datapair.pipeline_wrapper.image_shape, dtype=None)
+        input_layer = tf.keras.Input(shape=augmentor.image_shape, dtype=None)
         output_layer = self.standard_build_graph(block_material,
                                                  block_def,
                                                  [input_layer])[0]
 
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
-        logits = tf.keras.layers.Dense(units=datapair.pipeline_wrapper.num_classes, activation=None, use_bias=True)(output_flatten)
+        logits = tf.keras.layers.Dense(units=augmentor.num_classes, activation=None, use_bias=True)(output_flatten)
         softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
 
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model
@@ -166,10 +189,12 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
     def get_generator(self,
                       block_material,
                       block_def,
-                      training_datapair,
-                      validation_datapair):
+                      training_datalist,
+                      validating_datalist):
+        training_augmentor, training_images, _ = self.parse_datalist(training_datalist)
+        validating_augmentor, validating_images, _ = self.parse_datalist(validating_datalist)
 
-        if training_datapair.images_wrapper.x is None:
+        if training_images is None:
             '''
             Here we assume that all our images are in directories that were fed directly into Augmentor.Pipeline at init
             so that we don't have to read in all the images at once before we batch them out.
@@ -178,72 +203,77 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
 
             NOT YET TESTED
             '''
-            training_generator = training_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
-                                                scaled=True, #if errors, try setting to False
-                                                image_data_format="channels_last", #or "channels_last"
-                                               )
-            validation_generator = validation_datapair.pipeline_wrapper.keras_generator(batch_size=block_def.batch_size,
-                                                scaled=True, #if errors, try setting to False
-                                                image_data_format="channels_last", #or "channels_last"
-                                                   )
+            training_generator = training_augmentor.pipeline.keras_generator(batch_size=block_def.batch_size,
+                                                                             scaled=True, #if errors, try setting to False
+                                                                             image_data_format="channels_last", #or "channels_last"
+                                                                            )
+            validating_generator = validating_augmentor.pipeline.keras_generator(batch_size=block_def.batch_size,
+                                                                                 scaled=True, #if errors, try setting to False
+                                                                                 image_data_format="channels_last", #or "channels_last"
+                                                                                )
         else:
             '''
-            Here we assume that we have to load all the data into datapair.x and .y so we have to pass the
+            Here we assume that we have to load all the data into datalist.x and .y so we have to pass the
             Augmentor.Pipeline as a method fed into tf.keras.preprocessing.image.ImadeDataGenerator
             https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_preprocess_func
             https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
             '''
             training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                        preprocessing_function=training_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
-                        )
-            #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
-            training_generator = training_datagen.flow(x=training_datapair.images_wrapper.x,
-                                   y=training_datapair.images_wrapper.y,
-                                   batch_size=block_def.batch_size,
-                                   shuffle=True)
+                                    preprocessing_function=training_augmentor.pipeline.keras_preprocess_func()
+                                    )
+            #training_datagen.fit(training_datalist.x) # don't need to call fit(); see documentation
+            training_generator = training_datagen.flow(x=training_images.x,
+                                                       y=training_images.y,
+                                                       batch_size=block_def.batch_size,
+                                                       shuffle=True)
 
-            validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                        preprocessing_function=validation_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
-                        )
-            #validation_datagen.fit(validation_datapair.x) # don't need to call fit(); see documentation
-            validation_generator = training_datagen.flow(x=validation_datapair.images_wrapper.x,
-                                 y=validation_datapair.images_wrapper.y,
-                                 batch_size=block_def.batch_size,
-                                 shuffle=True)
+            validating_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
+                                    preprocessing_function=validating_augmentor.pipeline.keras_preprocess_func()
+                                    )
+            #validating_datagen.fit(validating_datalist.x) # don't need to call fit(); see documentation
+            validating_generator = training_datagen.flow(x=validating_images.x,
+                                                         y=validating_images.y,
+                                                         batch_size=block_def.batch_size,
+                                                         shuffle=True)
 
-        return training_generator, validation_generator
+        return training_generator, validating_generator
 
 
     def train_graph(self,
                     block_material,
                     block_def,
-                    training_datapair,
-                    validation_datapair):
+                    training_datalist,
+                    validating_datalist):
+
         ezLogging.debug("%s - Building Generators" % (block_material.id))
-        training_generator, validation_generator = self.get_generator(block_material,
-                                          block_def,
-                                          training_datapair,
-                                          validation_datapair)
+        training_generator, validating_generator = self.get_generator(block_material,
+                                                                      block_def,
+                                                                      training_datalist,
+                                                                      validating_datalist)
 
-        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
-                                                  block_def.batch_size,
-                                                  training_datapair.images_wrapper.num_images//block_def.batch_size,
-                                                  block_def.epochs))
-
+        training_augmentor, _, _ = self.parse_datalist(training_datalist)
+        validating_augmentor, _, _ = self.parse_datalist(validating_datalist)
+        del training_datalist
+        del validating_datalist
+        ezLogging.debug("%s - Training Graph - %i batchsize, %i steps, %i epochs" % (block_material.id,
+                                                                                     block_def.batch_size,
+                                                                                     training_augmentor.num_images//block_def.batch_size,
+                                                                                     block_def.epochs))
         history = block_material.graph.fit(x=training_generator,
-                           epochs=block_def.epochs,
-                           verbose=2,
-                           callbacks=None,
-                           validation_data=validation_generator,
-                           shuffle=True,
-                           steps_per_epoch=training_datapair.images_wrapper.num_images//block_def.batch_size,
-                           validation_steps=validation_datapair.images_wrapper.num_images//block_def.batch_size,
-                           max_queue_size=10,
-                           workers=1,
-                           use_multiprocessing=False,
-                          )
-        tf.keras.backend.clear_session()
-        return [-1 * history.history['val_categorical_accuracy'][-1], #mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
+                                           epochs=block_def.epochs,
+                                           verbose=2,
+                                           callbacks=None,
+                                           validating_data=validating_generator,
+                                           shuffle=True,
+                                           steps_per_epoch=training_augmentor.num_images//block_def.batch_size,
+                                           validating_steps=validating_augmentor.num_images//block_def.batch_size,
+                                           max_queue_size=10,
+                                           workers=1,
+                                           use_multiprocessing=False,
+                                          )
+
+        # mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
+        return [-1 * history.history['val_categorical_accuracy'][-1],
                 -1 * history.history['val_precision'][-1],
                 -1 * history.history['val_recall'][-1]]
 
@@ -251,8 +281,9 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
         '''
         stuff the old code has but unclear why
 
@@ -263,7 +294,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
-            self.build_graph(block_material, block_def, training_datapair)
+            self.build_graph(block_material, block_def, training_datalist)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
@@ -271,14 +302,14 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             return
 
         try:
-            output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
+            validation_scores = self.train_graph(block_material, block_def, training_datalist, validating_datalist)
         except Exception as err:
             ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
 
-        block_material.output = [None, output]
+        block_material.output = (None, None, validation_scores)
 
 
 
@@ -319,15 +350,13 @@ class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
 
     def __init__(self):
         super().__init__()
-        globals()['tf'] = importlib.import_module('tensorflow')
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras_TransferLearning Class" % (None, None))
 
 
-    def build_graph(self, block_material, block_def, datapair):
+    def build_graph(self, block_material, block_def, augmentor):
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-
-        input_layer = tf.keras.layers.Input(shape=datapair.image_shape)
+        input_layer = tf.keras.layers.Input(shape=augmentor.image_shape)
         # doc for preprocess_input says it expects floating point np array or tensor unless I misunderstood
         next_layer = tf.cast(input_layer, tf.float32)
 
@@ -342,9 +371,11 @@ class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
         output_layer = function(*inputs, *args)
 
         ezLogging.info("%s - Ending evaluating...%i output" % (block_material.id, 1))
-        # attach layers to datapair so it is available to the next block
-        datapair.graph_input_layer = input_layer
-        datapair.final_pretrained_layer = output_layer
+        # attach layers to datalist so it is available to the next block
+        #datalist.graph_input_layer = input_layer
+        #datalist.final_pretrained_layer = output_layer
+        supplements = [input_layer, output_layer]
+        return supplements
 
 
     def train_graph(self):
@@ -354,9 +385,11 @@ class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        augmentor = training_datalist[0] # should only be a list of a single element
 
         try:
             # check if this fails our conditions
@@ -365,18 +398,18 @@ class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
             if 0 not in block_material.active_nodes:
                 raise self.NoActiveMainNodes(block_material.active_nodes)
             # good to continue to build
-            self.build_graph(block_material, block_def, training_datapair)
+            supplements = self.build_graph(block_material, block_def, augmentor)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
 
-        block_material.output = [training_datapair, validation_datapair]
+        block_material.output = (training_datalist, validating_datalist, supplements)
 
 
 
-class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
+class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
     '''
     Should follow a BlockEvaluate_TFKeras_TransferLearning Block so that it's input is the final layer
     of the pretrained tf.keras model.
@@ -384,11 +417,10 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
     '''
     def __init__(self):
         super().__init__()
-        globals()['tf'] = importlib.import_module('tensorflow')
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras_AfterTransferLearning Class" % (None, None))
 
 
-    def build_graph(self, block_material, block_def, datapair):
+    def build_graph(self, block_material, block_def, augmentor, pretrained_first_layer, pretrained_last_layer):
         '''
         Assume input+output layers are going to be lists with only one element
 
@@ -400,20 +432,20 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
 
         output_layer = self.standard_build_graph(block_material,
                                                   block_def,
-                                                  [datapair.final_pretrained_layer])[0]
+                                                  [pretrained_last_layer])[0]
 
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
-        logits = tf.keras.layers.Dense(units=datapair.num_classes, activation=None, use_bias=True)(output_flatten)
+        logits = tf.keras.layers.Dense(units=augmentor.num_classes, activation=None, use_bias=True)(output_flatten)
         softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
 
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model
-        block_material.graph = tf.keras.Model(inputs=datapair.graph_input_layer, outputs=softmax)
+        block_material.graph = tf.keras.Model(inputs=pretrained_first_layer, outputs=softmax)
 
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
         block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                                      loss="categorical_crossentropy",
-                                     metrics=[tf.keras.metrics.Accuracy(),
+                                     metrics=[tf.keras.metrics.CategoricalAccuracy(),
                                               tf.keras.metrics.Precision(),
                                               tf.keras.metrics.Recall()],
                                      loss_weights=None,
@@ -421,106 +453,16 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
                                      run_eagerly=None)
 
 
-    def get_generator(self,
-                      block_material,
-                      block_def,
-                      training_datapair, # called datapair but really only the pipeline
-                      validation_datapair):
-        if training_datapair.images_wrapper.x is None:
-            '''
-            Here we assume that all our images are in directories that were fed directly into Augmentor.Pipeline at init
-            so that we don't have to read in all the images at once before we batch them out.
-            This means we can use the Augmentor.Pipeline.keras_generator() method
-            https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_generator
-
-            NOT YET TESTED
-            '''
-            training_generator = training_datapair.pipeline_wrapper.pipeline.keras_generator(batch_size=block_def.batch_size,
-                                                                                             scaled=True, #if errors, try setting to False
-                                                                                             image_data_format="channels_last", #or "channels_last"
-                                                                                            )
-            validation_generator = validation_datapair.pipeline_wrapper.pipeline.keras_generator(batch_size=block_def.batch_size,
-                                                                                                 scaled=True, #if errors, try setting to False
-                                                                                                 image_data_format="channels_last", #or "channels_last"
-                                                                                                )
-        else:
-            '''
-            Here we assume that we have to load all the data into datapair.x and .y so we have to pass the
-            Augmentor.Pipeline as a method fed into tf.keras.preprocessing.image.ImadeDataGenerator
-            https://augmentor.readthedocs.io/en/master/code.html#Augmentor.Pipeline.Pipeline.keras_preprocess_func
-            https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
-
-            keras_preprocess_func doc:
-            "The function will run after the image is resized and augmented. The function should take one
-            argument: one image (Numpy tensor with rank 3), and should output a Numpy tensor with the same shape."
-            So we can't have any Augmentor.Operations that change the shape of the data or else we'll get an
-            error like: 'ValueError: could not broadcast input array from shape (...) into shape (...)'
-            '''
-            training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                        preprocessing_function=training_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
-                                        )
-            #training_datagen.fit(training_datapair.x) # don't need to call fit(); see documentation
-            training_generator = training_datagen.flow(x=training_datapair.images_wrapper.x,
-                                                       y=training_datapair.images_wrapper.y,
-                                                       batch_size=block_def.batch_size,
-                                                       shuffle=True)
-
-            validation_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                        preprocessing_function=validation_datapair.pipeline_wrapper.pipeline.keras_preprocess_func()
-                                        )
-            #validation_datagen.fit(validation_datapair.x) # don't need to call fit(); see documentation
-            validation_generator = training_datagen.flow(x=validation_datapair.images_wrapper.x,
-                                                         y=validation_datapair.images_wrapper.y,
-                                                         batch_size=block_def.batch_size,
-                                                         shuffle=True)
-
-        return training_generator, validation_generator
-
-
-    def train_graph(self,
-                    block_material,
-                    block_def,
-                    training_datapair,
-                    validation_datapair):
-        ezLogging.debug("%s - Building Generators" % (block_material.id))
-        training_generator, validation_generator = self.get_generator(block_material,
-                                                                      block_def,
-                                                                      training_datapair,
-                                                                      validation_datapair)
-
-        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
-                                                                                      block_def.batch_size,
-                                                                                      training_datapair.images_wrapper.num_images//block_def.batch_size,
-                                                                                      block_def.epochs))
-
-        history = block_material.graph.fit(x=training_generator,
-                                           epochs=block_def.epochs,
-                                           verbose=2, # TODO set to 0 or 2 after done debugging
-                                           callbacks=None,
-                                           validation_data=validation_generator,
-                                           shuffle=True,
-                                           steps_per_epoch=training_datapair.images_wrapper.num_images//block_def.batch_size, # TODO
-                                           validation_steps=validation_datapair.images_wrapper.num_images//block_def.batch_size,
-                                           max_queue_size=10,
-                                           workers=1,
-                                           use_multiprocessing=False,
-                                          )
-        tf.keras.backend.clear_session()
-
-        #output = history.stuff # validation metrics
-        # NOTE: this is essentially our individual.fitness.values
-        return [-1*history.history['val_accuracy'][-1], -1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
-        #return [-1*history.history['val_precision'][-1], -1*history.history['val_recall'][-1]]
-
-
     def evaluate(self,
                  block_material: BlockMaterial,
                  block_def,#: BlockDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
-            self.build_graph(block_material, block_def, training_datapair.pipeline_wrapper)
+            training_augmentor, _, _ = self.parse_datalist(training_datalist)
+            self.build_graph(block_material, block_def, training_augmentor, *supplements)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
@@ -528,14 +470,13 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_GraphAbstract):
             return
 
         try:
-            # outputs a list of the validation metrics
-            output = self.train_graph(block_material, block_def, training_datapair, validation_datapair)
+            validation_scores = self.train_graph(block_material, block_def, training_datalist, validating_datalist)
         except Exception as err:
             ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
 
-        block_material.output = [None, output]
+        block_material.output = (None, None, validation_scores)
 
 
