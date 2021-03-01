@@ -51,11 +51,13 @@ def block_evaluate(ezdata):
 def individual_evaluate(ezdata):
 	for ith_block in range(3):
 		ezdata = block_evaluate(deepcopy(ezdata))
+	return ezData
 
 
 def individual_evaluate_wWrapper(ezdata):
 	for ith_block in range(3):
 		ezdata.pipeline_wrapper = block_evaluate(deepcopy(ezdata.pipeline_wrapper))
+	return ezdata
 
 
 

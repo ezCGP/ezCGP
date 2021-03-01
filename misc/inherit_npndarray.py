@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 # maybe consider doing this for symbolic regression data
 
@@ -40,9 +41,21 @@ class MyData3(np.ndarray):
 		instance.name = "elmo"
 		return instance
 
-ting = MyData(data=[1,2,3]) #this worked but it's weird
-ting2 = MyData2(data=[1,2,3]) #this worked BUT isinstance(ting2, np.ndarray) returns False
-ting3 = MyData3(data=[1,2,3]) #this worked
+
+class MyData4(np.ndarray):
+	def __new__(cls, data):
+		instance = np.asarray(data).view(cls)
+		#instance.mydata = np.array(data) # CAREFUL, np.ndarray has a .data attribute already
+		instance.name = "elmo"
+		return instance
+
+data = np.random.random((100000,500))
+ting = MyData(data=data) #this worked but it's weird
+ting2 = MyData2(data=data) #this worked BUT isinstance(ting2, np.ndarray) returns False
+ting3 = MyData3(data=data) #this worked
+print("size of ting", sys.getsizeof(ting3))
+ting4 = MyData4(data=data) #this worked
+print("size of ting", sys.getsizeof(ting4))
 
 
 
