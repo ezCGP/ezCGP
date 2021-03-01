@@ -31,9 +31,43 @@ class IndividualEvaluate_Abstract(ABC):
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #: IndividualDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData=None):
+                 training_datalist: ezData,
+                 validating_datalist: ezData=None,
+                 supplements=None):
         pass
+
+
+    def _evaluate(self,
+                  indiv_id,
+                  block_index,
+                  block_def,
+                  block_material,
+                  training_datalist,
+                  validating_datalist=None,
+                  supplements=None,
+                  apply_deepcopy=True):
+        '''
+        We've noted that many blocks can have slight variations for what they send to evaluate and how it is received back
+        BUT there are still a lot of the same code used in each. So we made this method that should be universal to all
+        blocks, and then each class can have their own custom evaluate() method where they use this universal _evaluate()
+
+        Also always true:
+            training_datalist, validating_datalist, supplements = block_material.output
+        '''
+        if apply_deepcopy:
+            input_args = [deepcopy(training_datalist), deepcopy(validating_datalist), supplements]
+        else:
+            input_args = [training_datalist, validating_datalist, supplements]
+
+        if block_material.need_evaluate:
+            ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_id, block_index, block_def.nickname))
+            block_def.evaluate(block_material, *input_args)
+            if block_material.dead:
+                indiv_material.dead = True
+            else:
+                pass
+        else:
+            ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_id, block_index, block_def.nickname))
 
 
 
@@ -49,224 +83,168 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #: IndividualDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData=None):
+                 training_datalist: ezData,
+                 validating_datalist: ezData=None,
+                 supplements=None):
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
-            if block_material.need_evaluate:
-                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-                block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
-                if block_material.dead:
-                    indiv_material.dead = True
-                    break
-                else:
-                    pass
-            else:
-                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
-            training_datapair = block_material.output
+            self._evaluate(indiv_id,
+                           block_index,
+                           block_def,
+                           block_material,
+                           training_datalist,
+                           validating_datalist)
+            training_datalist, validating_datalist, supplements = block_material.output
 
         indiv_material.output = block_material.output
 
 
 
-class IndividualEvaluate_withValidation(IndividualEvaluate_Abstract):
+class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstract):
     '''
-    In IndividualEvaluate_Standard() it is assumed we don't have validation data, so each block
-    only outputs the training_datapair for the next block.
-    With validation data, we want to return and pass the training and validation data between blocks.
-    ...otherwise the process flow is the same
+    Here we are assuming that our datalist will have at least these 2 ezData instances:
+        * ezData_Images
+        * ezData_Augmentor
+
+    It is also assumed that ezData_Images is HUGE, so we do not want to pass this huge thing
+    into every block for evaluation, and so down the road it won't get saved to the individual
+    in it's block_material.output
+    Instead we only want to pass the ezData_Augmentor to blocks that handle 'preprocessing' or
+    'data augmentation'.
     '''
     def __init__(self):
         pass
 
 
-    def evaluate_block(self,
-                       indiv_id,
-                       block_index,
-                       block_def,
-                       block_material,
-                       training_datapair,
-                       validation_datapair):
-        '''
-        since each block has a slightly different behavior about what exactly get's passed in as data,
-        I made a generalized evaluate method here that can get called in several different ways in the
-        other evaluate method
-        '''
-        if block_material.need_evaluate:
-            ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_id, block_index, block_def.nickname))
-            block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))  
-            if block_material.dead:
-                indiv_material.dead = True
-            else:
-                pass
-        else:
-            ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_id, block_index, block_def.nickname))
-
-
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
         '''
-        we want to deepcopy the data before evaluate so that in future if need_evaluate is False, we can grab the
-        block_material.output and it will be unique to that block not shared with whole individual.
+        We only want to pass in the 'pipeline' of the data if the block does 'data augmentation' or 'data preprocessing'.
+
+        First find the index in datalist for our ezData_Augmentor. Assume the indices are the same for training +
+        validating datalists
         '''
+        from data.data_tools.ezData import ezData_Augmentor
+
+        augmentor_instance_index = None
+        for i, data_instance in training_datalist:
+            if isinstance(data_instance, ezData_Augmentor):
+                augmentor_instance_index = i
+                break
+        if augmentor_instance_index is None:
+            ezLogging.error("No ezData_Augmentor instance found in training_datalist")
+            exit()
+
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if ('augment' in block_def.nickname.lower()) or ('preprocess' in block_def.nickname.lower()):
-                '''
-                then we only want to pass in the 'pipeline' of the data so all the images don't get dragged along
-                and also get saved as the output of the block
-                '''
-                self.evaluate_block(indiv_material.id,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datapair.pipeline_wrapper,
-                                    validation_datapair.pipeline_wrapper)
-                training_datapair.pipeline_wrapper, validation_datapair.pipeline_wrapper = block_material.output
+                temp_training_datalist = [training_datalist[augmentor_instance_index]]
+                temp_validating_datalist = [validating_datalist[augmentor_instance_index]]
+                self._evaluate(indiv_id,
+                               block_index,
+                               block_def,
+                               block_material,
+                               temp_training_datalist,
+                               temp_validating_datalist)
+                training_datalist[augmentor_instance_index], validating_datalist[augmentor_instance_index], _ = block_material.output
+
+            elif ('tensorflow' in block_def.nickname.lower()) or ('tfkeras' in block_def.nickname.lower()):
+                self._evaluate(indiv_id,
+                               block_index,
+                               block_def,
+                               block_material,
+                               temp_training_datalist,
+                               temp_validating_datalist)
+                _, _, indiv_material.output = block_material.output
 
             else:
-                # must be tensorflow block
-                self.evaluate_block(indiv_material.id,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datapair,
-                                    validation_datapair)
-
-                # training_datapair will be None, and validation_datapair will be the final fitness scores
-                _, indiv_material.output = block_material.output
+                self._evaluate(indiv_id,
+                               block_index,
+                               block_def,
+                               block_material,
+                               temp_training_datalist,
+                               temp_validating_datalist)
+                training_datapair, validation_datapair, _ = block_material.output
 
 
 
-class IndividualEvaluate_withValidation_andTransferLearning_DEPRECIATED(IndividualEvaluate_Abstract):
+class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(IndividualEvaluate_Abstract):
     '''
-    Pass both training + validation data through the blocks.
-
-    With transfer learning, we are passing layers of the TFKeras graph between blocks which
-    makes them unable to be deepcopied; so for those blocks we don't deepcopy the data, so 
-    we can't save the state of the output of that block so it always has to have need_evaluate
-    to True.
-
-    We also are assuming that our data is really a wrapper around 2 other data objects: one
-    for the pipline and one for the actual images and only part of that get's passed through
-    the blocks.
-    '''
-    def __init__(self):
-        pass
-    
-    
-    def evaluate(self,
-                 indiv_material: IndividualMaterial,
-                 indiv_def, #IndividualDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
-
-        for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
-            if (block_def.nickname == 'transferlearning_block') and (indiv_material[block_index+1].need_evaluate):
-                # if the tensorflow_block need_evaluate, then we also need to evaluate the transferlearning_block
-                # otherwise we assume that all blocks of individual are need_evaluate False so it'll just grab indiv_material.output
-                block_material.need_evaluate = True
-
-
-
-class IndividualEvaluate_withValidation_andTransferLearning(IndividualEvaluate_Abstract):
-    '''
-    In IndividualEvaluate_Standard() it is assumed we don't have validation data, so each block
-    only outputs the training_datapair for the next block.
-    With validation data, we want to return and pass the training and validation data between blocks.
-    ...otherwise the process flow is the same
-
-    see note in evaluate() for specifics of Transfer Learning
+    Similar to IndividualEvaluate_wAugmentorPipeline_wTensorFlow but we are going to pass supplemental info
+    between TransferLearning Block and TensorFlow Block ie NN graph, first and last layer of downloaded model, etc
     '''
     def __init__(self):
         pass
 
 
-    def evaluate_block(self,
-                       indiv_id,
-                       block_index,
-                       block_def,
-                       block_material,
-                       training_datapair,
-                       validation_datapair):
-        '''
-        since each block has a slightly different behavior about what exactly get's passed in as data,
-        I made a generalized evaluate method here that can get called in several different ways in the
-        other evaluate method
-        '''
-        if block_material.need_evaluate:
-            ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_id, block_index, block_def.nickname))
-            if block_def.nickname == 'tensorflow_block':
-                # don't deepcopy, just work off the same data-instances from transferlearning block
-                block_def.evaluate(block_material, training_datapair, validation_datapair)
-                # delete attributes we don't need that can't be "deepcopy"-ed
-                del training_datapair.pipeline_wrapper.graph_input_layer
-                del training_datapair.pipeline_wrapper.final_pretrained_layer
-            else:
-                block_def.evaluate(block_material, deepcopy(training_datapair), deepcopy(validation_datapair))
-            if block_material.dead:
-                indiv_material.dead = True
-            else:
-                pass
-        else:
-            ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_id, block_index, block_def.nickname))
-    
-    
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
-                 training_datapair: ezData,
-                 validation_datapair: ezData):
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
         '''
-        we want to deepcopy the data before evaluate so that in future if need_evaluate is False, we can grab the
-        block_material.output and it will be unique to that block not shared with whole individual.
+        placeholding
+        '''
+        cannot_pickle_tfkeras = False
+        from data.data_tools.ezData import ezData_Augmentor
 
-        the output of tansfer learning with tfkeras are the first and last layers of the model. those are added to
-        attributes of training datapair but that makes the datapair un-deepcopy-able. so we don't deepcopy it,
-        but that means that we can't save the state of datapair after transfer learning but before tensorflow block
-        so even if need_evaluate is False, we also re-evaluate since the saved output is really the output of tensorflow
-        block not after transfer learning.
-        '''
+        augmentor_instance_index = None
+        for i, data_instance in training_datalist:
+            if isinstance(data_instance, ezData_Augmentor):
+                augmentor_instance_index = i
+                break
+        if augmentor_instance_index is None:
+            ezLogging.error("No ezData_Augmentor instance found in training_datalist")
+            exit()
+
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
             if ('augment' in block_def.nickname.lower()) or ('preprocess' in block_def.nickname.lower()):
-                '''
-                then we only want to pass in the 'pipeline' of the data so all the images don't get dragged along
-                and also get saved as the output of the block
-                '''
-                self.evaluate_block(indiv_material.id,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datapair.pipeline_wrapper,
-                                    validation_datapair.pipeline_wrapper)
-                training_datapair.pipeline_wrapper, validation_datapair.pipeline_wrapper = block_material.output
+                temp_training_datalist = [training_datalist[augmentor_instance_index]]
+                temp_validating_datalist = [validating_datalist[augmentor_instance_index]]
+                self._evaluate(indiv_id,
+                               block_index,
+                               block_def,
+                               block_material,
+                               temp_training_datalist,
+                               temp_validating_datalist)
+                training_datalist[augmentor_instance_index], validating_datalist[augmentor_instance_index], _ = block_material.output
 
             elif ('transferlearning' in block_def.nickname.lower()) or ('transfer_learning' in block_def.nickname.lower()):
-                if (indiv_material[block_index+1].need_evaluate):
-                    '''
-                    if the tensorflow_block need_evaluate, then we also need to evaluate the transferlearning_block
-                    otherwise we assume that all blocks of individual are need_evaluate False so it'll just grab indiv_material.output
-                    '''
+                if (cannot_pickle_tfkeras) & (indiv_material[block_index+1].need_evaluate):
+                    # then we had to delete the tf.keras.model in supplements index of block_material.output, so we have to re-eval
                     block_material.need_evaluate = True
+                temp_training_datalist = [training_datalist[augmentor_instance_index]]
+                temp_validating_datalist = [validating_datalist[augmentor_instance_index]]
+                self._evaluate(indiv_id,
+                               block_index,
+                               block_def,
+                               block_material,
+                               temp_training_datalist,
+                               temp_validating_datalist)
+                # place existing tf.keras.model from transfer learning step into supplements
+                training_datalist[augmentor_instance_index], validating_datalist[augmentor_instance_index], supplements = block_material.output
+                if cannot_pickle_tfkeras:
+                    block_material.output[-1] = None
 
-                self.evaluate_block(indiv_material.id,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datapair.pipeline_wrapper,
-                                    validation_datapair.pipeline_wrapper)
-                training_datapair.pipeline_wrapper, validation_datapair.pipeline_wrapper = block_material.output
+            elif ('tensorflow' in block_def.nickname.lower()) or ('tfkeras' in block_def.nickname.lower()):
+                self._evaluate(indiv_id,
+                               block_index,
+                               block_def,
+                               block_material,
+                               temp_training_datalist,
+                               temp_validating_datalist,
+                               supplements,
+                               apply_deepcopy=False)
+                _, _, indiv_material.output = block_material.output
 
             else:
-                # must be tensorflow block
-                self.evaluate_block(indiv_material.id,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datapair,
-                                    validation_datapair)
-
-                # training_datapair will be None, and validation_datapair will be the final fitness scores
-                _, indiv_material.output = block_material.output
-
+                self._evaluate(indiv_id,
+                               block_index,
+                               block_def,
+                               block_material,
+                               temp_training_datalist,
+                               temp_validating_datalist)
+                training_datapair, validation_datapair, _ = block_material.output
