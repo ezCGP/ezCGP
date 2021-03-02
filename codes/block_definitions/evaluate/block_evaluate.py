@@ -67,7 +67,8 @@ class BlockEvaluate_Abstract(ABC):
         '''
         # verify that the input data matches the expected datatypes
         for input_dtype, input_data in zip(block_def.input_dtypes, input_datalist):
-            if input_dtype != type(input_data):
+            #if input_dtype != type(input_data):
+            if not isinstance(input_data, input_dtype):
                 ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None
 

@@ -27,6 +27,23 @@ class ezData():
 
 
 
+class ezData_float(np.float64, ezData):
+    '''
+    breaks if you inherit ezData first
+    NOTE: this actually doesn't seem to work in making isinstance(instance, ezData_float) True
+
+    Good enough for symbolic regression though.
+    '''
+    def __init__(self, x):
+        pass
+
+
+    def __new__(cls, x):
+        instance = np.float64(x).view(cls)
+        return instance
+
+
+
 class ezData_numpy(ezData, np.ndarray):
     '''
     see root/misc/inherit_npndarray.py for what started all this
