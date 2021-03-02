@@ -196,7 +196,7 @@ class BlockEvaluate_FinalBlock(BlockEvaluate_Abstract):
 
 
 
-class BlockEvaluate_MiddleBlock_SkipValidating(BlockEvaluate_Standard):
+class BlockEvaluate_MiddleBlock_SkipValidating(BlockEvaluate_Abstract):
     '''
     Say for data augmentation; this is a step useful in improving your datasete for training,
     so it is useless to use on validating data
@@ -219,13 +219,13 @@ class BlockEvaluate_MiddleBlock_SkipValidating(BlockEvaluate_Standard):
         block_material.output = (training_datalist, validating_datalist, supplements)
 
 
-
+'''
 class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
-    '''
+    ''
     In BlockEvaluate_Standard.evaluate() we only evaluate on the training_datalist.
     But here we want to evaluate both training and validating.
     The process flow will be almost identical otherwise.
-    '''
+    ''
     def __init__(self):
         super().__init__()
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_TrainValidate Class" % (None, None))
@@ -251,3 +251,4 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
                 self.preprocess_block_evaluate(block_material) #prep for next loop through datalist
 
         block_material.output = output
+'''

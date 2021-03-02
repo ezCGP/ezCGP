@@ -93,7 +93,7 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
                  validating_datalist: ezData=None,
                  supplements=None):
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
-            self.standard_evaluate(indiv_id,
+            self.standard_evaluate(indiv_material.id,
                                    block_index,
                                    block_def,
                                    block_material,
@@ -152,7 +152,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
             if ('augment' in block_def.nickname.lower()) or ('preprocess' in block_def.nickname.lower()):
                 temp_training_datalist = [training_datalist[augmentor_instance_index]]
                 temp_validating_datalist = [validating_datalist[augmentor_instance_index]]
-                self.standard_evaluate(indiv_id,
+                self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
                                        block_material,
@@ -163,7 +163,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
                 validating_datalist[augmentor_instance_index] = temp_validating_datalist[0]
 
             elif ('tensorflow' in block_def.nickname.lower()) or ('tfkeras' in block_def.nickname.lower()):
-                self.standard_evaluate(indiv_id,
+                self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
                                        block_material,
@@ -172,7 +172,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
                 #_, _, indiv_material.output = block_material.output
 
             else:
-                self.standard_evaluate(indiv_id,
+                self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
                                        block_material,
@@ -223,7 +223,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
             if ('augment' in block_def.nickname.lower()) or ('preprocess' in block_def.nickname.lower()):
                 temp_training_datalist = [training_datalist[augmentor_instance_index]]
                 temp_validating_datalist = [validating_datalist[augmentor_instance_index]]
-                self.standard_evaluate(indiv_id,
+                self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
                                        block_material,
@@ -239,7 +239,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
                     block_material.need_evaluate = True
                 temp_training_datalist = [training_datalist[augmentor_instance_index]]
                 temp_validating_datalist = [validating_datalist[augmentor_instance_index]]
-                self.standard_evaluate(indiv_id,
+                self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
                                        block_material,
@@ -253,7 +253,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
                     block_material.output[-1] = None
 
             elif ('tensorflow' in block_def.nickname.lower()) or ('tfkeras' in block_def.nickname.lower()):
-                self.standard_evaluate(indiv_id,
+                self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
                                        block_material,
@@ -264,7 +264,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
                 #_, _, indiv_material.output = block_material.output
 
             else:
-                self.standard_evaluate(indiv_id,
+                self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
                                        block_material,

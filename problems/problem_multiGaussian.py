@@ -17,10 +17,10 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import ezData
 from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.shape_meta.block_shapemeta import BlockShapeMeta_Gaussian
+from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Gaussian
 from codes.block_definitions.operators.block_operators import BlockOperators_Gaussian
 from codes.block_definitions.arguments.block_arguments import BlockArguments_Gaussian
-from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Standard
+from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_FinalBlock
 from codes.block_definitions.mutate.block_mutate import BlockMutate_NoFtn
 from codes.block_definitions.mate.block_mate import BlockMate_NoMate
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
@@ -37,7 +37,7 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 2**8 #must be divisible by 4 if doing mating
+        population_size = 2**5 #must be divisible by 4 if doing mating
         number_universe = 1
         factory = FactoryDefinition
         mpi = False
@@ -47,7 +47,7 @@ class Problem(ProblemDefinition_Abstract):
                                              shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
                                              operator_def = BlockOperators_Gaussian, #only 1 operator...gauss taking in th right args
                                              argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
-                                             evaluate_def = BlockEvaluate_Standard, #ya standard eval
+                                             evaluate_def = BlockEvaluate_FinalBlock, #ya standard eval
                                              mutate_def = BlockMutate_NoFtn, #maybe not mutate ftn
                                              mate_def = BlockMate_NoMate) #maybe not mate
 
@@ -70,9 +70,9 @@ class Problem(ProblemDefinition_Abstract):
         self.validate_data = None
         '''
         x, y, noisy, goal_features = fake_mixturegauss.main()
-        rolling_sum = ezData.ezData_numpy(x=np.zeros(x.shape), y=None)
+        rolling_sum = fake_mixturegauss.RollingSum(np.zeros(x.shape))
 
-        clean_data = ezData.ezData_numpy(x, y)
+        clean_data = fake_mixturegauss.XLocations(x, y)
         clean_data.goal_features = goal_features
 
         noisy_data = ezData.ezData_numpy(x, noisy)
@@ -86,9 +86,16 @@ class Problem(ProblemDefinition_Abstract):
         if indiv.dead:
             indiv.fitness.values = (np.inf, np.inf, np.inf)
         else:
-            clean_y, noisy_y, goal_features = self.train_data.y
-            predict_y = indiv.output[0]
-            # how to extract the arguments to match to goal_features as well?
+            # Collect 'True' values
+            clean_y = self.training_datalist[0].y
+            #noisy_y = self.training_datalist[0].y # use this instead of above if we pass in noisy_data instead of clean_data
+            goal_features = self.training_datalist[0].goal_features
+
+            # Collect 'Predicted' values
+            training_output, validating_output = indiv.output
+            predict_y = training_output[0]
+
+            # Calculate the error
             error = clean_y-predict_y
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
@@ -135,7 +142,7 @@ class Problem(ProblemDefinition_Abstract):
             self.roddcustom_bestscore = [best_indiv.fitness.values]
             self.roddcustom_bestactive = [active_count]
 
-        fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.train_data.y[0].max()*1.25)) #axes always 2dim
+        fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.training_datalist[0].y.max()*1.25)) #axes always 2dim
         plot_things.plot_regression(axes[0,0], best_indiv, self)
         plot_things.plot_gaussian(axes[1,0], best_indiv, self)
         plot_things.plot_legend()

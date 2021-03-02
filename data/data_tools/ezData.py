@@ -49,6 +49,16 @@ class ezData_numpy(ezData, np.ndarray):
 
 
 
+class ezData_Images(ezData):
+    def __init__(self, x=None, y=None):
+        self.x = x
+        self.y = y
+        self.num_images = len(self.x)
+        self.num_classes = np.unique(self.y, axis=0).shape[0]
+        self.image_shape = self.x[0].shape
+
+
+
 class ezData_Augmentor(ezData):
     def __init__(self, data_dir=None):
         '''
@@ -82,16 +92,6 @@ class ezData_Augmentor(ezData):
         self.image_shape = ez_images_object.image_shape
         self.num_classes = ez_images_object.num_classes
         self.num_images = ez_images_object.num_images
-
-
-
-class ezData_Images(ezData):
-    def __init__(self, x=None, y=None):
-        self.x = x
-        self.y = y
-        self.num_images = len(self.x)
-        self.num_classes = np.unique(self.y, axis=0).shape[0]
-        self.image_shape = self.x[0].shape
 
 
 

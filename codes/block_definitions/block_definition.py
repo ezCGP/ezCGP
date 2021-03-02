@@ -332,7 +332,7 @@ class BlockDefinition():
         return children
 
 
-    def evaluate(self, block_material: BlockMaterial, training_datapair: ezData, validation_datapair=None):
+    def evaluate(self, block_material: BlockMaterial, training_datapair: ezData, validation_datapair=None, supplements=None):
         '''
         wrapper method to call the block's evaluate definition
         NOTE: we take the output and attach to block_material in postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
@@ -345,5 +345,5 @@ class BlockDefinition():
                 return None'''
         self.evaluate_def.preprocess_block_evaluate(block_material)
         ezLogging.debug("%s - Before evaluating list active nodes: %s, and args %s" % (block_material.id, block_material.active_nodes, block_material.active_args))
-        self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
+        self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair, supplements)
         self.evaluate_def.postprocess_block_evaluate(block_material)

@@ -14,18 +14,6 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 from problems import problem_multiGaussian
-from codes.factory import FactoryDefinition
-from data.data_tools import ezData
-from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
-from codes.block_definitions.block_operators import BlockOperators_Gaussian
-from codes.block_definitions.block_arguments import BlockArguments_Gaussian
-from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-from codes.block_definitions.block_mutate import BlockMutate_NoFtn
-from codes.block_definitions.block_mate import BlockMate_NoMate
-from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
-from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
 from post_process import save_things
 from post_process import plot_things
 
@@ -35,6 +23,7 @@ class Problem(problem_multiGaussian.Problem):
     def __init__(self):
         super().__init__()
         self.mpi = True
+        self.pop_size = 2**8
 
 
     def plot_custom_stats2(self, folders):
