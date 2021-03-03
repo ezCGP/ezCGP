@@ -189,9 +189,9 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
 
         # TODO: find a way to evolve these
         # TODO: find out if this is appropriate number. Is there a way to short circuit?
-        self.train_steps = 3000
-        self.r_pretrain_steps = 500
-        self.d_pretrain_steps = 300
+        self.train_steps = 200
+        self.r_pretrain_steps = 10
+        self.d_pretrain_steps = 10
         self.d_updates_per_train_step = 1
         self.r_updates_per_train_step = 2
 
@@ -206,3 +206,6 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
 
         # Logging
         self.steps_per_log = 100
+
+        # Using image history
+        self.use_image_history = True
