@@ -65,7 +65,7 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 20
+        population_size = 4 #20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -135,7 +135,6 @@ class Problem(ProblemDefinition_Abstract):
         With updated code, we expect the last block to return the validation metrics assigned to the Model object,
         so we just need to connect those to the individual's fitness values
         '''
-        import pdb; pdb.set_trace()
         indiv.fitness.values = tuple(indiv.output)
 
 

@@ -93,7 +93,7 @@ def flip_top_bottom(ez_augmentor, probability=.5):
     "Flip (mirror) the image along its vertical axis, i.e. from top to bottom."
     prob: float (0,1]
     '''
-    ez_augmentorpipeline.flip_top_bottom(probability=probability)
+    ez_augmentor.pipeline.flip_top_bottom(probability=probability)
     return ez_augmentor
 
 operator_dict[flip_top_bottom] = {"inputs": [ezData.ezData_Augmentor],

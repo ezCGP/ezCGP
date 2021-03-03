@@ -115,7 +115,7 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
             else:
                 other.append(data_instance)
 
-        return data_augmentor, data_images, other
+        return my_augmentor, my_images, other
 
 
     def preprocess_block_evaluate(self, block_material):
@@ -161,7 +161,6 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         https://www.tensorflow.org/api_docs/python/tf/keras/Input
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-        augmentor, images, _ = self.parse_datalist(datalist)
 
         input_layer = tf.keras.Input(shape=augmentor.image_shape, dtype=None)
         output_layer = self.standard_build_graph(block_material,
@@ -264,10 +263,10 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                            epochs=block_def.epochs,
                                            verbose=2,
                                            callbacks=None,
-                                           validating_data=validating_generator,
+                                           validation_data=validating_generator,
                                            shuffle=True,
                                            steps_per_epoch=training_augmentor.num_images//block_def.batch_size,
-                                           validating_steps=validating_augmentor.num_images//block_def.batch_size,
+                                           validation_steps=validating_augmentor.num_images//block_def.batch_size,
                                            max_queue_size=10,
                                            workers=1,
                                            use_multiprocessing=False,
@@ -295,7 +294,8 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
-            self.build_graph(block_material, block_def, training_datalist)
+            training_augmentor, _, _ = self.parse_datalist(training_datalist)
+            self.build_graph(block_material, block_def, training_augmentor)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True

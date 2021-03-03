@@ -167,8 +167,8 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
                                        block_index,
                                        block_def,
                                        block_material,
-                                       temp_training_datalist,
-                                       temp_validating_datalist)
+                                       training_datalist,
+                                       validating_datalist)
                 #_, _, indiv_material.output = block_material.output
 
             else:
@@ -257,8 +257,8 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
                                        block_index,
                                        block_def,
                                        block_material,
-                                       temp_training_datalist,
-                                       temp_validating_datalist,
+                                       training_datalist,
+                                       validating_datalist,
                                        supplements,
                                        apply_deepcopy=False)
                 #_, _, indiv_material.output = block_material.output

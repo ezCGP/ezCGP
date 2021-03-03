@@ -19,6 +19,7 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.utilities.custom_logging import ezLogging
+from data.data_tools import ezData
 
 
 
@@ -100,8 +101,8 @@ class BlockShapeMeta_DataAugmentation(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataAugmentation Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 10
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -113,8 +114,8 @@ class BlockShapeMeta_DataPreprocessing(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataPreprocessing Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 10
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -131,8 +132,8 @@ class BlockShapeMeta_Augmentor_TransferLearning(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TransferLearning Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 3
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -172,4 +173,4 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
                          10)
 
         self.batch_size = 128
-        self.epochs = 20
+        self.epochs = 2#0
