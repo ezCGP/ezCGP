@@ -35,27 +35,47 @@ from codes.utilities.custom_logging import ezLogging
 def deepcopy_decorator(func):
     '''
     deepcopy the original datalist so that nothing inside individual_evaluate can change the data
+
+    always deepcopy unless the data has a do_not_deepcopy attribute and it is true
     '''
     def inner(self,
-              indiv_material: IndividualMaterial,
-              indiv_def, #: IndividualDefinition,
-              training_datalist: ezData,
-              validating_datalist: ezData=None,
+              indiv_material,
+              indiv_def,
+              training_datalist,
+              validating_datalist=None,
               supplements=None):
-        imprt pdb; pdb.set_trace()
-        other = deepcopy(training_datalist)
+        new_training_datalist = []
+        for data in training_datalist:
+            if (hasattr(data, 'do_not_deepcopy')) and (data.do_not_deepcopy):
+                new_training_datalist.append(data)
+            else:
+                new_training_datalist.append(deepcopy(data))
+
+        if validating_datalist is not None:
+            new_validating_datalist = []
+            for data in validating_datalist:
+                if (hasattr(data, 'do_not_deepcopy')) and (data.do_not_deepcopy):
+                    new_validating_datalist.append(data)
+                else:
+                    new_validating_datalist.append(deepcopy(data))
+        else:
+            new_validating_datalist = None
+        
         func(self,
              indiv_material,
-             indiv_def, #: IndividualDefinition,
-             other,
-             validating_datalist,
+             indiv_def,
+             new_training_datalist,
+             new_validating_datalist,
              supplements)
+
     return inner
+
 
 
 class IndividualEvaluate_Abstract(ABC):
     def __init__(self):
         pass
+
 
     @abstractmethod
     def evaluate(self,
@@ -106,6 +126,8 @@ class IndividualEvaluate_Standard(IndividualEvaluate_Abstract):
     def __init__(self):
         pass
 
+
+    @deepcopy_decorator
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #: IndividualDefinition,
@@ -145,6 +167,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
         pass
 
 
+    @deepcopy_decorator
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
@@ -205,7 +228,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
                 indiv_material.output = [None]
                 return
 
-            indiv_material.output = block_material.output[-1]
+        indiv_material.output = block_material.output[-1]
 
 
 
@@ -218,6 +241,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
         pass
 
 
+    @deepcopy_decorator
     def evaluate(self,
                  indiv_material: IndividualMaterial,
                  indiv_def, #IndividualDefinition,
@@ -299,4 +323,4 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
                 indiv_material.output = [None]
                 return
 
-            indiv_material.output = block_material.output[-1]
+        indiv_material.output = block_material.output[-1]

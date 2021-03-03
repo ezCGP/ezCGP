@@ -163,7 +163,7 @@ class BlockEvaluate_MiddleBlock(BlockEvaluate_Abstract):
         training_datalist = self.standard_evaluate(block_material, block_def, training_datalist)
         if validating_datalist is not None:
             self.preprocess_block_evaluate(block_material) # reset evaluation attributes for validating
-            training_datalist = self.standard_evaluate(block_material, block_def, validating_datalist)
+            validating_datalist = self.standard_evaluate(block_material, block_def, validating_datalist)
 
         supplements = None
         block_material.output = (training_datalist, validating_datalist, supplements)
