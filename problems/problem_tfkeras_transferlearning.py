@@ -31,26 +31,24 @@ from data.data_tools.loader import ezDataLoader_CIFAR10
 from codes.utilities.custom_logging import ezLogging
 from post_process import save_things
 # Block Defs
-from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
-                                                     BlockShapeMeta_DataPreprocessing,
-                                                     BlockShapeMeta_TFKeras_TransferLearning,
-                                                     BlockShapeMeta_TFKeras)
-from codes.block_definitions.block_operators import (BlockOperators_DataAugmentation,
-                                                     BlockOperators_DataPreprocessing,
-                                                     BlockOperators_TFKeras_TransferLearning_CIFAR,
-                                                     BlockOperators_TFKeras)
-from codes.block_definitions.block_arguments import (BlockArguments_DataAugmentation,
-                                                     BlockArguments_DataPreprocessing,
-                                                     BlockArguments_TransferLearning,
-                                                     BlockArguments_TFKeras)
-from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
-                                                    BlockEvaluate_DataAugmentation,
-                                                    BlockEvaluate_TrainValidate,
-                                                    BlockEvaluate_TFKeras,
-                                                    BlockEvaluate_TFKeras_TransferLearning2,
-                                                    BlockEvaluate_TFKeras_AfterTransferLearning)
-from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
-from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
+from codes.block_definitions.shapemeta.block_shapemeta import (BlockShapeMeta_DataAugmentation,
+                                                               BlockShapeMeta_DataPreprocessing,
+                                                               BlockShapeMeta_TFKeras_TransferLearning,
+                                                               BlockShapeMeta_TFKeras)
+from codes.block_definitions.operators.block_operators import (BlockOperators_DataAugmentation,
+                                                               BlockOperators_DataPreprocessing,
+                                                               BlockOperators_TFKeras_TransferLearning_CIFAR,
+                                                               BlockOperators_TFKeras)
+from codes.block_definitions.arguments.block_arguments import (BlockArguments_DataAugmentation,
+                                                               BlockArguments_DataPreprocessing,
+                                                               BlockArguments_TransferLearning,
+                                                               BlockArguments_TFKeras)
+from codes.block_definitions.evaluate.block_evaluate import (BlockEvaluate_MiddleBlock,
+                                                             BlockEvaluate_MiddleBlock_SkipValidating)
+from codes.block_definitions.evaluate.block_evaluate_graph import (BlockEvaluate_TFKeras_TransferLearning,
+                                                                   BlockEvaluate_TFKeras_AfterTransferLearning)
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_4Blocks
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
@@ -85,7 +83,7 @@ class Problem(ProblemDefinition_Abstract):
                                                           shape_def=BlockShapeMeta_DataAugmentation,
                                                           operator_def=BlockOperators_DataAugmentation,
                                                           argument_def=BlockArguments_DataAugmentation,
-                                                          evaluate_def=BlockEvaluate_DataAugmentation,
+                                                          evaluate_def=BlockEvaluate_MiddleBlock_SkipValidating,
                                                           mutate_def=BlockMutate_OptB_4Blocks,
                                                           mate_def=BlockMate_WholeOnly_4Blocks)
 
@@ -93,7 +91,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            shape_def=BlockShapeMeta_DataPreprocessing,
                                                            operator_def=BlockOperators_DataPreprocessing,
                                                            argument_def=BlockArguments_DataPreprocessing,
-                                                           evaluate_def=BlockEvaluate_TrainValidate,
+                                                           evaluate_def=BlockEvaluate_MiddleBlock,
                                                            mutate_def=BlockMutate_OptB_4Blocks,
                                                            mate_def=BlockMate_WholeOnly_4Blocks)
 
@@ -151,6 +149,7 @@ class Problem(ProblemDefinition_Abstract):
         With updated code, we expect the last block to return the validation metrics assigned to the Model object,
         so we just need to connect those to the individual's fitness values
         '''
+        import pdb; pdb.set_trace()
         indiv.fitness.values = tuple(indiv.output)
 
 
