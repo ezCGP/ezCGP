@@ -8,6 +8,7 @@ Rules:
 
 ### packages
 import os
+import sys
 import numpy as np
 import importlib
 '''
@@ -114,3 +115,60 @@ class ezData_Augmentor(ezData):
 
 class ezData_Time(ezData):
     pass
+
+
+
+class ezData_EMADE(ezData):
+    def __init__(self,
+                 train_filenames,
+                 test_filenames,
+                 dtype,
+                 use_cache=False,
+                 compress=False):
+        '''
+        https://github.gatech.edu/emade/emade/blob/CacheV2/src/GPFramework/EMADE.py#L318
+        '''
+        data_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        emade_dir = os.path.join(data_dir, 'datasets', 'emade')
+        emade_src_dir = os.path.join(emade_dir, 'src')
+        sys.path.append(emade_src_dir)
+        from GPFramework.data import EmadeDataPair
+
+        if dtype == 'featuredata':
+            from GPFramework.data import load_feature_data_from_file
+            load_function = load_feature_data_from_file
+        elif dtype == 'streamdata':
+            from GPFramework.data import load_many_to_one_from_file
+            load_function = load_many_to_one_from_file
+        else:
+            print("wrong dtype given", dtype)
+            exit()
+
+        def reduce_instances(emadeDataTuple):
+            emadeData, cache = emadeDataTuple
+            return emadeData, cache
+
+        print(emade_dir, train_filenames[0])
+        train_data_array = [reduce_instances(load_function(os.path.join(emade_dir, folder),
+                                                           use_cache=use_cache,
+                                                           compress=compress))
+                                for folder in train_filenames]
+
+        test_data_array = [reduce_instances(load_function(os.path.join(emade_dir, folder),
+                                                          use_cache=use_cache,
+                                                          compress=compress,
+                                                          hash_data=True))
+                               for folder in test_filenames]
+
+
+        # Copy the truth data in to its own location
+        truth_data_array = [test_data[0].get_target() for test_data in test_data_array]
+
+        # Clear out the truth data from the test data
+        [test_data[0].set_target(np.full(test_data[0].get_target().shape,np.nan)) for test_data in test_data_array]
+
+        # Stores DataPair object
+        self.x = [EmadeDataPair(train_data, test_data)
+                    for train_data, test_data in zip(train_data_array, test_data_array)]
+        self.y = None
+
