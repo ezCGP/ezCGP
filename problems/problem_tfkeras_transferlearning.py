@@ -52,7 +52,7 @@ from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks,
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_withValidation_andTransferLearning
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow
 
 
 
@@ -75,8 +75,8 @@ class Problem(ProblemDefinition_Abstract):
         factory = FactoryDefinition
         factory_instance = factory()
         mpi = False
-        #genome_seeds = []
-        genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("20201127-145527-8th_run", 1))
+        genome_seeds = []
+        #genome_seeds = glob.glob("outputs/problem_tfkeras_transferlearning/%s/univ0000/gen_%04d_*.pkl" % ("20201127-145527-8th_run", 1))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
         
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
@@ -117,7 +117,7 @@ class Problem(ProblemDefinition_Abstract):
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
-                                      evaluate_def=IndividualEvaluate_withValidation_andTransferLearning)
+                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow)
 
         self.construct_dataset()
 
