@@ -925,16 +925,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
 
         graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
         output_shape = output_list[0].get_out_shape()
-        import pdb; pdb.set_trace()
         ezLogging.info("%s - Ending building..." % (block_material.id))
-        """
-        Per my conversation with Rodd:
-        - The way this is set up, we would only be able to have a single linear input
-        - We want to be able to concat other inputs in
-        - We can do this by changing the inputs list to be able to receive multiple inputs (main_input, misc_input1, misc_input2, ...)
-        - For most layers, we won't need to touch any input besides main_input (which is data that is being directly acted upon by the layers)
-        - We can make specialized layers that incorporate other misc_inputs into main_input
-        """
 
         # Add a layer to get the output back into the right shape
         # TODO: consider using a linear layer instead of a conv1d and then unflattening. Not sure what is the right move
@@ -974,10 +965,14 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
             import pdb; pdb.set_trace()
             return
 
+        block_material.output = [train_data, validation_data, block_material.graph]
+
+
 class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
+    #TODO: Move the training part of this code to a 3rd block that takes in refiner and discrinator
+    # and then evolves hyperparameter data related to training
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
-        # TODO: add implementation
 
     def build_graph(self, block_material, block_def, data):
         '''
@@ -997,19 +992,196 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         extra_layers = [nn.Linear(in_features, 2), nn.Flatten(start_dim=1)]
 
         block_material.graph = nn.Sequential(graph, *extra_layers)
+    
+    def pretrain_graphs(self, block_material, block_def, train_data, R, D, opt_R, opt_D):
+        '''
+        Pretrain the refiner to learn the identity function and discriminator to learn the difference
+        between simulated and real data.
+        '''
+        from torch import Tensor, LongTensor, mul
+        # Pretrain Refiner to learn the identity function
+        print("Pretraining refiner for %i steps" % (block_def.r_pretrain_steps))
+        for i in range(block_def.r_pretrain_steps):
+            opt_R.zero_grad()
+            
+            # Load data
+            simulated, _ = train_data.simulated_loader.__iter__().next()
+            simulated = Tensor(simulated).to(block_def.device)
 
-    def train_graph(self,
-                    block_material,
-                    block_def,
-                    training_datapair,
-                    validation_datapair):
+            # Run refiner and get self_regularization loss
+            refined = R(simulated)
+            r_loss = block_def.self_regularization_loss(simulated, refined)
+            r_loss = mul(r_loss, block_def.delta)
+
+            # Compute the gradients and backprop
+            r_loss.backward()
+            opt_R.step()
+
+            # log every `steps_per_log` steps
+            if ((i+1) % block_def.steps_per_log == 0) or (i == block_def.r_pretrain_steps - 1):
+                print('[%d/%d] (R)reg_loss: %.4f' % (i+1, block_def.r_pretrain_steps, r_loss.data.item()))
+        
+        # Pretrain Discriminator (basically to learn the difference between simulated and real data)
+        print("Pretraining discriminator for %i steps" % (block_def.d_pretrain_steps))
+        for i in range(block_def.d_pretrain_steps):
+            opt_D.zero_grad()
+
+            # Get data
+            real, labels_real = train_data.real_loader.__iter__().next()
+            real = Tensor(real).to(block_def.device)
+            labels_real = LongTensor(labels_real).to(block_def.device)
+
+            simulated, labels_refined = train_data.simulated_loader.__iter__().next()
+            simulated = Tensor(simulated).to(block_def.device)
+            labels_refined = LongTensor(labels_refined).to(block_def.device)
+
+            # Run the real batch through discriminator and calc loss
+            pred_real = D(real)
+            d_loss_real = block_def.local_adversarial_loss(pred_real, labels_real)
+
+            # Run the refined batch through discriminator and calc loss
+            refined = R(simulated)
+            pred_refined = D(refined)
+            d_loss_ref = block_def.local_adversarial_loss(pred_refined, labels_refined)
+
+            # Compute the gradients.
+            d_loss = d_loss_real + d_loss_ref
+            d_loss.backward()
+
+            # Backpropogate the gradient through the discriminator.
+            opt_D.step()
+
+            # log every `steps_per_log` steps
+            if ((i+1) % block_def.steps_per_log == 0) or (i == block_def.d_pretrain_steps - 1):
+                print('[%d/%d] (D)real_loss: %.4f, ref_loss: %.4f' % (i+1, block_def.d_pretrain_steps, 
+                      d_loss_real.data.item(), d_loss_ref.data.item()))
+
+    def train_graph(self, block_material, block_def, train_data, validation_data, R):
         '''
         TODO: implement and add documentation 
         '''
-        ezLogging.debug("%s - Training Graph - %i batch size, %i steps, %i epochs" % (block_material.id,
-                                                                                      block_def.batch_size,
-                                                                                      training_datapair.num_images//block_def.batch_size,
-                                                                                      block_def.epochs))
+        import torch
+        ezLogging.debug("%s - Training Graph - %i batch size, %i steps" % (block_material.id,
+                                                                           train_data.batch_size,
+                                                                           block_def.train_steps))
+        D = block_material.graph
+        opt_R = torch.optim.Adam(R.parameters(), lr=block_def.r_lr, betas=(0.5,0.999))
+        opt_D = torch.optim.Adam(D.parameters(), lr=block_def.d_lr, betas=(0.5,0.999))
+        self.pretrain_graphs(block_material, block_def, train_data, R, D, opt_R, opt_D)
+
+        # TRAINING #
+        r_losses = []
+        d_losses = []
+        for step in range(block_def.train_steps):
+            # ========= Train the Refiner ========= 
+            total_r_loss = 0.0
+            total_r_loss_reg = 0.0
+            total_r_loss_adv = 0.0
+            for index in range(block_def.r_updates_per_train_step):
+                opt_R.zero_grad()
+
+                # Load data
+                simulated, _ = train_data.simulated_loader.__iter__().next()
+                simulated = torch.Tensor(simulated).to(block_def.device)
+                real_labels = torch.zeros(simulated.shape[0], dtype=torch.long).to(block_def.device)
+
+                # Run refiner and get self_regularization loss
+                refined = R(simulated)
+                r_loss_reg = block_def.delta * block_def.self_regularization_loss(simulated, refined) 
+                d_pred = D(refined)
+                r_loss_adv = block_def.local_adversarial_loss(d_pred, real_labels) # want discriminator to think they are real
+
+                # Compute the gradients and backprop
+                r_loss = r_loss_reg + r_loss_adv
+                r_loss.backward()
+                opt_R.step()
+
+                # Update loss records
+                total_r_loss += r_loss
+                total_r_loss_reg += r_loss_reg
+                total_r_loss_adv += r_loss_adv
+                
+            # track avg. refiner losses
+            mean_r_loss = total_r_loss / block_def.r_updates_per_train_step
+            r_losses.append(mean_r_loss)
+
+            # ========= Train the Discriminator ========= 
+            total_d_loss = 0.0
+            total_d_loss_real = 0.0
+            total_d_loss_ref = 0.0
+            for index in range(block_def.d_updates_per_train_step):
+                opt_D.zero_grad()
+
+                # Get data
+                real, labels_real = train_data.real_loader.__iter__().next()
+                real = torch.Tensor(real).to(block_def.device)
+                labels_real = torch.LongTensor(labels_real).to(block_def.device)
+
+                simulated, labels_refined = train_data.simulated_loader.__iter__().next()
+                simulated = torch.Tensor(simulated).to(block_def.device)
+                labels_refined = torch.LongTensor(labels_refined).to(block_def.device)
+
+                # import pdb; pdb.set_trace()
+                # Run the real batch through discriminator and calc loss
+                pred_real = D(real)
+                d_loss_real = block_def.local_adversarial_loss(pred_real, labels_real)
+
+                # Run the refined batch through discriminator and calc loss
+                refined = R(simulated)
+
+                # use a history of refined images
+                # TODO: investigate keeping track of loss of old refined from history buffer and new refined seperately
+                d_loss_ref = None
+                if block_def.use_image_history:
+                    if not train_data.data_history_buffer.is_empty():
+                        refined_hist = train_data.data_history_buffer.get()
+                        refined_hist = torch.Tensor(refined_hist).to(block_def.device)
+                        pred_refined_size = len(refined) - len(refined_hist)
+
+                        pred_refined = D(refined[:pred_refined_size])
+                        pred_refined_hist = D(refined_hist)
+
+                        d_loss_ref = block_def.local_adversarial_loss(pred_refined, labels_refined[:pred_refined_size])
+                        d_loss_ref_hist = block_def.local_adversarial_loss(pred_refined_hist, labels_refined[pred_refined_size:])
+                        d_loss_ref += d_loss_ref_hist
+                    else:
+                        pred_refined = D(refined)
+                        d_loss_ref = block_def.local_adversarial_loss(pred_refined, labels_refined)
+
+                    train_data.data_history_buffer.add(refined.cpu().data.numpy())
+                else:
+                    pred_refined = D(refined)
+                    d_loss_ref = block_def.local_adversarial_loss(pred_refined, labels_refined)
+
+                # Compute the gradients.
+                d_loss = d_loss_real + d_loss_ref
+                d_loss.backward()
+
+                # Backpropogate the gradient through the discriminator.
+                opt_D.step()
+
+                total_d_loss += d_loss
+                total_d_loss_real += d_loss_real
+                total_d_loss_ref = d_loss_ref
+
+            # track avg. discriminator losses
+            mean_d_loss = total_d_loss / block_def.d_updates_per_train_step
+            d_losses.append(mean_d_loss)
+                
+            # log every `steps_per_log` steps
+            if ((step+1) % block_def.steps_per_log == 0) or (step == block_def.train_steps - 1):
+                print('[%d/%d] ' % (step + 1, block_def.train_steps))
+
+                mean_r_loss_reg = total_r_loss_reg / block_def.r_updates_per_train_step
+                mean_r_loss_adv = total_r_loss_adv / block_def.r_updates_per_train_step
+                print('(R) mean_refiner_total_loss: %.4f mean_r_loss_reg: %.4f, mean_r_loss_adv: %.4f'
+                    % (mean_r_loss.data.item(), mean_r_loss_reg.data.item(), mean_r_loss_adv.data.item()))
+
+                mean_d_loss_real = total_d_loss_real / block_def.d_updates_per_train_step
+                mean_d_loss_ref = total_d_loss_ref / block_def.d_updates_per_train_step
+                print('(D) mean_discriminator_loss: %.4f mean_d_real_loss: %.4f, mean_d_ref_loss: %.4f' 
+                    % (mean_d_loss.data.item(), mean_d_loss_real.data.item(), mean_d_loss_ref.data.item()))
+        
 
     def evaluate(self,
                  block_material: BlockMaterial,
@@ -1021,12 +1193,13 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         # import pdb; pdb.set_trace()
-
+        train_data, refiner = train_data # we pack refiner in, hacky but convenient, we unpack it here
         try:
             self.build_graph(block_material, block_def, train_data)
-            return "Hello"
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
+        
+        output = self.train_graph(block_material, block_def, train_data, validation_data, refiner)

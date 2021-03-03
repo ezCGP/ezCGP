@@ -29,9 +29,9 @@ from codes.utilities.custom_logging import ezLogging
 operator_dict = {}
 
 
-def conv1d_layer(input_layer, misc_layer, out_channels, kernel_size=3, activation=nn.ReLU):
+def conv1d_layer(input_layer, out_channels, kernel_size=3, activation=nn.ReLU):
     """
-    An operator that initializes a Conv1D_Layer_Refiner object, which holds a PyTorch Conv1d layer that maintains the input shape. Ignores the misc_layer.
+    An operator that initializes a Conv1D_Layer_Refiner object, which holds a PyTorch Conv1d layer that maintains the input shape.
     """
     class Conv1D_Layer_Refiner(PyTorchLayerWrapper):
         def __init__(self, in_shape, out_channels, kernel_size, activation):
@@ -59,7 +59,7 @@ def conv1d_layer(input_layer, misc_layer, out_channels, kernel_size=3, activatio
     return Conv1D_Layer_Refiner(input_layer.get_out_shape(), out_channels, kernel_size, activation)
 
 
-operator_dict[conv1d_layer] = {"inputs": [PyTorchLayerWrapper, PyTorchLayerWrapper],
+operator_dict[conv1d_layer] = {"inputs": [PyTorchLayerWrapper],
                                "output": PyTorchLayerWrapper,
                                "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_PyTorchKernelSize, 
                                         argument_types.ArgumentType_PyTorchActivation]

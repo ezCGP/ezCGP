@@ -175,6 +175,7 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN_Network Class" % (None, None))
         # don't want it imported all the time so we didn't put it at the top of script
         from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
+        import torch
         # TODO:  this should have hyperparameters related to SimGANs, i.e. the stuff we kept in the simgan.xml
         input_dtypes = [PyTorchLayerWrapper, PyTorchLayerWrapper]
         output_dtypes = [PyTorchLayerWrapper]
@@ -183,5 +184,28 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
                          output_dtypes,
                          main_count)
         
-        # TODO: figure out if this needs to be used
-        # self.epochs = 20
+        ### CONFIG ###
+        self.device = torch.device('cpu')
+
+        # TODO: find a way to evolve these
+        # TODO: find out if this is appropriate number. Is there a way to short circuit?
+        self.train_steps = 200
+        self.r_pretrain_steps = 10
+        self.d_pretrain_steps = 10
+        self.d_updates_per_train_step = 1
+        self.r_updates_per_train_step = 2
+
+        # Optim
+        self.r_lr = 1e-4
+        self.d_lr = 1e-4
+        self.delta = 1e-4
+
+        # Losses
+        self.self_regularization_loss = torch.nn.L1Loss(reduction='sum')
+        self.local_adversarial_loss = torch.nn.CrossEntropyLoss(reduction='mean')
+
+        # Logging
+        self.steps_per_log = 100
+
+        # Using image history
+        self.use_image_history = True

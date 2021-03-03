@@ -23,11 +23,72 @@ class dataset(Dataset):
     def __len__(self):
         return len(self.data)
 
+class DataHistoryBuffer():
+    """
+    Holds a buffer of data alreaady seen by the discriminator. This is used for training on previously seen data and is outlined in the original
+    SimGAN paper. Read that for more details
+    """
+    def __init__(self, shape, max_size, batch_size):
+        """
+        Initialize the class's state.
+
+        :param shape: Shape of the data to be stored in the history buffer
+                    (e.g. (signal_length,)).
+        :param max_size: Maximum number of data point that can be stored in the history buffer.
+        :param batch_size: Batch size used to train GAN.
+        """
+        self.history_buffer = np.zeros((0, *shape)) # We use 0 in the first axis because we will be appending until we reach the max size
+        self.max_size = max_size
+        self.batch_size = batch_size
+
+    def add(self, data_points, nb_to_add=None):
+        """
+        To be called during training of GAN. By default add batch_size // 2 data points to the history buffer each
+        time the generator generates a new batch of data points.
+
+        :param data_points: Array of data_points (usually a batch) to be added to the data history buffer.
+        :param nb_to_add: The number of data points from `data_points` to add to the data history buffer
+                        (batch_size / 2 by default).
+        """
+        if not nb_to_add:
+            nb_to_add = self.batch_size // 2
+
+        if len(self.history_buffer) < self.max_size:
+            data_points_copy = np.copy(data_points)
+            np.random.shuffle(data_points_copy)
+            self.history_buffer = np.append(self.history_buffer, data_points_copy[:nb_to_add], axis=0)
+        elif len(self.history_buffer) == self.max_size:
+            self.history_buffer[:nb_to_add] = data_points[:nb_to_add]
+        else:
+            assert False
+
+        np.random.shuffle(self.history_buffer)
+
+    def get(self, nb_to_get=None):
+        """
+        Get a random sample of data points from the history buffer.
+
+        :param nb_to_get: Number of data points to get from the history buffer (batch_size / 2 by default).
+        :return: A random sample of `nb_to_get` data points from the history buffer, or an empty np array if the data
+                history buffer is empty.
+        """
+        if not nb_to_get:
+            nb_to_get = self.batch_size // 2
+
+        try:
+            return self.history_buffer[:nb_to_get]
+        except IndexError:
+            return np.zeros(shape=0)
+    
+    def is_empty(self):
+        return len(self.history_buffer) <= 0
+
 class SimGANDataset():
     """
     Holds a simulated and real dataset, each composed of 1D signals
     """
-    def __init__(self, real_size=128**2, sim_size=256, batch_size=128):
+
+    def __init__(self, real_size=128**2, sim_size=256, batch_size=128, buffer_size=12800):
         self.batch_size = batch_size
         
         ### Get the real and simulated datasets
@@ -40,7 +101,7 @@ class SimGANDataset():
                                                    [[4],[10]], [0.25,0.25], False)
         ### Get the labels
         self.labels_real = np.zeros(self.real_raw.shape[0])
-        self.labels_simulated = np.zeros(self.simulated_raw.shape[0])
+        self.labels_simulated = np.ones(self.simulated_raw.shape[0])
 
         ### Put the data into pytorch friendly format
         self.real = dataset(self.real_raw, self.labels_real)
@@ -58,6 +119,8 @@ class SimGANDataset():
             shuffle=True,
             # **kwargs
         )
+
+        self.data_history_buffer = DataHistoryBuffer((1, self.real_raw.shape[-1]), buffer_size, batch_size)
     
     def get_real_batch():
         return self.real_loader.__iter__().next()
