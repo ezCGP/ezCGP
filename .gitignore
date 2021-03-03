@@ -5,6 +5,7 @@ data/datasets/*
 test_area/*
 *.out
 pbs_files/log_files/*
+*.swp
 
 # FlyCheck Emacs
 flycheck_operators.py
