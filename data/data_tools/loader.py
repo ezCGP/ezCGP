@@ -17,10 +17,11 @@ from six.moves import cPickle as pickle
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__))))) 
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 import data.data_tools.ezData as ezdata
+
 
 
 class ezDataLoader(ABC):
@@ -156,6 +157,7 @@ class ezDataLoader_CIFAR100(ezDataLoader):
                  test_split=0.25):
         super().__init__(train_split, validate_split, test_split)
 
+
     def load(self):
         # https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar100/load_data
         ###
@@ -180,6 +182,7 @@ class ezDataLoader_MNIST(ezDataLoader):
                  test_split=0.25):
         super().__init__(train_split, validate_split, test_split)
 
+
     def load(self):
         # https://www.tensorflow.org/api_docs/python/tf/keras/datasets/mnist/load_data
         # image shape is (Samples, width, height, channels)
@@ -189,3 +192,37 @@ class ezDataLoader_MNIST(ezDataLoader):
         train_data = ezdata.ezData_Images(x_train, y_train)
         validate_data = ezdata.ezData_Images(x_test, y_test)
         return train_data, validate_data
+
+
+
+class ezDataLoader_EMADE_Titanic(ezDataLoader):
+    '''
+    going to try and mimic how EMADE loads in DataPairs
+    for Titanic dataset
+
+    assuming we used the emade.sh script and downloaded emade repo into datasets dir
+    '''
+    def __init__(self):
+        super().__init__(1,0,0)
+
+
+    def load(self, x, y):
+        '''
+        using the filepaths as it's read from the config xml in emade
+        https://github.gatech.edu/emade/emade/blob/CacheV2/templates/input_titanic.xml
+        '''
+        train_datapair = ezData.ezData_EMADE(train_filenames=['datasets/titanic/train_0.csv.gz',
+                                                              'datasets/titanic/train_1.csv.gz',
+                                                              'datasets/titanic/train_2.csv.gz',
+                                                              'datasets/titanic/train_3.csv.gz',
+                                                              'datasets/titanic/train_4.csv.gz'],
+                                             test_filenames=['datasets/titanic/test_0.csv.gz',
+                                                             'datasets/titanic/test_1.csv.gz',
+                                                             'datasets/titanic/test_2.csv.gz',
+                                                             'datasets/titanic/test_3.csv.gz',
+                                                             'datasets/titanic/test_4.csv.gz'],
+                                             dtype='featuredata')
+        validate_datapair = []
+        test_datapair = []
+
+        return train_datapair, validate_datapair, test_datapair
