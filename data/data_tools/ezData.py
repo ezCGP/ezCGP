@@ -25,6 +25,9 @@ class ezData():
     def __init__(self, x, y=None):
         self.x = x
         self.y = y
+        # in individual_evaluate, we'll deepcopy the datalist to ensure that the global/original data doesn't get altered
+        # but sometimes we don't want to deepcopy, like for images because it would take up too much ram and we don't alter images
+        self.deepcopying_okay = True
 
 
 
@@ -76,6 +79,7 @@ class ezData_Images(ezData):
         self.num_images = len(self.x)
         self.num_classes = np.unique(self.y, axis=0).shape[0]
         self.image_shape = self.x[0].shape
+        self.deepcopying_okay = False # takes up too much RAM unless other wise decided
 
 
 

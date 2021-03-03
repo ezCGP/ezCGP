@@ -32,6 +32,26 @@ from codes.genetic_material import IndividualMaterial
 from codes.utilities.custom_logging import ezLogging
 
 
+def deepcopy_decorator(func):
+    '''
+    deepcopy the original datalist so that nothing inside individual_evaluate can change the data
+    '''
+    def inner(self,
+              indiv_material: IndividualMaterial,
+              indiv_def, #: IndividualDefinition,
+              training_datalist: ezData,
+              validating_datalist: ezData=None,
+              supplements=None):
+        imprt pdb; pdb.set_trace()
+        other = deepcopy(training_datalist)
+        func(self,
+             indiv_material,
+             indiv_def, #: IndividualDefinition,
+             other,
+             validating_datalist,
+             supplements)
+    return inner
+
 
 class IndividualEvaluate_Abstract(ABC):
     def __init__(self):
