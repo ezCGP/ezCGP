@@ -140,7 +140,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
         from data.data_tools.ezData import ezData_Augmentor
 
         augmentor_instance_index = None
-        for i, data_instance in training_datalist:
+        for i, data_instance in enumerate(training_datalist):
             if isinstance(data_instance, ezData_Augmentor):
                 augmentor_instance_index = i
                 break
@@ -211,7 +211,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
         from data.data_tools.ezData import ezData_Augmentor
 
         augmentor_instance_index = None
-        for i, data_instance in training_datalist:
+        for i, data_instance in enumerate(training_datalist):
             if isinstance(data_instance, ezData_Augmentor):
                 augmentor_instance_index = i
                 break

@@ -6,6 +6,7 @@ Checkout BlockEvaluate_GraphAbstract() to see the main differences
 '''
 
 ### packages
+from abc import ABC, abstractmethod
 from copy import deepcopy
 import importlib
 
