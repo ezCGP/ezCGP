@@ -207,7 +207,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
         '''
         placeholding
         '''
-        cannot_pickle_tfkeras = False
+        cannot_pickle_tfkeras = True
         from data.data_tools.ezData import ezData_Augmentor
 
         augmentor_instance_index = None
@@ -250,7 +250,9 @@ class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(Indivi
                 training_datalist[augmentor_instance_index] = temp_training_datalist[0]
                 validating_datalist[augmentor_instance_index] = temp_validating_datalist[0]
                 if cannot_pickle_tfkeras:
-                    block_material.output[-1] = None
+                    # output is a tuple so can't directly change an element inplace
+                    training_output, validating_output, supplements = block_material.output
+                    block_material.output = (training_output, validating_output, None)
 
             elif ('tensorflow' in block_def.nickname.lower()) or ('tfkeras' in block_def.nickname.lower()):
                 self.standard_evaluate(indiv_material.id,
