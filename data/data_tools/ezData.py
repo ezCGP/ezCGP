@@ -50,6 +50,8 @@ class ezData_numpy(ezData, np.ndarray):
 
     for now will keep x attribute as redundant way to access data, but never explored to see
     how much of an effect this had on the size of the class by self referencing
+
+    WARNING: when you deepcopy an ezData_numpy instance, it looses all it's attributes like x and y
     '''
     def __init__(self, x, y):
         '''
