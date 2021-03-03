@@ -67,7 +67,7 @@ class Problem(ProblemDefinition_Abstract):
 
     def construct_dataset(self):
         x = np.random.uniform(low=0.25, high=2, size=200)
-        y = self.goal_function(x[1])
+        y = self.goal_function(x)
         data = ezData.ezData_numpy(x, y)
         ephemeral_constant = ezData.ezData_float(1)
 
