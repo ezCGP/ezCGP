@@ -63,15 +63,30 @@ class ezData_Images(ezData):
 
 class ezData_AugmentorImages(ezData):
     '''
-    def __init__(self, ez_Images, ez_Augmentor):
-        for ez_ting in [ez_Images, ez_Augmentor]:
-            for name, val in ez_ting.__dict__.items():
-                # quick way to take all attributes and add to self
-                setattr(self, name, val)
+    the motivation here is to separate out pipeline from images so that
+    after we evaluate an individual, we can save the output of each block, and 
+    compress the individual to a pkl file without it blowing up in size. if we
+    have to pass the data object through the preprocessing + augmentation blocks
+    so that we can decorate the pipeline, we don't want to have to drag around 
+    the images too and then have the images saved to the pkl with the final
+    pipeline. this way we separate them, and then also make a custom
+    IndividualEvaluate class that passes only the pipeline through the frist
+    few blocks
+
+    here we assume that the ezData_Images() and ez_Augmentor() objects have
+    already been created and are just going to get passed in at init
     '''
-    def __init__(self, ez_Images, ez_Augmentor):
-        self.images_wrapper = ez_Images
-        self.pipeline_wrapper = ez_Augmentor
+    def __init__(self, ez_images_object, ez_augmentor_object):
+        self.images_wrapper = ez_images_object
+        self.pipeline_wrapper = ez_augmentor_object
+
+        # bit of a cheat...throw some useful image_wrapper attributes to pipeline_wrapper.
+        # say, when we are doing transfer learning and building the graph, we don't need all the images
+        # but only need the image shape, so it would make sense to pass in only the pipeline object with
+        # the image shape to the transfer learning block...more lightweight
+        self.pipeline_wrapper.image_shape = ez_images_object.image_shape
+        self.pipeline_wrapper.num_classes = ez_images_object.num_classes
+        self.pipeline_wrapper.num_images = ez_images_object.num_images
 
 
 
