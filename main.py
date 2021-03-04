@@ -83,7 +83,6 @@ def main(problem_filename: str,
             ThisUniverse = UniverseDefinition
         log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
         ezLogging.log_git_metadata()
-        import pdb; pdb.set_trace()
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
         np.random.seed(universe_seed)
         random.seed(seed)
