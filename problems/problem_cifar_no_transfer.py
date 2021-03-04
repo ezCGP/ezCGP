@@ -31,26 +31,24 @@ from data.data_tools.loader import ezDataLoader_CIFAR10
 from codes.utilities.custom_logging import ezLogging
 from post_process import save_things
 # Block Defs
-from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
-                                                     BlockShapeMeta_DataPreprocessing,
-                                                     BlockShapeMeta_TFKeras)
-from codes.block_definitions.block_operators import (BlockOperators_DataAugmentation,
-                                                     BlockOperators_DataPreprocessing,
-                                                     BlockOperators_TFKeras)
-from codes.block_definitions.block_arguments import (BlockArguments_DataAugmentation,
-                                                     BlockArguments_DataPreprocessing,
-                                                     BlockArguments_TFKeras)
-from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
-                                                    BlockEvaluate_DataAugmentation,
-                                                    BlockEvaluate_TrainValidate,
-                                                    BlockEvaluate_TFKeras
-                                                    )
-from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
-from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
+from codes.block_definitions.shapemeta.block_shapemeta import (BlockShapeMeta_DataAugmentation,
+                                                               BlockShapeMeta_DataPreprocessing,
+                                                               BlockShapeMeta_TFKeras)
+from codes.block_definitions.operators.block_operators import (BlockOperators_DataAugmentation,
+                                                               BlockOperators_DataPreprocessing,
+                                                               BlockOperators_TFKeras)
+from codes.block_definitions.arguments.block_arguments import (BlockArguments_DataAugmentation,
+                                                               BlockArguments_DataPreprocessing,
+                                                               BlockArguments_TFKeras)
+from codes.block_definitions.evaluate.block_evaluate import (BlockEvaluate_MiddleBlock,
+                                                             BlockEvaluate_MiddleBlock_SkipValidating)
+from codes.block_definitions.evaluate.block_evaluate_graph import BlockEvaluate_TFKeras
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_4Blocks
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_withValidation
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTensorFlow
 
 
 
@@ -67,7 +65,7 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 20
+        population_size = 4 #20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -80,7 +78,7 @@ class Problem(ProblemDefinition_Abstract):
                                                           shape_def=BlockShapeMeta_DataAugmentation,
                                                           operator_def=BlockOperators_DataAugmentation,
                                                           argument_def=BlockArguments_DataAugmentation,
-                                                          evaluate_def=BlockEvaluate_DataAugmentation,
+                                                          evaluate_def=BlockEvaluate_MiddleBlock_SkipValidating,
                                                           mutate_def=BlockMutate_OptB_4Blocks,
                                                           mate_def=BlockMate_WholeOnly_4Blocks)
 
@@ -88,7 +86,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            shape_def=BlockShapeMeta_DataPreprocessing,
                                                            operator_def=BlockOperators_DataPreprocessing,
                                                            argument_def=BlockArguments_DataPreprocessing,
-                                                           evaluate_def=BlockEvaluate_TrainValidate,
+                                                           evaluate_def=BlockEvaluate_MiddleBlock,
                                                            mutate_def=BlockMutate_OptB_4Blocks,
                                                            mate_def=BlockMate_WholeOnly_4Blocks)
 
@@ -105,21 +103,14 @@ class Problem(ProblemDefinition_Abstract):
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
-                                      evaluate_def=IndividualEvaluate_withValidation)
+                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTensorFlow)
 
         self.construct_dataset()
 
 
     def construct_dataset(self):
-        '''
-        will return 3 ezData_Images objects
-        with .pipeline, .x, .y attributes
-        '''
-        train, validate, test = ezDataLoader_CIFAR10(0.6, 0.2, 0.2).load()
-        # remember that our input data has to be a list!
-        self.train_data = train
-        self.validate_data = validate
-        self.test_data = test
+        loader = ezDataLoader_CIFAR10(0.6, 0.2, 0.2)
+        self.training_datalist, self.validating_datalist, self.testing_datalist = loader.load()
 
 
     def objective_functions(self, indiv):
@@ -175,7 +166,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         ezLogging.info("Post Processing Generation Run - saving")
         save_things.save_fitness_scores(universe)
-        save_things.save_population_HACK(universe)
+        save_things.save_population(universe)
 
 
     def postprocess_universe(self, universe):

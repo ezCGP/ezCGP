@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_operators.py
+root/code/block_definitions/operators/block_operators.py
 
 Overview:
 Here we define the 'scope' of the operators: which primitives is the block allowed to use, with what probability will each be selected, and what is the operator_dictionary for that primitive.
@@ -18,7 +18,7 @@ import inspect
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import tools

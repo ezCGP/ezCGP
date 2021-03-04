@@ -28,7 +28,6 @@ from codes.genetic_material import IndividualMaterial, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.block_definitions.block_definition import BlockDefinition
 from codes.utilities.custom_logging import ezLogging
-from data.data_tools.loader import ezDataLoader_CIFAR10_old
 from data.data_tools.ezData import ezData
 
 

@@ -38,6 +38,7 @@ sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 ### absolute imports wrt root
 from codes.block_definitions.utilities import argument_types
 from codes.utilities.custom_logging import ezLogging
+from data.data_tools import ezData
 
 
 ### init dict
@@ -100,12 +101,12 @@ class Equalize(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def equalize(pipeline):
-    pipeline.add_operation(Equalize())
-    return pipeline
+def equalize(ez_augmentor):
+    ez_augmentor.pipeline.add_operation(Equalize())
+    return ez_augmentor
 
-operator_dict[equalize] = {"inputs": [Augmentor.Pipeline],
-                            "output": Augmentor.Pipeline,
+operator_dict[equalize] = {"inputs": [ezData.ezData_Augmentor],
+                            "output": ezData.ezData_Augmentor,
                             "args": [] # TODO: no argument because we always want prob=1 right?
                            }
 
@@ -134,13 +135,13 @@ class Blur(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def blur(pipeline, kernel_size, normalize):
-    pipeline.add_operation(Blur(kernel_size, normalize))
-    return pipeline
+def blur(ez_augmentor, kernel_size, normalize):
+    ez_augmentor.pipeline.add_operation(Blur(kernel_size, normalize))
+    return ez_augmentor
 
 
-operator_dict[blur] = {"inputs": [Augmentor.Pipeline],
-                       "output": Augmentor.Pipeline,
+operator_dict[blur] = {"inputs": [ezData.ezData_Augmentor],
+                       "output": ezData.ezData_Augmentor,
                        "args": [argument_types.ArgumentType_FilterSize,
                                 argument_types.ArgumentType_Bool]
                       }
@@ -169,13 +170,13 @@ class GaussianBlur(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def gaussian_blur(pipeline, kernel_size, sigma_x, sigma_y):
-    pipeline.add_operation(GaussianBlur(kernel_size, sigma_x, sigma_y))
-    return pipeline
+def gaussian_blur(ez_augmentor, kernel_size, sigma_x, sigma_y):
+    ez_augmentor.pipeline.add_operation(GaussianBlur(kernel_size, sigma_x, sigma_y))
+    return ez_augmentor
 
 
-operator_dict[gaussian_blur] = {"inputs": [Augmentor.Pipeline],
-                                "output": Augmentor.Pipeline,
+operator_dict[gaussian_blur] = {"inputs": [ezData.ezData_Augmentor],
+                                "output": ezData.ezData_Augmentor,
                                 "args": [argument_types.ArgumentType_FilterSize, argument_types.ArgumentType_Float0to10, argument_types.ArgumentType_Float0to10]
                                }
 
@@ -204,13 +205,13 @@ class MedianBlur(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def median_blur(pipeline, kernel_size):
-    pipeline.add_operation(MedianBlur(kernel_size))
-    return pipeline
+def median_blur(ez_augmentor, kernel_size):
+    ez_augmentor.pipeline.add_operation(MedianBlur(kernel_size))
+    return ez_augmentor
 
 
-operator_dict[median_blur] = {"inputs": [Augmentor.Pipeline],
-                              "output": Augmentor.Pipeline,
+operator_dict[median_blur] = {"inputs": [ezData.ezData_Augmentor],
+                              "output": ezData.ezData_Augmentor,
                               "args": [argument_types.ArgumentType_FilterSize]
                              }
 
@@ -259,13 +260,13 @@ class BilateralFilter(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def bilateral_filter(pipeline, d, sigma_color, sigma_space):
-    pipeline.add_operation(BilateralFilter(d, sigma_color, sigma_space))
-    return pipeline
+def bilateral_filter(ez_augmentor, d, sigma_color, sigma_space):
+    ez_augmentor.pipeline.add_operation(BilateralFilter(d, sigma_color, sigma_space))
+    return ez_augmentor
 
 
-operator_dict[bilateral_filter] = {"inputs": [Augmentor.Pipeline],
-                                   "output": Augmentor.Pipeline,
+operator_dict[bilateral_filter] = {"inputs": [ezData.ezData_Augmentor],
+                                   "output": ezData.ezData_Augmentor,
                                    "args": [argument_types.ArgumentType_Int1to10,
                                             argument_types.ArgumentType_Float0to100,
                                             argument_types.ArgumentType_Float0to100]
@@ -298,13 +299,13 @@ class Thresholding(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def thresholding(pipeline, threshold):
-    pipeline.add_operation(Thresholding(threshold))
-    return pipeline
+def thresholding(ez_augmentor, threshold):
+    ez_augmentor.pipeline.add_operation(Thresholding(threshold))
+    return ez_augmentor
 
 
-operator_dict[thresholding] = {"inputs": [Augmentor.Pipeline],
-                               "output": Augmentor.Pipeline,
+operator_dict[thresholding] = {"inputs": [ezData.ezData_Augmentor],
+                               "output": ezData.ezData_Augmentor,
                                "args": [argument_types.ArgumentType_LimitedFloat0to1]
                               }
                               
@@ -344,13 +345,13 @@ class AdaptiveThreshold(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def adaptive_threshold(pipeline, ith_adaptive_method, ith_threshold_type, blockSize, C):
-    pipeline.add_operation(AdaptiveThreshold(ith_adaptive_method, ith_threshold_type, blockSize, C))
-    return pipeline
+def adaptive_threshold(ez_augmentor, ith_adaptive_method, ith_threshold_type, blockSize, C):
+    ez_augmentor.pipeline.add_operation(AdaptiveThreshold(ith_adaptive_method, ith_threshold_type, blockSize, C))
+    return ez_augmentor
 
 
-operator_dict[adaptive_threshold] = {"inputs": [Augmentor.Pipeline],
-                                     "output": Augmentor.Pipeline,
+operator_dict[adaptive_threshold] = {"inputs": [ezData.ezData_Augmentor],
+                                     "output": ezData.ezData_Augmentor,
                                      "args": [argument_types.ArgumentType_Int0to25,
                                               argument_types.ArgumentType_Int0to25,
                                               argument_types.ArgumentType_FilterSize,
@@ -385,13 +386,13 @@ class OtsuThresholding(Augmentor.Operations.Operation):
         return augmented_images
 
 
-def otsu_thresholding(pipeline):
-    pipeline.add_operation(OtsuThresholding())
-    return pipeline
+def otsu_thresholding(ez_augmentor):
+    ez_augmentor.pipeline.add_operation(OtsuThresholding())
+    return ez_augmentor
 
 
-operator_dict[otsu_thresholding] = {"inputs": [Augmentor.Pipeline],
-                                    "output": Augmentor.Pipeline,
+operator_dict[otsu_thresholding] = {"inputs": [ezData.ezData_Augmentor],
+                                    "output": ezData.ezData_Augmentor,
                                     "args": []
                                    }'''
 

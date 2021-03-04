@@ -28,12 +28,12 @@ from codes.individual_definitions.individual_evaluate import IndividualEvaluate_
 from codes.individual_definitions.individual_mutate import IndividualMutate_Abstract
 from codes.individual_definitions.individual_mate import IndividualMate_Abstract
 from codes.block_definitions.block_definition import BlockDefinition
-from codes.block_definitions.block_evaluate import BlockEvaluate_Abstract
-from codes.block_definitions.block_mutate import BlockMutate_Abstract
-from codes.block_definitions.block_mate import BlockMate_Abstract
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_Abstract
-from codes.block_definitions.block_operators import BlockOperators_Abstract
-from codes.block_definitions.block_arguments import BlockArguments_Abstract
+from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Abstract
+from codes.block_definitions.mutate.block_mutate import BlockMutate_Abstract
+from codes.block_definitions.mate.block_mate import BlockMate_Abstract
+from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Abstract
+from codes.block_definitions.operators.block_operators import BlockOperators_Abstract
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Abstract
 
 
 
