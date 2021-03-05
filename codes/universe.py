@@ -147,7 +147,7 @@ class UniverseDefinition():
         '''
         self.pop_fitness_scores = []
         self.pop_individual_ids = []
-        ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
+        ezLogging.warning("Evaluating Population of size %i" % (len(self.population.population)))
         for indiv in self.population.population:
             # EVALUATE
             problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
@@ -206,7 +206,7 @@ class UniverseDefinition():
         self.population_selection(problem)
         while not self.converged:
             self.generation += 1
-            ezLogging.info("Starting Generation %i" % self.generation)
+            ezLogging.warning("Starting Generation %i" % self.generation)
             self.evolve_population(problem)
             self.evaluate_score_population(problem)
             self.population_selection(problem)

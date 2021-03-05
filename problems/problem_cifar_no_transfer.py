@@ -65,7 +65,7 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 4 #20
+        population_size = 20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -143,7 +143,7 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 2 #50
+        GENERATION_LIMIT = 5
         SCORE_MIN = 1 - 1e-10
 
         # only going to look at the 2nd objective value which is f1
