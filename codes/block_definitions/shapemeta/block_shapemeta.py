@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_shapemeta.py
+root/code/block_definitions/shapemeta/block_shapemeta.py
 
 Overview:
 I know, I know. It's a crap name. Basically this is a 'miscellaneous" attribute class. Provides zero methods, just input and output data types for the block, and number of nodes in a genome. Of course, the user can add any other attribute relevant to their problem and because of the for-loop in the __init__ method of BlockDefinition, it will add every single attribute here to the BlockDefinition.
@@ -15,10 +15,11 @@ import numpy as np
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.utilities.custom_logging import ezLogging
+from data.data_tools import ezData
 
 
 
@@ -100,8 +101,8 @@ class BlockShapeMeta_DataAugmentation(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataAugmentation Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 10
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -113,8 +114,8 @@ class BlockShapeMeta_DataPreprocessing(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataPreprocessing Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 10
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -131,8 +132,8 @@ class BlockShapeMeta_Augmentor_TransferLearning(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TransferLearning Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 3
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -172,4 +173,4 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
                          10)
 
         self.batch_size = 128
-        self.epochs = 20
+        self.epochs = 2#0
