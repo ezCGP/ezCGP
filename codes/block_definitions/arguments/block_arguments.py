@@ -246,10 +246,11 @@ class BlockArguments_TFKeras(BlockArguments_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockArguments_TFKeras Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
-        self.arg_count = 12*3
+        self.arg_count = 15*4
         arg_dict = {argument_types.ArgumentType_Pow2: 1,
                     argument_types.ArgumentType_TFFilterSize: 1,
-                    argument_types.ArgumentType_TFActivation: 1}
+                    argument_types.ArgumentType_TFActivation: 1,
+                    argument_types.ArgumentType_TFPoolSize: 1}
         self.init_from_weight_dict(arg_dict)
 
 
