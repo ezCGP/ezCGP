@@ -2,6 +2,7 @@
 take in a list of directories from which to grab the npz files for ploting
 '''
 ### packages
+import os
 import glob
 import matplotlib.pyplot as plt
 
@@ -35,6 +36,8 @@ if __name__ == "__main__":
     for dir_path in args.dirs:
         npzs = glob.glob(os.path.join(dir_path, "gen*_fitness.npz"))
         for npz in npzs:
+            print(npz)
+            assert(os.path.exists(npz)), "npz doesn't exist"
             plot_things.plot_pareto_front_from_fitness_npz(axis,
                                                            npz,
                                                            minimization=args.minimization,
@@ -43,4 +46,5 @@ if __name__ == "__main__":
                                                           )
             generation+=1
 
+    plot_things.plot_legend(fig)
     plt.show()

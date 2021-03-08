@@ -121,7 +121,7 @@ def plot_pareto_front_from_fitness_npz(axis, population_fitness_npz, minimizatio
     if not minimization:
         # in ezcgp we minimize so if we want to maximize, then scores are negative
         # then undo the negation here
-        fitness_scores *= -1
+        fitness_values *= -1
     plot_pareto_front(axis, fitness_values, **kwargs)
 
 
