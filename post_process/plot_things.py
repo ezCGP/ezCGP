@@ -115,10 +115,14 @@ def find_pareto(data, miniminzation=True):
     return pareto_data
 
 
-def plot_pareto_front_from_fitness_npz(population_fitness_npz, **kwargs):
+def plot_pareto_front_from_fitness_npz(axis, population_fitness_npz, minimization, **kwargs):
     npz_values = np.load(population_fitness_npz)
     fitness_values = npz_values['fitness']
-    plot_pareto_front(fitness_values, **kwargs)
+    if not minimization:
+        # in ezcgp we minimize so if we want to maximize, then scores are negative
+        # then undo the negation here
+        fitness_scores *= -1
+    plot_pareto_front(axis, fitness_values, **kwargs)
 
 
 def plot_pareto_front(axis,
