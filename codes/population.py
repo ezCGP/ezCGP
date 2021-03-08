@@ -31,6 +31,13 @@ class PopulationDefinition():
         self.population = []
 
 
+    def __getitem__(self, indiv_index):
+        '''
+        TODO
+        '''
+        return self.population[indiv_index]
+
+
     def get_fitness(self):
         '''
         TODO
