@@ -9,6 +9,7 @@ Checkout BlockEvaluate_GraphAbstract() to see the main differences
 from abc import ABC, abstractmethod
 from copy import deepcopy
 import importlib
+import tensorflow as tf
 
 ### sys relative to root dir
 import sys

@@ -140,7 +140,7 @@ operator_dict[avg_pool_layer] = {"inputs": [tf.keras.layers],
 
 
 def max_pool_layer(input_tensor, pool_height=2, pool_width=2, strides=2):
-    if input_tensor.shape[1].value == 1:
+    if input_tensor.shape[1] == 1:
         return input_tensor
     else:
         return tf.keras.layers.MaxPool2D(pool_size=[pool_height, pool_width], strides=strides, padding="valid")(input_tensor)
