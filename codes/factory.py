@@ -130,6 +130,11 @@ class FactoryDefinition():
                     block_material = self.build_block(block_def, indiv_id=indiv_id)
                 else:
                     try:
+                        if isinstance(block_seed, list):
+                            # assume it is a list lisp and simply needs to be made into a string as if it was read from file
+                            block_seed = str(block_seed)
+                            block_seed = block_seed.replace("'","").replace('"','').replace(" ", "")
+
                         if os.path.exists(block_seed):
                             if block_seed.endswith(".pkl"):
                                 with open(genome_seed, "rb") as f:
@@ -146,10 +151,13 @@ class FactoryDefinition():
                                         block_seed = line
                             else:
                                 raise Exception("block_seed wasnt pkl or txt file")
+
                         if isinstance(block_seed, str):
                             block_material = self.build_block_from_lisp(block_def, block_seed, indiv_id)
+
                         if not self.validate_material_wDefinition(block_def, block_material):
                             raise Exception("%ith block material does not match block definition")
+
                     except Exception as err:
                         ezLogging.error("%s - for %ith block and seed %s" % (err, ith_block, block_seed))
                         indiv_material = None
@@ -188,7 +196,7 @@ class FactoryDefinition():
         ith_node = 0
         while True:
             # from the start of the string, keep looking for lists []
-            match = re.search("\[[0-9A-Za-z_\-\s.,']+\]", lisp)
+            match = re.search("\[[0-9A-Za-z_\-\s.,'\<\>]+\]", lisp)
             if match is None:
                 # no more lists inside lisp. so we're done
                 break
@@ -222,6 +230,8 @@ class FactoryDefinition():
                 # fill node with what we got from the lisp
                 lisp = _active_dict[ith_active_node].strip('][').split(',')
                 for ftn in block_def.operator_dict.keys():
+                    if (ftn=='input') or (ftn=='output'):
+                        continue
                     if ftn.__name__ == lisp[0]:
                         # we matched our lisp ftn with entry in operatordict
                         input_index = []
@@ -271,8 +281,18 @@ class FactoryDefinition():
                                     val = int(val)
                                 elif 'bool' in req_arg_type.__name__.lower():
                                     val = bool(val)
+                                elif ('activation' in  req_arg_type.__name__.lower()) and ('function' in val):
+                                    # assume something like '<function relu at 0x7f3371716ef0>'
+                                    #which becomes <functionreluat0x7ff16a511710> after stripping spaces
+                                    import tensorflow as tf
+                                    val = re.search(r'function(.*?)at', val).group(1)
+                                    val = getattr(tf.nn, val)
                                 else:
-                                    pass
+                                    try:
+                                        val = int(val)
+                                    except ValueError as err:
+                                        ezLogging.error("not sure what the arg type should be")
+                                        import pdb; pdb.set_trace()
                                 block_material.args[poss_arg_index] = req_arg_type(value=val)
 
                         block_material[node_index] =  {"ftn": ftn,
@@ -314,7 +334,7 @@ class FactoryDefinition():
                     break
                 # error check that node got filled
                 if block_material[node_index] is None:
-                    print("GENOME ERROR: no primitive was able to fit into current genome arrangment")
+                    ezLogging.critical("GENOME ERROR: no primitive was able to fit into current genome arrangment")
                     import pdb; pdb.set_trace()
                     return None
 
@@ -397,7 +417,7 @@ class FactoryDefinition():
                 break
             # error check that node got filled
             if block_material[node_index] is None:
-                print("GENOME ERROR: no primitive was able to fit into current genome arrangment")
+                ezLogging.critical("GENOME ERROR: no primitive was able to fit into current genome arrangment")
                 import pdb; pdb.set_trace()
                 exit()
 
