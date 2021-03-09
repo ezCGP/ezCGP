@@ -4,7 +4,7 @@
 #PBS -l mem=128gb                          	# job requires 8gb per core
 #PBS -q pace-ice-gpu                            # job is submitted to pace-ice
 #PBS -j oe                                      # output and error is combined into the same file
-#PBS -o log_files/cifar_run04.out               # output file is named result.out
+#PBS -o log_files/cifar_run06.out               # output file is named result.out
 #PBS -m abe                               	# Will send a status email based on any combination of a,b,e.
 #PBS -M rtalebi3@gatech.edu        
 cd ~/ezCGP                                
@@ -14,4 +14,4 @@ module load anaconda3/2020.02
 module load cuda/10.1
 conda activate ezcgp-py
 #python main.py -p problem_tfkeras_transferlearning -v -s 9 -t
-python main.py -p problem_cifar_no_transfer -s 11 -n fourth_run -v
+python main.py -p problem_cifar_no_transfer -s 13 -n sixth_run -v
