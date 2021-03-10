@@ -71,10 +71,10 @@ class Problem(ProblemDefinition_Abstract):
         factory_instance = factory()
         mpi = False
         #genome_seeds = []
-        genome_seeds = glob.glob("outputs/problem_cifar_no_transfer/%s/univ0000/gen_%04d_*.pkl" % ("20210309-094431-fifth_run", 2))
+        genome_seeds = glob.glob("outputs/problem_cifar_no_transfer/%s/univ0000/gen_%04d_*.pkl" % ("20210310-002525-seventh_run", 2))
         if len(genome_seeds) == 0:
             print("using gen01 instead of gen02")
-            genome_seeds = glob.glob("outputs/problem_cifar_no_transfer/%s/univ0000/gen_%04d_*.pkl" % ("20210309-094431-fifth_run", 1))
+            genome_seeds = glob.glob("outputs/problem_cifar_no_transfer/%s/univ0000/gen_%04d_*.pkl" % ("20210310-002525-seventh_run", 1))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
 
         augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
