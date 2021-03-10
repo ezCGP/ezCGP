@@ -146,7 +146,7 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 2
+        GENERATION_LIMIT = 1
         SCORE_MIN = 1 - 1e-10
 
         # only going to look at the 2nd objective value which is f1
@@ -179,5 +179,8 @@ class Problem(ProblemDefinition_Abstract):
         the idea here is that the universe.run() is about to exit but before it does,
         we can export or plot things wrt the final population
         '''
-        ezLogging.info("Post Processing Universe Run - pass")
-        pass
+        ezLogging.info("Post Processing Universe Run - qsub next generation")
+        cmd = 'qsub -F "%i %s" ~/ezCGP/pbs_files/pace-ice_cifar10-noTrasferLearning.pbs' % (universe.random_seed, universe.output_folder)
+        os.system(cmd)
+        ezLogging.debug("Post Processing Universe Run - ran cmd: %s" % cmd)
+

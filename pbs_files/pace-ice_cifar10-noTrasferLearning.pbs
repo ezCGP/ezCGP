@@ -1,0 +1,15 @@
+#PBS -N ezCGP_cifar10                           # name of job
+#PBS -l nodes=1:ppn=8:gpus=2:exclusive_process  # resources allocated, 1 node 4 processors
+#PBS -l walltime=8:00:00                        # job will run at most 8 hours
+#PBS -l mem=128gb                          	# job requires 8gb per core
+#PBS -q pace-ice-gpu                            # job is submitted to pace-ice
+#PBS -j oe                                      # output and error is combined into the same file
+#PBS -o ~/ezCGP/pbs_files/log_files/cifar10-noTransferLearning.out # output file
+#PBS -m abe                               	# Will send a status email based on any combination of a,b,e.
+#PBS -M rtalebi3@gatech.edu                     # Where to send email updates to  
+echo "Started on `/bin/hostname`"               # prints name of compute node job was started on
+cd ~/ezCGP
+module load anaconda3/2020.02
+module load cuda/10.1
+conda activate ezcgp-pyi
+python main.py -p problem_cifar_no_transfer -v --seed $1 --previous_run $2

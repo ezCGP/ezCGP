@@ -32,6 +32,7 @@ from codes.utilities.custom_logging import ezLogging
 
 def main(problem_filename: str,
          problem_output_directory: str=tempfile.mkdtemp(),
+         prvious_run: str=None,
          seed: int=0,
          loglevel: int=logging.WARNING):
     node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
@@ -62,6 +63,8 @@ def main(problem_filename: str,
     random.seed(seed) # shouldn't be using 'random' module but setting seed jic
     problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
     problem = problem_module.Problem()
+    if previous_run is not None:
+        problem.seed_with_previous_run(previous_run)
     from codes.universe import UniverseDefinition, MPIUniverseDefinition
 
     log_handler_2file = None # just initializing
@@ -85,9 +88,9 @@ def main(problem_filename: str,
         ezLogging.log_git_metadata()
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
         np.random.seed(universe_seed)
-        random.seed(seed)
+        random.seed(universe_seed)
         ezLogging.warning("STARTING UNIVERSE %i" % ith_universe)
-        universe = ThisUniverse(problem, universe_output_directory)
+        universe = ThisUniverse(problem, universe_output_directory, universe_seed)
 
         # run
         start_time = time.time()
@@ -134,6 +137,11 @@ if __name__ == "__main__":
                         dest = "loglevel",
                         action = "store_const",
                         const = logging.INFO)
+    parser.add_argument("-r", "--previous_run",
+                        type = str,
+                        required = False,
+                        default = None,
+                        help = "useful for running on clusters with time limits; pass in the most recent universe output dir for seeding")
     args = parser.parse_args()
 
     # create a logging directory specifically for this run
@@ -165,4 +173,4 @@ if __name__ == "__main__":
         problem_filename = os.path.basename(args.problem + ".py")
     
     # RUN BABYYY
-    main(problem_filename, problem_output_directory, seed, args.loglevel)
+    main(problem_filename, problem_output_directory, args.previous_run, seed, args.loglevel)

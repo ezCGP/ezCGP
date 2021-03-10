@@ -9,6 +9,7 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import glob
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
@@ -106,6 +107,31 @@ class ProblemDefinition_Abstract(ABC):
         set universe.converged to boolean T/F ...True will end the universe run
         '''
         pass
+
+
+    def seed_with_previous_run(self, previous_universe_dir):
+        '''
+        we can set the genome_seeds attribute in Problem.__init__()
+        or we can pass in a directory to find the pickled individuals when we call main.py
+
+        this is useful for when we are running on a cluster like pace-ice with a compute time limit.
+        at the end of a generation, we can start a new process for the next generation and reset the
+        time limit...just have to pass the current output directory as input to the next run
+        '''
+        assert(os.path.exists(previous_universe_dir)), "Given 'previous_run' does not exist..."
+        all_indiv = glob.glob(os.path.join(previous_universe_dir, "gen_*_indiv_*.pkl"))
+        gen_dict = {}
+        for indiv in all_indiv:
+            # indiv should look like gen_###_indiv_hash.pkl
+            gen = int(indiv.split("_")[2])
+            if gen in gen_dict:
+                gen_dict[gen].append(indiv)
+            else:
+                gen_dict[gen] = [indiv]
+
+         # now get the highest gen and all those individuals to genome_seeds
+         largest_gen = max(list(gen_dict.keys()))
+         self.genome_seeds += gen_dict[largest_gen]
 
 
     def postprocess_generation(self, universe):
