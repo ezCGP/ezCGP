@@ -34,6 +34,11 @@ def plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None):
     return fig, axes
 
 
+def label_axis(axis, x, y, fontsize=12, **kwargs):
+    axis.set_xlabel(x, fontsize=fontsize, **kwargs)
+    axis.set_ylabel(y, fontsize=fontsize, **kwargs)
+
+
 def plot_legend(fig=None):
     if fig is not None:
         fig.legend()

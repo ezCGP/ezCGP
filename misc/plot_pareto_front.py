@@ -43,10 +43,12 @@ if __name__ == "__main__":
                                                            minimization=args.minimization,
                                                            color=plot_things.matplotlib_colors[generation%len(plot_things.matplotlib_colors)],
                                                            label="Gen %2d" % generation,
+                                                           x_objective_index=1, y_objective_index=2,
                                                           )
             generation+=1
 
     plot_things.plot_legend(fig)
     plot_things.square_figure(fig)
+    plot_things.label_axis(axis, "Precision", "Recall", fontsize=14)
     plt.savefig("temp.png")
     #plt.show()
