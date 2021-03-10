@@ -9,6 +9,7 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import os
 import glob
 import numpy as np
 from abc import ABC, abstractmethod
@@ -129,9 +130,9 @@ class ProblemDefinition_Abstract(ABC):
             else:
                 gen_dict[gen] = [indiv]
 
-         # now get the highest gen and all those individuals to genome_seeds
-         largest_gen = max(list(gen_dict.keys()))
-         self.genome_seeds += gen_dict[largest_gen]
+        # now get the highest gen and all those individuals to genome_seeds
+        largest_gen = max(list(gen_dict.keys()))
+        self.genome_seeds += gen_dict[largest_gen]
 
 
     def postprocess_generation(self, universe):

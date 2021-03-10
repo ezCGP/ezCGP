@@ -13,6 +13,7 @@ Rules:
 None
 '''
 ### packages
+import os
 import numpy as np
 import glob
 # Fitness imports
@@ -146,7 +147,7 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 1
+        GENERATION_LIMIT = 0
         SCORE_MIN = 1 - 1e-10
 
         # only going to look at the 2nd objective value which is f1

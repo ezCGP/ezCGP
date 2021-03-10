@@ -32,7 +32,7 @@ from codes.utilities.custom_logging import ezLogging
 
 def main(problem_filename: str,
          problem_output_directory: str=tempfile.mkdtemp(),
-         prvious_run: str=None,
+         previous_run: str=None,
          seed: int=0,
          loglevel: int=logging.WARNING):
     node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
