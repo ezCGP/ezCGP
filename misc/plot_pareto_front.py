@@ -29,9 +29,9 @@ if __name__ == "__main__":
                         help='List directories for each universe run',
                         required=True)
     args = parser.parse_args()
+    minimization = args.minimization
 
-    fig, axis = plt.subplots(1, 1, figsize=(10,15))
-
+    fig, axis = plt.subplots(1, 1, figsize=(12,10))
     generation = 0
     for dir_path in args.dirs:
         npzs = glob.glob(os.path.join(dir_path, "gen*_fitness.npz"))
@@ -41,10 +41,12 @@ if __name__ == "__main__":
             plot_things.plot_pareto_front_from_fitness_npz(axis,
                                                            npz,
                                                            minimization=args.minimization,
-                                                           color=plot_things.matplotlib_colors[generation],
+                                                           color=plot_things.matplotlib_colors[generation%len(plot_things.matplotlib_colors)],
                                                            label="Gen %2d" % generation,
                                                           )
             generation+=1
 
     plot_things.plot_legend(fig)
-    plt.show()
+    plot_things.square_figure(fig)
+    plt.savefig("temp.png")
+    #plt.show()

@@ -41,6 +41,11 @@ def plot_legend(fig=None):
         plt.legend()
 
 
+def square_figure(fig):
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.draw()
+
+
 def plot_save(fig, name):
     fig.savefig(name)
     plt.close()
@@ -85,25 +90,24 @@ def plot_gaussian(ax, indiv, problem):
         i+=1
 
 
-def find_pareto(data, miniminzation=True):
+def find_pareto(data, minimization=True):
     is_pareto = np.ones(data.shape[0], dtype = bool)
     for i, c in enumerate(data):
         # Keep any point with a lower cost
         if is_pareto[i]:
-            if miniminzation:
+            if minimization:
                 is_pareto[is_pareto] = np.any(data[is_pareto]<c, axis=1)
             else:
                 # Maximization
                 is_pareto[is_pareto] = np.any(data[is_pareto]>c, axis=1)
             # And keep self
             is_pareto[i] = True
-
     # Downsample from boolean array + sort
     pareto_data = data[is_pareto, :]
     pareto_data =  pareto_data[np.argsort(pareto_data[:,0])]
 
     # add 2 extreme performances
-    if miniminzation:
+    if minimization:
         x_limit = [1, pareto_data[:,1].min()]
         y_limit = [pareto_data[:,0].min(), 1]
     else:
@@ -122,7 +126,7 @@ def plot_pareto_front_from_fitness_npz(axis, population_fitness_npz, minimizatio
         # in ezcgp we minimize so if we want to maximize, then scores are negative
         # then undo the negation here
         fitness_values *= -1
-    plot_pareto_front(axis, fitness_values, **kwargs)
+    plot_pareto_front(axis, fitness_values, minimization, **kwargs)
 
 
 def plot_pareto_front(axis,
@@ -144,11 +148,14 @@ def plot_pareto_front(axis,
         where = 'post'
     else:
         where = 'pre'
-    axis.step(pareto_scores[:,0], pareto_scores[:,1], where=where, color=color, label=label)
+    axis.step(pareto_scores[:,0], pareto_scores[:,1], where=where, color=color, label=label, marker="*")
     ''' in the legend, change the line to a rectangle block; you will have to remove label from the axis.step() call as well
     red_patch = mpatches.Patch(color=color, label=label)
     axis.legend(handles=[red_patch])
     '''
+
+    axis.set_xlim(0,1)
+    axis.set_ylim(0,1)
 
     # Calculate the Area under the Curve as a Riemann sum
     auc = np.sum(np.diff(pareto_scores[:,0])*pareto_scores[0:-1,1])
