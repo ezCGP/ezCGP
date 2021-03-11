@@ -180,6 +180,14 @@ class Problem(ProblemDefinition_Abstract):
         the idea here is that the universe.run() is about to exit but before it does,
         we can export or plot things wrt the final population
         '''
+        if universe.generation == 0:
+            # sometimes the first time we are running an evolution, we can't evaluate both gen0 and gen1
+            # so we cheat and set gen limit to 0 so we can exit after evaluating the first batch of individuals.
+            # in that case, we don't get to run postprocess_generation() to save the indiv, so do it here
+            ezLogging.info("Post Processing Universe - saving Gen0")
+            save_things.save_fitness_scores(universe)
+            save_things.save_population(universe)
+
         ezLogging.info("Post Processing Universe Run - qsub next generation")
         cmd = 'qsub -F "%i %s" ~/ezCGP/pbs_files/pace-ice_cifar10-noTrasferLearning.pbs' % (universe.random_seed, universe.output_folder)
         os.system(cmd)
