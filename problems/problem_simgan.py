@@ -13,12 +13,12 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_SimGAN_Network
-from codes.block_definitions.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator
-from codes.block_definitions.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator
-from codes.block_definitions.block_evaluate import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator
-from codes.block_definitions.block_mutate import BlockMutate_OptB_4Blocks
-from codes.block_definitions.block_mate import BlockMate_WholeOnly_4Blocks
+from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
+from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
+from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
+from codes.block_definitions.evaluate.block_evaluate_gan import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_4Blocks
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
@@ -56,7 +56,16 @@ class Problem(ProblemDefinition_Abstract):
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
-        self.construct_individual_def(block_defs = [refiner_def, discriminator_def],
+        train_config_def = self.construct_block_def(nickname = "train_config",
+                                             shape_def = BlockShapeMeta_SimGAN_Train_Config, 
+                                             operator_def = BlockOperators_SimGAN_Train_Config, 
+                                             argument_def = BlockArguments_SimGAN_Train_Config,
+                                             evaluate_def = BlockEvaluate_SimGAN_Train_Config,
+                                             mutate_def=BlockMutate_OptB_4Blocks,
+                                             mate_def=BlockMate_WholeOnly_4Blocks
+                                            )
+
+        self.construct_individual_def(block_defs = [refiner_def, discriminator_def, train_config_def],
                                       mutate_def = IndividualMutate_RollOnEachBlock,
                                       mate_def = IndividualMate_RollOnEachBlock,
                                       evaluate_def = IndividualEvaluate_SimGAN
@@ -71,8 +80,8 @@ class Problem(ProblemDefinition_Abstract):
         Constructs a train and validation 1D signal datasets
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
-        self.train_data = simganData.SimGANDataset(real_size=128**2, sim_size=256, batch_size=128)
-        self.validate_data = simganData.SimGANDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)
+        self.training_datalist = [simganData.SimGANDataset(real_size=128**2, sim_size=256, batch_size=128)]
+        self.validating_datalist = [simganData.SimGANDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)]
         # import pdb; pdb.set_trace()
 
     def objective_functions(self, indiv):

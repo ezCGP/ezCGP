@@ -82,6 +82,7 @@ def main(problem_filename: str,
             universe_seed = seed + 1 + ith_universe
             ThisUniverse = UniverseDefinition
         log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
+        ezLogging.log_git_metadata()
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
         np.random.seed(universe_seed)
         random.seed(seed)

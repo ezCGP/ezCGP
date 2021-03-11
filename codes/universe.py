@@ -150,7 +150,7 @@ class UniverseDefinition():
         ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
         for indiv in self.population.population:
             # EVALUATE
-            problem.indiv_def.evaluate(indiv, problem.train_data, problem.validate_data)
+            problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
             # SCORE
             problem.objective_functions(indiv)
             self.pop_fitness_scores.append(indiv.fitness.values)

@@ -107,3 +107,24 @@ class ezLogging():
     def logging_remove_handler(handler):
         my_log = ezLogging.get_logger()
         my_log.removeHandler(handler)
+
+
+    def log_git_metadata():
+        '''
+        likely used in main() just to log the meta data about which branch and version of the codebase we are using
+
+        https://stackoverflow.com/questions/14989858/get-the-current-git-hash-in-a-python-script
+        '''
+        import subprocess
+        def run_cmd(cmd):
+            bytes_object = subprocess.check_output(cmd.split(" "))
+            as_str_with_newline = bytes_object.decode("utf-8")
+            as_str = as_str_with_newline.strip()
+            return as_str
+
+        branch_name = run_cmd("git rev-parse --abbrev-ref HEAD")
+        commit_hash = run_cmd("git rev-parse HEAD")
+        msg = "Using ezCGP branch %s with hash %s" % (branch_name, commit_hash)
+
+        my_log = ezLogging.get_logger()
+        my_log.warning(msg)

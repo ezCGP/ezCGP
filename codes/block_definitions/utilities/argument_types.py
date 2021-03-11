@@ -494,6 +494,43 @@ class ArgumentType_Int1to10(ArgumentType_Abstract):
         ezLogging.debug("%s-%s - Mutated ArgumentType_Int1to10 to %f" % (None, None, self.value))
 
 
+class ArgumentType_Int1to5(ArgumentType_Abstract):
+    '''
+    [1,2,3,4,5]
+    NOTE:
+        np.random.randint(low, high) ->[low, high)
+        np.random.random_integers(low, high) -> [low,high]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.mutate_unif_int5()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_Int1to5 Class to %f" % (None, None, self.value))
+
+
+    def mutate_unif_int5(self):
+        self.value = rnd.random_integers(low=1, high=5)
+
+
+    def mutate_unif_localint(self):
+        # make it a range of 2
+        low = self.value-1
+        high = self.value+1
+        self.value = rnd.random_integers(low, high)
+        # force value to be within 0 to 5
+        if (self.value < 1) or (self.value > 5):
+            self.mutate_unif_int5()
+
+
+    def mutate(self):
+        roll = rnd.random()
+        if roll < 2/3:
+            self.mutate_unif_int5()
+        else:
+            self.mutate_unif_localint()
+        ezLogging.debug("%s-%s - Mutated ArgumentType_Int1to5 to %f" % (None, None, self.value))
+
 
 class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
     '''
@@ -561,8 +598,7 @@ class ArgumentType_PyTorchPaddingSize(ArgumentType_Abstract):
 
 class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
     '''
-    possible values:
-    https://www.tensorflow.org/api_docs/python/tf/keras/activations
+    Encodes Pytorch common activation functions
 
     returns the actual function
     '''
@@ -591,3 +627,63 @@ class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
         self.value = np.random.choice(choices)
         self.get_name()
         ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchActivation to %s" % (None, None, self.name))
+
+class ArgumentType_TrainingStepsShort(ArgumentType_Abstract):
+    '''
+    Quick way to pick a low number of training steps, used for SimGAN pretraining
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None # This way, we can mutate to None as well
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TrainingStepsShort Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [100, 200, 300, 400, 500]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsShort to %f" % (None, None, self.value))
+
+class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
+    '''
+    Quick way to pick a medium number of training steps, used for SimGAN training
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None # This way, we can mutate to None as well
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TrainingStepsMedium Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [1000, 2000, 3000, 4000, 5000]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsMedium to %f" % (None, None, self.value))
+
+class ArgumentType_LearningRate(ArgumentType_Abstract):
+    '''
+    Quick way to pick a learning rate value, used for SimGANs
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None # This way, we can mutate to None as well
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_LearningRate Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_LearningRate to %f" % (None, None, self.value))

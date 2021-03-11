@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_arguments.py
+root/code/block_definitions/arguments/block_arguments.py
 
 Overview:
 In the first ever iteration of creating a CGP framework, it was suggested by Dr. Greg Rohling to remove hyperparamters from the genome and keep them in their own space and perform basic GA on them instead; that way, all the primitives only deal with data manipulation or classification rather than also including basic operations like addition or multiplication to evolve hyperparamter floats or booleans. The problem with this is that it leaves a lot of room for experimentation with how exactly we build out these list of arguments; so a lot more work has to be done to optimize what arguments are introduced and how they can be evolved with GA.
@@ -23,7 +23,7 @@ import numpy as np
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import tools
@@ -262,7 +262,7 @@ class BlockArguments_SimGAN_Refiner(BlockArguments_Abstract):
     argument_types.ArgumentType_PyTorchActivation - l
     '''
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Refiner Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
         self.arg_count = 4*3
         arg_dict = {argument_types.ArgumentType_Pow2: .5, # Assigns this a 50% chance and then splits the remainin 50% between the last 2
@@ -270,6 +270,7 @@ class BlockArguments_SimGAN_Refiner(BlockArguments_Abstract):
                     argument_types.ArgumentType_PyTorchActivation: 1,
                    }
         self.init_from_weight_dict(arg_dict)
+
 
 class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
     '''
@@ -281,10 +282,10 @@ class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
     argument_types.ArgumentType_PyTorchPaddingSize - l
     '''
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Discriminator Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
         self.arg_count = 5*3
-        arg_dict = {argument_types.ArgumentType_Pow2: .4, # Assigns this a 40% chance and then splits the remainin 60% between the last 3
+        arg_dict = {argument_types.ArgumentType_Pow2: 2.0/5.0, # Assigns this a 40% chance and then splits the remainin 60% between the last 3
                     argument_types.ArgumentType_PyTorchKernelSize: 1,
                     argument_types.ArgumentType_PyTorchActivation: 1,
                     argument_types.ArgumentType_PyTorchPaddingSize: 1
@@ -292,3 +293,23 @@ class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
         self.init_from_weight_dict(arg_dict)
 
 
+class BlockArguments_SimGAN_Train_Config(BlockArguments_Abstract):
+    '''
+    usage tally:
+    argument_types.ArgumentType_TrainingStepsMedium: 1
+    argument_types.ArgumentType_TrainingStepsShort: 11 
+    argument_types.ArgumentType_Int1to5: 11
+    argument_types.ArgumentType_LearningRate: 111
+    argument_types.ArgumentType_Bool: 1
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Train_Config Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 9*3
+        arg_dict = {argument_types.ArgumentType_TrainingStepsMedium: 1.0/9,
+                    argument_types.ArgumentType_TrainingStepsShort: 2.0/9,
+                    argument_types.ArgumentType_Int1to5: 2.0/9,
+                    argument_types.ArgumentType_LearningRate: 3.0/9,
+                    argument_types.ArgumentType_Bool: 1
+                   }
+        self.init_from_weight_dict(arg_dict)

@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_shapemeta.py
+root/code/block_definitions/shapemeta/block_shapemeta.py
 
 Overview:
 I know, I know. It's a crap name. Basically this is a 'miscellaneous" attribute class. Provides zero methods, just input and output data types for the block, and number of nodes in a genome. Of course, the user can add any other attribute relevant to their problem and because of the for-loop in the __init__ method of BlockDefinition, it will add every single attribute here to the BlockDefinition.
@@ -15,10 +15,11 @@ import numpy as np
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.utilities.custom_logging import ezLogging
+from data.data_tools import ezData
 
 
 
@@ -100,8 +101,8 @@ class BlockShapeMeta_DataAugmentation(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataAugmentation Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 10
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -113,8 +114,8 @@ class BlockShapeMeta_DataPreprocessing(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_DataPreprocessing Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 10
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -131,8 +132,8 @@ class BlockShapeMeta_Augmentor_TransferLearning(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TransferLearning Class" % (None, None))
         import Augmentor
-        input_dtypes = [Augmentor.Pipeline]
-        output_dtypes = [Augmentor.Pipeline]
+        input_dtypes = [ezData.ezData_Augmentor]
+        output_dtypes = [ezData.ezData_Augmentor]
         main_count = 3
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -170,9 +171,8 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         super().__init__([tf.keras.layers],
                          [tf.keras.layers],
                          10)
-        
         self.batch_size = 128
-        self.epochs = 20
+        self.epochs = 2#0
 
 class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
     def __init__(self):
@@ -180,36 +180,20 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
         # don't want it imported all the time so we didn't put it at the top of script
         from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
         import torch
-        # TODO:  this should have hyperparameters related to SimGANs, i.e. the stuff we kept in the simgan.xml
         input_dtypes = [PyTorchLayerWrapper, PyTorchLayerWrapper]
         output_dtypes = [PyTorchLayerWrapper]
         main_count = 30 # TODO: see if this needs to be bumped up
         super().__init__(input_dtypes,
                          output_dtypes,
                          main_count)
-        
-        ### CONFIG ###
-        self.device = torch.device('cpu')
 
-        # TODO: find a way to evolve these
-        # TODO: find out if this is appropriate number. Is there a way to short circuit?
-        self.train_steps = 200
-        self.r_pretrain_steps = 10
-        self.d_pretrain_steps = 10
-        self.d_updates_per_train_step = 1
-        self.r_updates_per_train_step = 2
-
-        # Optim
-        self.r_lr = 1e-4
-        self.d_lr = 1e-4
-        self.delta = 1e-4
-
-        # Losses
-        self.self_regularization_loss = torch.nn.L1Loss(reduction='sum')
-        self.local_adversarial_loss = torch.nn.CrossEntropyLoss(reduction='mean')
-
-        # Logging
-        self.steps_per_log = 100
-
-        # Using image history
-        self.use_image_history = True
+class BlockShapeMeta_SimGAN_Train_Config(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN_Train_Config Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        input_dtypes = [None]
+        output_dtypes = [dict]
+        main_count = 5 # TODO: see if this needs to be bumped up
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)

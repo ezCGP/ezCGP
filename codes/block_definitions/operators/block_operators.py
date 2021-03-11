@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_operators.py
+root/code/block_definitions/operators/block_operators.py
 
 Overview:
 Here we define the 'scope' of the operators: which primitives is the block allowed to use, with what probability will each be selected, and what is the operator_dictionary for that primitive.
@@ -18,7 +18,7 @@ import inspect
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import tools
@@ -287,6 +287,20 @@ class BlockOperators_SimGAN_Discriminator(BlockOperators_Abstract):
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_pytorch']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+class BlockOperators_SimGAN_Train_Config(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Train_Config Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_simgan_train_config']
         self.import_operator_scripts(modules)
 
         weight_dict = {}

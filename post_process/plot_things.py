@@ -52,19 +52,20 @@ def plot_regression(ax, indiv, problem):
 
     indiv has .output which should be the final regression
     '''
-    ax.plot(problem.train_data.x[0], problem.train_data.y[0], linestyle='-', color='k', label="true values1")
-    ax.plot(problem.train_data.x[0], indiv.output[0], linestyle='--', color='c', label="regression1")
+    ax.plot(problem.training_datalist[0].x, problem.training_datalist[0].y, linestyle='-', color='k', label="true values1")
+    training_output, validating_output = indiv.output
+    ax.plot(problem.training_datalist[0].x, training_output[0], linestyle='--', color='c', label="regression1")
 
 
 def plot_gaussian(ax, indiv, problem):
 
-    for i, args in enumerate(problem.train_data.y[-1]): #goal_features
+    for i, args in enumerate(problem.training_datalist[0].goal_features): #goal_features
         peak, std, intensity, ybump = args
-        curve = fake_mixturegauss.one_gauss(problem.train_data.x[0], peak, std, intensity, ybump)
+        curve = fake_mixturegauss.one_gauss(problem.training_datalist[0].x, peak, std, intensity, ybump)
         if i == 0:
-            ax.plot(problem.train_data.x[0], curve, linestyle='-', color='k', label="true values", alpha=1)
+            ax.plot(problem.training_datalist[0].x, curve, linestyle='-', color='k', label="true values", alpha=1)
         else:
-            ax.plot(problem.train_data.x[0], curve, linestyle='-', color='k', alpha=1)
+            ax.plot(problem.training_datalist[0].x, curve, linestyle='-', color='k', alpha=1)
 
     i = 0
     for node in indiv[0].active_nodes:
@@ -76,11 +77,11 @@ def plot_gaussian(ax, indiv, problem):
             indivargs.append(indiv[0].args[arg_index].value) #gotta do .value to get it as float
         peak, std, intensity = indivargs
         ybump = 0
-        curve = fake_mixturegauss.one_gauss(problem.train_data.x[0], peak, std, intensity, ybump)
+        curve = fake_mixturegauss.one_gauss(problem.training_datalist[0].x, peak, std, intensity, ybump)
         if i == 0:
-            ax.plot(problem.train_data.x[0], curve, linestyle='--', color='c', label="regression")
+            ax.plot(problem.training_datalist[0].x, curve, linestyle='--', color='c', label="regression")
         else:
-            ax.plot(problem.train_data.x[0], curve, linestyle='--', color='c')
+            ax.plot(problem.training_datalist[0].x, curve, linestyle='--', color='c')
         i+=1
 
 
@@ -114,10 +115,14 @@ def find_pareto(data, miniminzation=True):
     return pareto_data
 
 
-def plot_pareto_front_from_fitness_npz(population_fitness_npz, **kwargs):
+def plot_pareto_front_from_fitness_npz(axis, population_fitness_npz, minimization, **kwargs):
     npz_values = np.load(population_fitness_npz)
     fitness_values = npz_values['fitness']
-    plot_pareto_front(fitness_values, **kwargs)
+    if not minimization:
+        # in ezcgp we minimize so if we want to maximize, then scores are negative
+        # then undo the negation here
+        fitness_values *= -1
+    plot_pareto_front(axis, fitness_values, **kwargs)
 
 
 def plot_pareto_front(axis,
