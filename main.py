@@ -62,7 +62,7 @@ def main(problem_filename: str,
     random.seed(seed) # shouldn't be using 'random' module but setting seed jic
     problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
     problem = problem_module.Problem()
-    from codes.universe import UniverseDefinition, MPIUniverseDefinition
+    from codes.universe import UniverseDefinition, MPIUniverseDefinition, RelativePopulationUniverseDefinition
 
     log_handler_2file = None # just initializing
     for ith_universe in range(problem.number_universe):
@@ -80,7 +80,13 @@ def main(problem_filename: str,
         else:
             ezLogging_method = ezLogging.logging_2file
             universe_seed = seed + 1 + ith_universe
-            ThisUniverse = UniverseDefinition
+            try:
+                if problem.isGAN:
+                    ThisUniverse = RelativePopulationUniverseDefinition
+                else:
+                    ThisUniverse = UniverseDefinition
+            except:
+                ThisUniverse = UniverseDefinition
         log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
         ezLogging.log_git_metadata()
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))

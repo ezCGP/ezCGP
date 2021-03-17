@@ -359,3 +359,37 @@ class MPIUniverseDefinition(UniverseDefinition):
             self.converged = MPI.COMM_WORLD.bcast(self.converged, root=0)
         if self.node_number == 0:
             self.postprocess_universe(problem)
+
+class RelativePopulationUniverseDefinition(UniverseDefinition):
+    '''
+    Defines a Universe specifically for problems where the individuals are judged by a relative performance metric instead of an absolute performance metric
+    '''
+    def __init__(self,
+                 problem: ProblemDefinition_Abstract,
+                 output_folder: str):
+        ezLogging.info("Using Relative Population Universe")
+        super().__init__(problem, output_folder)
+
+    def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
+        '''
+        Evaluates and scores the population
+        '''
+        self.pop_fitness_scores = []
+        self.pop_individual_ids = []
+
+        # EVALUATE
+        ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
+        for indiv in self.population.population:
+            problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
+
+        # SCORE
+        ezLogging.info("Scoring Population of size %i" % (len(self.population.population)))
+        problem.objective_functions(self.population)
+
+        # GET SCORES AND IDS
+        for indiv in self.population.population:
+            self.pop_fitness_scores.append(indiv.fitness.values)
+            self.pop_individual_ids.append(indiv.id)
+
+        self.pop_fitness_scores = np.array(self.pop_fitness_scores)
+        self.pop_individual_ids = np.array(self.pop_individual_ids)

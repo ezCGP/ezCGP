@@ -37,6 +37,7 @@ class Problem(ProblemDefinition_Abstract):
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
+        self.isGAN = True
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
                                              shape_def = BlockShapeMeta_SimGAN_Network, 
@@ -84,13 +85,14 @@ class Problem(ProblemDefinition_Abstract):
         self.validating_datalist = [simganData.SimGANDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)]
         # import pdb; pdb.set_trace()
 
-    def objective_functions(self, indiv):
+    def objective_functions(self, population):
         '''
         TODO: add code for assigning finitess values to individuals, this may be where the tournament for skill rating among individuals goes
         TODO: figure out if any of the below code is useful
         '''
-        # if indiv.dead:
-        #     indiv.fitness.values = (np.inf, np.inf, np.inf)
+        for indiv in population.population:
+            if indiv.dead:
+                indiv.fitness.values = (np.inf, np.inf, np.inf)
         # else:
         #     clean_y, noisy_y, goal_features = self.train_data.y
         #     predict_y = indiv.output[0]
