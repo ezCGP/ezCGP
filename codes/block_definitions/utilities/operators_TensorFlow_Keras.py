@@ -100,7 +100,7 @@ def conv3DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
                                            activation=activation,
                                            data_format="channels_last"
                                           )(input_tensor)
-
+                                          
 operator_dict[conv3DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
                                         "args": [argument_types.ArgumentType_Pow2,
@@ -185,3 +185,11 @@ operator_dict[fractional_avg_pool] = {"inputs": [tf.keras.layers],
                                       "output": tf.keras.layers
                                       }
 
+
+def dropout_layer(input_tensor, rate=0.2):
+    return tf.keras.layers.Dropout(rate)(input_tensor)
+
+operator_dict[max_pool_layer] = {"inputs": [tf.keras.layers],
+                                 "output": tf.keras.layers,
+                                 "args": [argument_types.ArgumentType_Float0to1]
+                                 }
