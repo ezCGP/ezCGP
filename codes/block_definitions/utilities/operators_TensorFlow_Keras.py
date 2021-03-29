@@ -1,27 +1,25 @@
 '''
 root/codes/block_definition/utilities/operators...
-
 Overview:
 going to add basically any method listed in this module
 www.tensorflow.org/api_docs/python/tf/keras/layers
-
 Rules:
 Make sure the BlockEvaluate Definition is appropriate to the tf.keras module.
 And make sure argument types are valid and appropriate for your needs
 '''
 
-# packages
-from codes.block_definitions.utilities import argument_types
-from codes.utilities.custom_logging import ezLogging
+### packages
 import tensorflow as tf
 import numpy as np
 
-# sys relative to root dir
+### sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
-# abosulte imports wrt root
+### abosulte imports wrt root
+from codes.utilities.custom_logging import ezLogging
+from codes.block_definitions.utilities import argument_types
 
 # init dict
 operator_dict = {}
@@ -33,7 +31,6 @@ def conv2D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu)
     Convolutional Layer
     Computes 32 features using a 5x5 filter with ReLU activation.
     Padding is added to preserve width and height.
-
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
     '''
     return tf.keras.layers.Conv2D(filters=filters,
@@ -41,15 +38,14 @@ def conv2D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu)
                                   padding="same",
                                   activation=activation,
                                   data_format="channels_last"
-                                  )(input_tensor)
-
+                                 )(input_tensor)
 
 operator_dict[conv2D_layer] = {"inputs": [tf.keras.layers],
                                "output": tf.keras.layers,
                                "args": [argument_types.ArgumentType_Pow2,
                                         argument_types.ArgumentType_TFFilterSize,
                                         argument_types.ArgumentType_TFActivation]
-                               }
+                              }
 
 
 def conv2DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu):
@@ -63,8 +59,6 @@ def conv2DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
                                            activation=activation,
                                            data_format="channels_last"
                                            )(input_tensor)
-
-
 '''
 operator_dict[conv2DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
@@ -84,7 +78,6 @@ def conv3D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu)
                                   activation=activation,
                                   data_format="channels_last"
                                  )(input_tensor)
-
 operator_dict[conv3D_layer] = {"inputs": [tf.keras.layers],
                                "output": tf.keras.layers,
                                "args": [argument_types.ArgumentType_Pow2,
@@ -103,7 +96,6 @@ def conv3DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
                                            activation=activation,
                                            data_format="channels_last"
                                           )(input_tensor)
-
 operator_dict[conv3DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
                                         "args": [argument_types.ArgumentType_Pow2,
@@ -118,14 +110,13 @@ def gaussianNoise_layer(input_tensor, stddev):
     '''
     return tf.keras.layers.GaussianNoise(stddev=stddev)(input_tensor)
 
-
 operator_dict[gaussianNoise_layer] = {"inputs": [tf.keras.layers],
-                                      "output": tf.keras.layers,
-                                      "args": [argument_types.ArgumentType_Float0to1]
-                                      }
+                                        "output": tf.keras.layers,
+                                        "args": [argument_types.ArgumentType_Float0to1]
+                                       }
 
 
-# Pooling Layers
+### Pooling Layers
 
 def avg_pool_layer(input_tensor, pool_height=2, pool_width=2, strides=2):
     if input_tensor.rank == 1:
@@ -134,7 +125,6 @@ def avg_pool_layer(input_tensor, pool_height=2, pool_width=2, strides=2):
         return tf.keras.layers.AveragePooling2D(pool_size=[pool_height, pool_width], strides=strides, padding="valid")(input_tensor)
     if input_tensor.rank == 3:
         return tf.keras.layers.AveragePooling3D(pool_size=[pool_height, pool_width], strides=strides, padding="valid")(input_tensor)
-
 
 operator_dict[avg_pool_layer] = {"inputs": [tf.keras.layers],
                                  "output": tf.keras.layers,
@@ -149,7 +139,6 @@ def max_pool_layer(input_tensor, pool_height=2, pool_width=2, strides=2):
         return input_tensor
     else:
         return tf.keras.layers.MaxPool2D(pool_size=[pool_height, pool_width], strides=strides, padding="valid")(input_tensor)
-
 
 operator_dict[max_pool_layer] = {"inputs": [tf.keras.layers],
                                  "output": tf.keras.layers,
@@ -171,7 +160,6 @@ def fractional_max_pool(input_tensor, pool_height=2, pool_width=2):
     # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence
     return tf.nn.fractional_max_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)[0]
 
-
 operator_dict[fractional_max_pool] = {"inputs": [tf.keras.layers],
                                       "args": [argument_types.ArgumentType_TFPoolSize, argument_types.ArgumentType_TFPoolSize],
                                       "output": tf.keras.layers
@@ -186,7 +174,6 @@ def fractional_avg_pool(input_tensor, pool_height=2.0, pool_width=2.0):
     overlapping = True
     # returns a tuple of Tensor objects (output, row_pooling_sequence, col_pooling_sequence)
     return tf.nn.fractional_avg_pool(input_tensor, pooling_ratio, pseudo_random, overlapping)[0]
-
 
 operator_dict[fractional_avg_pool] = {"inputs": [tf.keras.layers],
                                       "args": [argument_types.ArgumentType_TFPoolSize, argument_types.ArgumentType_TFPoolSize],
