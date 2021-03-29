@@ -1,8 +1,10 @@
 '''
 root/codes/block_definition/utilities/operators...
+
 Overview:
 going to add basically any method listed in this module
 www.tensorflow.org/api_docs/python/tf/keras/layers
+
 Rules:
 Make sure the BlockEvaluate Definition is appropriate to the tf.keras module.
 And make sure argument types are valid and appropriate for your needs
@@ -31,6 +33,7 @@ def conv2D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu)
     Convolutional Layer
     Computes 32 features using a 5x5 filter with ReLU activation.
     Padding is added to preserve width and height.
+
     https://www.tensorflow.org/api_docs/python/tf/keras/layers/Conv2D
     '''
     return tf.keras.layers.Conv2D(filters=filters,
@@ -78,6 +81,7 @@ def conv3D_layer(input_tensor, filters=64, kernel_size=3, activation=tf.nn.relu)
                                   activation=activation,
                                   data_format="channels_last"
                                  )(input_tensor)
+
 operator_dict[conv3D_layer] = {"inputs": [tf.keras.layers],
                                "output": tf.keras.layers,
                                "args": [argument_types.ArgumentType_Pow2,
@@ -96,6 +100,7 @@ def conv3DTranspose_layer(input_tensor, filters=64, kernel_size=3, activation=tf
                                            activation=activation,
                                            data_format="channels_last"
                                           )(input_tensor)
+                                          
 operator_dict[conv3DTranspose_layer] = {"inputs": [tf.keras.layers],
                                         "output": tf.keras.layers,
                                         "args": [argument_types.ArgumentType_Pow2,
