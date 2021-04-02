@@ -298,7 +298,10 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             self.build_graph(block_material, block_def, training_augmentor)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+
             block_material.dead = True
+            import traceback
+            traceback.print_exc()
             import pdb; pdb.set_trace()
             return
 
@@ -479,5 +482,3 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
             return
 
         block_material.output = (None, None, validation_scores)
-
-

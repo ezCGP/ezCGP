@@ -65,7 +65,7 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 20
+        population_size = 8
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -101,8 +101,9 @@ class Problem(ProblemDefinition_Abstract):
                                                         mutate_def=BlockMutate_OptB_4Blocks,
                                                         mate_def=BlockMate_WholeOnly_4Blocks)
 
-        self.construct_individual_def(block_defs=[augmentation_block_def,
-                                                  preprocessing_block_def,
+        self.construct_individual_def(block_defs=[
+                                                # augmentation_block_def,
+                                                # preprocessing_block_def,
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
@@ -146,11 +147,11 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 2
+        GENERATION_LIMIT = 50
         SCORE_MIN = 1 - 1e-10
 
         # only going to look at the 2nd objective value which is f1
-        min_firstobjective_index = universe.pop_fitness_scores[:,1].argmin()
+        min_firstobjective_index = universe.pop_fitness_scores[:,0].argmin()
         min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:]
         ezLogging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 

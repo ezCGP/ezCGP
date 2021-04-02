@@ -36,6 +36,7 @@ operator_dict[sub_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
 
 
 def mult_tensors(input_layer0, input_layer1):
+    print("YAY, HERE")
     return keras.layers.Multiply([input_layer0, input_layer1])
 
 operator_dict[mult_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
@@ -45,6 +46,7 @@ operator_dict[mult_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
 
 
 def add_tensors(input_layer0, input_layer1):
+    print("YAY, HERE")
     return tf.keras.layers.Add()([input_layer0, input_layer1])
 
 operator_dict[add_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
@@ -56,16 +58,16 @@ operator_dict[add_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
 def flatten_layer(input_layer):
     return tf.keras.layers.Flatten()(input_layer)
 
-operator_dict[flatten_layer] = {"inputs": [tf.keras.layers],
-                                "output": tf.keras.layers,
-                                "args":[]
-                               }
+# operator_dict[flatten_layer] = {"inputs": [tf.keras.layers],
+#                                 "output": tf.keras.layers,
+#                                 "args":[]
+#                                }
 
 
 def dropout_layer(input_layer):
     return tf.keras.layers.Dropout(rate=0.2)(input_layer)
 
-operator_dict[dropout_layer] = {"inputs": [tf.keras.layers],
-                                "output": tf.keras.layers,
-                                "args": []
-                               }
+# operator_dict[dropout_layer] = {"inputs": [tf.keras.layers],
+#                                 "output": tf.keras.layers,
+#                                 "args": []
+#                                }

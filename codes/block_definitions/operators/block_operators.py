@@ -265,4 +265,3 @@ class BlockOperators_TFKeras(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         self.init_from_weight_dict(weight_dict)
-
