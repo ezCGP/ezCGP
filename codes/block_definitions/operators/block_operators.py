@@ -131,6 +131,7 @@ class BlockOperators_SymbRegressionOpsForArraysNoArgs(BlockOperators_Abstract):
         weight_dict[operators_symbregression_noargs.add_aa2a] = 1
         weight_dict[operators_symbregression_noargs.sub_aa2a] = 1
         weight_dict[operators_symbregression_noargs.mul_aa2a] = 1
+        weight_dict[operators_symbregression_noargs.div_aa2a] = 1
         weight_dict[operators_symbregression_noargs.power_aa2a] = 1
 
         self.init_from_weight_dict(weight_dict)

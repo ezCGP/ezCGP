@@ -12,7 +12,6 @@ mention any assumptions made in the code or rules about code structure should go
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import logging
 import pdb
 
 ### sys relative to root dir
@@ -24,6 +23,8 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import ezData
+from post_process import save_things
+from codes.utilities.custom_logging import ezLogging
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SymbolicRegressionArg_ProbActive
 from codes.block_definitions.operators.block_operators import BlockOperators_SymbRegressionOpsForArraysNoArgs
 from codes.block_definitions.arguments.block_arguments import BlockArguments_NoArgs
@@ -41,10 +42,10 @@ class Problem(ProblemDefinition_Abstract):
     TODO
     '''
     def __init__(self):
-        population_size = 2**8
+        population_size = 2**9
         number_universe = 1
         factory = FactoryDefinition
-        mpi = False
+        mpi = True
         super().__init__(population_size, number_universe, factory, mpi)
 
         block_def = self.construct_block_def(nickname = "main_block",
@@ -105,7 +106,7 @@ class Problem(ProblemDefinition_Abstract):
             actual = self.training_datalist[0].y
             training_output, validating_output = indiv.output
             predict = training_output[0]
-            error = actual-predict
+            error = np.log(actual)-np.log(predict)
             rms_error = np.sqrt(np.mean(np.square(error)))
             if np.isnan(rms_error):
                 rms_error = np.inf
@@ -116,19 +117,19 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 100
-        SCORE_MIN = 1e-1
+        GENERATION_LIMIT = 9000
+        SCORE_MIN = 1e-5
 
         # only going to look at the first objective value which is rmse
         min_firstobjective_index = universe.pop_fitness_scores[:,0].argmin()
         min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,0]
-        logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
+        ezLogging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
         if universe.generation >= GENERATION_LIMIT:
-            logging.warning("TERMINATING...reached generation limit.")
+            ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
         if min_firstobjective < SCORE_MIN:
-            logging.warning("TERMINATING...reached minimum scores.")
+            ezLogging.warning("TERMINATING...reached minimum scores.")
             universe.converged = True
 
 
@@ -148,6 +149,7 @@ class Problem(ProblemDefinition_Abstract):
         actual = self.training_datalist[0].y
         predict = indiv.output[0][0]
         x = self.training_datalist[0].x
+        plt.figure(figsize=(15,10))
         plt.plot(x, actual, marker='x', label="actual")
         plt.plot(x, predict, marker='x', label="predict")
         plt.legend()
@@ -155,4 +157,10 @@ class Problem(ProblemDefinition_Abstract):
         plt.savefig(os.path.join(universe.output_folder, "best_indiv_gen%04d" % universe.generation))
         plt.close()
 
+        ezLogging.warning("PostProcess Gen %i - %s" % (universe.generation, predict))
+        save_things.save_fitness_scores(universe)
+        save_things.save_population(universe)
+
+
+    def postprocess_universe(self, universe):
         pdb.set_trace()

@@ -89,7 +89,7 @@ class BlockShapeMeta_SymbolicRegressionArg_ProbActive(BlockShapeMeta_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SymbolicRegressionArg_ProbActive Class" % (None, None))
         input_dtypes = [np.ndarray]*14
         output_dtypes = [np.ndarray]
-        main_count = 2**7
+        main_count = 2**8
         BlockShapeMeta_Abstract.__init__(self,
                                          input_dtypes,
                                          output_dtypes,

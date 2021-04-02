@@ -100,6 +100,14 @@ operator_dict[mul_aa2a] = {"inputs": [np.ndarray, np.ndarray],
                           }
 
 
+def div_aa2a(a,b):
+    return np.divide(a,b)
+operator_dict[div_aa2a] = {"inputs": [np.ndarray, np.ndarray],
+                           "output": np.ndarray,
+                           "args": []
+                          }
+
+
 def power_aa2a(a,b):
     return a**np.abs(b)
 operator_dict[power_aa2a] = {"inputs": [np.ndarray, np.ndarray],
