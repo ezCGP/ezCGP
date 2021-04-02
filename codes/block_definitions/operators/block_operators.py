@@ -116,6 +116,27 @@ class BlockOperators_SymbRegressionOpsNoArgs(BlockOperators_Abstract):
 
 
 
+class BlockOperators_SymbRegressionOpsForArraysNoArgs(BlockOperators_Abstract):
+    '''
+    Simple numpy operators that do not require arguments; so we should have a block that takes in the data as one input, and at least one float/int as another input to use.
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SymbRegressionOpsForArraysNoArgs Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_symbregression_noargs']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        weight_dict[operators_symbregression_noargs.add_aa2a] = 1
+        weight_dict[operators_symbregression_noargs.sub_aa2a] = 1
+        weight_dict[operators_symbregression_noargs.mul_aa2a] = 1
+        weight_dict[operators_symbregression_noargs.power_aa2a] = 1
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
 class BlockOperators_SymbRegressionOpsWithArgs(BlockOperators_Abstract):
     '''
     Basically the same primitives as BlockOperators_SymbRegressionOpsNoArgs but the operator dict calls for arguments; so our block would only have the data as an input.
