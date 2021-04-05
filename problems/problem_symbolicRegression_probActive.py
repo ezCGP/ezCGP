@@ -10,6 +10,7 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 import os
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import pdb
@@ -46,7 +47,10 @@ class Problem(ProblemDefinition_Abstract):
         number_universe = 1
         factory = FactoryDefinition
         mpi = True
-        super().__init__(population_size, number_universe, factory, mpi)
+        genome_seeds = glob.glob("outputs/problem_symbolicRegression_probactive/20210402-162139/univ0000/gen_0548_*.pkl")
+        if len(genome_seeds)==0:
+            pdb.set_trace()
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
 
         block_def = self.construct_block_def(nickname = "main_block",
                                              shape_def = BlockShapeMeta_SymbolicRegressionArg_ProbActive,
@@ -118,7 +122,7 @@ class Problem(ProblemDefinition_Abstract):
 
     def check_convergence(self, universe):
         GENERATION_LIMIT = 9000
-        SCORE_MIN = 1e-5
+        SCORE_MIN = 0
 
         # only going to look at the first objective value which is rmse
         min_firstobjective_index = universe.pop_fitness_scores[:,0].argmin()
