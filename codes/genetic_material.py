@@ -60,9 +60,14 @@ class IndividualMaterial():
     def set_id(self, _id=None):
         '''
         thought there could be a unique way to identify an individual for ezLogging and saving
+
+        just in-case multiprocessing was getting individuals in the same fraction of a second, adding a 
+        random number to the front end as a string 
         '''
         if _id is None:
-            new = hex(int(datetime.now().strftime("%H%M%S%f")))[2:]
+            str_from_radnom = str(np.random.randint(1000))
+            str_from_datetime = datetime.now().strftime("%H%M%S%f")
+            new = hex(int(str_from_radnom + str_from_datetime))[2:]
             ezLogging.debug("New ID %s" % new)
             self.id = new
         else:
