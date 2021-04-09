@@ -195,7 +195,6 @@ def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockD
     '''
     ezLogging.info("%s - Inside mutate_single_argvalue" % (mutant_material.id))
     if len(mutant_material.active_args) > 0:
-        # try:
         # if block has arguments, then there is something to mutate
         choices = np.arange(block_def.arg_count)
         choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
@@ -209,9 +208,6 @@ def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockD
                 break
             else:
                 ezLogging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, arg_index))
-        # except Exception as e:
-        #     import pdb; pdb.set_trace()
-        #     print('hi')
     else:
         # won't actually mutate
         ezLogging.warning("%s - No active args to mutate" % (mutant_material.id))

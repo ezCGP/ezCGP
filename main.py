@@ -81,7 +81,7 @@ def main(problem_filename: str,
             ezLogging_method = ezLogging.logging_2file
             universe_seed = seed + 1 + ith_universe
             try:
-                if problem.isGAN:
+                if problem.relativeScoring:
                     ThisUniverse = RelativePopulationUniverseDefinition
                 else:
                     ThisUniverse = UniverseDefinition

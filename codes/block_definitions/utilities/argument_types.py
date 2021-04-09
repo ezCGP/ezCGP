@@ -675,15 +675,15 @@ class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
 
 class ArgumentType_LearningRate(ArgumentType_Abstract):
     '''
-    quick way to pick a learning rate value, used for simgans
+    Quick way to pick a learning rate value, used for SimGANs
     '''
     def __init__(self, value=None):
         if value is None:
-            self.value = None # this way, we can mutate to none as well
+            self.value = None # This way, we can mutate to None as well
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Mutated ArgumentType_LearningRate to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_LearningRate Class to %f" % (None, None, self.value)))
 
 
     def mutate(self):

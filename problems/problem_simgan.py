@@ -38,7 +38,7 @@ class Problem(ProblemDefinition_Abstract):
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
-        self.isGAN = True
+        self.relativeScoring = True
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
                                              shape_def = BlockShapeMeta_SimGAN_Network, 

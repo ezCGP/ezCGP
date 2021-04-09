@@ -77,13 +77,6 @@ def linear_layer(input_layer, out_features):
             
             self.layer = nn.Sequential(*layers)
 
-            # Define out shape and instantiate layer
-            # self.out_shape = (out_features,)
-            # self.layer = nn.Sequential(
-            #         nn.Flatten(start_dim=1), # gives us an NxD tensor (ideal for linear layer)
-            #         nn.Linear(self.in_features, out_features)
-            #     )
-        
     return Linear_Layer(input_layer.get_out_shape(), out_features)
 
 operator_dict[linear_layer] = {"inputs": [PyTorchLayerWrapper],
