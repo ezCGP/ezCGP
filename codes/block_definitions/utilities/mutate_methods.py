@@ -70,7 +70,7 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def): #: BlockDefi
                 break
 
 
-def mutate_single_ftn(mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+def mutate_single_ftn(mutant_material: BlockMaterial, block_def, dont_exclude=False): #: BlockDefinition):
     '''
     pick nodes at random and mutate the ftn-index until an active node is selected
     will mutate the function to anything with matching input/arg dtype.
@@ -80,11 +80,16 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def): #: BlockDefini
     ezLogging.info("%s - Inside mutate_single_ftn" % (mutant_material.id))
     choices = np.arange(block_def.main_count)
     choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
+    # import pdb; pdb.set_trace()
     for node_index in choices:
         # note, always will be a main_node
         current_ftn = mutant_material[node_index]["ftn"]
         req_output_dtype = block_def.operator_dict[current_ftn]["output"]
-        new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[current_ftn])
+        new_ftn = None
+        if dont_exclude:
+            new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[])
+        else:    
+            new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[current_ftn])
         ezLogging.debug("%s - Mutated node %i - possible new ftn: %s" % (mutant_material.id, node_index, new_ftn))
 
         # make sure input_dtypes match
@@ -190,6 +195,7 @@ def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockD
     '''
     ezLogging.info("%s - Inside mutate_single_argvalue" % (mutant_material.id))
     if len(mutant_material.active_args) > 0:
+        # try:
         # if block has arguments, then there is something to mutate
         choices = np.arange(block_def.arg_count)
         choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
@@ -203,6 +209,9 @@ def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockD
                 break
             else:
                 ezLogging.debug("%s - Mutated node %i - inactive" % (mutant_material.id, arg_index))
+        # except Exception as e:
+        #     import pdb; pdb.set_trace()
+        #     print('hi')
     else:
         # won't actually mutate
         ezLogging.warning("%s - No active args to mutate" % (mutant_material.id))

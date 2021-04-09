@@ -84,6 +84,28 @@ class BlockMutate_OptB(BlockMutate_Abstract):
             mutate_methods.mutate_single_ftn(mutant_material, block_def)
 
 
+class BlockMutate_SimGAN(BlockMutate_Abstract):
+    '''
+    Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockMutate_OptB Class" % (None, None))
+        self.prob_mutate = 1.0 # TODO: change to 0.5
+        self.num_mutants = 4
+
+
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+        roll = rnd.random()
+        ezLogging.info("%s - Sending block to mutate; roll: %f" % (mutant_material.id, roll))
+        if roll < (1/4):
+            mutate_methods.mutate_single_input(mutant_material, block_def)
+        elif roll < (2/4):
+            mutate_methods.mutate_single_argvalue(mutant_material, block_def)
+        elif roll < (3/4):
+            mutate_methods.mutate_single_argindex(mutant_material, block_def)
+        else:
+            mutate_methods.mutate_single_ftn(mutant_material, block_def, dont_exclude=True)
+
 
 class BlockMutate_OptB_4Blocks(BlockMutate_OptB):
     '''

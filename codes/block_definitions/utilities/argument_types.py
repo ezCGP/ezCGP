@@ -642,9 +642,12 @@ class ArgumentType_TrainingStepsShort(ArgumentType_Abstract):
 
 
     def mutate(self):
-        choices = [100, 200, 300, 400, 500]
-        if self.value in choices:
-            choices.remove(self.value) # works in-place
+        # choices = [100, 200, 300, 400, 500]
+        # if self.value in choices:
+        #     choices.remove(self.value) # works in-place
+
+        choices = [50] # NOTE: for testing, don't leave this
+
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsShort to %f" % (None, None, self.value))
 
@@ -662,23 +665,25 @@ class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
 
 
     def mutate(self):
-        choices = [1000, 2000, 3000, 4000, 5000]
-        if self.value in choices:
-            choices.remove(self.value) # works in-place
+        # choices = [1000, 2000, 3000, 4000, 5000]
+        # if self.value in choices:
+        #     choices.remove(self.value) # works in-place
+
+        choices = [50] # NOTE: for testing, don't leave this
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsMedium to %f" % (None, None, self.value))
 
 class ArgumentType_LearningRate(ArgumentType_Abstract):
     '''
-    Quick way to pick a learning rate value, used for SimGANs
+    quick way to pick a learning rate value, used for simgans
     '''
     def __init__(self, value=None):
         if value is None:
-            self.value = None # This way, we can mutate to None as well
+            self.value = None # this way, we can mutate to none as well
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_LearningRate Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_LearningRate to %f" % (None, None, self.value))
 
 
     def mutate(self):
@@ -687,3 +692,13 @@ class ArgumentType_LearningRate(ArgumentType_Abstract):
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_LearningRate to %f" % (None, None, self.value))
+
+class ArgumentType_Placeholder(ArgumentType_Abstract):
+    '''
+    A placeholder argument type, used for simgan train config operator because we need to have an input
+    '''
+    def __init__(self, value=None):
+        self.value = value
+
+    def mutate(self):
+        ezlogging.debug("Called mutate on placeholder")

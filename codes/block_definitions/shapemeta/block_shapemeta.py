@@ -189,9 +189,10 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
 
 class BlockShapeMeta_SimGAN_Train_Config(BlockShapeMeta_Abstract):
     def __init__(self):
+        from codes.block_definitions.utilities import argument_types
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN_Train_Config Class" % (None, None))
         # don't want it imported all the time so we didn't put it at the top of script
-        input_dtypes = [None]
+        input_dtypes = [argument_types.ArgumentType_Placeholder] # NOTE: we don't actually need input, so we just use an int (would use None, but an exception occurs if you do that, so this is a workaround)
         output_dtypes = [dict]
         main_count = 5 # TODO: see if this needs to be bumped up
         super().__init__(input_dtypes,
