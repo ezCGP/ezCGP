@@ -3,10 +3,12 @@ This class takes in an individual and writes it to a .csv for draw.io to process
 
 Use: Instantiate object, then pass an individual to create_csv
 """
-
+import argparse
 import pickle
 import string
 import csv
+import os
+import sys
 import numpy as np
 
 header = '## Hello World \
@@ -27,67 +29,66 @@ header = '## Hello World \
             \n '
 
 
-class Visualizer():
-    def __init__(self, output_path='vis.csv'):
+class Visualizer:
+    def __init__(self, output_path='vis'):
         # Limit on number of block is letters of alphabet
         self.output_path = output_path
         self.shifts = list(string.ascii_lowercase)
         self.colors = ['#dae8fc', '#f8cecc', "#d5e8d4"] * 9
         self.header = header
-        self.arrow_color = "#1500ff"
-        self.csv_rows = self.header.split("\n")
+        self.arrow_color = '#1500ff'
+        self.csv_rows = self.header.split('\n')
         self.individual_num = 0
         self.append_csv(True)
 
     def add_to_csv(self, individual):
         self.csv_rows = []
         self.individual_num += 1
-        prev_output = ""
+        prev_output = ''
 
         for block_num, block in enumerate(individual.blocks):
-            curr_block = block
-
             shift = self.shifts[block_num]
             color = self.colors[block_num]
-            for active_node in curr_block.active_nodes:
+            for active_node in block.active_nodes:
                 fn = block.genome[active_node]
 
                 if active_node < 0:  # Input
-                    layer_info = "nickname= {}".format(
-                        block.block_nickname)
-                    out = "{}{}{},{},\"{}\",{},\"{}\",{}".format(
-                        self.individual_num, shift, active_node, fn, layer_info, color, prev_output, self.arrow_color)
+                    layer_info = f'nickname= {block.block_nickname}'
+                    out = f'{self.individual_num}{shift}{active_node},{fn},\"{layer_info}\",{color},\"{prev_output}\",{self.arrow_color}'
                 elif type(fn) == np.int64:
-                    out = "{}{}{},Output,,{},\"{}\",{}".format(self.individual_num, shift, active_node, color, str(
-                        self.individual_num) + shift + str(fn), self.arrow_color)
-                    prev_output = str(self.individual_num) + \
-                        shift + str(active_node)
+                    output = f'{self.individual_num}{shift}{fn}'
+                    out = f'{self.individual_num}{shift}{active_node},Output,,{color},\"{output}\",{self.arrow_color}'
+                    prev_output = f'{self.individual_num}{shift}{active_node}'
                 else:
-                    out = "{}{}{},{},,{},\"{}\",{}".format(self.individual_num, shift, active_node, fn['ftn'].__name__, color, ','.join(
-                        map(lambda x: str(self.individual_num) + shift + str(x), fn['inputs'])), self.arrow_color)
-
+                    inputs = ','.join([f'{self.individual_num}{shift}{x}' for x in fn['inputs']])
+                    out = f'{self.individual_num}{shift}{active_node},{fn["ftn"].__name__},,{color},\"{inputs}\",{self.arrow_color}'
                 self.csv_rows.append(out + "")
 
-        categorical_acc, precision, recall = individual.fitness.values
-        self.csv_rows.append("END,\"Fitness: ({},{},{})\",,{},\"{}\",".format(
-            -categorical_acc, -precision, -recall, '#ffe6cc', prev_output))
-
+        accuracy, precision, recall = individual.fitness.values
+        self.csv_rows.append(f'END,\"Fitness: ({-accuracy},{-precision},{-recall})\",,#ffe6cc,\"{prev_output}\",')
         self.append_csv()
 
     def append_csv(self, new=False):
-        import os
         if new:
             ext = 0
             while os.path.isfile(self.output_path):
                 ext += 1
-            self.output_path = self.output_path + "_" + str(ext)
+            self.output_path = f'{self.output_path}_{ext}'
 
-        with open(self.output_path + ".csv", 'a+') as csv:
+        with open(f'{self.output_path}.csv', 'a+') as f:
             for row in self.csv_rows:
-                csv.write(row + '\n')
+                f.write(row + '\n')
 
 
-with open('gen_0007_indiv_2e5edc094.pkl', 'rb') as indiv_pkl:
-    indiv = pickle.load(indiv_pkl)
-    viz = Visualizer()
-    viz.add_to_csv(indiv)
+if __name__ == '__main__':
+    sys.path.append('../../../../')
+    parser = argparse.ArgumentParser(description="Navigate to output folder containing individual pickle files and "
+                                                 "call this function using 'python "
+                                                 "../../../../codes/utilities/visualize.py <individual.pkl>'")
+    parser.add_argument('filepath', help='Name of the individual that you want to visualize.')
+    args = parser.parse_args()
+
+    with open(args.filepath, 'rb') as f:
+        individual = pickle.load(f)
+        viz = Visualizer()
+        viz.add_to_csv(individual)
