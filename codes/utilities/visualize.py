@@ -41,27 +41,34 @@ class Visualizer:
         self.individual_num = 0
         self.append_csv(True)
 
-    def add_to_csv(self, individual):
+    def add_to_csv(self, individual, print_entire_genome):
         self.csv_rows = []
         self.individual_num += 1
         prev_output = ''
-
         for block_num, block in enumerate(individual.blocks):
             shift = self.shifts[block_num]
             color = self.colors[block_num]
-            for active_node in block.active_nodes:
-                fn = block.genome[active_node]
 
-                if active_node < 0:  # Input
+            first_node = block.active_nodes[0]
+            for index in range(first_node, len(block.genome) + first_node):
+                if index not in block.active_nodes:
+                    if not print_entire_genome:
+                        continue
+                    color = '#f8cecc'    # should this color be hard-coded?
+                else:
+                    color = self.colors[block_num]
+                fn = block.genome[index]
+
+                if index < 0:  # Input
                     layer_info = f'nickname= {block.block_nickname}'
-                    out = f'{self.individual_num}{shift}{active_node},{fn},\"{layer_info}\",{color},\"{prev_output}\",{self.arrow_color}'
+                    out = f'{self.individual_num}{shift}{index},{fn},\"{layer_info}\",{color},\"{prev_output}\",{self.arrow_color}'
                 elif type(fn) == np.int64:
                     output = f'{self.individual_num}{shift}{fn}'
-                    out = f'{self.individual_num}{shift}{active_node},Output,,{color},\"{output}\",{self.arrow_color}'
-                    prev_output = f'{self.individual_num}{shift}{active_node}'
+                    out = f'{self.individual_num}{shift}{index},Output,,{color},\"{output}\",{self.arrow_color}'
+                    prev_output = f'{self.individual_num}{shift}{index}'
                 else:
                     inputs = ','.join([f'{self.individual_num}{shift}{x}' for x in fn['inputs']])
-                    out = f'{self.individual_num}{shift}{active_node},{fn["ftn"].__name__},,{color},\"{inputs}\",{self.arrow_color}'
+                    out = f'{self.individual_num}{shift}{index},{fn["ftn"].__name__},,{color},\"{inputs}\",{self.arrow_color}'
                 self.csv_rows.append(out + "")
 
         accuracy, precision, recall = individual.fitness.values
@@ -86,9 +93,10 @@ if __name__ == '__main__':
                                                  "call this function using 'python "
                                                  "../../../../codes/utilities/visualize.py <individual.pkl>'")
     parser.add_argument('filepath', help='Name of the individual that you want to visualize.')
+    parser.add_argument('-v', help='Show unused nodes', action='store_true')
     args = parser.parse_args()
 
     with open(args.filepath, 'rb') as f:
         individual = pickle.load(f)
         viz = Visualizer()
-        viz.add_to_csv(individual)
+        viz.add_to_csv(individual, args.v == True)
