@@ -67,8 +67,16 @@ class Visualizer:
                     out = OUTPUT_ROW.format(self.individual_num, shift, index, color, fn, self.arrow_color)
                     prev_output = f'{self.individual_num}{shift}{index}'
                 else:
+                    # Set node number and arguments
+                    arg_str = []
+                    for arg in fn['args']:
+                        value = block.args[arg].value
+                        if hasattr(value, "__name__"):
+                            value = value.__name__
+                        arg_str.append(str(value))
+                    index_n_args = "{}, args = {}".format(index, ", ".join(arg_str))
                     inputs = ','.join([f'{self.individual_num}{shift}{x}' for x in fn['inputs']])
-                    out = NORMAL_ROW.format(self.individual_num, shift, index, fn["ftn"].__name__, index, color, inputs, self.arrow_color)
+                    out = NORMAL_ROW.format(self.individual_num, shift, index, fn["ftn"].__name__, index_n_args, color, inputs, self.arrow_color)
                 self.csv_rows.append(out + "")
         accuracy, precision, recall = individual.fitness.values
         self.csv_rows.append(END_ROW.format(-accuracy, -precision, -recall, prev_output))
