@@ -4,14 +4,17 @@ This class takes in an individual and writes it to a .csv for draw.io to process
 Use: Instantiate object, then pass an individual to create_csv
 """
 import argparse
-import pickle
-import string
-import csv
+import glob
 import os
+import pickle
+import random
+import string
 import sys
+
 import numpy as np
 
-header = '## Hello World \
+
+HEADER = '## Hello World \
             \n# label: %step%<br><i style="color:gray;">%text%</i> \
             \n# style: html=1;shape=rectangle;rounded=1;fillColor=%fill%;strokeColor=%fill% \
             \n# namespace: csvimport- \
@@ -27,6 +30,11 @@ header = '## Hello World \
             \n## CSV starts under this line \
             \nid,step,text,fill,refs,arrow_color \
             \n '
+INPUT_ROW = '{}{}{},{},\"nickname = {}\",{},\"{}\",{}'
+NORMAL_ROW = '{}{}{},{},\"node #{}\",{},\"{}\",{}'
+OUTPUT_ROW = '{0}{1}{2},Output,,{3},\"{0}{1}{4}\",{5}'
+END_ROW = 'END,\"Fitness: ({},{},{})\",,#ffe6cc,\"{}\",'
+INACTIVE_NODE_COLOR = '#f8cecc'
 
 
 class Visualizer:
@@ -35,7 +43,7 @@ class Visualizer:
         self.output_path = output_path
         self.shifts = list(string.ascii_lowercase)
         self.colors = ['#dae8fc', '#f8cecc', "#d5e8d4"] * 9
-        self.header = header
+        self.header = HEADER
         self.arrow_color = '#1500ff'
         self.csv_rows = self.header.split('\n')
         self.individual_num = 0
@@ -47,32 +55,23 @@ class Visualizer:
         prev_output = ''
         for block_num, block in enumerate(individual.blocks):
             shift = self.shifts[block_num]
-            color = self.colors[block_num]
-
-            first_node = block.active_nodes[0]
-            for index in range(first_node, len(block.genome) + first_node):
-                if index not in block.active_nodes:
-                    if not print_entire_genome:
-                        continue
-                    color = '#f8cecc'    # should this color be hard-coded?
-                else:
-                    color = self.colors[block_num]
+            indices = block.active_nodes
+            if print_entire_genome:
+                indices = range(indices[0], len(block.genome) + indices[0])
+            for index in indices:
+                color = self.colors[block_num] if index in block.active_nodes else INACTIVE_NODE_COLOR
                 fn = block.genome[index]
-
                 if index < 0:  # Input
-                    layer_info = f'nickname= {block.block_nickname}'
-                    out = f'{self.individual_num}{shift}{index},{fn},\"{layer_info}\",{color},\"{prev_output}\",{self.arrow_color}'
+                    out = INPUT_ROW.format(self.individual_num, shift, index, fn, block.block_nickname, color, prev_output, self.arrow_color)
                 elif type(fn) == np.int64:
-                    output = f'{self.individual_num}{shift}{fn}'
-                    out = f'{self.individual_num}{shift}{index},Output,,{color},\"{output}\",{self.arrow_color}'
+                    out = OUTPUT_ROW.format(self.individual_num, shift, index, color, fn, self.arrow_color)
                     prev_output = f'{self.individual_num}{shift}{index}'
                 else:
                     inputs = ','.join([f'{self.individual_num}{shift}{x}' for x in fn['inputs']])
-                    out = f'{self.individual_num}{shift}{index},{fn["ftn"].__name__},,{color},\"{inputs}\",{self.arrow_color}'
+                    out = NORMAL_ROW.format(self.individual_num, shift, index, fn["ftn"].__name__, index, color, inputs, self.arrow_color)
                 self.csv_rows.append(out + "")
-
         accuracy, precision, recall = individual.fitness.values
-        self.csv_rows.append(f'END,\"Fitness: ({-accuracy},{-precision},{-recall})\",,#ffe6cc,\"{prev_output}\",')
+        self.csv_rows.append(END_ROW.format(-accuracy, -precision, -recall, prev_output))
         self.append_csv()
 
     def append_csv(self, new=False):
@@ -89,14 +88,20 @@ class Visualizer:
 
 if __name__ == '__main__':
     sys.path.append('../../../../')
-    parser = argparse.ArgumentParser(description="Navigate to output folder containing individual pickle files and "
+    parser = argparse.ArgumentParser(description="Navigate to univ0000 folder containing individual pickle files and "
                                                  "call this function using 'python "
-                                                 "../../../../codes/utilities/visualize.py <individual.pkl>'")
-    parser.add_argument('filepath', help='Name of the individual that you want to visualize.')
-    parser.add_argument('-v', help='Show unused nodes', action='store_true')
+                                                 "../../../../codes/utilities/visualize.py'")
+    parser.add_argument('individual', help='Name of the individual that you want to visualize. If not provided, '
+                                           'all individuals are visualized.', nargs='?', default='*.pkl')
+    parser.add_argument('-i', help='Show inactive nodes.', action='store_true')
     args = parser.parse_args()
 
-    with open(args.filepath, 'rb') as f:
-        individual = pickle.load(f)
-        viz = Visualizer()
-        viz.add_to_csv(individual, args.v == True)
+    viz = Visualizer()
+    # Select 20 random individuals (only applicable if 'individual' argument not passed).
+    individuals = glob.glob(args.individual)
+    random.shuffle(individuals)
+    for individual in individuals[:20]:
+        with open(individual, 'rb') as f:
+            individual = pickle.load(f)
+            viz.add_to_csv(individual, args.i)
+    print("CSV successfully created!")
