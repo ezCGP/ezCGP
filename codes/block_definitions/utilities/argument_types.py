@@ -683,7 +683,7 @@ class ArgumentType_LearningRate(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_LearningRate Class to %f" % (None, None, self.value)))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_LearningRate Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
