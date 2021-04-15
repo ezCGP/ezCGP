@@ -1,3 +1,4 @@
+import pdb # temp
 '''
 root/code/block_definitions/operators/block_operators.py
 
@@ -72,6 +73,9 @@ class BlockOperators_Abstract():
             #globals()[alias] = __import__(name)
             #going to use importlib.import_module instead of __import __ because of convention and to do better absolute/relative imports
             globals()[alias] = importlib.import_module("codes.block_definitions.utilities.%s" % name)
+            del globals()[alias].operator_dict[globals()[alias].ln_f2f]
+            del globals()[alias].operator_dict[globals()[alias].ln_a2a]
+            # pdb.set_trace()
             # what about globals().update({alias: ...})
             self.operator_dict.update(globals()[alias].operator_dict)
 
