@@ -2,11 +2,17 @@
 root/code/block_definitions/operators/block_operators.py
 
 Overview:
-Here we define the 'scope' of the operators: which primitives is the block allowed to use, with what probability will each be selected, and what is the operator_dictionary for that primitive.
-You'll note in the utilities folder that unlike argument_types that has only one file, there are a lot of operator files. This allows us to group primitives together into groups; specifically group by module dependencies and potentially by what different blocks would use. Then note how we don't import all these operators here; rather, each class defines it's own list of operator modules to import, and BlockOperators_Abstract.import_operator_scripts() will import the scripts to global. This way, if I'm solving a symbolic regression problem, I don't have to import tensorflow or keras modules unnecessarily.
+Here we define the 'scope' of the operators: which primitives is the block allowed to use, with what probability will each
+be selected, and what is the operator_dictionary for that primitive.
+You'll note in the utilities folder that unlike argument_types that has only one file, there are a lot of operator files.
+This allows us to group primitives together into groups; specifically group by module dependencies and potentially by
+what different blocks would use. Then note how we don't import all these operators here; rather, each class defines it's
+own list of operator modules to import, and BlockOperators_Abstract.import_operator_scripts() will import the scripts to global.
+This way, if I'm solving a symbolic regression problem, I don't have to import tensorflow or keras modules unnecessarily.
 
 Rules:
-At the very least will need a list of modules to import and can apply set_equal_weights() to get all the primitives in the modules. Otherwise create the weight dict and pass it into init_from_weight_dict().
+At the very least will need a list of modules to import and can apply set_equal_weights() to get all the primitives in the modules.
+Otherwise create the weight dict and pass it into init_from_weight_dict().
 '''
 
 ### packages
@@ -147,6 +153,25 @@ class BlockOperators_SymbRegressionOpsWithArgs(BlockOperators_Abstract):
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_symbregression_args']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SymbolicRegression_Benchmarking(BlockOperators_Abstract):
+    '''
+    Simple numpy operators that do not require arguments; so we should have a block that takes in the data as one input, and at least one float/int as another input to use.
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SymbolicRegression_Benchmarking Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_symbregression_benchmarking']
         self.import_operator_scripts(modules)
 
         weight_dict = {}
