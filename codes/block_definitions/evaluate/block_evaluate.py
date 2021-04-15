@@ -107,7 +107,7 @@ class BlockEvaluate_Abstract(ABC):
                 except Exception as err:
                     ezLogging.critical("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
                     block_material.dead = True
-                    import pdb; pdb.set_trace()
+                    #import pdb; pdb.set_trace()
                     break
 
         output_list = []

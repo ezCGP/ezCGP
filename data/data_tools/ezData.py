@@ -57,7 +57,7 @@ class ezData_numpy(ezData, np.ndarray):
 
     WARNING: when you deepcopy an ezData_numpy instance, it looses all it's attributes like x and y
     '''
-    def __init__(self, x, y):
+    def __init__(self, x, y=None):
         '''
         anything in here will happen after __new__ call
         '''
@@ -67,7 +67,7 @@ class ezData_numpy(ezData, np.ndarray):
     def __new__(cls, x, y=None):
         instance = np.asarray(x).view(cls)
         instance.x = instance
-        instance.y = y
+        instance.y = np.array(y)
         return instance
 
 

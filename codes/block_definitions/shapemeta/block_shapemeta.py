@@ -80,6 +80,23 @@ class BlockShapeMeta_SymbolicRegressionArg25(BlockShapeMeta_Abstract):
 
 
 
+class BlockShapeMeta_SymbolicRegressionArg_ProbActive(BlockShapeMeta_Abstract):
+    '''
+    Reasonable block size to use for Symbolic Regression of 25 nodes.
+    Note that an input ins a np.float64, so this will be used in the case where we do not want to use .args and rather use operators to evolve the input float into something useful for the regression.
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SymbolicRegressionArg_ProbActive Class" % (None, None))
+        input_dtypes = [np.ndarray]*14
+        output_dtypes = [np.ndarray]
+        main_count = 2**8
+        BlockShapeMeta_Abstract.__init__(self,
+                                         input_dtypes,
+                                         output_dtypes,
+                                         main_count)
+
+
+
 class BlockShapeMeta_Gaussian(BlockShapeMeta_Abstract):
     '''
     going to experiment with the size of the block relative to the number of gaussians needed to be fit in the data

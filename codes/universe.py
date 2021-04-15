@@ -335,8 +335,26 @@ class MPIUniverseDefinition(UniverseDefinition):
         '''
 
         self.generation = 0
-        # start split until after evaluate
-        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size//self.node_count) #each node make their own fraction of indiv...but how does seeding work, are they dups?
+        if len(problem.genome_seeds) > 0:
+            subgroups = []
+            genome_seeds = problem.genome_seeds
+            # need some way to split and scatter like with population
+            if self.node_number == 0:
+                subgroup_sizes = [len(genome_seeds)//self.node_count] * self.node_count
+                for ith_group in range(len(genome_seeds)%self.node_count):
+                    subgroup_sizes[ith_group] += 1
+
+                position = 0
+                for size in subgroup_sizes:
+                    subgroups.append(genome_seeds[position:position+size])
+                    position += size
+
+            genome_seeds = MPI.COMM_WORLD.scatter(subgroups, root=0)
+            MPI.COMM_WORLD.Barrier()
+        else:
+            genome_seeds = []
+
+        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size//self.node_count, genome_seeds) #each node make their own fraction of indiv
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
         # TODO verify ezLogging
