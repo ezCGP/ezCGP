@@ -70,7 +70,7 @@ def mutate_single_input(mutant_material: BlockMaterial, block_def): #: BlockDefi
                 break
 
 
-def mutate_single_ftn(mutant_material: BlockMaterial, block_def, dont_exclude=False): #: BlockDefinition):
+def mutate_single_ftn(mutant_material: BlockMaterial, block_def): #: BlockDefinition):
     '''
     pick nodes at random and mutate the ftn-index until an active node is selected
     will mutate the function to anything with matching input/arg dtype.
@@ -85,11 +85,7 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def, dont_exclude=Fa
         # note, always will be a main_node
         current_ftn = mutant_material[node_index]["ftn"]
         req_output_dtype = block_def.operator_dict[current_ftn]["output"]
-        new_ftn = None
-        if dont_exclude:
-            new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[])
-        else:    
-            new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[current_ftn])
+        new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[current_ftn])
         ezLogging.debug("%s - Mutated node %i - possible new ftn: %s" % (mutant_material.id, node_index, new_ftn))
 
         # make sure input_dtypes match
