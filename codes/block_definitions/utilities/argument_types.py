@@ -669,7 +669,7 @@ class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
         # if self.value in choices:
         #     choices.remove(self.value) # works in-place
 
-        choices = [1000] # NOTE: for testing, don't leave this
+        choices = [500] # NOTE: for testing, don't leave this
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsMedium to %f" % (None, None, self.value))
 

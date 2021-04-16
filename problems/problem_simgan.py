@@ -33,7 +33,7 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 8 #must be divisible by 4 if doing mating
+        population_size = 4 #must be divisible by 4 if doing mating
         number_universe = 1 #10
         factory = FactoryDefinition
         mpi = False
