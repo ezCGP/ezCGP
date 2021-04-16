@@ -23,7 +23,7 @@ from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
-# from post_process import save_things
+from post_process import save_things
 # from post_process import plot_things
 
 
@@ -119,7 +119,7 @@ class Problem(ProblemDefinition_Abstract):
         TODO: add code for determining whether convergence has been reached
         TODO: figure out if any of the below code is useful
         '''
-        GENERATION_LIMIT = 3 #1000
+        GENERATION_LIMIT = 5
         # SCORE_MIN = 1e-1
 
         # # only going to look at the first objective value which is rmse
@@ -128,39 +128,28 @@ class Problem(ProblemDefinition_Abstract):
         # min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:-1].astype(float)
         # logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
-        # if universe.generation >= GENERATION_LIMIT:
-        #     logging.warning("TERMINATING...reached generation limit.")
-        #     universe.converged = True
+        if universe.generation >= GENERATION_LIMIT:
+            logging.warning("TERMINATING...reached generation limit.")
+            universe.converged = True
         # if min_firstobjective[0] < SCORE_MIN:
         #     logging.warning("TERMINATING...reached minimum scores.")
         #     universe.converged = True
 
-
     def postprocess_generation(self, universe):
         '''
-        TODO: add code for generation postprocessing
-        TODO: figure out if any of the below code is useful
+        Save fitness scores and the refiners on the pareto front of fitness scroes
         '''
-        # logging.info("Post Processing Generation Run")
-        # save_things.save_fitness_scores(universe)
+        logging.info("Post Processing Generation Run")
+        save_things.save_fitness_scores(universe)
 
-        # ith_indiv, _ = self.get_best_indiv(universe, ith_obj=0)
-        # best_indiv = universe.population.population[ith_indiv]
-        # active_count = len(best_indiv[0].active_nodes) - self.indiv_def[0].input_count - self.indiv_def[0].output_count
-        # if hasattr(self, 'roddcustom_bestindiv'):
-        #     self.roddcustom_bestindiv.append(best_indiv.id)
-        #     self.roddcustom_bestscore.append(best_indiv.fitness.values)
-        #     self.roddcustom_bestactive.append(active_count)
-        # else:
-        #     self.roddcustom_bestindiv = [best_indiv.id]
-        #     self.roddcustom_bestscore = [best_indiv.fitness.values]
-        #     self.roddcustom_bestactive = [active_count]
+        print('testing')
+        pareto_front = self.get_pareto_front(universe)
+        for ind in pareto_front:
+            indiv = universe.population.population[ind]
+            save_things.save_pytorch_model(universe, indiv.output[0], indiv.id + '-R') # Save refiner network and id
+            # TODO: consider saving discriminator
 
-        # fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.train_data.y[0].max()*1.25)) #axes always 2dim
-        # plot_things.plot_regression(axes[0,0], best_indiv, self)
-        # plot_things.plot_gaussian(axes[1,0], best_indiv, self)
-        # plot_things.plot_legend()
-        # plot_things.plot_save(fig, name=os.path.join(universe.output_folder, "gen%04d_bestindv.jpg" % universe.generation))
+        # TODO: consider plotting the pareto front/metrics for the population
 
 
     def postprocess_universe(self, universe):
