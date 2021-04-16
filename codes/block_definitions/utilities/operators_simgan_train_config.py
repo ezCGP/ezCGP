@@ -58,7 +58,7 @@ def simgan_train_config(placeholder, train_steps, r_pretrain_steps, d_pretrain_s
     
 
 operator_dict[simgan_train_config] = {
-    "inputs": [None],
+    "inputs": [argument_types.ArgumentType_Placeholder],
     "output": dict,
     "args": [
         argument_types.ArgumentType_TrainingStepsMedium, argument_types.ArgumentType_TrainingStepsShort,

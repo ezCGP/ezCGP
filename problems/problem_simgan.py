@@ -13,11 +13,12 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
+from codes.utilities.gan_tournament_selection import get_graph_ratings
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
 from codes.block_definitions.evaluate.block_evaluate_gan import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
-from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_4Blocks
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB_4Blocks
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
@@ -32,18 +33,19 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 12 #must be divisible by 4 if doing mating
+        population_size = 4 #must be divisible by 4 if doing mating
         number_universe = 1 #10
         factory = FactoryDefinition
         mpi = False
         super().__init__(population_size, number_universe, factory, mpi)
+        self.relativeScoring = True
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
                                              shape_def = BlockShapeMeta_SimGAN_Network, 
                                              operator_def = BlockOperators_SimGAN_Refiner, 
                                              argument_def = BlockArguments_SimGAN_Refiner,
                                              evaluate_def = BlockEvaluate_SimGAN_Refiner,
-                                             mutate_def=BlockMutate_OptB_4Blocks,
+                                             mutate_def=BlockMutate_OptB_No_Single_Ftn,
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
@@ -61,7 +63,7 @@ class Problem(ProblemDefinition_Abstract):
                                              operator_def = BlockOperators_SimGAN_Train_Config, 
                                              argument_def = BlockArguments_SimGAN_Train_Config,
                                              evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                             mutate_def=BlockMutate_OptB_4Blocks,
+                                             mutate_def=BlockMutate_OptB_No_Single_Ftn,
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
@@ -84,24 +86,32 @@ class Problem(ProblemDefinition_Abstract):
         self.validating_datalist = [simganData.SimGANDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)]
         # import pdb; pdb.set_trace()
 
-    def objective_functions(self, indiv):
+    def objective_functions(self, population):
         '''
-        TODO: add code for assigning finitess values to individuals, this may be where the tournament for skill rating among individuals goes
-        TODO: figure out if any of the below code is useful
+        Get the best refiner and discriminator from each individual in the population and do a tournament selection to rate them
+        # TODO: add in the support size as a metric
         '''
-        # if indiv.dead:
-        #     indiv.fitness.values = (np.inf, np.inf, np.inf)
-        # else:
-        #     clean_y, noisy_y, goal_features = self.train_data.y
-        #     predict_y = indiv.output[0]
-        #     # how to extract the arguments to match to goal_features as well?
-        #     error = clean_y-predict_y
-        #     rms_error = np.sqrt(np.mean(np.square(error)))
-        #     max_error = np.max(np.abs(error))
-        #     # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output
-        #     #active_error = np.abs(10+2+1-len(indiv[0].active_nodes)) #maybe cheating by knowing the goal amount ahead of time
-        #     active_error = len(indiv[0].active_nodes)
-        #     indiv.fitness.values = (rms_error, max_error, active_error)
+        n_individuals = len(population.population)
+        refiners = []
+        discriminators = []
+        indiv_inds = []
+        bad_indiv_inds = []
+        # import pdb; pdb.set_trace()
+        for i, indiv in enumerate(population.population):
+            if indiv.dead:
+                indiv.fitness.values = (np.inf,)
+            else:
+                indiv_inds.append(i)
+                R, D = indiv.output
+                refiners.append(R.cpu())
+                discriminators.append(D.cpu())
+        
+        # Run tournament and add ratings
+        if len(refiners) > 0:
+            refiner_ratings, _ = get_graph_ratings(refiners, discriminators, self.validating_datalist[0], 'cpu')
+        
+        for refiner_rating, ind in zip(refiner_ratings['r'].to_numpy(), indiv_inds):
+            population.population[ind].fitness.values = (-1 * refiner_rating,) # Use negative ratings because ezCGP does minimization
 
 
     def check_convergence(self, universe):

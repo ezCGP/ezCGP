@@ -61,13 +61,22 @@ def linear_layer(input_layer, out_features):
                 self.in_features *= dim
             self.out_features = out_features
 
+            if self.out_features < 0:
+                import pdb; pdb.set_trace()
+
             # Define out shape and instantiate layer
+            num_dims = len(in_shape)
             self.out_shape = (out_features,)
-            self.layer = nn.Sequential(
-                    nn.Flatten(start_dim=1), # gives us an NxD tensor (ideal for linear layer)
-                    nn.Linear(self.in_features, out_features)
-                )
-        
+
+            layers = []
+            # Make sure we have 1-d shape
+            if len(in_shape) == 2:
+                layers.append(nn.Flatten(start_dim=1)) # gives us an NxD tensor (ideal for linear layer)
+
+            layers.append(nn.Linear(self.in_features, self.out_features))
+            
+            self.layer = nn.Sequential(*layers)
+
     return Linear_Layer(input_layer.get_out_shape(), out_features)
 
 operator_dict[linear_layer] = {"inputs": [PyTorchLayerWrapper],
@@ -82,22 +91,34 @@ def conv1d_layer(input_layer, out_channels, kernel_size=3, padding=None, activat
     """
     class Conv1D_Layer(PyTorchLayerWrapper):
         def __init__(self, in_shape, out_channels, kernel_size, padding, activation):
+            # In shape is the out shape of the last layer. NOTE: This doesn't include the batch dimension!
             # Store information from args
-            self.in_channels = in_shape[0]
             self.out_channels = out_channels
+            if self.out_channels < 0:
+                import pdb; pdb.set_trace()
             self.kernel_size = kernel_size
-            self.padding = padding or kernel_size//2 # if padding is none, automatically match kernel_size//2 to maintain shape
+
+            # if padding is none, automatically match kernel_size//2 to maintain shape
+            if padding is None or padding == -1:
+                self.padding = kernel_size//2
+            else:
+                self.padding = padding 
             self.activation = activation
 
             # Define out shape and instantiate layer
             num_dims = len(in_shape)
-            self.out_shape = (out_channels, in_shape[-1])
+            self.out_shape = (out_channels, in_shape[-1] - (self.kernel_size - 1) + self.padding*2)
 
             layers = []
             # Make sure we have 2-d shape for channels and signal length
             if len(in_shape) == 1:
-                layers.append(nn.Unflatten(dim=0, unflattened_size=(1,)))
-            layers.append(nn.Conv1d(self.in_channels, out_channels, kernel_size, padding=padding)) # Add conv layer
+                layers.append(nn.Unflatten(dim=1, unflattened_size=(1, in_shape[0]))) # Converts a (D,) shape to (1, D) shape
+                self.in_channels = 1
+                layers.append(nn.Conv1d(self.in_channels, out_channels, kernel_size=self.kernel_size, padding=self.padding)) # Add conv layer
+            else:
+                self.in_channels = in_shape[0]
+                layers.append(nn.Conv1d(self.in_channels, out_channels, kernel_size=self.kernel_size, padding=self.padding)) # Add conv layer
+
             # Add activation
             if activation is not None:
                 layers.append(activation())

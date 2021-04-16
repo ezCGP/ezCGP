@@ -642,9 +642,12 @@ class ArgumentType_TrainingStepsShort(ArgumentType_Abstract):
 
 
     def mutate(self):
-        choices = [100, 200, 300, 400, 500]
-        if self.value in choices:
-            choices.remove(self.value) # works in-place
+        # choices = [100, 200, 300, 400, 500]
+        # if self.value in choices:
+        #     choices.remove(self.value) # works in-place
+
+        choices = [50] # NOTE: for testing, don't leave this
+
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsShort to %f" % (None, None, self.value))
 
@@ -662,9 +665,11 @@ class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
 
 
     def mutate(self):
-        choices = [1000, 2000, 3000, 4000, 5000]
-        if self.value in choices:
-            choices.remove(self.value) # works in-place
+        # choices = [1000, 2000, 3000, 4000, 5000]
+        # if self.value in choices:
+        #     choices.remove(self.value) # works in-place
+
+        choices = [50] # NOTE: for testing, don't leave this
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsMedium to %f" % (None, None, self.value))
 
@@ -687,3 +692,13 @@ class ArgumentType_LearningRate(ArgumentType_Abstract):
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_LearningRate to %f" % (None, None, self.value))
+
+class ArgumentType_Placeholder(ArgumentType_Abstract):
+    '''
+    A placeholder argument type, used for simgan train config operator because we need to have an input
+    '''
+    def __init__(self, value=None):
+        self.value = value
+
+    def mutate(self):
+        ezlogging.debug("Called mutate on placeholder")

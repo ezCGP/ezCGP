@@ -31,6 +31,7 @@ from data.data_tools.simganData import SimGANDataset
 from codes.genetic_material import IndividualMaterial
 #from codes.individual_definitions.individual_definition import IndividualDefinition #circular dependecy
 from codes.utilities.custom_logging import ezLogging
+from codes.utilities.gan_tournament_selection import get_graph_ratings
 
 
 def deepcopy_decorator(func):
@@ -406,10 +407,18 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 training_datalist, validating_datalist, supplements = block_material.output
         
         # Train the refiner and discriminator
-        refiner, discriminator, train_config = supplements
-        self.train_graph(indiv_material, training_datalist[0], validating_datalist[0], refiner, discriminator, train_config)
+        untrained_refiner, untrained_discriminator, train_config = supplements
+        refiners, discriminators = self.train_graph(indiv_material, training_datalist[0], validating_datalist[0], 
+            untrained_refiner, untrained_discriminator, train_config)
+
+        # Now do tournament selection to pick the best refiner/discriminator networks from the training process
+        # TODO: consider finding a way to replace this with a convergence metric or something
+        ezLogging.debug("Finding best refiner and discriminator for individual")
+        refiner_ratings, discriminator_ratings = get_graph_ratings(refiners, discriminators, validating_datalist[0], train_config['device'])
+        best_refiner = refiners[refiner_ratings['r'].argmax()]
+        best_discriminator = discriminators[discriminator_ratings['r'].argmax()]
         
-        indiv_material.output = last_output
+        indiv_material.output = (best_refiner, best_discriminator)
 
 
     def pretrain_networks(self, train_data, R, D, train_config, opt_R, opt_D):
@@ -421,7 +430,8 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         from torch import Tensor, LongTensor
 
         # Pretrain Refiner to learn the identity function
-        print("Pretraining refiner for %i steps" % (train_config['r_pretrain_steps']))
+        ezLogging.debug("Pretraining refiner for %i steps" % (train_config['r_pretrain_steps']))
+        ezLogging.debug("Pretraining discriminator for %i steps"  % (train_config['d_pretrain_steps']))
         for i in range(train_config['r_pretrain_steps']):
             opt_R.zero_grad()
             
@@ -443,44 +453,50 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 print('[%d/%d] (R)reg_loss: %.4f' % (i+1, train_config['r_pretrain_steps'], r_loss.data.item()))
         
         # Pretrain Discriminator (basically to learn the difference between simulated and real data)
-        print("Pretraining discriminator for %i steps" % (train_config['d_pretrain_steps']))
-        for i in range(train_config['d_pretrain_steps']):
-            opt_D.zero_grad()
+        try:
+            for i in range(train_config['d_pretrain_steps']):
+                opt_D.zero_grad()
 
-            # Get data
-            real, labels_real = train_data.real_loader.__iter__().next()
-            real = Tensor(real).to(train_config['device'])
-            labels_real = LongTensor(labels_real).to(train_config['device'])
+                # Get data
+                real, labels_real = train_data.real_loader.__iter__().next()
+                real = Tensor(real).to(train_config['device'])
+                labels_real = LongTensor(labels_real).to(train_config['device'])
 
-            simulated, labels_refined = train_data.simulated_loader.__iter__().next()
-            simulated = Tensor(simulated).to(train_config['device'])
-            labels_refined = LongTensor(labels_refined).to(train_config['device'])
+                simulated, labels_refined = train_data.simulated_loader.__iter__().next()
+                simulated = Tensor(simulated).to(train_config['device'])
+                labels_refined = LongTensor(labels_refined).to(train_config['device'])
 
-            # Run the real batch through discriminator and calc loss
-            pred_real = D(real)
-            d_loss_real = train_config['local_adversarial_loss'](pred_real, labels_real)
+                # Run the real batch through discriminator and calc loss
+                pred_real = D(real)
+                d_loss_real = train_config['local_adversarial_loss'](pred_real, labels_real)
 
-            # Run the refined batch through discriminator and calc loss
-            refined = R(simulated)
-            pred_refined = D(refined)
-            d_loss_ref = train_config['local_adversarial_loss'](pred_refined, labels_refined)
+                # Run the refined batch through discriminator and calc loss
+                refined = R(simulated)
+                pred_refined = D(refined)
+                d_loss_ref = train_config['local_adversarial_loss'](pred_refined, labels_refined)
 
-            # Compute the gradients.
-            d_loss = d_loss_real + d_loss_ref
-            d_loss.backward()
+                # Compute the gradients.
+                d_loss = d_loss_real + d_loss_ref
+                d_loss.backward()
 
-            # Backpropogate the gradient through the discriminator.
-            opt_D.step()
+                # Backpropogate the gradient through the discriminator.
+                opt_D.step()
 
-            # log every `steps_per_log` steps
-            if ((i+1) % train_config['steps_per_log'] == 0) or (i == train_config['d_pretrain_steps'] - 1):
-                print('[%d/%d] (D)real_loss: %.4f, ref_loss: %.4f' % (i+1, train_config['d_pretrain_steps'], 
-                      d_loss_real.data.item(), d_loss_ref.data.item()))
+                # log every `steps_per_log` steps
+                if ((i+1) % train_config['steps_per_log'] == 0) or (i == train_config['d_pretrain_steps'] - 1):
+                    print('[%d/%d] (D)real_loss: %.4f, ref_loss: %.4f' % (i+1, train_config['d_pretrain_steps'], 
+                        d_loss_real.data.item(), d_loss_ref.data.item()))
+        except Exception as e:
+            import pdb; pdb.set_trace()
+            print('Failed to run discriminator')
 
     
-    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config):
+    # TODO: see if we should be utilizing validation data
+    # TODO: find a better way of picking networks to save than just every n steps
+    # TODO: change save_every to 200 or 100
+    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config, save_every=10):
         '''
-        Train the refiner and discriminator of the SimGAN
+        Train the refiner and discriminator of the SimGAN, return a refiner and discriminator pair for every 'save_every' training steps
         '''
         import torch
 
@@ -494,6 +510,8 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         # TRAINING #
         r_losses = []
         d_losses = []
+        refiners = []
+        discriminators = []
         for step in range(train_config['train_steps']):
             # ========= Train the Refiner ========= 
             total_r_loss = 0.0
@@ -603,3 +621,10 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 mean_d_loss_ref = total_d_loss_ref / train_config['d_updates_per_train_step']
                 print('(D) mean_discriminator_loss: %.4f mean_d_real_loss: %.4f, mean_d_ref_loss: %.4f' 
                     % (mean_d_loss.data.item(), mean_d_loss_real.data.item(), mean_d_loss_ref.data.item()))
+        
+            # Save every `save_every` steps:
+            if ((step+1) % save_every == 0):
+                refiners.append(deepcopy(R))
+                discriminators.append(deepcopy(D))
+        
+        return refiners, discriminators
