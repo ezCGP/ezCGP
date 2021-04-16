@@ -100,10 +100,13 @@ class Problem(ProblemDefinition_Abstract):
             training_output, _ = indiv.output # _ = validating_output
             predicted = training_output[0]
 
-            # TODO evaluate cost/error given 'actual' and 'predicted'
-            error = np.sum(np.abs(np.subtract(actual, predicted)))
-
-            indiv.fitness.values = (error,)
+            if np.any(np.isnan(predicted)):
+                # might as well make the individual dead and leave fitness at inf
+                indiv.dead = True
+            else:
+                # TODO evaluate cost/error given 'actual' and 'predicted'
+                error = np.sum(np.abs(np.subtract(actual, predicted)))
+                indiv.fitness.values = (error,)
 
 
     def check_convergence(self, universe):
