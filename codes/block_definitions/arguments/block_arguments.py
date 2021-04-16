@@ -253,3 +253,23 @@ class BlockArguments_TFKeras(BlockArguments_Abstract):
                     argument_types.ArgumentType_TFPoolSize: 1,
                     argument_types.ArgumentType_Float0to1: 1}
         self.init_from_weight_dict(arg_dict)
+
+
+class BlockArguments_Dense(BlockArguments_Abstract):
+    '''
+    usage tally:
+    argument_types.ArgumentType_Pow2 - llll
+    argument_types.ArgumentType_TFFilterSize - llll
+    argument_types.ArgumentType_TFActivation - llll
+    '''
+
+    def __init__(self):
+        ezLogging.debug(
+            "%s-%s - Initialize BlockArguments_Dense Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 12*4
+        arg_dict = {argument_types.ArgumentType_Float0to1: 1,
+                    argument_types.ArgumentType_Pow2: 1,
+                    argument_types.ArgumentType_TFFilterSize: 1,
+                    argument_types.ArgumentType_TFActivation: 1}
+        self.init_from_weight_dict(arg_dict)

@@ -84,11 +84,12 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def): #: BlockDefini
         # note, always will be a main_node
         current_ftn = mutant_material[node_index]["ftn"]
         req_output_dtype = block_def.operator_dict[current_ftn]["output"]
-        new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[current_ftn])
+        new_ftn = block_def.get_random_ftn(req_dtype=req_output_dtype, exclude=[])
         ezLogging.debug("%s - Mutated node %i - possible new ftn: %s" % (mutant_material.id, node_index, new_ftn))
 
         # make sure input_dtypes match
         req_input_dtypes = block_def.operator_dict[new_ftn]["inputs"]
+
         new_inputs = [None]*len(req_input_dtypes)
         for input_index in mutant_material[node_index]["inputs"]:
             exist_input_dtype = block_def.get_node_dtype(mutant_material, input_index, "output") #instead of verify from current node, goes to input

@@ -9,33 +9,33 @@ Rules:
 At the very least will need a list of modules to import and can apply set_equal_weights() to get all the primitives in the modules. Otherwise create the weight dict and pass it into init_from_weight_dict().
 '''
 
-### packages
+# packages
+from codes.utilities.custom_logging import ezLogging
+from codes.block_definitions.utilities import tools
 from typing import List
 from copy import deepcopy
 import importlib
 import inspect
 
-### sys relative to root dir
+# sys relative to root dir
 import sys
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
-### absolute imports wrt root
-from codes.block_definitions.utilities import tools
-from codes.utilities.custom_logging import ezLogging
-
+# absolute imports wrt root
 
 
 class BlockOperators_Abstract():
     '''
     Note that the main output from this class will be the operator_dict, a list of all the operators available to the block, and a list of the same size with the 'probability' that the respective operator will be used.
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_Abstract Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_Abstract Class" % (None, None))
         self.operator_dict = {}
         self.operators = []
         self.weights = []
-
 
     def init_from_weight_dict(self, weight_dict):
         '''
@@ -46,7 +46,6 @@ class BlockOperators_Abstract():
         self.operators = operators
         self.weights = weights
 
-
     def import_operator_scripts(self, module_names, module_aliases=None):
         '''
         vars() returns a dictionary of local variables...starts out empty inside a function
@@ -56,19 +55,21 @@ class BlockOperators_Abstract():
 
         note that sys.path is a 'global' variable so the paths added earlier in the file can be used here
         '''
-        ezLogging.debug("%s-%s - Inside import_operator_scripts" % (None, None))
+        ezLogging.debug("%s-%s - Inside import_operator_scripts" %
+                        (None, None))
         if module_aliases is None:
             module_aliases = deepcopy(module_names)
         else:
-            assert(len(module_aliases) == len(module_names)), "module names and aliases need to be the same length"
+            assert(len(module_aliases) == len(module_names)
+                   ), "module names and aliases need to be the same length"
 
         for name, alias in zip(module_names, module_aliases):
             #globals()[alias] = __import__(name)
-            #going to use importlib.import_module instead of __import __ because of convention and to do better absolute/relative imports
-            globals()[alias] = importlib.import_module("codes.block_definitions.utilities.%s" % name)
+            # going to use importlib.import_module instead of __import __ because of convention and to do better absolute/relative imports
+            globals()[alias] = importlib.import_module(
+                "codes.block_definitions.utilities.%s" % name)
             # what about globals().update({alias: ...})
             self.operator_dict.update(globals()[alias].operator_dict)
-
 
     def get_all_functions(self, module):
         '''
@@ -77,15 +78,16 @@ class BlockOperators_Abstract():
         '''
         ezLogging.debug("%s-%s - Inside get_all_functions" % (None, None))
         all_functions = []
-        for name, execute in inspect.getmembers(globals()[module]): # returns list of tuples of everything in that module
-            if (inspect.isfunction(execute)) and  (execute.__module__.endswith(module)) and (execute in self.operator_dict):
+        # returns list of tuples of everything in that module
+        for name, execute in inspect.getmembers(globals()[module]):
+            if (inspect.isfunction(execute)) and (execute.__module__.endswith(module)) and (execute in self.operator_dict):
                 # check if what we are pulling is a function, then make sure it is a function defined in that module
                 # as oposed to something imported like dirname from os.path
                 all_functions.append(execute)
 
-        ezLogging.debug("%s-%s - Imported %i methods from %s" % (None, None, len(all_functions), module))
+        ezLogging.debug("%s-%s - Imported %i methods from %s" %
+                        (None, None, len(all_functions), module))
         return all_functions
-
 
     def set_equal_weights(self, module):
         ezLogging.debug("%s-%s - Inside set_equal_weights" % (None, None))
@@ -96,13 +98,14 @@ class BlockOperators_Abstract():
         return weight_dict
 
 
-
 class BlockOperators_SymbRegressionOpsNoArgs(BlockOperators_Abstract):
     '''
     Simple numpy operators that do not require arguments; so we should have a block that takes in the data as one input, and at least one float/int as another input to use.
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_SymbRegressionOpsNoArgs Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_SymbRegressionOpsNoArgs Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_symbregression_noargs']
@@ -115,13 +118,14 @@ class BlockOperators_SymbRegressionOpsNoArgs(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-
 class BlockOperators_SymbRegressionOpsWithArgs(BlockOperators_Abstract):
     '''
     Basically the same primitives as BlockOperators_SymbRegressionOpsNoArgs but the operator dict calls for arguments; so our block would only have the data as an input.
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_SymbRegressionOpsWithArgs Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_SymbRegressionOpsWithArgs Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_symbregression_args']
@@ -134,13 +138,14 @@ class BlockOperators_SymbRegressionOpsWithArgs(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-
 class BlockOperators_Gaussian(BlockOperators_Abstract):
     '''
     literally only one operator...just summing gaussians
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_Gaussian Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_Gaussian Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_gaussian_args']
@@ -153,13 +158,14 @@ class BlockOperators_Gaussian(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-
 class BlockOperators_DataAugmentation(BlockOperators_Abstract):
     '''
     augment our data to increase dataset size for training only
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_DataAugmentation Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_DataAugmentation Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_Augmentor_augmentation']
@@ -172,13 +178,14 @@ class BlockOperators_DataAugmentation(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-
 class BlockOperators_DataPreprocessing(BlockOperators_Abstract):
     '''
     preprocess images prior to feed to some classifier block
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_DataPreprocessing Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_DataPreprocessing Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_Augmentor_preprocessing']
@@ -191,13 +198,14 @@ class BlockOperators_DataPreprocessing(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-
 class BlockOperators_Augmentor_TransferLearning(BlockOperators_Abstract):
     '''
     pass data through some pretrained network
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_TransferLearning Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_TransferLearning Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_Augmentor_TFKeras_transferlearning']
@@ -210,13 +218,14 @@ class BlockOperators_Augmentor_TransferLearning(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-
 class BlockOperators_TFKeras_TransferLearning(BlockOperators_Abstract):
     '''
     pass data through some pretrained network
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_TFKeras_transferlearning']
@@ -226,16 +235,21 @@ class BlockOperators_TFKeras_TransferLearning(BlockOperators_Abstract):
         for module in modules:
             weight_dict.update(self.set_equal_weights(module))
 
-        self.init_from_weight_dict(weight_dict)
+        print(weight_dict)
 
+        weight_dict[operators_TensorFlow_Keras.conv2D_layer] = 4
+
+        self.init_from_weight_dict(weight_dict)
 
 
 class BlockOperators_TFKeras_TransferLearning_CIFAR(BlockOperators_Abstract):
     '''
     pass data through some pretrained network
     '''
+
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_Keras_TransferLearning Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_TFKeras_transferlearning']
@@ -251,13 +265,31 @@ class BlockOperators_TFKeras_TransferLearning_CIFAR(BlockOperators_Abstract):
         self.init_from_weight_dict(weight_dict)
 
 
-
 class BlockOperators_TFKeras(BlockOperators_Abstract):
     def __init__(self):
-        ezLogging.debug("%s-%s - Initialize BlockOperators_TFKeras Class" % (None, None))
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_TFKeras Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
         modules = ['operators_TensorFlow_Keras']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        # weight_dict[operators_TensorFlow_Keras.conv2D_layer] = 4
+
+        self.init_from_weight_dict(weight_dict)
+
+
+class BlockOperators_Dense(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_Dense Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_TensorFlow_basiclayers']
         self.import_operator_scripts(modules)
 
         weight_dict = {}

@@ -446,6 +446,8 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model
         block_material.graph = tf.keras.Model(inputs=pretrained_first_layer, outputs=softmax)
 
+        print(block_material.graph.summary())
+
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
         block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                                      loss="categorical_crossentropy",
@@ -478,7 +480,48 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
         except Exception as err:
             ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
+            import traceback; traceback.print_exc()
             import pdb; pdb.set_trace()
             return
 
         block_material.output = (None, None, validation_scores)
+
+
+class BlockEvaluate_Preceding_TFKeras(BlockEvaluate_GraphAbstract):
+    def __init__(self):
+        super().__init__()
+        ezLogging.debug(
+            "%s-%s - Initialize BlockEvaluate_TFKeras_TransferLearning Class" % (None, None))
+
+    def build_graph(self, block_material, block_def, augmentor):
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
+
+        input_layer = tf.keras.layers.Input(shape=augmentor.image_shape)
+        output_layer = self.standard_build_graph(block_material, block_def, [input_layer])[0]
+
+        supplements = [input_layer, output_layer]
+        return supplements
+
+    def train_graph(self):
+        pass
+
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,  # : BlockDefinition,
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+
+        try:
+            training_augmentor, _, _ = self.parse_datalist(training_datalist)
+            supplements = self.build_graph(block_material, block_def, training_augmentor)
+        except Exception as err:
+            ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+
+            block_material.dead = True
+            import traceback; traceback.print_exc()
+            import pdb; pdb.set_trace()
+            return
+
+        block_material.output = (training_datalist, validating_datalist, supplements)

@@ -143,11 +143,11 @@ def max_pool_layer(input_tensor, pool_height=2, strides=2):
     print("max_pool_layer YAY, dfsdfs", pool_height, strides, input_tensor.shape)
     return tf.keras.layers.MaxPool2D(pool_size=[pool_height, pool_height], strides=(strides, strides), padding="valid")(input_tensor)
 
-operator_dict[max_pool_layer] = {"inputs": [tf.keras.layers],
-                                 "output": tf.keras.layers,
-                                 "args": [argument_types.ArgumentType_TFPoolSize,
-                                          argument_types.ArgumentType_TFPoolSize]
-                                 }
+# operator_dict[max_pool_layer] = {"inputs": [tf.keras.layers],
+#                                  "output": tf.keras.layers,
+#                                  "args": [argument_types.ArgumentType_TFPoolSize,
+#                                           argument_types.ArgumentType_TFPoolSize]
+#                                  }
 
 
 def fractional_max_pool(input_tensor, pool_height=2, pool_width=2):
@@ -181,14 +181,3 @@ def fractional_avg_pool(input_tensor, pool_height=2.0, pool_width=2.0):
 #                                       "args": [argument_types.ArgumentType_TFPoolSize, argument_types.ArgumentType_TFPoolSize],
 #                                       "output": tf.keras.layers
 #                                       }
-
-
-def dropout_layer(input_tensor, rate=0.2):
-    print(" dropout_layer YAY, HERE")
-    return tf.keras.layers.Dropout(rate)(input_tensor)
-
-
-operator_dict[dropout_layer] = {"inputs": [tf.keras.layers],
-                                 "output": tf.keras.layers,
-                                 "args": [argument_types.ArgumentType_Float0to1]
-                                 }
