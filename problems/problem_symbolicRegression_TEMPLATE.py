@@ -98,12 +98,15 @@ class Problem(ProblemDefinition_Abstract):
         if not indiv.dead:
             actual = self.training_datalist[0].y
             training_output, validating_output = indiv.output
-            predictted = training_output[0]
+            predicted = training_output[0]
 
-            # TODO evaluate cost/error given 'actual' and 'predicted'
-            error = 
-
-            indiv.fitness.values = (error,)
+            if np.any(np.isnan(predicted)):
+                # might as well make the individual dead and leave fitness at inf
+                indiv.dead = True
+            else:
+                # TODO evaluate cost/error given 'actual' and 'predicted'
+                error = 
+                indiv.fitness.values = (error,)
 
 
     def check_convergence(self, universe):
