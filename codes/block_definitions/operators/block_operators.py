@@ -1,4 +1,3 @@
-import pdb # temp
 '''
 root/code/block_definitions/operators/block_operators.py
 
@@ -75,7 +74,6 @@ class BlockOperators_Abstract():
             globals()[alias] = importlib.import_module("codes.block_definitions.utilities.%s" % name)
             del globals()[alias].operator_dict[globals()[alias].ln_f2f]
             del globals()[alias].operator_dict[globals()[alias].ln_a2a]
-            # pdb.set_trace()
             # what about globals().update({alias: ...})
             self.operator_dict.update(globals()[alias].operator_dict)
 
@@ -316,4 +314,3 @@ class BlockOperators_TFKeras(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         self.init_from_weight_dict(weight_dict)
-
