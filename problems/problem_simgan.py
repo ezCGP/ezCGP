@@ -18,7 +18,7 @@ from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Sim
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
 from codes.block_definitions.evaluate.block_evaluate_gan import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
-from codes.block_definitions.mutate.block_mutate import BlockMutate_SimGAN
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB_4Blocks
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
@@ -45,7 +45,7 @@ class Problem(ProblemDefinition_Abstract):
                                              operator_def = BlockOperators_SimGAN_Refiner, 
                                              argument_def = BlockArguments_SimGAN_Refiner,
                                              evaluate_def = BlockEvaluate_SimGAN_Refiner,
-                                             mutate_def=BlockMutate_SimGAN,
+                                             mutate_def=BlockMutate_OptB_No_Single_Ftn,
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
@@ -54,7 +54,7 @@ class Problem(ProblemDefinition_Abstract):
                                              operator_def = BlockOperators_SimGAN_Discriminator, 
                                              argument_def = BlockArguments_SimGAN_Discriminator,
                                              evaluate_def = BlockEvaluate_SimGAN_Discriminator,
-                                             mutate_def=BlockMutate_SimGAN,
+                                             mutate_def=BlockMutate_OptB_4Blocks,
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
@@ -63,7 +63,7 @@ class Problem(ProblemDefinition_Abstract):
                                              operator_def = BlockOperators_SimGAN_Train_Config, 
                                              argument_def = BlockArguments_SimGAN_Train_Config,
                                              evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                             mutate_def=BlockMutate_SimGAN,
+                                             mutate_def=BlockMutate_OptB_No_Single_Ftn,
                                              mate_def=BlockMate_WholeOnly_4Blocks
                                             )
 
