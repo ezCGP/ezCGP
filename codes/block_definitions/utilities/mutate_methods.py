@@ -80,6 +80,7 @@ def mutate_single_ftn(mutant_material: BlockMaterial, block_def): #: BlockDefini
     ezLogging.info("%s - Inside mutate_single_ftn" % (mutant_material.id))
     choices = np.arange(block_def.main_count)
     choices = rnd.choice(choices, size=len(choices), replace=False) #randomly reorder
+    # import pdb; pdb.set_trace()
     for node_index in choices:
         # note, always will be a main_node
         current_ftn = mutant_material[node_index]["ftn"]

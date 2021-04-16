@@ -144,7 +144,7 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         in_features = 1
         for dim in list(output_shape): 
             in_features *= dim
-        extra_layers = [nn.Linear(in_features, 2), nn.Flatten(start_dim=1)]
+        extra_layers = [nn.Flatten(start_dim=1), nn.Linear(in_features, 2)]
 
         block_material.graph = nn.Sequential(graph, *extra_layers)
 

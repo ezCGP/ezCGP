@@ -7,6 +7,7 @@ import pickle as pkl
 import numpy as np
 from copy import deepcopy
 import os
+import torch
 
 ### sys relative to root dir
 import sys
@@ -45,6 +46,14 @@ def save_population(universe):
         with open(indiv_file, "wb") as f:
             pkl.dump(indiv, f)
             
+def save_pytorch_model(universe, network, indiv_id):
+    '''
+    save a PyTorch neural network
+    '''
+    ezLogging.debug("saving pytorch model from population for generation %i" % universe.generation)
+    path = os.path.join(universe.output_folder, "gen_%04d_id_%s.pkl" % (universe.generation, indiv_id))
+    torch.save(network, path)
+
             
 def save_population_asLisp(universe, indiv_definition):
     '''    
