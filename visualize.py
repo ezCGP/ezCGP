@@ -40,29 +40,34 @@ class Visualizer():
         self.individual_num = 0
         self.append_csv(True)
 
-    def add_to_csv(self, individual):
+    def add_to_csv(self, individual, print_entire_genome):
         self.csv_rows = []
         self.individual_num += 1
-        prev_output = ""
-
+        prev_output = ''
         for block_num, block in enumerate(individual.blocks):
-            curr_block = block
-
             shift = self.shifts[block_num]
             color = self.colors[block_num]
-            for active_node in curr_block.active_nodes:
-                fn = block.genome[active_node]
 
-                if active_node < 0:  # Input
+            first_node = block.active_nodes[0]
+            for current_node in range(first_node, len(block.genome) + first_node):
+                if current_node not in block.active_nodes:
+                    if not print_entire_genome:
+                        continue
+                    color = '#808080'    # should this color be hard-coded?
+                else:
+                    color = self.colors[block_num]
+                fn = block.genome[current_node]
+
+                if current_node < 0:  # Input
                     layer_info = "nickname= {}".format(
                         block.block_nickname)
                     out = "{}{}{},{},\"{}\",{},\"{}\",{}".format(
-                        self.individual_num, shift, active_node, fn, layer_info, color, prev_output, self.arrow_color)
+                        self.individual_num, shift, current_node, fn, layer_info, color, prev_output, self.arrow_color)
                 elif type(fn) == np.int64:
-                    out = "{}{}{},Output,,{},\"{}\",{}".format(self.individual_num, shift, active_node, color, str(
+                    out = "{}{}{},Output,,{},\"{}\",{}".format(self.individual_num, shift, current_node, color, str(
                         self.individual_num) + shift + str(fn), self.arrow_color)
                     prev_output = str(self.individual_num) + \
-                        shift + str(active_node)
+                        shift + str(current_node)
                 else:
                     arg_str = []
                     for arg in fn['args']:
@@ -72,15 +77,14 @@ class Visualizer():
                         arg_str.append(str(value))
 
                     layer_info = "args= {}".format(", ".join(arg_str))
-                    out = "{}{}{},{},\"{}\",{},\"{}\",{}".format(self.individual_num, shift, active_node, fn['ftn'].__name__, layer_info, color, ','.join(
+                    out = "{}{}{},{},\"{}\",{},\"{}\",{}".format(self.individual_num, shift, current_node, fn['ftn'].__name__, layer_info, color, ','.join(
                         map(lambda x: str(self.individual_num) + shift + str(x), fn['inputs'])), self.arrow_color)
 
                 self.csv_rows.append(out + "")
 
-
-        categorical_acc, precision, recall = individual.fitness.values
-        self.csv_rows.append("END,\"Fitness: ({},{},{})\",,{},\"{}\",".format(
-            -categorical_acc, -precision, -recall, '#ffe6cc', prev_output))
+        accuracy, precision, recall = individual.fitness.values
+        self.csv_rows.append(f'END,\"Fitness: ({-accuracy},{-precision},{-recall})\",,#ffe6cc,\"{prev_output}\",')
+        self.append_csv()
 
     def append_csv(self, new=False):
         import os
