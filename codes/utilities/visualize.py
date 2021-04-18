@@ -67,14 +67,20 @@ class Visualizer:
                     out = OUTPUT_ROW.format(self.individual_num, shift, index, color, fn, self.arrow_color)
                     prev_output = f'{self.individual_num}{shift}{index}'
                 else:
-                    # Set node number and arguments
-                    arg_str = []
-                    for arg in fn['args']:
-                        value = block.args[arg].value
-                        if hasattr(value, "__name__"):
-                            value = value.__name__
-                        arg_str.append(str(value))
-                    index_n_args = "{}, args = {}".format(index, ", ".join(arg_str))
+                    # the max pool layer has 3 parameters, but only 2 args are given, so we need to repeat the first arg
+                    if fn["ftn"].__name__ == 'max_pool_layer':
+                        fn['args'].insert(0, fn['args'][0])
+                    arg_txt = []
+                    for idx, arg_name in enumerate(fn['ftn'].__code__.co_varnames[1:]):
+                        arg = fn['args'][idx]
+                        arg_val = block.args[arg].value
+                        if hasattr(arg_val, "__name__"):
+                            arg_val = arg_val.__name__
+                        arg_txt.append(f'{arg_name}: {arg_val}')
+                    arg_txt = ', '.join(arg_txt)
+                    if fn["ftn"].__name__ == 'max_pool_layer':
+                        fn['args'].remove(fn['args'][0])
+                    index_n_args = "{}<br>{}".format(index, arg_txt)
                     inputs = ','.join([f'{self.individual_num}{shift}{x}' for x in fn['inputs']])
                     out = NORMAL_ROW.format(self.individual_num, shift, index, fn["ftn"].__name__, index_n_args, color, inputs, self.arrow_color)
                 self.csv_rows.append(out + "")
