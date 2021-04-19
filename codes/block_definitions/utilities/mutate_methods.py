@@ -206,3 +206,19 @@ def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockD
     else:
         # won't actually mutate
         ezLogging.warning("%s - No active args to mutate" % (mutant_material.id))
+
+
+def point_mutation(mutant_material: BlockMaterial, block_def):
+    '''
+    Justin's Task
+    
+    https://link.springer.com/content/pdf/10.1007/s10710-019-09360-6.pdf
+    "In standard CGP mutation either point or probabilistic mutation can be used.
+    In the former, the user decides the percentage of the total number of genes of
+    a parent genotype to be mutated to create an offspring"
+    '''
+    ezLogging.info("%s - Inside point_mutation" % (mutant_material.id))
+
+    # TODO!
+
+    # don't return anything, just edit mutant_material in-place
