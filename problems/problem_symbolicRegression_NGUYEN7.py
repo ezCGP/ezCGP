@@ -71,7 +71,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         # TODO:
         def objective_function(data):
-            output = np.log(x + 1) + np.log(np.power(x, 2) + 1) # ln(x + 1) + ln(x^2 + 1)
+            output = np.log(data + 1) + np.log(np.power(data, 2) + 1) # ln(x + 1) + ln(x^2 + 1)
             return output
 
         # TODO:
