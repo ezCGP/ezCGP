@@ -115,3 +115,20 @@ class BlockMutate_NoFtn(BlockMutate_Abstract):
             mutate_methods.mutate_single_argvalue(mutant_material, block_def)
         else:
             mutate_methods.mutate_single_argindex(mutant_material, block_def)
+
+
+
+class BlockMutate_ProbabilisticMutation(BlockMutate_Abstract):
+    '''
+    simple benchmarking mutation
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockMutate_ProbabilisticMutation Class" % (None, None))
+        self.prob_mutate = 1.0
+        self.num_mutants = 4
+
+
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+        ezLogging.info("%s - Sending block to mutate" % (mutant_material.id))
+        mutate_methods.mutate_single_input(mutant_material, block_def)
+

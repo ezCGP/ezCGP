@@ -206,3 +206,21 @@ def mutate_single_argvalue(mutant_material: BlockMaterial, block_def): #: BlockD
     else:
         # won't actually mutate
         ezLogging.warning("%s - No active args to mutate" % (mutant_material.id))
+
+
+def probabilistic_mutate(mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+    '''
+    Parshva's Task
+
+    https://link.springer.com/content/pdf/10.1007/s10710-019-09360-6.pdf
+    "In standard CGP mutation either point or probabilistic mutation can be used...
+    In probabilistic mutation every gene is considered for mutation according to a
+    user-defned probability."
+    '''
+    ezLogging.info("%s - Inside probabilistic_mutate" % (mutant_material.id))
+
+    import pdb; pdb.set_trace()
+    # TODO!
+
+    # do not return anything; mutate mutant_material in-place
+
