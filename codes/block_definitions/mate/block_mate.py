@@ -72,6 +72,24 @@ class BlockMate_WholeOnly_4Blocks(BlockMate_WholeOnly):
 
 
 
+class BlockMate_SinglePoint(BlockMate_WholeOnly):
+    '''
+    single point crossover. Vishesh's task
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockMate_SinglePoint Class" % (None, None))
+        self.prob_mate = 0.5
+
+    def mate(self,
+             parent1: IndividualMaterial,
+             parent2: IndividualMaterial,
+             block_def,#: BlockDefinition,
+             block_index: int):
+        ezLogging.info("%s+%s-%s - Sending %i block to mate_methods.one_point_crossover()" % (parent1.id, parent2.id, block_def.nickname, block_index))
+        return mate_methods.whole_block(parent1, parent2, block_def, block_index)
+
+
+
 class BlockMate_NoMate(BlockMate_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockMate_NoMate Class" % (None, None))
