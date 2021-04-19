@@ -30,10 +30,10 @@ from codes.utilities.custom_logging import ezLogging
 # moved most imports to AFTER seed is set!
 
 
-def main(problem_filename: str,
-         problem_output_directory: str=tempfile.mkdtemp(),
-         seed: int=0,
-         loglevel: int=logging.WARNING):
+def setup(problem_filename: str,
+          problem_output_directory: str=tempfile.mkdtemp(),
+          seed: int=0,
+          loglevel: int=logging.WARNING):
     node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
     node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
 
@@ -62,6 +62,15 @@ def main(problem_filename: str,
     random.seed(seed) # shouldn't be using 'random' module but setting seed jic
     problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
     problem = problem_module.Problem()
+
+    return problem, log_formatter
+
+
+def main(problem,
+         log_formatter,
+         problem_output_directory):
+    node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
+    node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
     from codes.universe import UniverseDefinition, MPIUniverseDefinition
 
     log_handler_2file = None # just initializing
@@ -165,4 +174,5 @@ if __name__ == "__main__":
         problem_filename = os.path.basename(args.problem + ".py")
     
     # RUN BABYYY
-    main(problem_filename, problem_output_directory, seed, args.loglevel)
+    problem, log_formatter = setup(problem_filename, problem_output_directory, seed, args.loglevel)
+    main(problem, log_formatter, problem_output_directory)
