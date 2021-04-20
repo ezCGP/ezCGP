@@ -1,7 +1,7 @@
 # ezCGP
 A low level framework for Cartesian Genetic Programming in Python3.
 
-Be sure to checkout the [Wiki](https://github.com/ezCGP/ezCGP/wiki) for more documentation and helpful guids.
+Be sure to checkout the [Wiki](https://github.com/ezCGP/ezCGP/wiki) for more documentation and helpful guides.
 
 # Quickstart
 Create environment and download dependencies
