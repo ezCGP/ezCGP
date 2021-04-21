@@ -31,7 +31,7 @@ from codes.block_definitions.operators.block_operators import BlockOperators_Sym
 from codes.block_definitions.arguments.block_arguments import BlockArguments_NoArgs
 from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_FinalBlock
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptA
-from codes.block_definitions.mate.block_mate import BlockMate_NoMate
+from codes.block_definitions.mate.block_mate import BlockMate_SinglePoint
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
@@ -56,7 +56,7 @@ class Problem(ProblemDefinition_Abstract):
                                              argument_def = BlockArguments_NoArgs,
                                              evaluate_def = BlockEvaluate_FinalBlock,
                                              mutate_def = BlockMutate_OptA,
-                                             mate_def = BlockMate_NoMate)
+                                             mate_def = BlockMate_SinglePoint)
 
         self.construct_individual_def(block_defs = [block_def],
                                       mutate_def = IndividualMutate_RollOnEachBlock,

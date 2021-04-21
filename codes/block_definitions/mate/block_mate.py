@@ -61,7 +61,6 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
         return mate_methods.whole_block(parent1, parent2, block_index)
 
 
-
 class BlockMate_WholeOnly_4Blocks(BlockMate_WholeOnly):
     '''
     change prob by 1/numblocks
@@ -71,22 +70,23 @@ class BlockMate_WholeOnly_4Blocks(BlockMate_WholeOnly):
         self.prob_mate = 0.33
 
 
-
-class BlockMate_SinglePoint(BlockMate_WholeOnly):
+class BlockMate_SinglePoint(BlockMate_Abstract):
     '''
-    single point crossover. Vishesh's task
+    each pair of block/parents will mate w/prob 25%
+    if they mate, they will only mate with whole_block()
     '''
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockMate_SinglePoint Class" % (None, None))
-        self.prob_mate = 0.5
+        self.prob_mate = 1.0
 
     def mate(self,
              parent1: IndividualMaterial,
              parent2: IndividualMaterial,
              block_def,#: BlockDefinition,
              block_index: int):
-        ezLogging.info("%s+%s-%s - Sending %i block to mate_methods.one_point_crossover()" % (parent1.id, parent2.id, block_def.nickname, block_index))
-        return mate_methods.whole_block(parent1, parent2, block_def, block_index)
+        ezLogging.info("%s+%s-%s - Sending %i block to mate_methods.whole_block()" % (parent1.id, parent2.id, block_def.nickname, block_index))
+    	# dont actually need block_def
+        return mate_methods.one_point_crossover(parent1, parent2, block_index)
 
 
 

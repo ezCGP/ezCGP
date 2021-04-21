@@ -27,6 +27,7 @@ from codes.genetic_material import IndividualMaterial
 #from codes.block_definitions.block_definition import BlockDefinition #circular dependecy
 from codes.utilities.custom_logging import ezLogging
 
+from numpy import random as rnd
 
 def whole_block(parent1: IndividualMaterial,
                 parent2: IndividualMaterial,
@@ -61,7 +62,6 @@ def partial_block(parent1: IndividualMaterial,
 
 def one_point_crossover(parent1: IndividualMaterial,
                         parent2: IndividualMaterial,
-                        block_def, #: BlockDefinition,
                         block_index: int):
     '''
     Vishesh's Task
@@ -69,15 +69,35 @@ def one_point_crossover(parent1: IndividualMaterial,
     Attempt to implement One-Point AKA Single-Point Crossover
 
     Assumptions we'll be making:
-        * TODO
+        Super simple split genomes from a random point and exchange. 2 parents in; 2 children out.
+        This is not ideal as OnePointCrossover, as depth of child here may change because we assumed all nodes are active
+        but atleast its single point cross over.
     '''
     ezLogging.info("%s+%s - Mating Block %i with partial_block()" % (parent1.id, parent2.id, block_index))
     child1 = deepcopy(parent1)
     child2 = deepcopy(parent2)
 
-    import pdb; pdb.set_trace() # just to help with debugging
-    # TODO!
+    #import pdb; pdb.set_trace() # just to help with debugging
     
+    block1 = deepcopy(parent1[block_index])
+    block2 = deepcopy(parent2[block_index])
+    orig_block1 = deepcopy(parent1[block_index])
+
+    min_genome_length = min( len(block1.genome) - 3, len(block2.genome) - 3 ) #exclude last output and input nodes
+    mate_id = int(rnd.random() * min_genome_length * 0.5)
+
+    if mate_id < 1:
+        mate_id = 1
+
+    for genome_index in range(mate_id, len(block1.genome)):
+        block1[genome_index] = deepcopy(block2[genome_index])
+
+    for genome_index in range(mate_id, len(block2.genome)):
+        block2[genome_index] = deepcopy(orig_block1[genome_index])
+
+
+    child1[block_index] = deepcopy(block1)
+    child2[block_index] = deepcopy(block2)
 
 
     return [child1, child2]
