@@ -33,6 +33,7 @@ import main
 
 def parameter_search(problem,
                      log_formatter,
+                     seed,
                      problem_output_directory):
     '''
     words
@@ -123,5 +124,5 @@ if __name__ == "__main__":
         problem_filename = os.path.basename(args.problem + ".py")
     
     # RUN BABYYY
-    problem, log_formatter = main.setup(problem_filename, problem_output_directory, seed, args.loglevel)
-    parameter_search(problem, log_formatter, problem_output_directory)
+    problem, log_formatter, seed = main.setup(problem_filename, problem_output_directory, seed, args.loglevel)
+    parameter_search(problem, log_formatter, seed, problem_output_directory)
