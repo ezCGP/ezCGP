@@ -42,19 +42,72 @@ def parameter_search(problem,
     node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
 
     # TODO!
-    import pdb; pdb.set_trace()
+#    import pdb; pdb.set_trace()
 
     # dirty example:
-    for genome_size in [2**4, 2**5, 2**6]:
-        for pop_size in [50, 100, 200, 500]:
+    for genome_size in [2**4, 2**5, 2**6]: #X
+        for pop_size in [50, 100, 200, 500]: #Y
             problem.indiv_def[0].main_count = genome_size
             problem.indiv_def[0].genome_count = genome_size + problem.indiv_def[0].input_count + problem.indiv_def[0].output_count
             problem.indiv_def[0].meta_def.main_count = genome_size
             problem.indiv_def[0].meta_def.genome_count = problem.indiv_def[0].genome_count
             problem.population_size = pop_size
-
+           
             # GO!
-            main.main(problem, log_formatter, problem_output_directory)
+            #To-do: edit problem_output_directory to add a new subfolder for the unqiue set of parameters that we are looking at
+
+        #    main.main(#problem, log_formatter, seed, problem_output_directory
+#ef main(problem,
+ #   log_formatter,
+ #   seed,
+ #  problem_output_directory):
+            node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
+            node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
+            from codes.universe import UniverseDefinition, MPIUniverseDefinition
+
+            log_handler_2file = None # just initializing
+            for ith_universe in range(problem.number_universe):
+                # set new output directory
+                universe_output_directory = os.path.join(problem_output_directory, "univ%04d" % ith_universe)
+                if node_rank == 0:
+                    os.makedirs(universe_output_directory, exist_ok=False)
+                MPI.COMM_WORLD.Barrier()
+
+                # init corresponding universe and new log file handler
+                if problem.mpi:
+                    ezLogging_method = ezLogging.logging_2file_mpi
+                    universe_seed = seed + 1 + (ith_universe*node_size) + node_rank
+                    ThisUniverse = MPIUniverseDefinition
+                else:
+                    ezLogging_method = ezLogging.logging_2file
+                    universe_seed = seed + 1 + ith_universe
+                    ThisUniverse = UniverseDefinition
+                log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
+                ezLogging.log_git_metadata()
+                ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
+                np.random.seed(universe_seed)
+                random.seed(seed)
+                ezLogging.warning("STARTING UNIVERSE %i" % ith_universe)
+                universe = ThisUniverse(problem, universe_output_directory)
+
+                # run
+                start_time = time.time()
+                universe.run(problem)
+                import pdb; pdb.set_trace()
+                min_firstobjective = universe.pop_fitness_scores[:,0].min() #Univrsee is n instance of the universe class, it runs everything, there is a population that we are creating and evoluton in is universe, pop_fitnes_values, we could 
+         #       min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,0]
+                #To-do: how to keep track of the best fitness for each universe, for each setof parameter so that after we run all the...
+                ezLogging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
+                
+                # do some clean up, if we're about to start another run
+                # remove previous universe log file handler if exists
+                ezLogging.logging_remove_handler(log_handler_2file)
+                # TODO is there a way to track memory usage before and after here?
+                del universe # will that also delete populations? or at least gc.collect will remove it?
+                gc.collect()
+
+                     #   )
+                    #Z is fitness
 
 
 
