@@ -41,7 +41,7 @@ def parameter_search(problem,
     node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
 
     # TODO!
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     # dirty example:
     for genome_size in [2**4, 2**5, 2**6]:
