@@ -54,7 +54,7 @@ def parameter_search(problem,
             problem.population_size = pop_size
 
             # GO!
-            main.main(problem, log_formatter, problem_output_directory)
+            main.main(problem, log_formatter, seed, problem_output_directory)
 
 
 
