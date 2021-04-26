@@ -236,7 +236,7 @@ def point_mutation(mutant_material: BlockMaterial, block_def):
         for input_ind in (range(len(mutant_material[node_ind]["inputs"]) + 1) if node_ind < block_def.main_count else [-1])]
 
     num_mutated = np.int(np.ceil(mutation_percent * len(choices)))
-    selected_gene_inds = rnd.choice(np.arange(len(choices)), size=num_mutated, replace=False)
+    selected_gene_inds = sorted(rnd.choice(np.arange(len(choices)), size=num_mutated, replace=False))
 
     for gene_ind in selected_gene_inds:
         (node_index, input_index) = choices[gene_ind]
