@@ -30,7 +30,7 @@ from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Sym
 from codes.block_definitions.operators.block_operators import BlockOperators_SymbolicRegression_Benchmarking
 from codes.block_definitions.arguments.block_arguments import BlockArguments_NoArgs
 from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_FinalBlock
-from codes.block_definitions.mutate.block_mutate import BlockMutate_OptA
+from codes.block_definitions.mutate.block_mutate import BlockMutate_PointMutation
 from codes.block_definitions.mate.block_mate import BlockMate_NoMate
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
@@ -52,10 +52,10 @@ class Problem(ProblemDefinition_Abstract):
 
         block_def = self.construct_block_def(nickname = "main_block",
                                              shape_def = BlockShapeMeta_SymbolicRegression_Benchmarking,
-                                             operator_def = BlockOperators_SymbolicRegression_Benchmarking,#
+                                             operator_def = BlockOperators_SymbolicRegression_Benchmarking,
                                              argument_def = BlockArguments_NoArgs,
                                              evaluate_def = BlockEvaluate_FinalBlock,
-                                             mutate_def = BlockMutate_OptA,
+                                             mutate_def = BlockMutate_PointMutation,
                                              mate_def = BlockMate_NoMate)
 
         self.construct_individual_def(block_defs = [block_def],
@@ -130,7 +130,6 @@ class Problem(ProblemDefinition_Abstract):
         ezLogging.warning("PostProcess Gen %i" % (universe.generation))
         save_things.save_fitness_scores(universe)
         save_things.save_population(universe)
-
 
     def postprocess_universe(self, universe):
         pass
