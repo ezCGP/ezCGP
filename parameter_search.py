@@ -55,12 +55,9 @@ def parameter_search(problem,
            
             # GO!
             #To-do: edit problem_output_directory to add a new subfolder for the unqiue set of parameters that we are looking at
+            genomeAndPopSize = os.path.join(problem_output_directory, "genome%i_pop_size%i"  %(genome_size, pop_size)) 
 
-        #    main.main(#problem, log_formatter, seed, problem_output_directory
-#ef main(problem,
- #   log_formatter,
- #   seed,
- #  problem_output_directory):
+
             node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
             node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
             from codes.universe import UniverseDefinition, MPIUniverseDefinition
@@ -68,7 +65,7 @@ def parameter_search(problem,
             log_handler_2file = None # just initializing
             for ith_universe in range(problem.number_universe):
                 # set new output directory
-                universe_output_directory = os.path.join(problem_output_directory, "univ%04d" % ith_universe)
+                universe_output_directory = os.path.join(genomeAndPopSize, "univ%04d" % ith_universe)
                 if node_rank == 0:
                     os.makedirs(universe_output_directory, exist_ok=False)
                 MPI.COMM_WORLD.Barrier()
