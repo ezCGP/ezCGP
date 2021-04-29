@@ -180,7 +180,7 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
         # don't want it imported all the time so we didn't put it at the top of script
         from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
         import torch
-        input_dtypes = [PyTorchLayerWrapper, PyTorchLayerWrapper]
+        input_dtypes = [PyTorchLayerWrapper, PyTorchLayerWrapper] # We have two here to allow for more chance to append an unaltered version of the input
         output_dtypes = [PyTorchLayerWrapper]
         main_count = 30 # TODO: see if this needs to be bumped up
         super().__init__(input_dtypes,

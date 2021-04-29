@@ -24,7 +24,7 @@ operator_dict = {}
 
 # NOTE: this function needs a placeholder because you aren't allowed to have no inputs, so a None is passed in as the first arg
 def simgan_train_config(placeholder, train_steps, r_pretrain_steps, d_pretrain_steps, d_updates_per_train_step, r_updates_per_train_step,
-    r_lr, d_lr, delta, use_image_history, steps_per_log=100):
+    r_lr, d_lr, delta, use_data_history, steps_per_log=100):
     """
     An operator that stores SimGAN training configuration variables
     """
@@ -45,7 +45,7 @@ def simgan_train_config(placeholder, train_steps, r_pretrain_steps, d_pretrain_s
     config['delta'] = delta
 
     # Using image history
-    config['use_image_history'] = True
+    config['use_data_history'] = use_data_history
 
     # Logging
     config['steps_per_log'] = steps_per_log
