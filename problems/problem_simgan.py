@@ -82,8 +82,8 @@ class Problem(ProblemDefinition_Abstract):
         Constructs a train and validation 1D signal datasets
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
-        self.training_datalist = [simganData.SimGANDataset(real_size=128**2, sim_size=256, batch_size=128)]
-        self.validating_datalist = [simganData.SimGANDataset(real_size=int((128**2)/4), sim_size=128, batch_size=128)]
+        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128)]
+        self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
         # import pdb; pdb.set_trace()
 
     def objective_functions(self, population):
@@ -146,6 +146,21 @@ class Problem(ProblemDefinition_Abstract):
         pareto_front = self.get_pareto_front(universe)
         for ind in pareto_front:
             indiv = universe.population.population[ind]
+            ## Uncomment to take a look at refined waves
+            # import pdb; pdb.set_trace()
+            # R = indiv.output[0]
+            # sim = self.training_datalist[0].simulated_raw[:16]
+            # import torch 
+            # refined = R(torch.Tensor(sim)).detach().cpu().numpy()
+
+            # import matplotlib.pyplot as plt
+            # sim_wave = sim[0][0]
+            # plt.plot(sim_wave)
+            # plt.show()
+            # refined_wave = refined[0][0]
+            # plt.plot(refined_wave)
+            # plt.show()
+
             save_things.save_pytorch_model(universe, indiv.output[0], indiv.id + '-R') # Save refiner network and id
             # TODO: consider saving discriminator
 

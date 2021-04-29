@@ -528,6 +528,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 # Run refiner and get self_regularization loss
                 refined = R(simulated)
                 r_loss_reg = train_config['delta'] * train_config['self_regularization_loss'](simulated, refined) 
+                # Run discriminator on refined data and get adversarial loss
                 d_pred = D(refined)
                 r_loss_adv = train_config['local_adversarial_loss'](d_pred, real_labels) # want discriminator to think they are real
 
@@ -569,10 +570,10 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 # Run the refined batch through discriminator and calc loss
                 refined = R(simulated)
 
-                # use a history of refined images
+                # use a history of refined signals
                 # TODO: investigate keeping track of loss of old refined from history buffer and new refined seperately
                 d_loss_ref = None
-                if train_config['use_image_history']:
+                if train_config['use_data_history']:
                     if not train_data.data_history_buffer.is_empty():
                         refined_hist = train_data.data_history_buffer.get()
                         refined_hist = torch.Tensor(refined_hist).to(train_config['device'])

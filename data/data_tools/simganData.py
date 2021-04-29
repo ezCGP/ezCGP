@@ -88,17 +88,18 @@ class SimGANDataset():
     Holds a simulated and real dataset, each composed of 1D signals
     """
 
-    def __init__(self, real_size=128**2, sim_size=256, batch_size=128, buffer_size=12800):
+    def __init__(self, real_size=512, sim_size=128**2, batch_size=128, buffer_size=12800):
         self.batch_size = batch_size
         
         ### Get the real and simulated datasets
+        # Generate Datasets:
+        # Dataset  | Peak Locations | Ratio of Normed Peak Amplitudes | Frequency Content (Hz) in [Peak 1],[Peak 2]
+        # -------------------------------------------------------------------------------------------------------------
+        # REAL     |     24,56      |          1:0.64				  |              [1,4,6],[5,8,10]   
+        # SYNTHETIC|    23.5,55.5   |          1:0.78                 |                [4]  ,  [10]  
         # Can configure these, but they are a bit obtuse
-        self.real_raw = self.gen_fake_dataset(real_size, [24,56], [0.5,0.5], [5,8], 
-                                              [0.5,0.5], [1,0.64], [0.1,0.2],
-                                              [[1,4,6],[5,8,10]], [0.25,0.25], True)
-        self.simulated_raw = self.gen_fake_dataset(sim_size, [23.5,55.5], [0.5,0.5], [5,10],
-                                                   [0.5,0.5], [1,0.78], [0.05,0.17],
-                                                   [[4],[10]], [0.25,0.25], False)
+        self.real_raw = self.gen_fake_dataset(real_size, [24,56], [0.5,0.5], [5,8], [0.5,0.5], [1,0.64], [0.1,0.2], [[1,4,6],[5,8,10]], [0.25,0.25], True)
+        self.simulated_raw = self.gen_fake_dataset(sim_size, [23.5,55.5], [0.5,0.5], [5,10], [0.5,0.5], [1,0.78], [0.05,0.17], [[4],[10]], [0.25,0.25], False)
         ### Get the labels
         self.labels_real = np.zeros(self.real_raw.shape[0])
         self.labels_simulated = np.ones(self.simulated_raw.shape[0])
