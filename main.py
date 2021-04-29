@@ -63,11 +63,12 @@ def setup(problem_filename: str,
     problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
     problem = problem_module.Problem()
 
-    return problem, log_formatter
+    return problem, log_formatter, seed
 
 
 def main(problem,
          log_formatter,
+         seed,
          problem_output_directory):
     node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
     node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
@@ -174,5 +175,5 @@ if __name__ == "__main__":
         problem_filename = os.path.basename(args.problem + ".py")
     
     # RUN BABYYY
-    problem, log_formatter = setup(problem_filename, problem_output_directory, seed, args.loglevel)
-    main(problem, log_formatter, problem_output_directory)
+    problem, log_formatter, seed = setup(problem_filename, problem_output_directory, seed, args.loglevel)
+    main(problem, log_formatter, seed, problem_output_directory)

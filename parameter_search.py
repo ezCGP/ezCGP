@@ -33,6 +33,7 @@ import main
 
 def parameter_search(problem,
                      log_formatter,
+                     seed,
                      problem_output_directory):
     '''
     words
@@ -51,9 +52,59 @@ def parameter_search(problem,
             problem.indiv_def[0].meta_def.main_count = genome_size
             problem.indiv_def[0].meta_def.genome_count = problem.indiv_def[0].genome_count
             problem.population_size = pop_size
-
+            # import pdb;
+            # pdb.set_trace()
             # GO!
-            main.main(problem, log_formatter, problem_output_directory)
+            #TODO: edit problem_output_directory to add a new sub folder ofr the parameter we are tweaking.
+
+            # main.main(problem, log_formatter, seed, problem_output_directory)
+
+            node_rank = MPI.COMM_WORLD.Get_rank()  # which node are we on if mpi, else always 0
+            node_size = MPI.COMM_WORLD.Get_size()  # how many nodes are we using if mpi, else always 1
+            from codes.universe import UniverseDefinition, MPIUniverseDefinition
+
+            log_handler_2file = None  # just initializing
+            for ith_universe in range(problem.number_universe):
+                # set new output directory
+                universe_output_directory = os.path.join(problem_output_directory, "univ%04d" % ith_universe)
+                if node_rank == 0:
+                    os.makedirs(universe_output_directory, exist_ok=False)
+                MPI.COMM_WORLD.Barrier()
+
+                # init corresponding universe and new log file handler
+                if problem.mpi:
+                    ezLogging_method = ezLogging.logging_2file_mpi
+                    universe_seed = seed + 1 + (ith_universe * node_size) + node_rank
+                    ThisUniverse = MPIUniverseDefinition
+                else:
+                    ezLogging_method = ezLogging.logging_2file
+                    universe_seed = seed + 1 + ith_universe
+                    ThisUniverse = UniverseDefinition
+                log_handler_2file = ezLogging_method(log_formatter,
+                                                     filename=os.path.join(universe_output_directory, "log.txt"))
+                ezLogging.log_git_metadata()
+                ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
+                np.random.seed(universe_seed)
+                random.seed(seed)
+                ezLogging.warning("STARTING UNIVERSE %i" % ith_universe)
+                universe = ThisUniverse(problem, universe_output_directory)
+
+                # run
+                start_time = time.time()
+                universe.run(problem)
+
+                min_firstobjective = universe.pop_fitness_scores[:, 0].min()   # pop_fitness_scores = [popsize : numofobjectives]
+                # min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index, 0]
+                #TODO: how to keep track for the best fitness for each universe, for each parameters on average.
+                ezLogging.warning(
+                    "...time of universe %i: %.2f minutes" % (ith_universe, (time.time() - start_time) / 60))
+
+                # do some clean up, if we're about to start another run
+                # remove previous universe log file handler if exists
+                ezLogging.logging_remove_handler(log_handler_2file)
+                # TODO is there a way to track memory usage before and after here?
+                del universe  # will that also delete populations? or at least gc.collect will remove it?
+                gc.collect()
 
 
 
@@ -123,5 +174,5 @@ if __name__ == "__main__":
         problem_filename = os.path.basename(args.problem + ".py")
     
     # RUN BABYYY
-    problem, log_formatter = main.setup(problem_filename, problem_output_directory, seed, args.loglevel)
-    parameter_search(problem, log_formatter, problem_output_directory)
+    problem, log_formatter, seed = main.setup(problem_filename, problem_output_directory, seed, args.loglevel)
+    parameter_search(problem, log_formatter, seed, problem_output_directory)
