@@ -44,7 +44,13 @@ def parameter_search(problem,
     # TODO!
     # import pdb; pdb.set_trace()
 
-    # dirty example:
+    # initializing variables and lists required to find the best fitness values and the parameters corresponding to it.
+    best_fitness_score = float('inf');
+    best_fitness_parameters = ""
+    fitnesses_list = []
+    parameter_list = []
+
+    # main for loop:
     for genome_size in [2**4, 2**5, 2**6]:
         for pop_size in [50, 100, 200, 500]:
             problem.indiv_def[0].main_count = genome_size
@@ -95,6 +101,17 @@ def parameter_search(problem,
 
                 min_firstobjective = universe.pop_fitness_scores[:, 0].min()   # pop_fitness_scores = [popsize : numofobjectives]
 
+                # list of best fitnesses in each combination of pop_size and genome_size
+                fitnesses_list.append(min_firstobjective)
+                # corresponding list of the parameter combination. each element in this list is a tuple [pop_size, genome_size]
+                parameter_list.append([pop_size, genome_size])
+                # keeping track of the best fitness score to print on the console
+                if (min_firstobjective < best_fitness_score) :
+                    best_fitness_score = min_firstobjective
+                # printing the best fitness score and the parameters for each combination for it on the console.
+                print("Best Fitness Score is {} for parameters pop_size = {} and genome_size = {} ".format(best_fitness_score, pop_size, genome_size))
+
+
                 # min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index, 0]
                 #TODO: how to keep track for the best fitness for each universe, for each parameters on average.
                 ezLogging.warning(
@@ -107,6 +124,19 @@ def parameter_search(problem,
                 del universe  # will that also delete populations? or at least gc.collect will remove it?
                 gc.collect()
 
+    # getting the index of the best fitness in the fitness_list, which is equivalent to the index of its corresponding parameters
+    # in the parameters_list.
+    parameter_index_value = fitnesses_list.index(min(fitnesses_list))
+    # getting the best parameters
+    best_parameters = parameter_list[parameter_index_value]
+    # printing the best fitness score and the parameters among all combinations for it on the console.
+    print("The Best parameters in the entire search are pop_size = {} and gemone_size = {} with the best fitness score of {}.".format(best_parameters[0], best_parameters[1], min(fitnesses_list)))
+    # adding a text file called best_parameters.txt in the output folder.
+    best_parameters_file_path = os.path.join(problem_output_directory, "best_parameters.txt")
+    # adding the information about the best parameters and the best fitness score in the text file.
+    f = open(best_parameters_file_path, "w+")
+    f.write("The Best parameters in the entire search are pop_size = {} and genome_size = {} with the best fitness score of {}.".format(best_parameters[0], best_parameters[1], min(fitnesses_list)))
+    f.close()
 
 
 if __name__ == "__main__":
