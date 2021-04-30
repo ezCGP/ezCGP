@@ -55,8 +55,8 @@ def parameter_search(problem,
             # import pdb;
             # pdb.set_trace()
             # GO!
-            #TODO: edit problem_output_directory to add a new sub folder ofr the parameter we are tweaking.
-
+            #TODO: edit problem_output_directory to add a new sub folder for the parameter we are tweaking.
+            searchedParameters = os.path.join(problem_output_directory, "pop_{}__geno_{}".format(pop_size, genome_size))
             # main.main(problem, log_formatter, seed, problem_output_directory)
 
             node_rank = MPI.COMM_WORLD.Get_rank()  # which node are we on if mpi, else always 0
@@ -66,7 +66,7 @@ def parameter_search(problem,
             log_handler_2file = None  # just initializing
             for ith_universe in range(problem.number_universe):
                 # set new output directory
-                universe_output_directory = os.path.join(problem_output_directory, "univ%04d" % ith_universe)
+                universe_output_directory = os.path.join(searchedParameters, "univ%04d" % ith_universe)
                 if node_rank == 0:
                     os.makedirs(universe_output_directory, exist_ok=False)
                 MPI.COMM_WORLD.Barrier()
@@ -94,6 +94,7 @@ def parameter_search(problem,
                 universe.run(problem)
 
                 min_firstobjective = universe.pop_fitness_scores[:, 0].min()   # pop_fitness_scores = [popsize : numofobjectives]
+
                 # min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index, 0]
                 #TODO: how to keep track for the best fitness for each universe, for each parameters on average.
                 ezLogging.warning(
