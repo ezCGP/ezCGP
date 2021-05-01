@@ -180,10 +180,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                      loss="categorical_crossentropy",
                                      metrics=[tf.keras.metrics.CategoricalAccuracy(),
                                               tf.keras.metrics.Precision(),
-                                              tf.keras.metrics.Recall()],
-                                     loss_weights=None,
-                                     weighted_metrics=None,
-                                     run_eagerly=None)
+                                              tf.keras.metrics.Recall()])
 
 
     def get_generator(self,
@@ -269,7 +266,6 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                            validation_steps=validating_augmentor.num_images//block_def.batch_size,
                                            max_queue_size=10,
                                            workers=1,
-                                           use_multiprocessing=False,
                                           )
 
         # mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
@@ -425,23 +421,15 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
 
 
     def build_graph(self, block_material, block_def, augmentor, pretrained_first_layer, pretrained_last_layer):
-        '''
-        Assume input+output layers are going to be lists with only one element
 
-        https://www.tensorflow.org/api_docs/python/tf/keras/layers/InputLayer
-         vs
-        https://www.tensorflow.org/api_docs/python/tf/keras/Input
-        '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        output_layer = self.standard_build_graph(block_material,
-                                                  block_def,
-                                                  [pretrained_last_layer])[0]
+        output_layer = self.standard_build_graph(block_material, block_def, [pretrained_last_layer])[0]
 
         #  flatten the output node and perform a softmax
         output_flatten = tf.keras.layers.Flatten()(output_layer)
-        logits = tf.keras.layers.Dense(units=augmentor.num_classes, activation=None, use_bias=True)(output_flatten)
-        softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
+        softmax = tf.keras.layers.Dense(units=augmentor.num_classes, activation='softmax')(output_flatten)
+        # softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
 
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model
         block_material.graph = tf.keras.Model(inputs=pretrained_first_layer, outputs=softmax)
@@ -453,10 +441,7 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
                                      loss="categorical_crossentropy",
                                      metrics=[tf.keras.metrics.CategoricalAccuracy(),
                                               tf.keras.metrics.Precision(),
-                                              tf.keras.metrics.Recall()],
-                                     loss_weights=None,
-                                     weighted_metrics=None,
-                                     run_eagerly=None)
+                                              tf.keras.metrics.Recall()])
 
 
     def evaluate(self,
@@ -466,13 +451,16 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
                  validating_datalist: ezData,
                  supplements):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
+
+        block_material.output = (None, None, (0,0,0))
+
         try:
             training_augmentor, _, _ = self.parse_datalist(training_datalist)
             self.build_graph(block_material, block_def, training_augmentor, *supplements)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             return
 
         try:
@@ -481,7 +469,8 @@ class BlockEvaluate_TFKeras_AfterTransferLearning(BlockEvaluate_TFKeras):
             ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import traceback; traceback.print_exc()
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
+
             return
 
         block_material.output = (None, None, validation_scores)
@@ -498,6 +487,11 @@ class BlockEvaluate_Preceding_TFKeras(BlockEvaluate_GraphAbstract):
 
         input_layer = tf.keras.layers.Input(shape=augmentor.image_shape)
         output_layer = self.standard_build_graph(block_material, block_def, [input_layer])[0]
+
+        x = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+
+        print(x.summary())
+
 
         supplements = [input_layer, output_layer]
         return supplements

@@ -33,22 +33,24 @@ from post_process import save_things
 # Block Defs
 from codes.block_definitions.shapemeta.block_shapemeta import (BlockShapeMeta_DataAugmentation,
                                                                BlockShapeMeta_DataPreprocessing,
-                                                               BlockShapeMeta_TFKeras)
+                                                               BlockShapeMeta_TFKeras, BlockShapeMeta_Dense)
 from codes.block_definitions.operators.block_operators import (BlockOperators_DataAugmentation,
                                                                BlockOperators_DataPreprocessing,
-                                                               BlockOperators_TFKeras)
+                                                               BlockOperators_TFKeras,
+                                                               BlockOperators_Dense)
 from codes.block_definitions.arguments.block_arguments import (BlockArguments_DataAugmentation,
                                                                BlockArguments_DataPreprocessing,
-                                                               BlockArguments_TFKeras)
+                                                               BlockArguments_TFKeras,
+                                                               BlockArguments_Dense)
 from codes.block_definitions.evaluate.block_evaluate import (BlockEvaluate_MiddleBlock,
                                                              BlockEvaluate_MiddleBlock_SkipValidating)
-from codes.block_definitions.evaluate.block_evaluate_graph import BlockEvaluate_TFKeras
+from codes.block_definitions.evaluate.block_evaluate_graph import (BlockEvaluate_TFKeras, BlockEvaluate_TFKeras_AfterTransferLearning, BlockEvaluate_Preceding_TFKeras)
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_4Blocks
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTensorFlow
+from codes.individual_definitions.individual_evaluate import (IndividualEvaluate_wAugmentorPipeline_wTensorFlow, IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow)
 
 
 
@@ -65,7 +67,7 @@ class Problem(ProblemDefinition_Abstract):
         import tensorflow as tf
         assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 8
+        population_size = 20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -77,37 +79,48 @@ class Problem(ProblemDefinition_Abstract):
             genome_seeds = glob.glob("outputs/problem_cifar_no_transfer/%s/univ0000/gen_%04d_*.pkl" % ("20210310-002525-seventh_run", 1))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
 
-        augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
-                                                          shape_def=BlockShapeMeta_DataAugmentation,
-                                                          operator_def=BlockOperators_DataAugmentation,
-                                                          argument_def=BlockArguments_DataAugmentation,
-                                                          evaluate_def=BlockEvaluate_MiddleBlock_SkipValidating,
-                                                          mutate_def=BlockMutate_OptB_4Blocks,
-                                                          mate_def=BlockMate_WholeOnly_4Blocks)
+        # augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
+        #                                                   shape_def=BlockShapeMeta_DataAugmentation,
+        #                                                   operator_def=BlockOperators_DataAugmentation,
+        #                                                   argument_def=BlockArguments_DataAugmentation,
+        #                                                   evaluate_def=BlockEvaluate_MiddleBlock_SkipValidating,
+        #                                                   mutate_def=BlockMutate_OptB_4Blocks,
+        #                                                   mate_def=BlockMate_WholeOnly_4Blocks)
 
-        preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
-                                                           shape_def=BlockShapeMeta_DataPreprocessing,
-                                                           operator_def=BlockOperators_DataPreprocessing,
-                                                           argument_def=BlockArguments_DataPreprocessing,
-                                                           evaluate_def=BlockEvaluate_MiddleBlock,
-                                                           mutate_def=BlockMutate_OptB_4Blocks,
-                                                           mate_def=BlockMate_WholeOnly_4Blocks)
+        # preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
+        #                                                    shape_def=BlockShapeMeta_DataPreprocessing,
+        #                                                    operator_def=BlockOperators_DataPreprocessing,
+        #                                                    argument_def=BlockArguments_DataPreprocessing,
+        #                                                    evaluate_def=BlockEvaluate_MiddleBlock,
+        #                                                    mutate_def=BlockMutate_OptB_4Blocks,
+        #                                                    mate_def=BlockMate_WholeOnly_4Blocks)
 
-        tensorflow_block_def = self.construct_block_def(nickname="tensorflow_block",
+        tensorflow_block_def = self.construct_block_def(nickname="transferlearning",
                                                         shape_def=BlockShapeMeta_TFKeras,
                                                         operator_def=BlockOperators_TFKeras,
                                                         argument_def=BlockArguments_TFKeras,
-                                                        evaluate_def=BlockEvaluate_TFKeras,
+                                                        evaluate_def=BlockEvaluate_Preceding_TFKeras,
                                                         mutate_def=BlockMutate_OptB_4Blocks,
                                                         mate_def=BlockMate_WholeOnly_4Blocks)
+
+        dense_block_def = self.construct_block_def(nickname="tensorflow",
+                                                   shape_def=BlockShapeMeta_Dense,
+                                                        operator_def=BlockOperators_Dense,
+                                                        argument_def=BlockArguments_Dense,
+                                                        evaluate_def=BlockEvaluate_TFKeras_AfterTransferLearning,
+                                                        mutate_def=BlockMutate_OptB_4Blocks,
+                                                        mate_def=BlockMate_WholeOnly_4Blocks)
+
+
 
         self.construct_individual_def(block_defs=[
                                                 # augmentation_block_def,
                                                 # preprocessing_block_def,
-                                                  tensorflow_block_def],
+                                                  tensorflow_block_def,
+                                                  dense_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
-                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTensorFlow)
+                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow)
 
         self.construct_dataset()
 

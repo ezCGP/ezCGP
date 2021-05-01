@@ -278,7 +278,7 @@ class BlockOperators_TFKeras(BlockOperators_Abstract):
         for module in modules:
             weight_dict.update(self.set_equal_weights(module))
 
-        # weight_dict[operators_TensorFlow_Keras.conv2D_layer] = 4
+        weight_dict[operators_TensorFlow_Keras.conv2D_layer] = 0.8
 
         self.init_from_weight_dict(weight_dict)
 
@@ -295,5 +295,7 @@ class BlockOperators_Dense(BlockOperators_Abstract):
         weight_dict = {}
         for module in modules:
             weight_dict.update(self.set_equal_weights(module))
+
+        weight_dict[operators_TensorFlow_basiclayers.dense_layer] = 0.8
 
         self.init_from_weight_dict(weight_dict)

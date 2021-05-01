@@ -36,11 +36,11 @@ def input_layer(input_tensor):
 
 
 def dense_layer(input_tensor, percentage=1, activation=tf.nn.relu):
-    # Flatten tensor into a batch of vectors
-    pool2_flat = tf.keras.layers.Flatten()(input_tensor)
     # Densely connected layer with 1024 neurons
-    units = max(int(pool2_flat.shape[-1] * percentage/2), 1)
-    logits = tf.keras.layers.Dense(units=units, activation=activation)(pool2_flat)
+    if len(input_tensor.shape) > 2:
+        input_tensor = tf.keras.layers.Flatten()(input_tensor)
+    units = min(max(int(input_tensor.shape[-1] * percentage / 2), 10), 5000)
+    logits = tf.keras.layers.Dense(units=units, activation=activation)(input_tensor)
     return logits
 
 
@@ -80,10 +80,9 @@ def identity_layer(input):
 
 def dropout_layer(input_tensor, rate=0.2):
     print(" dropout_layer YAY, HERE")
-    return tf.keras.layers.Dropout(rate)(input_tensor)
+    return tf.keras.layers.Dropout(rate/2)(input_tensor)
 
-
-# operator_dict[dropout_layer] = {"inputs": [tf.keras.layers],
-#                                 "output": tf.keras.layers,
-#                                 "args": [argument_types.ArgumentType_Float0to1]
-#                                 }
+operator_dict[dropout_layer] = {"inputs": [tf.keras.layers],
+                                "output": tf.keras.layers,
+                                "args": [argument_types.ArgumentType_Float0to1]
+                                }

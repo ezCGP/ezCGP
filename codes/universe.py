@@ -80,7 +80,7 @@ class UniverseDefinition():
                 else:
                     # it is a multiple...so far, we are satisfied
                     satisfied = True
-            
+
             if possible_size <= 0:
                 # then we failed...try changing direction
                 print(possible_size)
@@ -153,7 +153,10 @@ class UniverseDefinition():
             problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
             # SCORE
             problem.objective_functions(indiv)
+            if None in indiv.fitness.values:
+                indiv.fitness.values = (0,0,0)
             self.pop_fitness_scores.append(indiv.fitness.values)
+            print(indiv.fitness.values)
             # ATTACH ID
             self.pop_individual_ids.append(indiv.id)
         self.pop_fitness_scores = np.array(self.pop_fitness_scores)
@@ -190,7 +193,7 @@ class UniverseDefinition():
         '''
         Wrapper to problem.postprocess_universe()
 
-        Provides an option for anything we want to do with the universe + population now that we reached the 
+        Provides an option for anything we want to do with the universe + population now that we reached the
         complete end of the evolutionary cycle.
         '''
         problem_def.postprocess_universe(self)

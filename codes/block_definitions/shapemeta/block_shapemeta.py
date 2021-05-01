@@ -170,10 +170,10 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         main_count = 30
         super().__init__([tf.keras.layers],
                          [tf.keras.layers],
-                         30)
+                         10)
 
         self.batch_size = 128
-        self.epochs = 10
+        self.epochs = 15
 
 
 class BlockShapeMeta_Dense(BlockShapeMeta_Abstract):
@@ -187,7 +187,7 @@ class BlockShapeMeta_Dense(BlockShapeMeta_Abstract):
         main_count = 10
         super().__init__([tf.keras.layers],
                          [tf.keras.layers],
-                         30)
+                         20)
 
         self.batch_size = 128
-        self.epochs = 15
+        self.epochs = 1
