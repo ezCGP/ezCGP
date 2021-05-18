@@ -42,37 +42,34 @@ def parameter_search(problem,
     node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
 
     # TODO!
-    # import pdb; pdb.set_trace()
-
     # initializing variables and lists required to find the best fitness values and the parameters corresponding to it.
     best_fitness_score = float('inf');
     best_fitness_parameters = ""
     fitnesses_list = []
     parameter_list = []
 
-    # main for loop:
-    for genome_size in [2**4, 2**5, 2**6]:
-        for pop_size in [50, 100, 200, 500]:
+    # dirty example:
+    for genome_size in [2**4, 2**5, 2**6]: #X
+        for pop_size in [50, 100, 200, 500]: #Y
             problem.indiv_def[0].main_count = genome_size
             problem.indiv_def[0].genome_count = genome_size + problem.indiv_def[0].input_count + problem.indiv_def[0].output_count
             problem.indiv_def[0].meta_def.main_count = genome_size
             problem.indiv_def[0].meta_def.genome_count = problem.indiv_def[0].genome_count
             problem.population_size = pop_size
-            # import pdb;
-            # pdb.set_trace()
-            # GO!
-            #TODO: edit problem_output_directory to add a new sub folder for the parameter we are tweaking.
-            searchedParameters = os.path.join(problem_output_directory, "pop_{}__geno_{}".format(pop_size, genome_size))
-            # main.main(problem, log_formatter, seed, problem_output_directory)
 
-            node_rank = MPI.COMM_WORLD.Get_rank()  # which node are we on if mpi, else always 0
-            node_size = MPI.COMM_WORLD.Get_size()  # how many nodes are we using if mpi, else always 1
+            # GO!
+            #To-do: edit problem_output_directory to add a new subfolder for the unqiue set of parameters that we are looking at
+            genomeAndPopSize = os.path.join(problem_output_directory, "genome%i_pop_size%i"  %(genome_size, pop_size)) 
+
+
+            node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
+            node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
             from codes.universe import UniverseDefinition, MPIUniverseDefinition
 
-            log_handler_2file = None  # just initializing
+            log_handler_2file = None # just initializing
             for ith_universe in range(problem.number_universe):
                 # set new output directory
-                universe_output_directory = os.path.join(searchedParameters, "univ%04d" % ith_universe)
+                universe_output_directory = os.path.join(genomeAndPopSize, "univ%04d" % ith_universe)
                 if node_rank == 0:
                     os.makedirs(universe_output_directory, exist_ok=False)
                 MPI.COMM_WORLD.Barrier()
@@ -80,7 +77,7 @@ def parameter_search(problem,
                 # init corresponding universe and new log file handler
                 if problem.mpi:
                     ezLogging_method = ezLogging.logging_2file_mpi
-                    universe_seed = seed + 1 + (ith_universe * node_size) + node_rank
+                    universe_seed = seed + 1 + (ith_universe*node_size) + node_rank
                     ThisUniverse = MPIUniverseDefinition
                 else:
                     ezLogging_method = ezLogging.logging_2file
@@ -88,6 +85,7 @@ def parameter_search(problem,
                     ThisUniverse = UniverseDefinition
                 log_handler_2file = ezLogging_method(log_formatter,
                                                      filename=os.path.join(universe_output_directory, "log.txt"))
+
                 ezLogging.log_git_metadata()
                 ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
                 np.random.seed(universe_seed)
@@ -98,7 +96,6 @@ def parameter_search(problem,
                 # run
                 start_time = time.time()
                 universe.run(problem)
-
                 min_firstobjective = universe.pop_fitness_scores[:, 0].min()   # pop_fitness_scores = [popsize : numofobjectives]
 
                 # list of best fitnesses in each combination of pop_size and genome_size
@@ -106,7 +103,7 @@ def parameter_search(problem,
                 # corresponding list of the parameter combination. each element in this list is a tuple [pop_size, genome_size]
                 parameter_list.append([pop_size, genome_size])
                 # keeping track of the best fitness score to print on the console
-                if (min_firstobjective < best_fitness_score) :
+                if (min_firstobjective < best_fitness_score):
                     best_fitness_score = min_firstobjective
                 # printing the best fitness score and the parameters for each combination for it on the console.
                 print("Best Fitness Score is {} for parameters pop_size = {} and genome_size = {} ".format(best_fitness_score, pop_size, genome_size))
@@ -114,9 +111,7 @@ def parameter_search(problem,
 
                 # min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index, 0]
                 #TODO: how to keep track for the best fitness for each universe, for each parameters on average.
-                ezLogging.warning(
-                    "...time of universe %i: %.2f minutes" % (ith_universe, (time.time() - start_time) / 60))
-
+                ezLogging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time() - start_time) / 60))
                 # do some clean up, if we're about to start another run
                 # remove previous universe log file handler if exists
                 ezLogging.logging_remove_handler(log_handler_2file)
@@ -137,6 +132,7 @@ def parameter_search(problem,
     f = open(best_parameters_file_path, "w+")
     f.write("The Best parameters in the entire search are pop_size = {} and genome_size = {} with the best fitness score of {}.".format(best_parameters[0], best_parameters[1], min(fitnesses_list)))
     f.close()
+
 
 
 if __name__ == "__main__":
