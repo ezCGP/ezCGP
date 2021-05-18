@@ -30,6 +30,20 @@ from codes.block_definitions.utilities import argument_types
 operator_dict = {}
 
 
+def freeze_tflayer_weights(tf_model):
+    '''
+    https://www.tensorflow.org/api_docs/python/tf/keras/layers/Layer#attributes
+    every layer should have a 'trainable' boolean attribute that we could set to False so that futher
+    training of the model will not change the weights of that specific layer.
+    here we are going to set ALL the layers of the model to be trainable=False
+
+    from initial testing, we don't have to return the tf_model; the changes should be made on the original 
+    model class instance and not a copy.
+    '''
+    for layer in tf_model.layers:
+        layer.trainable = False
+
+
 
 class InputImageTooSmall(Exception):
     '''
@@ -61,7 +75,6 @@ def check_size_compatibility(input_layer, minimum_size):
         raise InputImageTooSmall(smallest_dim, minimum_size)
 
 
-
 def vgg16(input_layer):
     '''
     https://www.tensorflow.org/api_docs/python/tf/keras/applications/VGG16
@@ -76,6 +89,7 @@ def vgg16(input_layer):
                                                    input_tensor=None,
                                                    input_shape=input_layer.shape[1:], #ignore 0th element batch_size
                                                    pooling=None)
+    freeze_tflayer_weights(pretrained_model)
     output_layer = pretrained_model(next_layer)
     return output_layer
 
@@ -107,6 +121,7 @@ def resnet(input_layer, ith_model):
                                          input_shape=input_layer.shape[1:], #ignore 0th element batch_size
                                          pooling=None
                                         )
+    freeze_tflayer_weights(pretrained_model)
     output_layer = pretrained_model(next_layer)
     return output_layer
 
@@ -130,6 +145,7 @@ def inception(input_layer):
                                                          input_tensor=None,
                                                          input_shape=input_layer.shape[1:], #ignore 0th element batch_size
                                                          pooling=None)
+    freeze_tflayer_weights(pretrained_model)
     output_layer = pretrained_model(next_layer)
     return output_layer
 
