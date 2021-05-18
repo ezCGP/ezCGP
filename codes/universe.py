@@ -35,7 +35,8 @@ class UniverseDefinition():
     '''
     def __init__(self,
                  problem: ProblemDefinition_Abstract,
-                 output_folder: str):
+                 output_folder: str,
+                 random_seed: int):
         '''
         electing to keep Problem class separate from Universe class...
         if we ever need a Problem attribute, just pass in the instance of Problem as an arguement
@@ -47,6 +48,7 @@ class UniverseDefinition():
         #self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
         #self.problem = problem #did we really need the problem as attr? cleaner to keep them separate, right?
         self.output_folder = output_folder
+        self.random_seed = random_seed
         self.converged = False
 
         # match a few attributes found in MPIUniverseDefinition
