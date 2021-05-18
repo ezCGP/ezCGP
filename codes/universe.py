@@ -25,7 +25,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.utilities import selections
 from codes.utilities.custom_logging import ezLogging
-
+from post_process import save_things
 
 
 
@@ -195,6 +195,7 @@ class UniverseDefinition():
         Provides an option for anything we want to do with the universe + population now that we reached the 
         complete end of the evolutionary cycle.
         '''
+        save_things.save_population(self) # always save the population at the end of the run
         problem_def.postprocess_universe(self)
 
 
