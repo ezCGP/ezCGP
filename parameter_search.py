@@ -42,7 +42,11 @@ def parameter_search(problem,
     node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
 
     # TODO!
-#    import pdb; pdb.set_trace()
+    # initializing variables and lists required to find the best fitness values and the parameters corresponding to it.
+    best_fitness_score = float('inf');
+    best_fitness_parameters = ""
+    fitnesses_list = []
+    parameter_list = []
 
     # dirty example:
     for genome_size in [2**4, 2**5, 2**6]: #X
@@ -52,7 +56,7 @@ def parameter_search(problem,
             problem.indiv_def[0].meta_def.main_count = genome_size
             problem.indiv_def[0].meta_def.genome_count = problem.indiv_def[0].genome_count
             problem.population_size = pop_size
-           
+
             # GO!
             #To-do: edit problem_output_directory to add a new subfolder for the unqiue set of parameters that we are looking at
             genomeAndPopSize = os.path.join(problem_output_directory, "genome%i_pop_size%i"  %(genome_size, pop_size)) 
@@ -79,7 +83,9 @@ def parameter_search(problem,
                     ezLogging_method = ezLogging.logging_2file
                     universe_seed = seed + 1 + ith_universe
                     ThisUniverse = UniverseDefinition
-                log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
+                log_handler_2file = ezLogging_method(log_formatter,
+                                                     filename=os.path.join(universe_output_directory, "log.txt"))
+
                 ezLogging.log_git_metadata()
                 ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
                 np.random.seed(universe_seed)
@@ -90,21 +96,42 @@ def parameter_search(problem,
                 # run
                 start_time = time.time()
                 universe.run(problem)
-                import pdb; pdb.set_trace()
-                min_firstobjective = universe.pop_fitness_scores[:,0].min() #Univrsee is n instance of the universe class, it runs everything, there is a population that we are creating and evoluton in is universe, pop_fitnes_values, we could 
-         #       min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,0]
-                #To-do: how to keep track of the best fitness for each universe, for each setof parameter so that after we run all the...
-                ezLogging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time()-start_time)/60))
-                
+                min_firstobjective = universe.pop_fitness_scores[:, 0].min()   # pop_fitness_scores = [popsize : numofobjectives]
+
+                # list of best fitnesses in each combination of pop_size and genome_size
+                fitnesses_list.append(min_firstobjective)
+                # corresponding list of the parameter combination. each element in this list is a tuple [pop_size, genome_size]
+                parameter_list.append([pop_size, genome_size])
+                # keeping track of the best fitness score to print on the console
+                if (min_firstobjective < best_fitness_score):
+                    best_fitness_score = min_firstobjective
+                # printing the best fitness score and the parameters for each combination for it on the console.
+                print("Best Fitness Score is {} for parameters pop_size = {} and genome_size = {} ".format(best_fitness_score, pop_size, genome_size))
+
+
+                # min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index, 0]
+                #TODO: how to keep track for the best fitness for each universe, for each parameters on average.
+                ezLogging.warning("...time of universe %i: %.2f minutes" % (ith_universe, (time.time() - start_time) / 60))
                 # do some clean up, if we're about to start another run
                 # remove previous universe log file handler if exists
                 ezLogging.logging_remove_handler(log_handler_2file)
                 # TODO is there a way to track memory usage before and after here?
-                del universe # will that also delete populations? or at least gc.collect will remove it?
+                del universe  # will that also delete populations? or at least gc.collect will remove it?
                 gc.collect()
 
-                     #   )
-                    #Z is fitness
+    # getting the index of the best fitness in the fitness_list, which is equivalent to the index of its corresponding parameters
+    # in the parameters_list.
+    parameter_index_value = fitnesses_list.index(min(fitnesses_list))
+    # getting the best parameters
+    best_parameters = parameter_list[parameter_index_value]
+    # printing the best fitness score and the parameters among all combinations for it on the console.
+    print("The Best parameters in the entire search are pop_size = {} and gemone_size = {} with the best fitness score of {}.".format(best_parameters[0], best_parameters[1], min(fitnesses_list)))
+    # adding a text file called best_parameters.txt in the output folder.
+    best_parameters_file_path = os.path.join(problem_output_directory, "best_parameters.txt")
+    # adding the information about the best parameters and the best fitness score in the text file.
+    f = open(best_parameters_file_path, "w+")
+    f.write("The Best parameters in the entire search are pop_size = {} and genome_size = {} with the best fitness score of {}.".format(best_parameters[0], best_parameters[1], min(fitnesses_list)))
+    f.close()
 
 
 
