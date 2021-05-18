@@ -70,14 +70,15 @@ class Problem(ProblemDefinition_Abstract):
         check the paper for how to sample x values, and then to reconstruct the objective function
         '''
         # TODO:
-        def objective_function(data):
-            output = x**6 + x**5 + x**4 + x**3 + x**2 + x
+        def objective_function(data1, data2):
+            output = (1 / (1 + np.power(data1, -4))) + (1 / (1 + np.power(data2, -4))) #Pagie1 equation
             return output
 
         # TODO:
-        x = np.random.uniform(-1, 1, 20)
-        y = objective_function(x)
-        dataset = ezData.ezData_numpy(x, y)
+        x0 = np.arange(-5, 5, 0.4)  #evenly spaced training set E[-5, 5, 0.4] as per research paper
+        x1 = np.arange(-5, 5, 0.4)
+        y = objective_function(x0, x1)
+        dataset = ezData.ezData_numpy(np.array([x0, x1]), y)
         ephemeral_constant = ezData.ezData_float(1)
 
         self.training_datalist = [dataset,
@@ -98,15 +99,15 @@ class Problem(ProblemDefinition_Abstract):
         if not indiv.dead:
             actual = self.training_datalist[0].y
             training_output, validating_output = indiv.output
-            predictted = training_output[0]
+            predicted = training_output[0]
 
-    
             if np.any(np.isnan(predicted)):
                 # might as well make the individual dead and leave fitness at inf
                 indiv.dead = True
             else:
                 # TODO evaluate cost/error given 'actual' and 'predicted'
                 error = np.sum(np.abs(np.subtract(actual, predicted)))
+                
                 indiv.fitness.values = (error,)
 
 

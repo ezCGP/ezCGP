@@ -71,11 +71,11 @@ class Problem(ProblemDefinition_Abstract):
         '''
         # TODO:
         def objective_function(data):
-            output = x**6 + x**5 + x**4 + x**3 + x**2 + x
+            output = 
             return output
 
         # TODO:
-        x = np.random.uniform(-1, 1, 20)
+        x = 
         y = objective_function(x)
         dataset = ezData.ezData_numpy(x, y)
         ephemeral_constant = ezData.ezData_float(1)
@@ -98,15 +98,14 @@ class Problem(ProblemDefinition_Abstract):
         if not indiv.dead:
             actual = self.training_datalist[0].y
             training_output, validating_output = indiv.output
-            predictted = training_output[0]
+            predicted = training_output[0]
 
-    
             if np.any(np.isnan(predicted)):
                 # might as well make the individual dead and leave fitness at inf
                 indiv.dead = True
             else:
                 # TODO evaluate cost/error given 'actual' and 'predicted'
-                error = np.sum(np.abs(np.subtract(actual, predicted)))
+                error = 
                 indiv.fitness.values = (error,)
 
 

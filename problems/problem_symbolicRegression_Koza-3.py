@@ -52,7 +52,7 @@ class Problem(ProblemDefinition_Abstract):
 
         block_def = self.construct_block_def(nickname = "main_block",
                                              shape_def = BlockShapeMeta_SymbolicRegression_Benchmarking,
-                                             operator_def = BlockOperators_SymbolicRegression_Benchmarking,
+                                             operator_def = BlockOperators_SymbolicRegression_Benchmarking,#
                                              argument_def = BlockArguments_NoArgs,
                                              evaluate_def = BlockEvaluate_FinalBlock,
                                              mutate_def = BlockMutate_OptA,
@@ -71,11 +71,11 @@ class Problem(ProblemDefinition_Abstract):
         '''
         # TODO:
         def objective_function(data):
-            output = x**6 + x**5 + x**4 + x**3 + x**2 + x
+            output = np.power(data, 6) - 2 * np.power(data, 4) + np.power(data, 2) # x^6 - 2x^4 + x^2
             return output
 
         # TODO:
-        x = np.random.uniform(-1, 1, 20)
+        x = np.random.uniform(-1, 1, 20) # U[-1, 1, 20]
         y = objective_function(x)
         dataset = ezData.ezData_numpy(x, y)
         ephemeral_constant = ezData.ezData_float(1)
@@ -97,10 +97,9 @@ class Problem(ProblemDefinition_Abstract):
         indiv.fitness.values = (np.inf,) # default worse-possible fitness
         if not indiv.dead:
             actual = self.training_datalist[0].y
-            training_output, validating_output = indiv.output
-            predictted = training_output[0]
+            training_output, _ = indiv.output # _ = validating_output
+            predicted = training_output[0]
 
-    
             if np.any(np.isnan(predicted)):
                 # might as well make the individual dead and leave fitness at inf
                 indiv.dead = True
@@ -111,7 +110,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 50
+        GENERATION_LIMIT = 100
         SCORE_MIN = 0
 
         # only going to look at the first objective value which is rmse
