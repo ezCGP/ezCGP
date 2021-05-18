@@ -27,6 +27,7 @@ sys.path.append(join(dirname(realpath(__file__)), "problems"))
 
 ### absolute imports wrt root
 from codes.utilities.custom_logging import ezLogging
+from post_process import save_things
 # moved most imports to AFTER seed is set!
 
 
@@ -37,16 +38,6 @@ def main(problem_filename: str,
          loglevel: int=logging.WARNING):
     node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
     node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
-
-    # want to make sure that creation of files, folders, and logging is not duplicated if using mpi.
-    # the following is always true if not using mpi 
-    if node_rank == 0:
-        os.makedirs(problem_output_directory, exist_ok=False)
-        # copy problem file over to problem_output_directory
-        # this way we know for sure which version of the problem file resulted in the output
-        src = join(dirname(realpath(__file__)), "problems", problem_filename)
-        dst = join(problem_output_directory, problem_filename)
-        shutil.copyfile(src, dst)
 
     # create custom logging.logger for this node
     log_formatter = ezLogging.logging_setup(loglevel)
@@ -66,6 +57,16 @@ def main(problem_filename: str,
     if previous_run is not None:
         problem.seed_with_previous_run(previous_run)
     from codes.universe import UniverseDefinition, MPIUniverseDefinition
+
+    # want to make sure that creation of files, folders, and logging is not duplicated if using mpi.
+    # the following is always true if not using mpi 
+    if node_rank == 0:
+        os.makedirs(problem_output_directory, exist_ok=False)
+        # copy problem file over to problem_output_directory
+        save_things.copy_paste_file(src=join(dirname(realpath(__file__)), "problems", problem_filename),
+                                    dst=join(problem_output_directory, problem_filename))
+        save_things.pickle_dump_object(problem,
+                                       dst=join(problem_output_directory, "problem_def.pkl"))
 
     log_handler_2file = None # just initializing
     for ith_universe in range(problem.number_universe):
