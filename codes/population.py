@@ -31,6 +31,14 @@ class PopulationDefinition():
         self.population = []
 
 
+    def __setitem__(self, node_index, value):
+        self.population[node_index] = value
+
+
+    def __getitem__(self, node_index):
+        return self.population[node_index]
+
+
     def get_fitness(self):
         '''
         TODO
