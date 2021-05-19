@@ -211,6 +211,7 @@ class UniverseDefinition():
         self.evaluate_score_population(problem)
         self.population_selection(problem)
         self.check_convergence(problem)
+        self.postprocess_generation(problem)
         while not self.converged:
             self.generation += 1
             ezLogging.warning("Starting Generation %i" % self.generation)
@@ -350,6 +351,8 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.gather_population()
         if self.node_number == 0:
             self.population_selection(problem)
+            self.check_convergence(problem)
+            self.postprocess_generation(problem)
         while not self.converged:
             self.generation += 1
             self.split_scatter_population(problem, parent_selection=True)

@@ -154,7 +154,7 @@ class Problem(ProblemDefinition_Abstract):
         save each individual at the end of the population
         '''
         logging.info("Post Processing Universe Run")
-        save_things.save_population(universe)
+        #save_things.save_population(universe)
         save_things.save_population_asLisp(universe, self.indiv_def)
 
         best_ids = np.array(self.roddcustom_bestindiv)
