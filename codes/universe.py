@@ -230,7 +230,8 @@ class MPIUniverseDefinition(UniverseDefinition):
     '''
     def __init__(self,
                  problem: ProblemDefinition_Abstract,
-                 output_folder: str):
+                 output_folder: str,
+                 random_seed: int):
         '''
         TODO
         '''
@@ -241,7 +242,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         # an even number of individuals for each node...this way, we can do parent selection beffore splitting
         # and the parent-pairs won't get split
         self.adjust_pop_size(problem, [4, 2*MPI.COMM_WORLD.Get_size()])
-        super().__init__(problem, output_folder)
+        super().__init__(problem, output_folder, random_seed)
 
 
         ''' cannot import MPI as an attribute since it's a subpackage!
