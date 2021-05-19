@@ -62,7 +62,9 @@ class IndividualMaterial():
         thought there could be a unique way to identify an individual for ezLogging and saving
         '''
         if _id is None:
-            new = hex(int(datetime.now().strftime("%H%M%S%f")))[2:]
+            str_from_random = str(np.random.randint(1000))
+            str_from_datetime = datetime.now().strftime("%H%M%S%f")
+            new = hex(int(str_from_random + str_from_datetime))[2:]
             ezLogging.debug("New ID %s" % new)
             self.id = new
         else:
