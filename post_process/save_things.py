@@ -7,6 +7,7 @@ import pickle as pkl
 import numpy as np
 from copy import deepcopy
 import os
+import shutil
 
 ### sys relative to root dir
 import sys
@@ -78,5 +79,6 @@ def pickle_dump_object(thing, dst):
     '''
     easy way to dump an object somewhere
     '''
-    pkl.dump(thing, dst)
+    with open(dst, 'wb') as f:
+        pkl.dump(thing, f)
     ezLogging.debug("pickled an object to %s" % dst)

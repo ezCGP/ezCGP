@@ -24,6 +24,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from codes.factory import FactoryDefinition
 #from codes.universe import UniverseDefinition # can't import because will create import loop
 from codes.utilities.custom_logging import ezLogging
+from codes.utilities import selections
 from codes.genetic_material import IndividualMaterial#, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Abstract
@@ -108,6 +109,26 @@ class ProblemDefinition_Abstract(ABC):
         set universe.converged to boolean T/F ...True will end the universe run
         '''
         pass
+
+
+    def population_selection(self, universe):
+        '''
+        allow the user to change the method for population selection.
+        selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module
+
+        setting default method to selNSGA2
+        '''
+        universe.population.population = selections.selNSGA2(universe.population.population, self.pop_size, nd='standard')
+
+
+    def parent_selection(self, universe):
+        '''
+        allow the user to change the method for parent selection.
+        selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module
+
+        setting default method to selTournamentDCD
+        '''
+        return selections.selTournamentDCD(universe.population.population, k=len(universe.population.population))
 
 
     def seed_with_previous_run(self, previous_universe_dir):
