@@ -10,7 +10,6 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 import os
-import shutil
 import time
 import numpy as np
 import random
