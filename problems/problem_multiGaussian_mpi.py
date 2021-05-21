@@ -23,8 +23,6 @@ class Problem(problem_multiGaussian.Problem):
     def __init__(self):
         super().__init__()
         self.mpi = True
-        self.pop_size = 2**8
-
 
     def plot_custom_stats2(self, folders):
         import glob

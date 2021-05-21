@@ -56,6 +56,7 @@ class ProblemDefinition_Abstract(ABC):
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
                  genome_seeds: List=[],
+                 number_of_objectives: int=None,
                  hall_of_fame_size: int=None):
         '''
         genome_seeds:
@@ -76,6 +77,7 @@ class ProblemDefinition_Abstract(ABC):
         self.Factory = factory_def
         self.mpi = mpi
         self.genome_seeds = genome_seeds
+        self.number_of_objectives = number_of_objectives
 
 
     @abstractmethod
