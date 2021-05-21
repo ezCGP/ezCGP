@@ -55,7 +55,9 @@ class ProblemDefinition_Abstract(ABC):
                  number_universe: int,
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
-                 genome_seeds: List=[]):
+                 genome_seeds: List=[],
+                 number_of_objectives: int=None,
+                 hall_of_fame_size: int=None):
         '''
         genome_seeds:
         * each element in outer list is an inividual to be seeded
@@ -70,10 +72,12 @@ class ProblemDefinition_Abstract(ABC):
         self.construct_individual([block_def])
         '''
         self.pop_size = population_size
+        self.hall_of_fame_size = hall_of_fame_size
         self.number_universe = number_universe
         self.Factory = factory_def
         self.mpi = mpi
         self.genome_seeds = genome_seeds
+        self.number_of_objectives = number_of_objectives
 
 
     @abstractmethod

@@ -163,6 +163,13 @@ class UniverseDefinition():
         self.pop_individual_ids = np.array(self.pop_individual_ids)
 
 
+    def update_hall_of_fame(self):
+        '''
+        wrapper function to call the deap.tools.HallOfFame.update(population) method
+        '''
+        self.population.update_hall_of_fame()
+
+
     def population_selection(self, problem: ProblemDefinition_Abstract):
         '''
         moved to problem class so user can easily customize selection method.
@@ -207,8 +214,9 @@ class UniverseDefinition():
         assumes a population has only been created and not evaluatedscored
         '''
         self.generation = 0
-        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size, problem.genome_seeds)
+        self.population = self.factory.build_population(problem, problem.pop_size, self.node_number, self.node_count)
         self.evaluate_score_population(problem)
+        self.update_hall_of_fame()
         self.population_selection(problem)
         self.check_convergence(problem)
         self.postprocess_generation(problem)
@@ -217,6 +225,7 @@ class UniverseDefinition():
             ezLogging.warning("Starting Generation %i" % self.generation)
             self.evolve_population(problem)
             self.evaluate_score_population(problem)
+            self.update_hall_of_fame()
             self.population_selection(problem)
             self.check_convergence(problem)
             self.postprocess_generation(problem)
@@ -344,13 +353,17 @@ class MPIUniverseDefinition(UniverseDefinition):
 
         self.generation = 0
         # start split until after evaluate
-        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size//self.node_count) #each node make their own fraction of indiv...but how does seeding work, are they dups?
+        self.population = self.factory.build_population(problem,
+                                                        problem.pop_size//self.node_count, #each node make their own fraction of indiv...but how does seeding work, are they dups?
+                                                        self.node_number,
+                                                        self.node_count) 
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
         # TODO verify ezLogging
         self.mpi_evaluate_score_population(problem)
         self.gather_population()
         if self.node_number == 0:
+            self.update_hall_of_fame()
             self.population_selection(problem)
             self.check_convergence(problem)
             self.postprocess_generation(problem)
@@ -361,6 +374,7 @@ class MPIUniverseDefinition(UniverseDefinition):
             self.mpi_evaluate_score_population(problem)
             self.gather_population()
             if self.node_number == 0:
+                self.update_hall_of_fame()
                 self.population_selection(problem)
                 self.check_convergence(problem)
                 self.postprocess_generation(problem)

@@ -10,6 +10,7 @@ mention any assumptions made in the code or rules about code structure should go
 
 ### packages
 import itertools
+import deap.tools
 
 ### sys relative to root dir
 import sys
@@ -25,10 +26,10 @@ class PopulationDefinition():
     '''
     words
     '''
-    def __init__(self,
-                population_size):
+    def __init__(self):
         #self.pop_size = population_size #moved to problem.pop_size
         self.population = []
+        self.hall_of_fame = None
 
 
     def __setitem__(self, node_index, value):
@@ -90,3 +91,36 @@ class PopulationDefinition():
         '''
         self.population = list(itertools.chain.from_iterable(subpops))
         ezLogging.info("Combined %i sub populations into a single population" % (len(subpops)))
+
+
+    def setup_hall_of_fame(self, maxsize):
+        '''
+        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.HallOfFame
+
+        letting hall_of_fame use to be optional
+        '''
+        def similarity_equation(a, b):
+            '''
+            there is an option to pass in "an equivalence operator between two individuals, optional".
+            if it is used to make sure it's not adding duplicate individuals then I'll make my own
+            based off individual id's
+
+            return if equal. false otherwise.
+            assuming a and b are IndividualMaterial objects
+            '''
+            if a.id == b.id:
+                return True
+            else:
+                return False
+
+        self.hall_of_fame = deap.tools.HallOfFame(maxsize=maxsize,
+                                                  similar=similarity_equation)
+        ezLogging.debug("Established 'Hall of Fame' with maxsize %i" % maxsize)
+
+
+    def update_hall_of_fame(self):
+        '''
+        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.HallOfFame.update
+        '''
+        if self.hall_of_fame is not None:
+            self.hall_of_fame.update(self.population)
