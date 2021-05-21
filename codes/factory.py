@@ -24,7 +24,6 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 #from problems.problem_definition import ProblemDefinition_Abstract # can't import. circular dependence.
-import problems
 from codes.population import PopulationDefinition
 from codes.genetic_material import IndividualMaterial, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
