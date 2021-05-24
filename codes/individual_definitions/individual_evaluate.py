@@ -232,7 +232,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow(IndividualEvaluate_Abstr
 
 
 
-class IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow(IndividualEvaluate_Abstract):
+class IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph(IndividualEvaluate_Abstract):
     '''
     Similar to IndividualEvaluate_wAugmentorPipeline_wTensorFlow but we are going to pass supplemental info
     between TransferLearning Block and TensorFlow Block ie NN graph, first and last layer of downloaded model, etc

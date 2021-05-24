@@ -81,7 +81,7 @@ class UniverseDefinition():
                 else:
                     # it is a multiple...so far, we are satisfied
                     satisfied = True
-            
+
             if possible_size <= 0:
                 # then we failed...try changing direction
                 print(possible_size)
@@ -202,7 +202,7 @@ class UniverseDefinition():
         '''
         Wrapper to problem.postprocess_universe()
 
-        Provides an option for anything we want to do with the universe + population now that we reached the 
+        Provides an option for anything we want to do with the universe + population now that we reached the
         complete end of the evolutionary cycle.
         '''
         save_things.save_population(self) # always save the population at the end of the run

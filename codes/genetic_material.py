@@ -163,6 +163,6 @@ class BlockMaterial():
         TODO
         '''
         return self.genome[node_index]
-    
+
     def set_id(self, indiv_id):
         self.id = "%s-%s" % (indiv_id, self.block_nickname)

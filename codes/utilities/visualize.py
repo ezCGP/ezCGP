@@ -72,6 +72,9 @@ class Visualizer:
                         fn['args'].insert(0, fn['args'][0])
                     arg_txt = []
                     for idx, arg_name in enumerate(fn['ftn'].__code__.co_varnames[1:]):
+                        # print(fn['ftn'].__code__.co_varnames, fn['args'], [idx])
+                        #if fn['ftn'].__code__.co_varnames[idx+1] == 'units':
+                        #    break
                         arg = fn['args'][idx]
                         arg_val = block.args[arg].value
                         if hasattr(arg_val, "__name__"):
@@ -113,8 +116,9 @@ if __name__ == '__main__':
     viz = Visualizer()
     # Select 20 random individuals (only applicable if 'individual' argument not passed).
     individuals = glob.glob(args.individual)
-    random.shuffle(individuals)
-    for individual in individuals[:20]:
+    #random.shuffle(individuals)
+    for individual in individuals[-30:]:
+        print(individual)
         with open(individual, 'rb') as f:
             individual = pickle.load(f)
             viz.add_to_csv(individual, args.i)
