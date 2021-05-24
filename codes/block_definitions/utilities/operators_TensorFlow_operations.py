@@ -36,7 +36,6 @@ operator_dict[sub_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
 
 
 def mult_tensors(input_layer0, input_layer1):
-    print("YAY, HERE")
     return keras.layers.Multiply([input_layer0, input_layer1])
 
 operator_dict[mult_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
@@ -46,7 +45,6 @@ operator_dict[mult_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],
 
 
 def add_tensors(input_layer0, input_layer1):
-    print("YAY, HERE")
     return tf.keras.layers.Add()([input_layer0, input_layer1])
 
 operator_dict[add_tensors] = {"inputs": [tf.keras.layers, tf.keras.layers],

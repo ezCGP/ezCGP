@@ -255,14 +255,8 @@ class BlockArguments_TFKeras(BlockArguments_Abstract):
         self.init_from_weight_dict(arg_dict)
 
 
-class BlockArguments_Dense(BlockArguments_Abstract):
-    '''
-    usage tally:
-    argument_types.ArgumentType_Pow2 - llll
-    argument_types.ArgumentType_TFFilterSize - llll
-    argument_types.ArgumentType_TFActivation - llll
-    '''
 
+class BlockArguments_Dense(BlockArguments_Abstract):
     def __init__(self):
         ezLogging.debug(
             "%s-%s - Initialize BlockArguments_Dense Class" % (None, None))

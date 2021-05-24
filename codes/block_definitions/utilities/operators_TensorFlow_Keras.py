@@ -123,8 +123,8 @@ def gaussianNoise_layer(input_tensor, stddev):
 
 ### Pooling Layers
 
-def avg_pool_layer(input_tensor, pool_height=2):
-    return tf.keras.layers.AveragePooling2D(pool_size=[pool_height, pool_height], padding="valid")(input_tensor)
+def avg_pool_layer(input_tensor, pool_size=2):
+    return tf.keras.layers.AveragePooling2D(pool_size=[pool_size, pool_size], padding="valid")(input_tensor)
 
 operator_dict[avg_pool_layer] = {"inputs": [tf.keras.layers],
                                  "output": tf.keras.layers,
@@ -132,9 +132,8 @@ operator_dict[avg_pool_layer] = {"inputs": [tf.keras.layers],
                                  }
 
 
-def max_pool_layer(input_tensor, pool_height=2):
-    # print("max_pool_layer YAY, dfsdfs", pool_height, input_tensor.shape)
-    return tf.keras.layers.MaxPool2D(pool_size=[pool_height, pool_height])(input_tensor)
+def max_pool_layer(input_tensor, pool_size=2):
+    return tf.keras.layers.MaxPool2D(pool_size=[pool_size, pool_size], padding="valid")(input_tensor)
 
 operator_dict[max_pool_layer] = {"inputs": [tf.keras.layers],
                                  "output": tf.keras.layers,
@@ -174,8 +173,8 @@ def fractional_avg_pool(input_tensor, pool_height=2.0, pool_width=2.0):
 #                                       "output": tf.keras.layers
 #                                       }
 
+
 def dropout_layer(input_tensor, rate=0.2):
-    print(" dropout_layer YAY, HERE")
     return tf.keras.layers.Dropout(rate/2)(input_tensor)
 
 operator_dict[dropout_layer] = {"inputs": [tf.keras.layers],

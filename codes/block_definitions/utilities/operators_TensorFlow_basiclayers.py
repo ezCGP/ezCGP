@@ -43,10 +43,10 @@ def dense_layer(input_tensor, percentage=1, activation=tf.nn.relu):
     logits = tf.keras.layers.Dense(units=units, activation=activation)(input_tensor)
     return logits
 
-
 operator_dict[dense_layer] = {"inputs": [tf.keras.layers],
                               "output": tf.keras.layers,
-                              "args": [argument_types.ArgumentType_Float0to1, argument_types.ArgumentType_TFActivation]
+                              "args": [argument_types.ArgumentType_Float0to1,
+                                       argument_types.ArgumentType_TFActivation]
                              }
 
 
