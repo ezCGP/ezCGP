@@ -13,6 +13,7 @@ And make sure argument types are valid and appropriate for your needs
 ### packages
 import tensorflow as tf
 import numpy as np
+import time
 
 ### sys relative to root dir
 import sys
@@ -175,7 +176,12 @@ def fractional_avg_pool(input_tensor, pool_height=2.0, pool_width=2.0):
 
 
 def dropout_layer(input_tensor, rate=0.2):
-    return tf.keras.layers.Dropout(rate/2)(input_tensor)
+    '''
+    dropout layer may appear in different blocks and may get assigned the same name which will cause it to error.
+    so we're going to manually change the name of the layer to force it to be unique
+    '''
+    name = "Dropout" + hex(int(time.time()))
+    return tf.keras.layers.Dropout(rate/2, name=name)(input_tensor)
 
 operator_dict[dropout_layer] = {"inputs": [tf.keras.layers.Layer],
                                 "output": tf.keras.layers.Layer,
