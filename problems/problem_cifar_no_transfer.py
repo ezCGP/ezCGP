@@ -16,6 +16,7 @@ None
 import os
 import numpy as np
 import glob
+import tensorflow as tf
 # Fitness imports
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score as accuracy
@@ -67,10 +68,10 @@ class Problem(ProblemDefinition_Abstract):
         3) Custom Keras NN
     '''
     def __init__(self):
-        import tensorflow as tf
+        #import tensorflow as tf
         #assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 20
+        population_size = 4#20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
@@ -162,7 +163,7 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 50
+        GENERATION_LIMIT = 1#50
         SCORE_MIN = 1 - 1e-10
 
         # only going to look at the 2nd objective value which is f1
