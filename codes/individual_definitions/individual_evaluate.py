@@ -277,7 +277,9 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph(Individua
                 training_datalist[augmentor_instance_index] = temp_training_datalist[0]
                 validating_datalist[augmentor_instance_index] = temp_validating_datalist[0]
 
-            elif ('transferlearning' in block_def.nickname.lower()) or ('transfer_learning' in block_def.nickname.lower()):
+            elif ('transferlearning' in block_def.nickname.lower()) or
+                 ('transfer_learning' in block_def.nickname.lower()) or
+                 ('ConvLayers' in block_def.nickname.lower()):
                 if (cannot_pickle_tfkeras) & (indiv_material[block_index+1].need_evaluate):
                     # then we had to delete the tf.keras.model in supplements index of block_material.output, so we have to re-eval
                     block_material.need_evaluate = True
@@ -298,7 +300,9 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph(Individua
                     training_output, validating_output, supplements = block_material.output
                     block_material.output = (training_output, validating_output, None)
 
-            elif ('tensorflow' in block_def.nickname.lower()) or ('tfkeras' in block_def.nickname.lower()):
+            elif ('tensorflow' in block_def.nickname.lower()) or
+                 ('tfkeras' in block_def.nickname.lower()) or
+                 ('DenseLayers' in block_def.nickname.lower()):
                 self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
@@ -310,6 +314,7 @@ class IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph(Individua
                 #_, _, indiv_material.output = block_material.output
 
             else:
+                ezLogging.warning("before evaluate"); import pdb; pdb.set_trace()
                 self.standard_evaluate(indiv_material.id,
                                        block_index,
                                        block_def,
