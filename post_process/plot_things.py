@@ -39,9 +39,11 @@ def label_axis(axis, x, y, fontsize=12, **kwargs):
     axis.set_ylabel(y, fontsize=fontsize, **kwargs)
 
 
-def plot_legend(fig=None):
+def plot_legend(fig=None, axis=None):
     if fig is not None:
         fig.legend()
+    elif axis is not None:
+        axis.legend()
     else:
         plt.legend()
 

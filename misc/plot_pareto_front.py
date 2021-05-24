@@ -47,8 +47,9 @@ if __name__ == "__main__":
                                                           )
             generation+=1
 
-    plot_things.plot_legend(fig)
+    plot_things.plot_legend(axis)
     plot_things.square_figure(fig)
     plot_things.label_axis(axis, "Precision", "Recall", fontsize=14)
+    plt.tight_layout()
     plt.savefig("temp.png")
     #plt.show()
