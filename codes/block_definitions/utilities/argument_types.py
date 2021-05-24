@@ -187,9 +187,9 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
 
     def mutate(self):
         import tensorflow as tf
-        choices = [tf.nn.relu]
-        # if self.value in choices:
-        #     choices.remove(self.value) # works in-place
+        choices = [tf.nn.relu, tf.nn.sigmoid, tf.nn.tanh, tf.nn.elu, None]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         self.get_name()
         ezLogging.debug("%s-%s - Mutated ArgumentType_TFActivation to %s" % (None, None, self.name))

@@ -168,10 +168,9 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         input_dtypes = [tf.keras.layers]
         output_dtypes = [tf.keras.layers]
         main_count = 30
-        super().__init__([tf.keras.layers],
-                         [tf.keras.layers],
-                         10)
-
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
         self.batch_size = 128
         self.epochs = 15
 
@@ -184,10 +183,9 @@ class BlockShapeMeta_Dense(BlockShapeMeta_Abstract):
         import tensorflow as tf
         input_dtypes = [tf.keras.layers]
         output_dtypes = [tf.keras.layers]
-        main_count = 10
-        super().__init__([tf.keras.layers],
-                         [tf.keras.layers],
-                         20)
-
+        main_count = 20
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
         self.batch_size = 128
-        self.epochs = 1
+        self.epochs = 15

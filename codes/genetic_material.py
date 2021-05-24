@@ -100,8 +100,6 @@ class IndividualMaterial():
             b = np.array(other.values)
             # 'self' must be at least as good as 'other' for all objective fnts (np.all(a>=b))
             # and strictly better in at least one (np.any(a>b))
-            a[a == None] = 0
-            b[b == None] = 0
             return np.any(a < b) and np.all(a <= b)
 
 
