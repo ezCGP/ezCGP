@@ -13,6 +13,7 @@ Rules:
 None
 '''
 ### packages
+import os
 import numpy as np
 import glob
 # Fitness imports
@@ -33,22 +34,26 @@ from post_process import save_things
 # Block Defs
 from codes.block_definitions.shapemeta.block_shapemeta import (BlockShapeMeta_DataAugmentation,
                                                                BlockShapeMeta_DataPreprocessing,
-                                                               BlockShapeMeta_TFKeras)
+                                                               BlockShapeMeta_TFKeras,
+                                                               BlockShapeMeta_Dense)
 from codes.block_definitions.operators.block_operators import (BlockOperators_DataAugmentation,
                                                                BlockOperators_DataPreprocessing,
-                                                               BlockOperators_TFKeras)
+                                                               BlockOperators_TFKeras,
+                                                               BlockOperators_Dense)
 from codes.block_definitions.arguments.block_arguments import (BlockArguments_DataAugmentation,
                                                                BlockArguments_DataPreprocessing,
-                                                               BlockArguments_TFKeras)
+                                                               BlockArguments_TFKeras,
+                                                               BlockArguments_Dense)
 from codes.block_definitions.evaluate.block_evaluate import (BlockEvaluate_MiddleBlock,
                                                              BlockEvaluate_MiddleBlock_SkipValidating)
-from codes.block_definitions.evaluate.block_evaluate_graph import BlockEvaluate_TFKeras
+from codes.block_definitions.evaluate.block_evaluate_graph import (BlockEvaluate_TFKeras_OpenGraph,
+                                                                   BlockEvaluate_TFKeras_CloseAnOpenGraph)
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_4Blocks
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTensorFlow
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph
 
 
 
@@ -63,47 +68,61 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         import tensorflow as tf
-        assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
+        #assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
-        population_size = 4 #20
+        population_size = 20
         number_universe = 1
         factory = FactoryDefinition
         factory_instance = factory()
         mpi = False
         genome_seeds = []
-        #genome_seeds = glob.glob("outputs/problem_cifar/%s/univ0000/gen_%04d_*.pkl" % ("20201127-145527-8th_run", 1))
+        #genome_seeds = glob.glob("outputs/problem_cifar_no_transfer/%s/univ0000/gen_%04d_*.pkl" % ("20210310-002525-seventh_run", 2))
+        #if len(genome_seeds) == 0:
+        #    print("using gen01 instead of gen02")
+        #    genome_seeds = glob.glob("outputs/problem_cifar_no_transfer/%s/univ0000/gen_%04d_*.pkl" % ("20210310-002525-seventh_run", 1))
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
 
-        augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
-                                                          shape_def=BlockShapeMeta_DataAugmentation,
-                                                          operator_def=BlockOperators_DataAugmentation,
-                                                          argument_def=BlockArguments_DataAugmentation,
-                                                          evaluate_def=BlockEvaluate_MiddleBlock_SkipValidating,
-                                                          mutate_def=BlockMutate_OptB_4Blocks,
-                                                          mate_def=BlockMate_WholeOnly_4Blocks)
+        # augmentation_block_def = self.construct_block_def(nickname="augmentation_block",
+        #                                                   shape_def=BlockShapeMeta_DataAugmentation,
+        #                                                   operator_def=BlockOperators_DataAugmentation,
+        #                                                   argument_def=BlockArguments_DataAugmentation,
+        #                                                   evaluate_def=BlockEvaluate_MiddleBlock_SkipValidating,
+        #                                                   mutate_def=BlockMutate_OptB_4Blocks,
+        #                                                   mate_def=BlockMate_WholeOnly_4Blocks)
 
-        preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
-                                                           shape_def=BlockShapeMeta_DataPreprocessing,
-                                                           operator_def=BlockOperators_DataPreprocessing,
-                                                           argument_def=BlockArguments_DataPreprocessing,
-                                                           evaluate_def=BlockEvaluate_MiddleBlock,
-                                                           mutate_def=BlockMutate_OptB_4Blocks,
-                                                           mate_def=BlockMate_WholeOnly_4Blocks)
+        # preprocessing_block_def = self.construct_block_def(nickname="preprocessing_block",
+        #                                                    shape_def=BlockShapeMeta_DataPreprocessing,
+        #                                                    operator_def=BlockOperators_DataPreprocessing,
+        #                                                    argument_def=BlockArguments_DataPreprocessing,
+        #                                                    evaluate_def=BlockEvaluate_MiddleBlock,
+        #                                                    mutate_def=BlockMutate_OptB_4Blocks,
+        #                                                    mate_def=BlockMate_WholeOnly_4Blocks)
 
-        tensorflow_block_def = self.construct_block_def(nickname="tensorflow_block",
-                                                        shape_def=BlockShapeMeta_TFKeras,
-                                                        operator_def=BlockOperators_TFKeras,
-                                                        argument_def=BlockArguments_TFKeras,
-                                                        evaluate_def=BlockEvaluate_TFKeras,
-                                                        mutate_def=BlockMutate_OptB_4Blocks,
-                                                        mate_def=BlockMate_WholeOnly_4Blocks)
+        conv_block_def = self.construct_block_def(nickname="ConvLayers",
+                                                  shape_def=BlockShapeMeta_TFKeras,
+                                                  operator_def=BlockOperators_TFKeras,
+                                                  argument_def=BlockArguments_TFKeras,
+                                                  evaluate_def=BlockEvaluate_TFKeras_OpenGraph,
+                                                  mutate_def=BlockMutate_OptB_4Blocks,
+                                                  mate_def=BlockMate_WholeOnly_4Blocks)
 
-        self.construct_individual_def(block_defs=[augmentation_block_def,
-                                                  preprocessing_block_def,
-                                                  tensorflow_block_def],
+        dense_block_def = self.construct_block_def(nickname="DenseLayers",
+                                                   shape_def=BlockShapeMeta_Dense,
+                                                   operator_def=BlockOperators_Dense,
+                                                   argument_def=BlockArguments_Dense,
+                                                   evaluate_def=BlockEvaluate_TFKeras_CloseAnOpenGraph,
+                                                   mutate_def=BlockMutate_OptB_4Blocks,
+                                                   mate_def=BlockMate_WholeOnly_4Blocks)
+
+
+
+        self.construct_individual_def(block_defs=[#augmentation_block_def,
+                                                  #preprocessing_block_def,
+                                                  conv_block_def,
+                                                  dense_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
-                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTensorFlow)
+                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph)
 
         self.construct_dataset()
 
@@ -143,11 +162,11 @@ class Problem(ProblemDefinition_Abstract):
         :param universe:
         :return:
         """
-        GENERATION_LIMIT = 2 #50
+        GENERATION_LIMIT = 50
         SCORE_MIN = 1 - 1e-10
 
         # only going to look at the 2nd objective value which is f1
-        min_firstobjective_index = universe.pop_fitness_scores[:,1].argmin()
+        min_firstobjective_index = universe.pop_fitness_scores[:,0].argmin()
         min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:]
         ezLogging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
 
@@ -176,5 +195,16 @@ class Problem(ProblemDefinition_Abstract):
         the idea here is that the universe.run() is about to exit but before it does,
         we can export or plot things wrt the final population
         '''
-        ezLogging.info("Post Processing Universe Run - pass")
-        pass
+        if universe.generation == 0:
+            # sometimes the first time we are running an evolution, we can't evaluate both gen0 and gen1
+            # so we cheat and set gen limit to 0 so we can exit after evaluating the first batch of individuals.
+            # in that case, we don't get to run postprocess_generation() to save the indiv, so do it here
+            ezLogging.info("Post Processing Universe - saving Gen0")
+            save_things.save_fitness_scores(universe)
+            save_things.save_population(universe)
+
+        ezLogging.info("Post Processing Universe Run - qsub next generation")
+        cmd = 'qsub -F "%i %s" ~/ezCGP/pbs_files/pace-ice_cifar10-noTrasferLearning.pbs' % (universe.random_seed, universe.output_folder)
+        os.system(cmd)
+        ezLogging.debug("Post Processing Universe Run - ran cmd: %s" % cmd)
+

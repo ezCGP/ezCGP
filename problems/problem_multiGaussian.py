@@ -4,6 +4,7 @@ root/problems/problem_multiGaussian.py
 
 ### packages
 import os
+import glob
 import numpy as np
 import logging
 
@@ -37,11 +38,12 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 2**5 #must be divisible by 4 if doing mating
+        population_size = 2**8 #must be divisible by 4 if doing mating
         number_universe = 1
         factory = FactoryDefinition
         mpi = False
-        super().__init__(population_size, number_universe, factory, mpi)
+        genome_seeds = glob.glob("outputs/problem_multiGaussian_mpi/%s/univ0000/gen_%04d_*.pkl" % ("testing-20210521-175044", 3))[:3]
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, number_of_objectives=3, hall_of_fame_size=2*9)
 
         block_def = self.construct_block_def(nickname = "GaussBlock",
                                              shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
@@ -102,7 +104,7 @@ class Problem(ProblemDefinition_Abstract):
             # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output
             #active_error = np.abs(10+2+1-len(indiv[0].active_nodes)) #maybe cheating by knowing the goal amount ahead of time
             active_error = len(indiv[0].active_nodes)
-            indiv.fitness.values = (rms_error, max_error, active_error)
+            indiv.fitness.values = (rms_error.item(), max_error.item(), active_error)
 
 
     def check_convergence(self, universe):
@@ -154,7 +156,7 @@ class Problem(ProblemDefinition_Abstract):
         save each individual at the end of the population
         '''
         logging.info("Post Processing Universe Run")
-        save_things.save_population(universe)
+        #save_things.save_population(universe)
         save_things.save_population_asLisp(universe, self.indiv_def)
 
         best_ids = np.array(self.roddcustom_bestindiv)

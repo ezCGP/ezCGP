@@ -167,10 +167,25 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         import tensorflow as tf
         input_dtypes = [tf.keras.layers]
         output_dtypes = [tf.keras.layers]
-        main_count = 10
-        super().__init__([tf.keras.layers],
-                         [tf.keras.layers],
-                         10)
-
+        main_count = 30
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
         self.batch_size = 128
-        self.epochs = 2#0
+        self.epochs = 15
+
+
+class BlockShapeMeta_Dense(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug(
+            "%s-%s - Initialize BlockShapeMeta_Dense Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        import tensorflow as tf
+        input_dtypes = [tf.keras.layers]
+        output_dtypes = [tf.keras.layers]
+        main_count = 20
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+        self.batch_size = 128
+        self.epochs = 15

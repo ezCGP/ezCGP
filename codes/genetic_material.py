@@ -14,6 +14,7 @@ mention any assumptions made in the code or rules about code structure should go
 ### packages
 import numpy as np
 from datetime import datetime
+import deap.base
 
 ### sys relative to root dir
 import sys
@@ -37,7 +38,7 @@ class IndividualMaterial():
     '''
     def __init__(self, _id=None):
         self.id = "default"
-        self.fitness = self.Fitness()
+        self.fitness = self.ezFitness()
         self.blocks = []
         self.output = []
         self.dead = False
@@ -62,7 +63,9 @@ class IndividualMaterial():
         thought there could be a unique way to identify an individual for ezLogging and saving
         '''
         if _id is None:
-            new = hex(int(datetime.now().strftime("%H%M%S%f")))[2:]
+            str_from_random = str(np.random.randint(1000))
+            str_from_datetime = datetime.now().strftime("%H%M%S%f")
+            new = hex(int(str_from_random + str_from_datetime))[2:]
             ezLogging.debug("New ID %s" % new)
             self.id = new
         else:
@@ -83,24 +86,36 @@ class IndividualMaterial():
         return False
 
 
-    class Fitness(object):
+    class ezFitness(deap.base.Fitness):
         '''
-        the NSGA taken from deap requires a Fitness class to hold the values.
-        so this attempts to recreate the bare minimums of that so that NSGA
-        or (hopefully) any other deap mutli obj ftn handles this Individual class
         http://deap.readthedocs.io/en/master/api/base.html#fitness
+        code https://github.com/DEAP/deap/blob/master/deap/base.py#L125
+        @property decorator https://www.programiz.com/python-programming/property
+
+        halloffame compares Fitness objects together rather than Fitness.values so we
+        are just going to import deap.base.Fitness to leverage their dunders and other properties
         '''
         def __init__(self):
-            self.values = () #empty tuple
+            '''
+            okay so weights attr is required by deap.base.Fitness and it HAS to be a sequence.
+            if the sequence is shorter than the number of objectives (ie the length of Fitness.values) then
+            this wvalues attr will be trimmed to the length of weights.
+            BUT if weights is A LOT longer than values then wvalues will be the same length as values.
+            So as to never have to worry about the number of objectives we have, going to make weights some arbitrarily
+            large tuple of 1s. #yolo
+            '''
+            self.weights = (1,)*1000
+            super().__init__(values=())
 
 
+        ''' prob not needed anymore since deap.base.Fitness has it's own dominates() method
         # check dominates
         def dominates(self, other):
             a = np.array(self.values)
             b = np.array(other.values)
             # 'self' must be at least as good as 'other' for all objective fnts (np.all(a>=b))
             # and strictly better in at least one (np.any(a>b))
-            return np.any(a < b) and np.all(a <= b)
+            return np.any(a < b) and np.all(a <= b)'''
 
 
 
@@ -148,6 +163,6 @@ class BlockMaterial():
         TODO
         '''
         return self.genome[node_index]
-    
+
     def set_id(self, indiv_id):
         self.id = "%s-%s" % (indiv_id, self.block_nickname)
