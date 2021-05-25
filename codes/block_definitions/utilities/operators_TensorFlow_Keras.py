@@ -180,7 +180,7 @@ def dropout_layer(input_tensor, rate=0.2):
     dropout layer may appear in different blocks and may get assigned the same name which will cause it to error.
     so we're going to manually change the name of the layer to force it to be unique
     '''
-    name = "Dropout" + hex(int(time.time()))
+    name = "Dropout" + hex(int(time.time()) + np.random.randint(1,9999999))
     return tf.keras.layers.Dropout(rate/2, name=name)(input_tensor)
 
 operator_dict[dropout_layer] = {"inputs": [tf.keras.layers.Layer],
