@@ -149,7 +149,7 @@ class ProblemDefinition_Abstract(ABC):
         gen_dict = {}
         for indiv in all_indiv:
             # indiv should look like gen_###_indiv_hash.pkl
-            gen = int(indiv.split("_")[2])
+            gen = int(os.path.basename(indiv).split("_")[1])
             if gen in gen_dict:
                 gen_dict[gen].append(indiv)
             else:
