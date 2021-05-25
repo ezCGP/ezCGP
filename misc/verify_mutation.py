@@ -15,8 +15,8 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 # to load in the individual definitions
-#from problems.problem_cifar_no_transfer import Problem
-from problems.problem_multiGaussian import Problem
+from problems.problem_cifar_no_transfer import Problem
+#from problems.problem_multiGaussian import Problem
 # for the genome part:
 from codes.genetic_material import IndividualMaterial
 
@@ -24,7 +24,7 @@ from codes.genetic_material import IndividualMaterial
 problem = Problem()
 
 # path to the pkl individual you want to load
-indiv_file = "outputs/problem_multiGaussian/20210519-111500/univ0000/gen_0003_indiv_19f6c928b3.pkl" # if run from root
+indiv_file = "outputs/problem_cifar_no_transfer/testing-20210524-180413/univ0000/gen_0001_indiv_db5a494a517b.pkl" #"outputs/problem_multiGaussian/20210519-111500/univ0000/gen_0003_indiv_19f6c928b3.pkl" # if run from root
 
 # load in individual 
 with open(indiv_file, "rb") as f:
