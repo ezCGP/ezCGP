@@ -157,7 +157,7 @@ class ProblemDefinition_Abstract(ABC):
 
         # now get the highest gen and all those individuals to genome_seeds
         largest_gen = max(list(gen_dict.keys()))
-        self.genome_seeds += gen_dict[largest_gen]
+        self.genome_seeds = gen_dict[largest_gen]
 
 
     def postprocess_generation(self, universe):
