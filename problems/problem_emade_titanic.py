@@ -22,33 +22,32 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
-from data.data_tools.loader import ezDataLoader_CIFAR10
+from data.data_tools.loader import ezDataLoader_EMADE_Titanic
 from codes.utilities.custom_logging import ezLogging
 # Block Defs
-from codes.block_definitions.block_shapemeta import (BlockShapeMeta_DataAugmentation,
+from codes.block_definitions.shapemeta.block_shapemeta import (BlockShapeMeta_DataAugmentation,
                                                      BlockShapeMeta_DataPreprocessing,
                                                      BlockShapeMeta_TFKeras_TransferLearning,
                                                      BlockShapeMeta_TFKeras)
-from codes.block_definitions.block_operators import (BlockOperators_DataAugmentation,
+from codes.block_definitions.operators.block_operators import (BlockOperators_DataAugmentation,
                                                      BlockOperators_DataPreprocessing,
                                                      BlockOperators_TFKeras_TransferLearning_CIFAR,
                                                      BlockOperators_TFKeras)
-from codes.block_definitions.block_arguments import (BlockArguments_DataAugmentation,
+from codes.block_definitions.arguments.block_arguments import (BlockArguments_DataAugmentation,
                                                      BlockArguments_DataPreprocessing,
                                                      BlockArguments_TransferLearning,
                                                      BlockArguments_TFKeras)
-from codes.block_definitions.block_evaluate import (BlockEvaluate_Standard,
-                                                    BlockEvaluate_DataAugmentation,
-                                                    BlockEvaluate_TrainValidate,
-                                                    BlockEvaluate_TFKeras,
-                                                    BlockEvaluate_TFKeras_TransferLearning2,
-                                                    BlockEvaluate_TFKeras_AfterTransferLearning)
-from codes.block_definitions.block_mutate import BlockMutate_OptB
-from codes.block_definitions.block_mate import BlockMate_WholeOnly, BlockMate_NoMate
+from codes.block_definitions.evaluate.block_evaluate import (BlockEvaluate_MiddleBlock,
+                                                    BlockEvaluate_MiddleBlock_SkipValidating)
+from codes.block_definitions.evaluate.block_evaluate_graph import (BlockEvaluate_TFKeras,
+                                                    BlockEvaluate_TFKeras_TransferLearning,
+                                                    BlockEvaluate_TFKeras_CloseAnOpenGraph)
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_withValidation_andTransferLearning
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph
 
 
 
@@ -67,7 +66,7 @@ class Problem(ProblemDefinition_Abstract):
                                                           shape_def=BlockShapeMeta_DataAugmentation,
                                                           operator_def=BlockOperators_DataAugmentation,
                                                           argument_def=BlockArguments_DataAugmentation,
-                                                          evaluate_def=BlockEvaluate_DataAugmentation,
+                                                          evaluate_def=BlockEvaluate_MiddleBlock_SkipValidating,
                                                           mutate_def=BlockMutate_OptB,
                                                           mate_def=BlockMate_WholeOnly)
 
@@ -75,7 +74,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            shape_def=BlockShapeMeta_DataPreprocessing,
                                                            operator_def=BlockOperators_DataPreprocessing,
                                                            argument_def=BlockArguments_DataPreprocessing,
-                                                           evaluate_def=BlockEvaluate_TrainValidate,
+                                                           evaluate_def=BlockEvaluate_MiddleBlock,
                                                            mutate_def=BlockMutate_OptB,
                                                            mate_def=BlockMate_WholeOnly)
 
@@ -83,7 +82,7 @@ class Problem(ProblemDefinition_Abstract):
                                                            shape_def=BlockShapeMeta_TFKeras_TransferLearning,
                                                            operator_def=BlockOperators_TFKeras_TransferLearning_CIFAR,
                                                            argument_def=BlockArguments_TransferLearning,
-                                                           evaluate_def=BlockEvaluate_TFKeras_TransferLearning2,
+                                                           evaluate_def=BlockEvaluate_TFKeras_TransferLearning,
                                                            mutate_def=BlockMutate_OptB,
                                                            mate_def=BlockMate_WholeOnly)
 
@@ -91,7 +90,7 @@ class Problem(ProblemDefinition_Abstract):
                                                         shape_def=BlockShapeMeta_TFKeras,
                                                         operator_def=BlockOperators_TFKeras,
                                                         argument_def=BlockArguments_TFKeras,
-                                                        evaluate_def=BlockEvaluate_TFKeras_AfterTransferLearning,
+                                                        evaluate_def=BlockEvaluate_TFKeras_CloseAnOpenGraph,
                                                         mutate_def=BlockMutate_OptB,
                                                         mate_def=BlockMate_WholeOnly)
         
@@ -101,7 +100,7 @@ class Problem(ProblemDefinition_Abstract):
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
-                                      evaluate_def=IndividualEvaluate_withValidation_andTransferLearning)
+                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph)
 
         self.construct_dataset()
 

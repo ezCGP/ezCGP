@@ -206,12 +206,12 @@ class ezDataLoader_EMADE_Titanic(ezDataLoader):
         super().__init__(1,0,0)
 
 
-    def load(self, x, y):
+    def load(self):
         '''
         using the filepaths as it's read from the config xml in emade
         https://github.gatech.edu/emade/emade/blob/CacheV2/templates/input_titanic.xml
         '''
-        train_datapair = ezData.ezData_EMADE(train_filenames=['datasets/titanic/train_0.csv.gz',
+        train_datapair = ezdata.ezData_EMADE(train_filenames=['datasets/titanic/train_0.csv.gz',
                                                               'datasets/titanic/train_1.csv.gz',
                                                               'datasets/titanic/train_2.csv.gz',
                                                               'datasets/titanic/train_3.csv.gz',
