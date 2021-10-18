@@ -85,7 +85,8 @@ class Problem(ProblemDefinition_Abstract):
             error = actual-predict
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
-            indiv.fitness.values = (rms_error, max_error)
+            # be sure to convert to floats from ezData_numpy types or else will run into errors later
+            indiv.fitness.values = (float(rms_error), float(max_error))
 
 
     def check_convergence(self, universe):
