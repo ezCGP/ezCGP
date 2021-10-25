@@ -103,6 +103,9 @@ class IndividualMaterial():
             BUT if weights is A LOT longer than values then wvalues will be the same length as values.
             So as to never have to worry about the number of objectives we have, going to make weights some arbitrarily
             large tuple of 1s. #yolo
+
+            UPDATE: with a 'newer' version of deap, there is an assertion that self.weights is same len as number of objectives.
+            So we are going to manually snip weights to the number of objectives by adding a line to setValues...see below
             '''
             self.weights = (1,)*1000
             super().__init__(values=())
@@ -116,6 +119,22 @@ class IndividualMaterial():
             # 'self' must be at least as good as 'other' for all objective fnts (np.all(a>=b))
             # and strictly better in at least one (np.any(a>b))
             return np.any(a < b) and np.all(a <= b)'''
+
+
+        def setValues(self, values):
+            # see not in __init__
+            self.weights = self.weights[:len(values)]
+            print(self.weights)
+            print("%i vs %i" % (len(self.weights),len(values)))
+            super().setValues(values)
+
+        def getValues(self):
+            return super().getValues()
+
+        def delValues(self):
+            super().delValues()
+
+        values = property(getValues, setValues, delValues)
 
 
 
