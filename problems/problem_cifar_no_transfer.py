@@ -68,8 +68,11 @@ class Problem(ProblemDefinition_Abstract):
         3) Custom Keras NN
     '''
     def __init__(self):
-        #import tensorflow as tf
-        #assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
+        import tensorflow as tf
+        assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
+        # https://stackoverflow.com/questions/43147983/could-not-create-cudnn-handle-cudnn-status-internal-error
+        physical_devices = tf.config.experimental.list_physical_devices('GPU')
+        config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
         population_size = 4#20
         number_universe = 1
@@ -205,7 +208,8 @@ class Problem(ProblemDefinition_Abstract):
             save_things.save_population(universe)
 
         ezLogging.info("Post Processing Universe Run - qsub next generation")
-        cmd = 'qsub -F "%i %s" ~/ezCGP/pbs_files/pace-ice_cifar10-noTrasferLearning.pbs' % (universe.random_seed, universe.output_folder)
+        #cmd = 'qsub -F "%i %s" ~/ezCGP/pbs_files/pace-ice_cifar10-noTrasferLearning.pbs' % (universe.random_seed, universe.output_folder)
+        cmd = 'sbatch ~/ezCGP/slurm_files/pace-ice_cifar10-noTrasferLearning.sh "%i %s"' % (universe.random_seed, universe.output_folder)
         os.system(cmd)
         ezLogging.debug("Post Processing Universe Run - ran cmd: %s" % cmd)
 
