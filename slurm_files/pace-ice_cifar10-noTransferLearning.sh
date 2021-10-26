@@ -32,4 +32,4 @@ module load anaconda3/2020.02
 module load cuda/10.1
 conda activate ezcgp-py
 rm -rf ~/.nv
-python main.py -p problem_cifar_no_transfer -v $setseed $setprevrun
+python main.py -p problem_cifar_no_transfer -d $setseed $setprevrun
