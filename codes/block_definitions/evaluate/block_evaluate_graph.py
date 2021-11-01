@@ -297,7 +297,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import traceback; traceback.print_exc()
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         try:
@@ -306,7 +306,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import traceback; traceback.print_exc()
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = (None, None, validation_scores)
@@ -402,7 +402,8 @@ class BlockEvaluate_TFKeras_TransferLearning(BlockEvaluate_GraphAbstract):
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
-            import pdb; pdb.set_trace()
+            import traceback; traceback.print_exc()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = (training_datalist, validating_datalist, supplements)
@@ -464,7 +465,7 @@ class BlockEvaluate_TFKeras_CloseAnOpenGraph(BlockEvaluate_TFKeras):
             block_material.dead = True
             block_material.output = (None, None, (0,0,0))
             import traceback; traceback.print_exc()
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         try:
@@ -474,7 +475,7 @@ class BlockEvaluate_TFKeras_CloseAnOpenGraph(BlockEvaluate_TFKeras):
             block_material.dead = True
             block_material.output = (None, None, (0,0,0))
             import traceback; traceback.print_exc()
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = (None, None, validation_scores)
@@ -518,7 +519,7 @@ class BlockEvaluate_TFKeras_OpenGraph(BlockEvaluate_GraphAbstract):
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import traceback; traceback.print_exc()
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = (training_datalist, validating_datalist, supplements)

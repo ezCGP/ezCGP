@@ -149,7 +149,10 @@ class Problem(ProblemDefinition_Abstract):
         With updated code, we expect the last block to return the validation metrics assigned to the Model object,
         so we just need to connect those to the individual's fitness values
         '''
-        indiv.fitness.values = tuple(indiv.output)
+        if indiv.dead:
+            indiv.fitness.values = (0,0,0)
+        else:
+            indiv.fitness.values = tuple(indiv.output)
 
 
     def check_convergence(self, universe):
