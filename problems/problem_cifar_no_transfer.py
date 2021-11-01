@@ -209,7 +209,7 @@ class Problem(ProblemDefinition_Abstract):
 
         ezLogging.info("Post Processing Universe Run - qsub next generation")
         #cmd = 'qsub -F "%i %s" ~/ezCGP/pbs_files/pace-ice_cifar10-noTrasferLearning.pbs' % (universe.random_seed, universe.output_folder)
-        cmd = 'sbatch ~/ezCGP/slurm_files/pace-ice_cifar10-noTransferLearning.sh %i %s' % (universe.random_seed, universe.output_folder)
+        cmd = 'sbatch ~/ezCGP/slurm_files/icehammer_cifar10-noTransferLearning.sh %i %s' % (universe.random_seed, universe.output_folder)
         os.system(cmd)
         ezLogging.debug("Post Processing Universe Run - ran cmd: %s" % cmd)
 
