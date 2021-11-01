@@ -46,13 +46,13 @@ from codes.block_definitions.arguments.block_arguments import (BlockArguments_Da
 from codes.block_definitions.evaluate.block_evaluate import (BlockEvaluate_MiddleBlock,
                                                              BlockEvaluate_MiddleBlock_SkipValidating)
 from codes.block_definitions.evaluate.block_evaluate_graph import (BlockEvaluate_TFKeras_TransferLearning,
-                                                                   BlockEvaluate_TFKeras_AfterTransferLearning)
+                                                                   BlockEvaluate_TFKeras_CloseAnOpenGraph)
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_4Blocks
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks, BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
-from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow
+from codes.individual_definitions.individual_evaluate import IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph
 
 
 
@@ -107,7 +107,7 @@ class Problem(ProblemDefinition_Abstract):
                                                         shape_def=BlockShapeMeta_TFKeras,
                                                         operator_def=BlockOperators_TFKeras,
                                                         argument_def=BlockArguments_TFKeras,
-                                                        evaluate_def=BlockEvaluate_TFKeras_AfterTransferLearning,
+                                                        evaluate_def=BlockEvaluate_TFKeras_CloseAnOpenGraph,
                                                         mutate_def=BlockMutate_OptB_4Blocks,
                                                         mate_def=BlockMate_WholeOnly_4Blocks)
         
@@ -117,7 +117,7 @@ class Problem(ProblemDefinition_Abstract):
                                                   tensorflow_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
                                       mate_def=IndividualMate_RollOnEachBlock,
-                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTransferLearning_wTensorFlow)
+                                      evaluate_def=IndividualEvaluate_wAugmentorPipeline_wTensorFlow_OpenCloseGraph)
 
         self.construct_dataset()
 
