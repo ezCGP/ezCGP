@@ -93,8 +93,8 @@ def vgg16(input_layer):
     output_layer = pretrained_model(next_layer)
     return output_layer
 
-operator_dict[vgg16] = {"inputs": [tf.keras.layers],
-                        "output": tf.keras.layers,
+operator_dict[vgg16] = {"inputs": [tf.keras.layers.Layer],
+                        "output": tf.keras.layers.Layer,
                         "args": []
                         }
 
@@ -125,8 +125,8 @@ def resnet(input_layer, ith_model):
     output_layer = pretrained_model(next_layer)
     return output_layer
 
-operator_dict[resnet] = {"inputs": [tf.keras.layers],
-                        "output": tf.keras.layers,
+operator_dict[resnet] = {"inputs": [tf.keras.layers.Layer],
+                        "output": tf.keras.layers.Layer,
                         "args": [argument_types.ArgumentType_Int0to25]
                         }
 
@@ -150,8 +150,8 @@ def inception(input_layer):
     return output_layer
 
 
-operator_dict[inception] = {"inputs": [tf.keras.layers],
-                            "output": tf.keras.layers,
+operator_dict[inception] = {"inputs": [tf.keras.layers.Layer],
+                            "output": tf.keras.layers.Layer,
                             "args": []
                            }
 
