@@ -124,8 +124,6 @@ class IndividualMaterial():
         def setValues(self, values):
             # see not in __init__
             self.weights = self.weights[:len(values)]
-            print(self.weights)
-            print("%i vs %i" % (len(self.weights),len(values)))
             super().setValues(values)
 
         def getValues(self):
