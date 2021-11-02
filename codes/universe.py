@@ -23,9 +23,8 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract
-from codes.utilities import selections
 from codes.utilities.custom_logging import ezLogging
-
+from post_process import save_things
 
 
 
@@ -35,7 +34,8 @@ class UniverseDefinition():
     '''
     def __init__(self,
                  problem: ProblemDefinition_Abstract,
-                 output_folder: str):
+                 output_folder: str,
+                 random_seed: int):
         '''
         electing to keep Problem class separate from Universe class...
         if we ever need a Problem attribute, just pass in the instance of Problem as an arguement
@@ -47,6 +47,7 @@ class UniverseDefinition():
         #self.population = self.factory.build_population(problem.indiv_def, problem.pop_size)
         #self.problem = problem #did we really need the problem as attr? cleaner to keep them separate, right?
         self.output_folder = output_folder
+        self.random_seed = random_seed
         self.converged = False
 
         # match a few attributes found in MPIUniverseDefinition
@@ -80,7 +81,7 @@ class UniverseDefinition():
                 else:
                     # it is a multiple...so far, we are satisfied
                     satisfied = True
-            
+
             if possible_size <= 0:
                 # then we failed...try changing direction
                 print(possible_size)
@@ -92,11 +93,13 @@ class UniverseDefinition():
         problem.pop_size = possible_size
 
 
-    def parent_selection(self):
+    def parent_selection(self, problem: ProblemDefinition_Abstract):
         '''
-        TODO
+        moved to problem class so user can easily customize selection method.
+        selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module.
+        method should return a list of parents
         '''
-        return selections.selTournamentDCD(self.population.population, k=len(self.population.population))
+        return problem.parent_selection(self)
 
 
     def mate_population(self, problem: ProblemDefinition_Abstract):
@@ -105,7 +108,7 @@ class UniverseDefinition():
         '''
         start_time = time.time()
         children = []
-        mating_list = self.parent_selection()
+        mating_list = self.parent_selection(problem)
         for ith_indiv in range(0, len(mating_list), 2):
             parent1 = mating_list[ith_indiv]
             parent2 = mating_list[ith_indiv+1]
@@ -147,10 +150,10 @@ class UniverseDefinition():
         '''
         self.pop_fitness_scores = []
         self.pop_individual_ids = []
-        ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
+        ezLogging.warning("Evaluating Population of size %i" % (len(self.population.population)))
         for indiv in self.population.population:
             # EVALUATE
-            problem.indiv_def.evaluate(indiv, problem.train_data, problem.validate_data)
+            problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
             # SCORE
             problem.objective_functions(indiv)
             self.pop_fitness_scores.append(indiv.fitness.values)
@@ -160,21 +163,30 @@ class UniverseDefinition():
         self.pop_individual_ids = np.array(self.pop_individual_ids)
 
 
+    def update_hall_of_fame(self):
+        '''
+        wrapper function to call the deap.tools.HallOfFame.update(population) method
+        '''
+        self.population.update_hall_of_fame()
+
+
     def population_selection(self, problem: ProblemDefinition_Abstract):
         '''
-        TODO
+        moved to problem class so user can easily customize selection method.
+        selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module.
+        method should alter the self.population.population attr
         '''
-        self.population.population, _ = selections.selNSGA2(self.population.population, problem.pop_size, nd='standard')
+        problem.population_selection(self)
 
 
-    def check_convergence(self, problem_def: ProblemDefinition_Abstract):
+    def check_convergence(self, problem: ProblemDefinition_Abstract):
         '''
         Should update self.converged
         '''
-        problem_def.check_convergence(self)
+        problem.check_convergence(self)
 
 
-    def postprocess_generation(self, problem_def: ProblemDefinition_Abstract):
+    def postprocess_generation(self, problem: ProblemDefinition_Abstract):
         '''
         Just a wrapper to problem.postprocess_universe()
 
@@ -183,17 +195,18 @@ class UniverseDefinition():
         any trimming...depends on what things we're interested in. Right now I made no decision on what to collect
         so it's at the end of the generation loop
         '''
-        problem_def.postprocess_generation(self)
+        problem.postprocess_generation(self)
 
 
-    def postprocess_universe(self, problem_def: ProblemDefinition_Abstract):
+    def postprocess_universe(self, problem: ProblemDefinition_Abstract):
         '''
         Wrapper to problem.postprocess_universe()
 
-        Provides an option for anything we want to do with the universe + population now that we reached the 
+        Provides an option for anything we want to do with the universe + population now that we reached the
         complete end of the evolutionary cycle.
         '''
-        problem_def.postprocess_universe(self)
+        save_things.save_population(self) # always save the population at the end of the run
+        problem.postprocess_universe(self)
 
 
     def run(self, problem: ProblemDefinition_Abstract):
@@ -201,14 +214,18 @@ class UniverseDefinition():
         assumes a population has only been created and not evaluatedscored
         '''
         self.generation = 0
-        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size, problem.genome_seeds)
+        self.population = self.factory.build_population(problem, problem.pop_size, self.node_number, self.node_count)
         self.evaluate_score_population(problem)
+        self.update_hall_of_fame()
         self.population_selection(problem)
+        self.check_convergence(problem)
+        self.postprocess_generation(problem)
         while not self.converged:
             self.generation += 1
-            ezLogging.info("Starting Generation %i" % self.generation)
+            ezLogging.warning("Starting Generation %i" % self.generation)
             self.evolve_population(problem)
             self.evaluate_score_population(problem)
+            self.update_hall_of_fame()
             self.population_selection(problem)
             self.check_convergence(problem)
             self.postprocess_generation(problem)
@@ -222,7 +239,8 @@ class MPIUniverseDefinition(UniverseDefinition):
     '''
     def __init__(self,
                  problem: ProblemDefinition_Abstract,
-                 output_folder: str):
+                 output_folder: str,
+                 random_seed: int):
         '''
         TODO
         '''
@@ -233,7 +251,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         # an even number of individuals for each node...this way, we can do parent selection beffore splitting
         # and the parent-pairs won't get split
         self.adjust_pop_size(problem, [4, 2*MPI.COMM_WORLD.Get_size()])
-        super().__init__(problem, output_folder)
+        super().__init__(problem, output_folder, random_seed)
 
 
         ''' cannot import MPI as an attribute since it's a subpackage!
@@ -291,7 +309,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.evaluate_score_population(problem)
 
 
-    def split_scatter_population(self, parent_selection=False):
+    def split_scatter_population(self, problem: ProblemDefinition_Abstract, parent_selection=False):
         '''
         small method where we assume that the population is a full list of individualmaterial
         and we want to split it up into list of list and then scatter each of those lists to a node
@@ -301,7 +319,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         '''
         if self.node_number == 0:
             if parent_selection:
-                self.population.population = self.parent_selection() #id prefer to do this before we split and scatter
+                self.population.population = self.parent_selection(problem) #id prefer to do this before we split and scatter
             self.population.split_population(self.node_count)
         self.population.population = MPI.COMM_WORLD.scatter(self.population.population, root=0)
         MPI.COMM_WORLD.Barrier()
@@ -335,21 +353,28 @@ class MPIUniverseDefinition(UniverseDefinition):
 
         self.generation = 0
         # start split until after evaluate
-        self.population = self.factory.build_population(problem.indiv_def, problem.pop_size//self.node_count) #each node make their own fraction of indiv...but how does seeding work, are they dups?
+        self.population = self.factory.build_population(problem,
+                                                        problem.pop_size//self.node_count, #each node make their own fraction of indiv...but how does seeding work, are they dups?
+                                                        self.node_number,
+                                                        self.node_count) 
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
         # TODO verify ezLogging
         self.mpi_evaluate_score_population(problem)
         self.gather_population()
         if self.node_number == 0:
+            self.update_hall_of_fame()
             self.population_selection(problem)
+            self.check_convergence(problem)
+            self.postprocess_generation(problem)
         while not self.converged:
             self.generation += 1
-            self.split_scatter_population(parent_selection=True)
+            self.split_scatter_population(problem, parent_selection=True)
             self.mpi_evolve_population(problem)
             self.mpi_evaluate_score_population(problem)
             self.gather_population()
             if self.node_number == 0:
+                self.update_hall_of_fame()
                 self.population_selection(problem)
                 self.check_convergence(problem)
                 self.postprocess_generation(problem)

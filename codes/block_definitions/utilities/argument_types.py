@@ -50,7 +50,7 @@ class ArgumentType_Abstract(ABC):
     Mutation Methods:
     Define a set of mutation methods to be called on to mutate all/any of the argument classes.
     Currently, the way we set the boundaries of the uniform or the std of the normal distribution are entirely arbitrary. No analysis has been done on this yet.
-    
+
     There is a bias here in the code to try and encourage values to move away from negative values as you can see in the conditions if the value is 0...a lot needs to be changed with these methods.
     '''
     def mut_uniform(self):
@@ -62,7 +62,7 @@ class ArgumentType_Abstract(ABC):
             high = self.value * 1.15
         ezLogging.debug("%s-%s - numpy.random.uniform(%f,%f)" % (None, None, low, high))
         self.value = rnd.uniform(low,high)
-            
+
 
     def mut_normal(self):
         if self.value == 0:
@@ -71,7 +71,7 @@ class ArgumentType_Abstract(ABC):
         else:
             mean = self.value
             std = self.value * .1
-        ezLogging.debug("%s-%s - numpy.random.normal(%f,%f)" % (None, None, mean, std))    
+        ezLogging.debug("%s-%s - numpy.random.normal(%f,%f)" % (None, None, mean, std))
         self.value = rnd.normal(mean, std)
 
 
@@ -99,7 +99,7 @@ class ArgumentType_Ints(ArgumentType_Abstract):
     To try and capture a large range of ints, 1/3 of ints will start at 5,
     another third will start at 50, and the final third will start at 100.
     Then all will mutate around that value.
-    All ints are bounded by 1 such that [1,?)...after mutating, we force anything 
+    All ints are bounded by 1 such that [1,?)...after mutating, we force anything
     less than 1, to 1.
     '''
     def __init__(self, value=None):
@@ -125,7 +125,7 @@ class ArgumentType_Ints(ArgumentType_Abstract):
             self.mut_uniform()
         else:
             pass
-        
+
         if self.value < 1:
             self.value = 1
         else:
@@ -138,7 +138,7 @@ class ArgumentType_Ints(ArgumentType_Abstract):
 class ArgumentType_Pow2(ArgumentType_Abstract):
     '''
     This can be any number 2**i with i any int {1,2,3,4,5,6,7,8}
-    
+
     Commonly used in CNN for setting the size of the convolutions.
     '''
     def __init__(self, value=None):
@@ -454,8 +454,8 @@ class ArgumentType_Int0to25(ArgumentType_Abstract):
             self.mutate_unif_localint()
         ezLogging.debug("%s-%s - Mutated ArgumentType_Int0to25 to %f" % (None, None, self.value))
 
-        
-        
+
+
 class ArgumentType_Int1to10(ArgumentType_Abstract):
     '''
     [1,2,3,4,5,6,7,8,9,10]

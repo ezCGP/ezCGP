@@ -21,13 +21,13 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from codes.utilities.custom_logging import ezLogging
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
-from data.data_tools import data_loader
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_SymbolicRegressionNoArg25, BlockShapeMeta_SymbolicRegressionArg25
-from codes.block_definitions.block_operators import BlockOperators_SymbRegressionOpsNoArgs, BlockOperators_SymbRegressionOpsWithArgs
-from codes.block_definitions.block_arguments import BlockArguments_NoArgs, BlockArguments_SmallFloatOnly
-from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-from codes.block_definitions.block_mutate import BlockMutate_OptA, BlockMutate_OptB
-from codes.block_definitions.block_mate import BlockMate_WholeOnly
+from data.data_tools import ezData
+from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SymbolicRegressionNoArg25, BlockShapeMeta_SymbolicRegressionArg25
+from codes.block_definitions.operators.block_operators import BlockOperators_SymbRegressionOpsNoArgs, BlockOperators_SymbRegressionOpsWithArgs
+from codes.block_definitions.arguments.block_arguments import BlockArguments_NoArgs, BlockArguments_SmallFloatOnly
+from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_MiddleBlock, BlockEvaluate_FinalBlock
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptA, BlockMutate_OptB
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
@@ -50,7 +50,7 @@ class Problem(ProblemDefinition_Abstract):
                                              shape_def = BlockShapeMeta_SymbolicRegressionNoArg25,
                                              operator_def = BlockOperators_SymbRegressionOpsNoArgs,
                                              argument_def = BlockArguments_NoArgs,
-                                             evaluate_def = BlockEvaluate_Standard,
+                                             evaluate_def = BlockEvaluate_MiddleBlock,
                                              mutate_def = BlockMutate_OptA,
                                              mate_def = BlockMate_WholeOnly)
 
@@ -58,7 +58,7 @@ class Problem(ProblemDefinition_Abstract):
                                              shape_def = BlockShapeMeta_SymbolicRegressionArg25,
                                              operator_def = BlockOperators_SymbRegressionOpsWithArgs,
                                              argument_def = BlockArguments_SmallFloatOnly,
-                                             evaluate_def = BlockEvaluate_Standard,
+                                             evaluate_def = BlockEvaluate_FinalBlock,
                                              mutate_def = BlockMutate_OptB,
                                              mate_def = BlockMate_WholeOnly)
 
@@ -76,21 +76,27 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def construct_dataset(self):
-        x = [np.float64(1), np.random.uniform(low=0.25, high=2, size=200)]
-        y = self.goal_function(x[1])
-        self.data = data_loader.load_symbolicRegression(x, y)
+        x = np.random.uniform(low=0.25, high=2, size=200)
+        y = self.goal_function(x)
+        data = ezData.ezData_numpy(x, y)
+        ephemeral_constant = ezData.ezData_float(1)
+
+        self.training_datalist = [ephemeral_constant, data]
+        self.validating_datalist = None
 
 
     def objective_functions(self, indiv):
         if indiv.dead:
             indiv.fitness.values = (np.inf, np.inf)
         else:
-            actual = self.data.y_train
-            predict = indiv.output
+            actual = self.training_datalist[-1].y
+            training_output, validating_output = indiv.output
+            predict = training_output[0]
             error = actual-predict
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
-            indiv.fitness.values = (rms_error, max_error)
+            # be sure to convert to floats from ezData_numpy types or else will run into errors later
+            indiv.fitness.values = (float(rms_error), float(max_error))
 
 
     def check_convergence(self, universe):

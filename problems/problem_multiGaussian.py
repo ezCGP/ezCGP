@@ -4,6 +4,7 @@ root/problems/problem_multiGaussian.py
 
 ### packages
 import os
+import glob
 import numpy as np
 import logging
 
@@ -17,12 +18,12 @@ from problems.problem_definition import ProblemDefinition_Abstract
 from codes.factory import FactoryDefinition
 from data.data_tools import ezData
 from codes.utilities.custom_logging import ezLogging
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_Gaussian
-from codes.block_definitions.block_operators import BlockOperators_Gaussian
-from codes.block_definitions.block_arguments import BlockArguments_Gaussian
-from codes.block_definitions.block_evaluate import BlockEvaluate_Standard
-from codes.block_definitions.block_mutate import BlockMutate_NoFtn
-from codes.block_definitions.block_mate import BlockMate_NoMate
+from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Gaussian
+from codes.block_definitions.operators.block_operators import BlockOperators_Gaussian
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Gaussian
+from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_FinalBlock
+from codes.block_definitions.mutate.block_mutate import BlockMutate_NoFtn
+from codes.block_definitions.mate.block_mate import BlockMate_NoMate
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Standard
@@ -37,17 +38,18 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 52 #must be divisible by 4 if doing mating
-        number_universe = 1 #10
+        population_size = 2**8 #must be divisible by 4 if doing mating
+        number_universe = 1
         factory = FactoryDefinition
         mpi = False
-        super().__init__(population_size, number_universe, factory, mpi)
+        genome_seeds = glob.glob("outputs/problem_multiGaussian_mpi/%s/univ0000/gen_%04d_*.pkl" % ("testing-20210521-175044", 3))[:3]
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, number_of_objectives=3, hall_of_fame_size=2*9)
 
         block_def = self.construct_block_def(nickname = "GaussBlock",
                                              shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20
                                              operator_def = BlockOperators_Gaussian, #only 1 operator...gauss taking in th right args
                                              argument_def = BlockArguments_Gaussian, #0-100 floats, 0-1 floats, 0-100 ints
-                                             evaluate_def = BlockEvaluate_Standard, #ya standard eval
+                                             evaluate_def = BlockEvaluate_FinalBlock, #ya standard eval
                                              mutate_def = BlockMutate_NoFtn, #maybe not mutate ftn
                                              mate_def = BlockMate_NoMate) #maybe not mate
 
@@ -61,28 +63,48 @@ class Problem(ProblemDefinition_Abstract):
 
     def construct_dataset(self):
         from misc import fake_mixturegauss
+        ''' old part:
         x, y, noisy, goal_features = fake_mixturegauss.main()
         x = fake_mixturegauss.XLocations(x)
         starting_sum = fake_mixturegauss.RollingSum(np.zeros(x.shape))
         #self.data = data_loader.load_symbolicRegression([x, starting_sum], [y, noisy, goal_features])
         self.train_data = ezData.ezData([x, starting_sum], [y, noisy, goal_features])
         self.validate_data = None
+        '''
+        x, y, noisy, goal_features = fake_mixturegauss.main()
+        rolling_sum = fake_mixturegauss.RollingSum(np.zeros(x.shape))
+
+        clean_data = fake_mixturegauss.XLocations(x, y)
+        clean_data.goal_features = goal_features
+
+        noisy_data = ezData.ezData_numpy(x, noisy)
+        noisy_data.goal_features = goal_features
+
+        self.training_datalist = [clean_data, rolling_sum]
+        self.validating_datalist = None
 
 
     def objective_functions(self, indiv):
         if indiv.dead:
             indiv.fitness.values = (np.inf, np.inf, np.inf)
         else:
-            clean_y, noisy_y, goal_features = self.train_data.y
-            predict_y = indiv.output[0]
-            # how to extract the arguments to match to goal_features as well?
+            # Collect 'True' values
+            clean_y = self.training_datalist[0].y
+            #noisy_y = self.training_datalist[0].y # use this instead of above if we pass in noisy_data instead of clean_data
+            goal_features = self.training_datalist[0].goal_features
+
+            # Collect 'Predicted' values
+            training_output, validating_output = indiv.output
+            predict_y = training_output[0]
+
+            # Calculate the error
             error = clean_y-predict_y
             rms_error = np.sqrt(np.mean(np.square(error)))
             max_error = np.max(np.abs(error))
             # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output
             #active_error = np.abs(10+2+1-len(indiv[0].active_nodes)) #maybe cheating by knowing the goal amount ahead of time
             active_error = len(indiv[0].active_nodes)
-            indiv.fitness.values = (rms_error, max_error, active_error)
+            indiv.fitness.values = (rms_error.item(), max_error.item(), active_error)
 
 
     def check_convergence(self, universe):
@@ -122,7 +144,7 @@ class Problem(ProblemDefinition_Abstract):
             self.roddcustom_bestscore = [best_indiv.fitness.values]
             self.roddcustom_bestactive = [active_count]
 
-        fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.train_data.y[0].max()*1.25)) #axes always 2dim
+        fig, axes = plot_things.plot_init(nrow=2, ncol=1, figsize=(15,10), ylim=(0,self.training_datalist[0].y.max()*1.25)) #axes always 2dim
         plot_things.plot_regression(axes[0,0], best_indiv, self)
         plot_things.plot_gaussian(axes[1,0], best_indiv, self)
         plot_things.plot_legend()
@@ -134,7 +156,7 @@ class Problem(ProblemDefinition_Abstract):
         save each individual at the end of the population
         '''
         logging.info("Post Processing Universe Run")
-        save_things.save_population(universe)
+        #save_things.save_population(universe)
         save_things.save_population_asLisp(universe, self.indiv_def)
 
         best_ids = np.array(self.roddcustom_bestindiv)
