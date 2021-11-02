@@ -195,6 +195,29 @@ class ProblemDefinition_Abstract(ABC):
                 best_score = indiv.fitness.values[ith_obj]
                 best_index = ith_indiv
         return best_index, best_score
+    
+
+    def is_pareto(self, costs):
+        """
+        Find the pareto-efficient points
+        :param costs: An (n_points, n_costs) array
+        :return: A (n_points, ) boolean array, indicating whether each point is Pareto efficient
+        """
+        is_efficient = np.ones(costs.shape[0], dtype=bool)
+        for i, c in enumerate(costs):
+            if is_efficient[i]:
+                is_efficient[is_efficient] = np.any(costs[is_efficient]<c, axis=1)  # Keep any point with a lower cost
+                is_efficient[i] = True  # And keep self
+        return is_efficient
+
+
+    def get_pareto_front(self, universe):
+        best_score = np.inf
+        best_index = None
+        costs = np.array([indiv.fitness.values for indiv in universe.population.population])
+        is_pareto = self.is_pareto(costs)
+
+        return np.where(is_pareto)[0]
 
 
     # Note to user: these last two methods are already defined

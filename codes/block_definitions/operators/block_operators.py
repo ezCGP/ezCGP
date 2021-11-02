@@ -299,5 +299,52 @@ class BlockOperators_Dense(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         weight_dict[operators_TensorFlow_basiclayers.dense_layer] = 0.8
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_Refiner(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Refiner Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_simgan_refiner']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_Discriminator(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Discriminator Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_pytorch']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_Train_Config(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Train_Config Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_simgan_train_config']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
 
         self.init_from_weight_dict(weight_dict)

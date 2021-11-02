@@ -126,7 +126,6 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         '''
         super().preprocess_block_evaluate(block_material)
         block_material.graph = None
-        tf.keras.backend.clear_session()
 
 
     def postprocess_block_evaluate(self, block_material):
@@ -137,7 +136,6 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         '''
         super().postprocess_block_evaluate(block_material)
         block_material.graph = None
-        tf.keras.backend.clear_session()
 
 
 

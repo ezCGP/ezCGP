@@ -175,6 +175,7 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         self.epochs = 15
 
 
+
 class BlockShapeMeta_Dense(BlockShapeMeta_Abstract):
     def __init__(self):
         ezLogging.debug(
@@ -189,3 +190,32 @@ class BlockShapeMeta_Dense(BlockShapeMeta_Abstract):
                          main_count)
         self.batch_size = 128
         self.epochs = 15
+
+
+
+class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN_Network Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        from codes.block_definitions.utilities.operators_pytorch import PyTorchLayerWrapper
+        import torch
+        input_dtypes = [PyTorchLayerWrapper, PyTorchLayerWrapper] # We have two here to allow for more chance to append an unaltered version of the input
+        output_dtypes = [PyTorchLayerWrapper]
+        main_count = 30 # TODO: see if this needs to be bumped up
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+
+
+
+class BlockShapeMeta_SimGAN_Train_Config(BlockShapeMeta_Abstract):
+    def __init__(self):
+        from codes.block_definitions.utilities import argument_types
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_SimGAN_Train_Config Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        input_dtypes = [argument_types.ArgumentType_Placeholder] # NOTE: we don't actually need input, so we just use an int (would use None, but an exception occurs if you do that, so this is a workaround)
+        output_dtypes = [dict]
+        main_count = 5 # TODO: see if this needs to be bumped up
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)

@@ -55,7 +55,7 @@ def main(problem_filename: str,
     problem = problem_module.Problem()
     if previous_run is not None:
         problem.seed_with_previous_run(previous_run)
-    from codes.universe import UniverseDefinition, MPIUniverseDefinition
+    from codes.universe import UniverseDefinition, MPIUniverseDefinition, RelativePopulationUniverseDefinition
 
     # want to make sure that creation of files, folders, and logging is not duplicated if using mpi.
     # the following is always true if not using mpi 
@@ -83,7 +83,13 @@ def main(problem_filename: str,
         else:
             ezLogging_method = ezLogging.logging_2file
             universe_seed = seed + 1 + ith_universe
-            ThisUniverse = UniverseDefinition
+            try:
+                if problem.relativeScoring:
+                    ThisUniverse = RelativePopulationUniverseDefinition
+                else:
+                    ThisUniverse = UniverseDefinition
+            except:
+                ThisUniverse = UniverseDefinition
         log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
         ezLogging.log_git_metadata()
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))
