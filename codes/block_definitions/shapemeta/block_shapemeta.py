@@ -151,8 +151,8 @@ class BlockShapeMeta_TFKeras_TransferLearning(BlockShapeMeta_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TransferLearning Class" % (None, None))
         # don't want it imported all the time so we didn't put it at the top of script
         import tensorflow as tf
-        input_dtypes = [tf.keras.layers]
-        output_dtypes = [tf.keras.layers]
+        input_dtypes = [tf.keras.layers.Layer]
+        output_dtypes = [tf.keras.layers.Layer]
         main_count = 1 #has to be one if using BlockEvaluate_TFKeras_TransferLearning2()
         super().__init__(input_dtypes,
                          output_dtypes,
@@ -165,14 +165,33 @@ class BlockShapeMeta_TFKeras(BlockShapeMeta_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockShapeMeta_TFKeras Class" % (None, None))
         # don't want it imported all the time so we didn't put it at the top of script
         import tensorflow as tf
-        input_dtypes = [tf.keras.layers]
-        output_dtypes = [tf.keras.layers]
-        main_count = 10
-        super().__init__([tf.keras.layers],
-                         [tf.keras.layers],
-                         10)
+        input_dtypes = [tf.keras.layers.Layer]
+        output_dtypes = [tf.keras.layers.Layer]
+        main_count = 30
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
         self.batch_size = 128
-        self.epochs = 2#0
+        self.epochs = 15
+
+
+
+class BlockShapeMeta_Dense(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug(
+            "%s-%s - Initialize BlockShapeMeta_Dense Class" % (None, None))
+        # don't want it imported all the time so we didn't put it at the top of script
+        import tensorflow as tf
+        input_dtypes = [tf.keras.layers.Layer]
+        output_dtypes = [tf.keras.layers.Layer]
+        main_count = 20
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)
+        self.batch_size = 128
+        self.epochs = 15
+
+
 
 class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
     def __init__(self):
@@ -186,6 +205,8 @@ class BlockShapeMeta_SimGAN_Network(BlockShapeMeta_Abstract):
         super().__init__(input_dtypes,
                          output_dtypes,
                          main_count)
+
+
 
 class BlockShapeMeta_SimGAN_Train_Config(BlockShapeMeta_Abstract):
     def __init__(self):

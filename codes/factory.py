@@ -23,6 +23,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
+#from problems.problem_definition import ProblemDefinition_Abstract # can't import. circular dependence.
 from codes.population import PopulationDefinition
 from codes.genetic_material import IndividualMaterial, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
@@ -41,18 +42,38 @@ class FactoryDefinition():
 
 
     def build_population(self,
-                         indiv_def: IndividualDefinition,
-                         population_size: int,
-                         genome_seeds: List=[],
+                         problem,#: ProblemDefinition_Abstract,
+                         population_size: int, # not grabbed from problem to allow mpi to make subpops
                          node_rank: int=0,
+                         node_count: int=1,
                         ):
         '''
         TODO
         '''
-        my_population = PopulationDefinition(population_size)
+        my_population = PopulationDefinition()
+
+        if (node_rank==0) and (problem.hall_of_fame_size is not None):
+            my_population.setup_hall_of_fame(problem.hall_of_fame_size)
+
+        if len(problem.genome_seeds) == 0:
+            genome_seeds = []
+        # account for mpi when doing genome seeding
+        elif len(problem.genome_seeds) < node_count:
+            if node_rank+1 <= len(problem.genome_seeds):
+                genome_seeds = [problem.genome_seeds[node_rank]] #needs to be made into a list
+            else:
+                genome_seeds = []
+        else:
+            start_index = node_rank * len(problem.genome_seeds)//node_count
+            if node_rank+1 == node_count:
+                # then it's last node, just grab all remaining seeds
+                end_index = len(problem.genome_seeds)
+            else:
+                end_index = (node_rank+1) * len(problem.genome_seeds)//node_count
+            genome_seeds = problem.genome_seeds[start_index:end_index]
 
         for i, genome_seed in enumerate(genome_seeds):
-            indiv = self.build_individual_from_seed(indiv_def,
+            indiv = self.build_individual_from_seed(problem.indiv_def,
                                                     genome_seed,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
@@ -60,7 +81,7 @@ class FactoryDefinition():
                 my_population.population.append(indiv)
 
         for i in range(len(my_population.population), population_size):
-            indiv = self.build_individual(indiv_def,
+            indiv = self.build_individual(problem.indiv_def,
                                           indiv_id="initPop%i-%i" % (node_rank,i))
             my_population.population.append(indiv)
 

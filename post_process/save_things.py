@@ -7,6 +7,7 @@ import pickle as pkl
 import numpy as np
 from copy import deepcopy
 import os
+import shutil
 import torch
 
 ### sys relative to root dir
@@ -45,7 +46,8 @@ def save_population(universe):
         indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s.pkl" % (universe.generation, indiv.id))
         with open(indiv_file, "wb") as f:
             pkl.dump(indiv, f)
-            
+
+
 def save_pytorch_model(universe, network, indiv_id):
     '''
     save a PyTorch neural network
@@ -73,3 +75,20 @@ def save_population_asLisp(universe, indiv_definition):
                 line = " ".join(block_material.lisp) # list with same length as number of block outputs, so we make into single string
                 f.write("%s\n" % line)
 
+
+def copy_paste_file(src, dst):
+    '''
+    copy+paste any file over to problem_output_directory.
+    this way we know for sure which version of the problem file resulted in the output.
+    '''
+    shutil.copyfile(src, dst)
+    ezLogging.debug("copied %s to %s" % (src, dst))
+
+
+def pickle_dump_object(thing, dst):
+    '''
+    easy way to dump an object somewhere
+    '''
+    with open(dst, 'wb') as f:
+        pkl.dump(thing, f)
+    ezLogging.debug("pickled an object to %s" % dst)

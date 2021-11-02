@@ -9,6 +9,8 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import os
+import glob
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
@@ -22,6 +24,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from codes.factory import FactoryDefinition
 #from codes.universe import UniverseDefinition # can't import because will create import loop
 from codes.utilities.custom_logging import ezLogging
+from codes.utilities import selections
 from codes.genetic_material import IndividualMaterial#, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Abstract
@@ -52,7 +55,9 @@ class ProblemDefinition_Abstract(ABC):
                  number_universe: int,
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
-                 genome_seeds: List=[]):
+                 genome_seeds: List=[],
+                 number_of_objectives: int=None,
+                 hall_of_fame_size: int=None):
         '''
         genome_seeds:
         * each element in outer list is an inividual to be seeded
@@ -67,10 +72,12 @@ class ProblemDefinition_Abstract(ABC):
         self.construct_individual([block_def])
         '''
         self.pop_size = population_size
+        self.hall_of_fame_size = hall_of_fame_size
         self.number_universe = number_universe
         self.Factory = factory_def
         self.mpi = mpi
         self.genome_seeds = genome_seeds
+        self.number_of_objectives = number_of_objectives
 
 
     @abstractmethod
@@ -106,6 +113,51 @@ class ProblemDefinition_Abstract(ABC):
         set universe.converged to boolean T/F ...True will end the universe run
         '''
         pass
+
+
+    def population_selection(self, universe):
+        '''
+        allow the user to change the method for population selection.
+        selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module
+
+        setting default method to selNSGA2
+        '''
+        universe.population.population = selections.selNSGA2(universe.population.population, self.pop_size, nd='standard')
+
+
+    def parent_selection(self, universe):
+        '''
+        allow the user to change the method for parent selection.
+        selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module
+
+        setting default method to selTournamentDCD
+        '''
+        return selections.selTournamentDCD(universe.population.population, k=len(universe.population.population))
+
+
+    def seed_with_previous_run(self, previous_universe_dir):
+        '''
+        we can set the genome_seeds attribute in Problem.__init__()
+        or we can pass in a directory to find the pickled individuals when we call main.py
+
+        this is useful for when we are running on a cluster like pace-ice with a compute time limit.
+        at the end of a generation, we can start a new process for the next generation and reset the
+        time limit...just have to pass the current output directory as input to the next run
+        '''
+        assert(os.path.exists(previous_universe_dir)), "Given 'previous_run' does not exist..."
+        all_indiv = glob.glob(os.path.join(previous_universe_dir, "gen_*_indiv_*.pkl"))
+        gen_dict = {}
+        for indiv in all_indiv:
+            # indiv should look like gen_###_indiv_hash.pkl
+            gen = int(os.path.basename(indiv).split("_")[1])
+            if gen in gen_dict:
+                gen_dict[gen].append(indiv)
+            else:
+                gen_dict[gen] = [indiv]
+
+        # now get the highest gen and all those individuals to genome_seeds
+        largest_gen = max(list(gen_dict.keys()))
+        self.genome_seeds = gen_dict[largest_gen]
 
 
     def postprocess_generation(self, universe):

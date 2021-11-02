@@ -219,7 +219,8 @@ class BlockDefinition():
             for input_index in poss_inputs:
                 input_dtype = self.get_node_dtype(block_material, input_index, "output")
                 ezLogging.debug("%s - trying to match index %i with %s to %s" % (block_material.id, input_index, input_dtype, req_dtype))
-                if req_dtype == input_dtype:
+                if (req_dtype is None) or (req_dtype == input_dtype):
+                    # if req_dtype is None then it is NOT strongly-typed so it doesn't care about datatype
                     return input_index
                 else:
                     pass
