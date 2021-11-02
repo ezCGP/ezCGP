@@ -1,5 +1,5 @@
 '''
-root/code/block_definitions/block_arguments.py
+root/code/block_definitions/arguments/block_arguments.py
 
 Overview:
 In the first ever iteration of creating a CGP framework, it was suggested by Dr. Greg Rohling to remove hyperparamters from the genome and keep them in their own space and perform basic GA on them instead; that way, all the primitives only deal with data manipulation or classification rather than also including basic operations like addition or multiplication to evolve hyperparamter floats or booleans. The problem with this is that it leaves a lot of room for experimentation with how exactly we build out these list of arguments; so a lot more work has to be done to optimize what arguments are introduced and how they can be evolved with GA.
@@ -23,7 +23,7 @@ import numpy as np
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
 
 ### absolute imports wrt root
 from codes.block_definitions.utilities import tools
@@ -246,11 +246,24 @@ class BlockArguments_TFKeras(BlockArguments_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockArguments_TFKeras Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
-        self.arg_count = 12*3
+        self.arg_count = 12*5
         arg_dict = {argument_types.ArgumentType_Pow2: 1,
                     argument_types.ArgumentType_TFFilterSize: 1,
-                    argument_types.ArgumentType_TFActivation: 1}
+                    argument_types.ArgumentType_TFActivation: 1,
+                    argument_types.ArgumentType_TFPoolSize: 1,
+                    argument_types.ArgumentType_Float0to1: 1}
         self.init_from_weight_dict(arg_dict)
 
 
 
+class BlockArguments_Dense(BlockArguments_Abstract):
+    def __init__(self):
+        ezLogging.debug(
+            "%s-%s - Initialize BlockArguments_Dense Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 12*4
+        arg_dict = {argument_types.ArgumentType_Float0to1: 1,
+                    argument_types.ArgumentType_Pow2: 1,
+                    argument_types.ArgumentType_TFFilterSize: 1,
+                    argument_types.ArgumentType_TFActivation: 1}
+        self.init_from_weight_dict(arg_dict)

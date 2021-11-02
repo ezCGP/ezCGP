@@ -29,12 +29,12 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
-from codes.block_definitions.block_shapemeta import BlockShapeMeta_Abstract
-from codes.block_definitions.block_operators import BlockOperators_Abstract
-from codes.block_definitions.block_arguments import BlockArguments_Abstract
-from codes.block_definitions.block_evaluate import BlockEvaluate_Abstract
-from codes.block_definitions.block_mutate import BlockMutate_Abstract
-from codes.block_definitions.block_mate import BlockMate_Abstract
+from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Abstract
+from codes.block_definitions.operators.block_operators import BlockOperators_Abstract
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Abstract
+from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Abstract
+from codes.block_definitions.mutate.block_mutate import BlockMutate_Abstract
+from codes.block_definitions.mate.block_mate import BlockMate_Abstract
 from codes.genetic_material import IndividualMaterial, BlockMaterial
 from data.data_tools.ezData import ezData
 from codes.utilities.custom_logging import ezLogging
@@ -219,7 +219,8 @@ class BlockDefinition():
             for input_index in poss_inputs:
                 input_dtype = self.get_node_dtype(block_material, input_index, "output")
                 ezLogging.debug("%s - trying to match index %i with %s to %s" % (block_material.id, input_index, input_dtype, req_dtype))
-                if req_dtype == input_dtype:
+                if (req_dtype is None) or (req_dtype == input_dtype):
+                    # if req_dtype is None then it is NOT strongly-typed so it doesn't care about datatype
                     return input_index
                 else:
                     pass
@@ -332,7 +333,7 @@ class BlockDefinition():
         return children
 
 
-    def evaluate(self, block_material: BlockMaterial, training_datapair: ezData, validation_datapair=None):
+    def evaluate(self, block_material: BlockMaterial, training_datapair: ezData, validation_datapair=None, supplements=None):
         '''
         wrapper method to call the block's evaluate definition
         NOTE: we take the output and attach to block_material in postprocess_evaluated_block BUT ALSO return the output to the IndividualEvaluate method
@@ -345,5 +346,5 @@ class BlockDefinition():
                 return None'''
         self.evaluate_def.preprocess_block_evaluate(block_material)
         ezLogging.debug("%s - Before evaluating list active nodes: %s, and args %s" % (block_material.id, block_material.active_nodes, block_material.active_args))
-        self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair)
+        self.evaluate_def.evaluate(block_material, self, training_datapair, validation_datapair, supplements)
         self.evaluate_def.postprocess_block_evaluate(block_material)

@@ -1,6 +1,13 @@
 import numpy as np
+import sys
 
 # maybe consider doing this for symbolic regression data
+
+class MyEmptyData():
+	def __init__(self):
+		self.nothing = "yes"
+		self.mydata = 0
+
 
 class MyData(np.ndarray):
 	'''
@@ -40,9 +47,25 @@ class MyData3(np.ndarray):
 		instance.name = "elmo"
 		return instance
 
-ting = MyData(data=[1,2,3]) #this worked but it's weird
-ting2 = MyData2(data=[1,2,3]) #this worked BUT isinstance(ting2, np.ndarray) returns False
-ting3 = MyData3(data=[1,2,3]) #this worked
+
+class MyData4(np.ndarray, MyEmptyData):
+	def __init__(self, datax, datay):
+		super().__init__()
+		self.check = True
+
+	def __new__(cls, datax, datay):
+		instance = np.asarray(datax).view(cls)
+		instance.mydata = instance
+		instance.name = "elmo"
+		return instance
+
+data = np.random.random((100000,500))
+ting = MyData(data=data) #this worked but it's weird
+ting2 = MyData2(data=data) #this worked BUT isinstance(ting2, np.ndarray) returns False
+ting3 = MyData3(data=data) #this worked
+print("size of ting", sys.getsizeof(ting3))
+ting4 = MyData4(datax=data, datay=np.ones(5)) #this worked...but I don't know if this helped decrease the size of the instance
+print("size of ting", sys.getsizeof(ting4))
 
 
 
