@@ -14,7 +14,6 @@ Because PyTorch doesn't have a compile function for neural networks, you must kn
 from abc import ABC, abstractmethod
 from torch import nn, Tensor
 import numpy as np
-from copy import deepcopy
 
 ### sys relative to root dir
 import sys
@@ -27,6 +26,9 @@ from codes.utilities.custom_logging import ezLogging
 
 ### init dict
 operator_dict = {}
+
+
+
 
 class PyTorchLayerWrapper():
     @abstractmethod
@@ -48,6 +50,7 @@ class InputLayer(PyTorchLayerWrapper):
 
 def pooling_layer():
     pass
+
 
 def linear_layer(input_layer, out_features):
     """
@@ -128,6 +131,104 @@ def conv1d_layer(input_layer, out_channels, kernel_size=3, padding=None, activat
 
 operator_dict[conv1d_layer] = {"inputs": [PyTorchLayerWrapper],
                                "output": PyTorchLayerWrapper,
-                               "args": [argument_types.ArgumentType_Pow2, argument_types.ArgumentType_PyTorchKernelSize,
-                                        argument_types.ArgumentType_PyTorchPaddingSize, argument_types.ArgumentType_PyTorchActivation]
+                               "args": [argument_types.ArgumentType_Pow2,
+                                        argument_types.ArgumentType_PyTorchKernelSize,
+                                        argument_types.ArgumentType_PyTorchPaddingSize,
+                                        argument_types.ArgumentType_PyTorchActivation]
                               }
+
+
+def batch_normalization(input_layer, eps=1e-5, momentum=0.1, affine=True):
+    """
+    https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm1d.html#torch.nn.BatchNorm1d
+    """
+    class BatchNorm1d_Layer(PyTorchLayerWrapper):
+        def __init__(self, num_features, eps, momentum, affine):
+            self.out_shape = num_features # TODO, just guessing
+            self.layer = nn.BatchNorm1d(num_features, eps, momentum, affine)
+
+    return BatchNorm1d_Layer(input_layer.get_out_shape(), eps, momentum, affine)
+
+operator_dict[batch_normalization] = {"inputs": [PyTorchLayerWrapper],
+                                      "output": PyTorchLayerWrapper,
+                                      "args": [] #TODO
+                                     }
+
+
+def avg_pool(input_layer, kernel_size, stride=None, padding=0, ceil_mode=False, count_include_pad=True):
+    """
+    https://pytorch.org/docs/stable/generated/torch.nn.AvgPool1d.html#torch.nn.AvgPool1d
+    """
+    class AvgPool1d_Layer(PyTorchLayerWrapper):
+        def __init__(self, out_shape, kernel_size, stride, padding, ceil_mode, count_include_pad):
+            self.out_shape = out_shape
+            self.layer = nn.AvgPool1d(kernel_size, stride, padding, ceil_mode, count_include_pad)
+
+    return AvgPool1d_Layer(input_layer.get_out_shape(), kernel_size, stride, padding, ceil_mode, count_include_pad)
+
+operator_dict[avg_pool] = {"inputs": [PyTorchLayerWrapper],
+                           "output": PyTorchLayerWrapper,
+                           "args": [argument_types.ArgumentType_PyTorchKernelSize] #TODO
+                          }
+
+
+def max_pool(input_layer, kernel_size, stride=None, padding=0, dilation=1, return_indices=False, ceil_mode=False):
+    """
+    https://pytorch.org/docs/stable/generated/torch.nn.MaxPool1d.html#torch.nn.MaxPool1d
+    """
+    class MaxPool1d_Layer(PyTorchLayerWrapper):
+        def __init__(self, out_shape, kernel_size, stride, padding, dilation, return_indices, ceil_mode):
+            self.out_shape = out_shape
+            self.layer = nn.MaxPool1d(kernel_size, stride, padding, dilation, return_indices, ceil_mode)
+
+    return MaxPool1d_Layer(input_layer.get_out_shape(), kernel_size, stride, padding, dilation, return_indices, ceil_mode)
+
+operator_dict[max_pool] = {"inputs": [PyTorchLayerWrapper],
+                           "output": PyTorchLayerWrapper,
+                           "args": [argument_types.ArgumentType_PyTorchKernelSize] #TODO
+                          }
+
+
+def dropout(input_layer, p=0.5):
+    """
+    https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html#torch.nn.Dropout
+    """
+    class Dropout_Layer(PyTorchLayerWrapper):
+        def __init__(self, out_shape, p):
+            self.out_shape = out_shape
+            self.layer = nn.Dropout(p)
+
+    return Dropout_Layer(input_layer.get_out_shape(), p)
+
+operator_dict[dropout] = {"inputs": [PyTorchLayerWrapper],
+                          "output": PyTorchLayerWrapper,
+                          "args": [] #TODO
+                         }
+
+
+def resnet(input_layer, nb_channels=16, kernel_size=5, use_leaky_relu=True):
+    """
+    https://eoslcm.gtri.gatech.edu/bitbucket/projects/EMADE/repos/simgan/browse/network.py?at=2021-dev#9
+    """
+    class ResnetBlock(nn.Module):
+        def __init__(self, in_channels, nb_channels, kernel_size, use_leaky_relu):
+            super(ResnetBlock).__init__()
+            self.convs = nn.Sequential(nn.Conv1d(in_channels, nb_channels, kernel_size, padding=kernel_size//2),
+                                       nn.BatchNorm1d(nb_channels),
+                                       nn.LeakyReLU() if use_leaky_relu else nn.ReLU(),
+                                       nn.Conv1d(nb_channels, nb_channels, kernel_size, padding=kernel_size//2),
+                                       nn.BatchNorm1d(nb_channels))
+            self.relu = nn.ReLU()
+
+        def forward(self, x):
+            convs = self.convs(x)
+            mysum = convs + x
+            output = self.relu(mysum)
+            return output
+
+    return ResnetBlock(input_layer.get_out_shape(), nb_channels, kernel_size, use_leaky_relu)
+
+operator_dict[resent] = {"inputs": [PyTorchLayerWrapper],
+                         "output": PyTorchLayerWrapper,
+                         "args": [] #TODO
+                        }
