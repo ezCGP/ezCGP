@@ -356,7 +356,19 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.population = self.factory.build_population(problem,
                                                         problem.pop_size//self.node_count, #each node make their own fraction of indiv...but how does seeding work, are they dups?
                                                         self.node_number,
-                                                        self.node_count) 
+                                                        self.node_count)
+        ezLogging.warning("START")
+        import tensorflow as tf
+        ezLogging.warning("A")
+        gpu_count = tf.config.experimental.list_physical_devices('GPU')
+        ezLogging.warning("B")
+        import os
+        cmd = "hostname -I | awk '{print $1}'"
+        ip_address = os.popen(cmd).read()[:-1]
+        cmd = "uname -n"
+        hostname = os.popen(cmd).read()[:-1]
+        ezLogging.warning("C")
+        ezLogging.critical("Node %i - gpu count: %s at %s on %s" % (self.node_number, gpu_count, ip_address, hostname))
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
         # TODO verify ezLogging
