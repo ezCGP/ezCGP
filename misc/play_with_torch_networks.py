@@ -7,6 +7,7 @@ and using them in forward()?
 '''
 
 import math
+import inspect
 import torch
 from torch import nn
 
@@ -14,9 +15,9 @@ from torch import nn
 ### Build a genome
 
 genome = [None]*7
-genome[0] = {"function": nn.Linear,
-             "inputs": [-1],
-             "args": [10, 10]}
+genome[0] = {"function": torch.add,
+             "inputs": [-1, -1],
+             "args": []}
 
 genome[1] = {"function": nn.Linear,
              "inputs": [-1],
@@ -52,18 +53,28 @@ class MyNetwork(nn.Module):
             function = genome[node_index]['function']
             args = genome[node_index]['args']
             self.node_inputs[node_index] = genome[node_index]['inputs']
-            #self.__dict__['node_%i' % node_index] = function(*args) # add_module does the same thing
-            self.add_module(name='node_%i' % node_index,
-                            module=function(*args))
+            if inspect.isclass(function):
+                self.add_module(name='node_%i' % node_index,
+                                module=function(*args))
+            else:
+                # assume it is a method and not some nn.Module then
+                self.__dict__['node_%i' % node_index] = {'function': function,
+                                                         'args': args}
 
 
     def forward(self, x):
         self.evaluated = [None]*len(self.node_inputs)
 
         for node_index in range(5):
-            function = self._modules['node_%i' % node_index]
+            node_str = 'node_%i' % node_index
+            if node_str in self._modules:
+                function = self._modules[node_str]
+                args = []
+            else:
+                function = self.__dict__[node_str]['function']
+                args = self.__dict__[node_str]['args']
+
             input_index = self.node_inputs[node_index]
-            #print(node_index, function, input_index)
             inputs = []
             for index in input_index:
                 if index < 0:
@@ -71,7 +82,7 @@ class MyNetwork(nn.Module):
                 else:
                     inputs.append(self.evaluated[index])
 
-            self.evaluated[node_index] = function(*inputs)
+            self.evaluated[node_index] = function(*inputs, *args)
 
         return self.evaluated[4]
 
@@ -84,10 +95,10 @@ model = MyNetwork(genome)
 loss_fn = nn.MSELoss(reduction='sum')
 optimizer = torch.optim.RMSprop(model.parameters(),
                                 lr=1e-3)
-print(model._modules['node_0'].bias) # value before training
+print(model._modules['node_1'].bias) # value before training
 y_pred = model(X)
 loss = loss_fn(y_pred, y)
 optimizer.zero_grad()
 loss.backward()
 optimizer.step()
-print(model._modules['node_0'].bias) # value after training
+print(model._modules['node_1'].bias) # value after training
