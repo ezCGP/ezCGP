@@ -1,48 +1,54 @@
+'''
+PyTorch has a very unique way of building/defining a graph/network.
+So we decided to have a separate block_evaluate script to store all PyTorch related blocks.
+Checkout misc/play_with_torch_network.py to see our work in playing with how we can abstract
+out how to build a graph/network given some genome.
+'''
+
+### packages
 from abc import ABC, abstractmethod
 from copy import deepcopy
-
 from torch import nn
+from collections import OrderedDict
 
+### sys relative to root dir
+import sys
+from os.path import dirname, realpath
+sys.path.append(dirname(dirname(dirname(dirname(realpath(__file__))))))
+
+### absolute imports wrt root
 from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Abstract
-from codes.block_definitions.utilities.operators_pytorch import InputLayer
 from codes.genetic_material import BlockMaterial
 from codes.utilities.custom_logging import ezLogging
-from data.data_tools.simganData import SimGANDataset
+#from data.data_tools.simganData import SimGANDataset
 
-class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_Abstract):
-    """
-    An abstract class defining the structure of a PyTorch neural network BlockEvaluate. Provides a function to build a PyTorch nueral network graph
-    from PyTorchLayerWrapper operators.
-    """
-    @abstractmethod
-    def __init__(self):
-        pass
 
-    @abstractmethod
-    def evaluate(self):
-        pass
 
-    def standard_build_graph(self, block_material, block_def, input_list):
-        """
-        Builds a PyTorch nueral network graph from PyTorchLayerWrapper operators. Because many PyTorch layers require you know information about
-        the shape of the input, PyTorchLayerWrappers are used to calculate output shapes and string together the PyTorch graph in this function
-        
-        Parameters:
-            block_material (BlockMaterial): an object containing the genetic material of the block
-            block_def (BlockDefinition): an object holding the functions of the block
-            input_list (list): list of inputs, each input should have a shape attribute
-        
-        Returns:
-            graph (torch.nn.Sequential): the built neural network up 
+class MyTorchNetwork(nn.Module):
+    '''
+    have to use nn.Module.add_module() method to make sure the parameters() method
+    returns the modules we pulled from the genome.
 
-        """
+    STRONG assumption that all primitives will return an instance of some class that
+    has a __call__() and get_out_shape() methods...kinda sucks to make those primitives
+    but making a pytorch graph that isn't sequential is really difficult, mostly
+    because you have to manually specify the input layer shape when defining a layer.
 
-        # add input data
-        for i, input in enumerate(input_list):
-            input_layer = InputLayer(input)
-            block_material.evaluated[-1*(i+1)] = input_layer
+    ASSUMPTION: that our network will only ever have 1 input tensor x,
+    so block_def.input_count will always be 1.
 
-        layers = []
+    If we want to couple layers together (like conv layer with activation) then use
+    the same primitive format but return an instance of nn.Sequential.
+
+    TODO: need to pass data/input tensor shape for first few primitives to use!
+    '''
+    def __init__(self, block_material, block_def, input_shape, final_module_dicts):
+        super().__init__()
+        self.graph_connections = OrderedDict()
+        self.graph_connections[-1] = {"module": None,
+                                      "inputs": [],
+                                      "output_shape": input_shape}
+
         for node_index in block_material.active_nodes:
             if node_index < 0:
                 # do nothing. at input node
@@ -52,35 +58,128 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_Abstract):
                 continue
             else:
                 # main node. this is where we evaluate
-                function = block_material[node_index]["ftn"]
-                
-                inputs = []
-                node_input_indices = block_material[node_index]["inputs"]
-                for node_input_index in node_input_indices:
-                    inputs.append(block_material.evaluated[node_input_index])
-                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
+                input_connections = block_material[node_index]['inputs']
+                input_shapes = []
+                for input_index in input_connections:
+                    input_dict = self.graph_connections[input_index]
+                    input_shapes.append(input_dict['output_shape'])
 
-                args = []
-                node_arg_indices = block_material[node_index]["args"]
-                for node_arg_index in node_arg_indices:
-                    args.append(block_material.args[node_arg_index].value)
+                module_name = 'node_%i' % node_index
+                module = block_material[node_index]['function']
+                args = block_material[node_index]['args']
+                ezLogging.debug("%s - Builing %s; Function: %s, Inputs: %s, Shapes: %s, Args: %s" % (block_material.id,
+                                                                                                     module_name,
+                                                                                                     module,
+                                                                                                     input_connections,
+                                                                                                     input_shapes,
+                                                                                                     args))
+                print(node_index, module)
+                module_instance = module(input_shapes, *args)
+                if isinstance(module_instance, nn.Module):
+                    self.add_module(name=module_name,
+                                    module=module_instance)
+                    self.graph_connections[node_index] = {"module": module_name,
+                                                          "inputs": input_connections,
+                                                          "output_shape": module_instance.get_out_shape()}
+                else:
+                    self.graph_connections[node_index] = {"module": module_instance,
+                                                          "inputs": input_connections,
+                                                          "output_shape": module_instance.get_out_shape()}
 
-                ezLogging.debug("%s - Builing %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
-                node = function(*inputs, *args)
-                block_material.evaluated[node_index] = node
-                layers.append(node.get_layer())
+        # add any final modules...going to assume it is always nn.Module type
+        for i, module_dict in enumerate(final_module_dicts):
+            module = module_dict["module"]
+            args = module_dict["args"]
+            if i == 0:
+                input_shapes = [self.graph_connections[node_index]["output_shape"]]
+            else:
+                input_shapes = [module_instance.get_out_shape()]
+            module_instance = module(input_shapes, *args)
+            self.add_module(name="final_module_%i" % i,
+                            module=module_instance)
 
-        output_list = []
-        if not block_material.dead:
-            for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
-                output_list.append(block_material.evaluated[block_material.genome[output_index]])
+        self.final_layer_shape = module_instance.get_out_shape()
+        self.genome_length = block_def.genome_count
 
-        return nn.Sequential(*layers), output_list
+
+    def forward(self, x):
+        evaluated_connections = [None]*self.genome_length
+
+        # pass in input...for now we as
+        evaluated_connections[-1] = x
+
+        for node_index, node_dict in self.graph_connections.items():
+            if node_index < 0:
+                 continue
+
+            if isinstance(node_dict["module"], str):
+                # then it is a nn.Module so grab directly from self
+                callable_module = self._modules[node_dict["module"]]
+            else:
+                callable_module = node_dict["module"]
+
+            input_connections = node_dict["inputs"]
+            inputs = []
+            for input_node in input_connections:
+                inputs.append(evaluated_connections[input_node])
+
+            evaluated_connections[node_index] = callable_module(*inputs)
+
+        # evaluate any final layers
+        if "final_module_0" in self._modules:
+            callable_module = self._modules["final_module_0"]
+            inputs = [evaluated_connections[node_index]]
+            output = callable_module(*inputs)
+            final_module_count = 1
+            while True:
+                module_name = "final_module_%i" % final_module_count
+                if module_name in self._modules:
+                    callable_module = self._modules[module_name]
+                    output = callable_module(output)
+                    final_module_count+=1
+                else:
+                    break
+        else:
+            output = evaluated_connections[node_index]
+
+        return output
+
+
+
+class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_Abstract):
+    '''
+    Outline a parent class to build out PyTorch Networks.
+    '''
+    def __init__(self):
+        # TODO, verify if these are even needed
+        #globals()['torch'] = importlib.import_module('torch')
+        #globals()['nn'] = importlib.import_module('torch.nn')
+        self.final_module_dicts = []
+
+    @abstractmethod
+    def build_graph(self):
+        pass
+
+    @abstractmethod
+    def evaluate(self):
+        pass
+
+
+    def standard_build_graph(self,
+                             block_material: BlockMaterial,
+                             block_def,#: BlockDefinition,
+                             input_layers):
+        # always assuming one input so len(input_layers) should be 1
+        input_shape = input_layers[0].shape
+        self.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts)
+        ezLogging.info("%s - Ending build graph" % (block_material.id))
+
 
 
 class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
+
 
     def build_graph(self, block_material, block_def, data):
         '''
@@ -103,7 +202,8 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         block_material.graph = nn.Sequential(graph, *extra_layers)
 
         return block_material.graph
-       
+
+
     def evaluate(self,
                  block_material,
                  block_def,
@@ -126,9 +226,11 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         block_material.output = [training_datalist, validating_datalist, supplements]
 
 
+
 class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
+
 
     def build_graph(self, block_material, block_def, data):
         '''
@@ -150,6 +252,7 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
 
         return block_material.graph
 
+
     def evaluate(self,
                  block_material,
                  block_def,
@@ -170,9 +273,12 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
 
         block_material.output = [training_datalist, validating_datalist, supplements]
 
+
+
 class BlockEvaluate_SimGAN_Train_Config(BlockEvaluate_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Train_Config Class" % (None, None))
+
 
     def evaluate(self,
                  block_material,

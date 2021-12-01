@@ -51,7 +51,7 @@ def conv1d_layer(input_layer, out_channels, kernel_size=3, activation=nn.ReLU):
             if num_dims == 1:
                 layers.append(nn.Unflatten(dim=1, unflattened_size=(1, in_shape[0])))
                 self.in_channels = 1
-                layers.append(nn.Conv1d(self.in_channels, out_channels, kernel_size=self.kernel_size, padding=self.padding)) # Add conv layer
+                layers.append(nn.c(self.in_channels, out_channels, kernel_size=self.kernel_size, padding=self.padding)) # Add conv layer
             else:
                 self.in_channels = in_shape[0]
                 layers.append(nn.Conv1d(self.in_channels, out_channels, kernel_size=self.kernel_size, padding=self.padding)) # Add conv layer

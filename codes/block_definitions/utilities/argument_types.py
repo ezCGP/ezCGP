@@ -494,6 +494,7 @@ class ArgumentType_Int1to10(ArgumentType_Abstract):
         ezLogging.debug("%s-%s - Mutated ArgumentType_Int1to10 to %f" % (None, None, self.value))
 
 
+
 class ArgumentType_Int1to5(ArgumentType_Abstract):
     '''
     [1,2,3,4,5]
@@ -532,6 +533,7 @@ class ArgumentType_Int1to5(ArgumentType_Abstract):
         ezLogging.debug("%s-%s - Mutated ArgumentType_Int1to5 to %f" % (None, None, self.value))
 
 
+
 class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
     '''
     limiting ArgumentType_Float0to1 so that our only choices are (0,1] every 0.05
@@ -556,6 +558,8 @@ class ArgumentType_LimitedFloat0to1(ArgumentType_Abstract):
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_LimitedFloat0to1 to %f" % (None, None, self.value))
 
+
+
 class ArgumentType_PyTorchKernelSize(ArgumentType_Abstract):
     '''
     quick way to pick [1,3,5]
@@ -576,6 +580,8 @@ class ArgumentType_PyTorchKernelSize(ArgumentType_Abstract):
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchKernelSize to %f" % (None, None, self.value))
 
+
+
 class ArgumentType_PyTorchPaddingSize(ArgumentType_Abstract):
     '''
     quick way to pick [0, 2, 4, -1], if -1 is chosen, should use automatic padding to cancel out kernel
@@ -595,6 +601,8 @@ class ArgumentType_PyTorchPaddingSize(ArgumentType_Abstract):
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchPaddingSize to %f" % (None, None, self.value))
+
+
 
 class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
     '''
@@ -628,6 +636,8 @@ class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
         self.get_name()
         ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchActivation to %s" % (None, None, self.name))
 
+
+
 class ArgumentType_TrainingStepsShort(ArgumentType_Abstract):
     '''
     Quick way to pick a low number of training steps, used for SimGAN pretraining
@@ -651,6 +661,8 @@ class ArgumentType_TrainingStepsShort(ArgumentType_Abstract):
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsShort to %f" % (None, None, self.value))
 
+
+
 class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
     '''
     Quick way to pick a medium number of training steps, used for SimGAN training
@@ -673,6 +685,8 @@ class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsMedium to %f" % (None, None, self.value))
 
+
+
 class ArgumentType_LearningRate(ArgumentType_Abstract):
     '''
     Quick way to pick a learning rate value, used for SimGANs
@@ -692,6 +706,8 @@ class ArgumentType_LearningRate(ArgumentType_Abstract):
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)
         ezLogging.debug("%s-%s - Mutated ArgumentType_LearningRate to %f" % (None, None, self.value))
+
+
 
 class ArgumentType_Placeholder(ArgumentType_Abstract):
     '''
