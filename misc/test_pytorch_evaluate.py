@@ -11,7 +11,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from codes.block_definitions.evaluate.block_evaluate_gan import BlockEvaluate_PyTorch_Abstract
+from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_PyTorch_Abstract
 import codes.block_definitions.utilities.operators_pytorch as opPytorch
 
 

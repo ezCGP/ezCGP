@@ -340,85 +340,51 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
     def __init__(self):
         pass
 
-    def evaluate_block(self,
-                       indiv_material,
-                       block_index,
-                       block_def,
-                       block_material,
-                       training_datalist,
-                       validating_datalist,
-                       supplements=None):
-        '''
-        Generalized evaluate method since 
-        '''
-        if block_material.need_evaluate:
-            ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
-            block_def.evaluate(block_material, training_datalist, validating_datalist, supplements)
-            if block_material.dead:
-                indiv_material.dead = True
-                return
-            else:
-                pass
-        else:
-            ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
 
-
+    @deepcopy_decorator
     def evaluate(self,
-                 indiv_material,
-                 indiv_def, 
-                 training_datalist,
-                 validating_datalist,
+                 indiv_material: IndividualMaterial,
+                 indiv_def, #IndividualDefinition,
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
                  supplements=None):
         '''
-        Because the Refiner and Discriminator are two seperate blocks but require one another for their loss functions, they must be run together
-        So we will take the refiner graph and input it into the discriminator block and train/evaluate it there.
+        Because the Refiner and Discriminator are two seperate blocks but require one another for their loss functions,
+        they must be run together, so each will be evaluated to build the graphs but then trained here.
         '''
-        # This essentially builds the refiner and discriminator networks and sets everything up
-        supplements = []
+        block_outputs = []
         for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
-            if (block_def.nickname == 'refiner_block') and (indiv_material[block_index+1].need_evaluate or indiv_material[block_index+2].need_evaluate):
-                # If we are in the refiner block and the discriminator block or train config needs to be reevaluated, then we also need to reevalute the refiner
-                block_material.need_evaluate = True
-                self.evaluate_block(indiv_material,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datalist,
-                                    validating_datalist,
-                                    supplements
-                                    )
-                training_datalist, validating_datalist, supplements = block_material.output
-            elif (block_def.nickname == 'discriminator_block') and (indiv_material[block_index+1].need_evaluate):
-                # If we are in the discriminator block and the train config needs to be reevaluated, then we also need to reevalute the discriminator
-                block_material.need_evaluate = True
-                self.evaluate_block(indiv_material,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datalist,
-                                    validating_datalist,
-                                    supplements
-                                    )
-                training_datalist, validating_datalist, supplements = block_material.output
+            if block_material.need_evaluate:
+                ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
+                block_def.evaluate(block_material, training_datalist, None, None)
+                if block_material.dead:
+                    indiv_material.dead = True
+                    return
+                else:
+                    pass
             else:
-                self.evaluate_block(indiv_material,
-                                    block_index,
-                                    block_def,
-                                    block_material,
-                                    training_datalist,
-                                    validating_datalist,
-                                    supplements)
-                training_datalist, validating_datalist, supplements = block_material.output
-        
+                ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+            block_outputs.append(block_material.output)
+
+        untrained_refiner, untrained_discriminator, train_config = block_outputs
+        untrained_refiner.to(train_config['device'])
+        untrained_discriminator.to(train_config['device'])
+
         # Train the refiner and discriminator
-        untrained_refiner, untrained_discriminator, train_config = supplements
-        refiners, discriminators = self.train_graph(indiv_material, training_datalist[0], validating_datalist[0], 
-            untrained_refiner, untrained_discriminator, train_config)
+        refiners, discriminators = self.train_graph(indiv_material,
+                                                    training_datalist[0],
+                                                    validating_datalist[0],
+                                                    untrained_refiner,
+                                                    untrained_discriminator,
+                                                    train_config)
 
         # Now do tournament selection to pick the best refiner/discriminator networks from the training process
         # TODO: consider finding a way to replace this with a convergence metric or something
         ezLogging.debug("Finding best refiner and discriminator for individual")
-        refiner_ratings, discriminator_ratings = get_graph_ratings(refiners, discriminators, validating_datalist[0], train_config['device'])
+        refiner_ratings, discriminator_ratings = get_graph_ratings(refiners,
+                                                                   discriminators,
+                                                                   validating_datalist[0],
+                                                                   train_config['device'])
         best_refiner = refiners[refiner_ratings['r'].argmax()]
         best_discriminator = discriminators[discriminator_ratings['r'].argmax()]
         

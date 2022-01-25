@@ -17,7 +17,7 @@ from codes.utilities.gan_tournament_selection import get_graph_ratings
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
-from codes.block_definitions.evaluate.block_evaluate_gan import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
+from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB_4Blocks
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
@@ -34,38 +34,50 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         population_size = 4 #must be divisible by 4 if doing mating
-        number_universe = 1 #10
+        number_universe = 1
         factory = FactoryDefinition
         mpi = False
-        super().__init__(population_size, number_universe, factory, mpi)
-        self.relativeScoring = True
+        genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
+                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
+                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
+                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
+        self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
-                                             shape_def = BlockShapeMeta_SimGAN_Network, 
-                                             operator_def = BlockOperators_SimGAN_Refiner, 
-                                             argument_def = BlockArguments_SimGAN_Refiner,
-                                             evaluate_def = BlockEvaluate_SimGAN_Refiner,
-                                             mutate_def=BlockMutate_OptB_No_Single_Ftn,
-                                             mate_def=BlockMate_WholeOnly_4Blocks
-                                            )
+                                               shape_def = BlockShapeMeta_SimGAN_Network, 
+                                               operator_def = BlockOperators_SimGAN_Refiner, 
+                                               argument_def = BlockArguments_SimGAN_Refiner,
+                                               evaluate_def = BlockEvaluate_SimGAN_Refiner,
+                                               mutate_def=BlockMutate_OptB_No_Single_Ftn,
+                                               mate_def=BlockMate_WholeOnly_4Blocks
+                                              )
 
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
-                                             shape_def = BlockShapeMeta_SimGAN_Network, 
-                                             operator_def = BlockOperators_SimGAN_Discriminator, 
-                                             argument_def = BlockArguments_SimGAN_Discriminator,
-                                             evaluate_def = BlockEvaluate_SimGAN_Discriminator,
-                                             mutate_def=BlockMutate_OptB_4Blocks,
-                                             mate_def=BlockMate_WholeOnly_4Blocks
-                                            )
+                                                     shape_def = BlockShapeMeta_SimGAN_Network, 
+                                                     operator_def = BlockOperators_SimGAN_Discriminator, 
+                                                     argument_def = BlockArguments_SimGAN_Discriminator,
+                                                     evaluate_def = BlockEvaluate_SimGAN_Discriminator,
+                                                     mutate_def=BlockMutate_OptB_4Blocks,
+                                                     mate_def=BlockMate_WholeOnly_4Blocks
+                                                    )
 
         train_config_def = self.construct_block_def(nickname = "train_config",
-                                             shape_def = BlockShapeMeta_SimGAN_Train_Config, 
-                                             operator_def = BlockOperators_SimGAN_Train_Config, 
-                                             argument_def = BlockArguments_SimGAN_Train_Config,
-                                             evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                             mutate_def=BlockMutate_OptB_No_Single_Ftn,
-                                             mate_def=BlockMate_WholeOnly_4Blocks
-                                            )
+                                                    shape_def = BlockShapeMeta_SimGAN_Train_Config, 
+                                                    operator_def = BlockOperators_SimGAN_Train_Config, 
+                                                    argument_def = BlockArguments_SimGAN_Train_Config,
+                                                    evaluate_def = BlockEvaluate_SimGAN_Train_Config,
+                                                    mutate_def=BlockMutate_OptB_No_Single_Ftn,
+                                                    mate_def=BlockMate_WholeOnly_4Blocks
+                                                   )
 
         self.construct_individual_def(block_defs = [refiner_def, discriminator_def, train_config_def],
                                       mutate_def = IndividualMutate_RollOnEachBlock,
@@ -73,7 +85,6 @@ class Problem(ProblemDefinition_Abstract):
                                       evaluate_def = IndividualEvaluate_SimGAN
                                       )
 
-        # where to put this?
         self.construct_dataset()
 
 
@@ -82,9 +93,11 @@ class Problem(ProblemDefinition_Abstract):
         Constructs a train and validation 1D signal datasets
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
-        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128)]
+        train_config_dict = {'device': 'cuda'} # was gpu but that didn't work anymore
+        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
+                                  train_config_dict]
         self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
-        # import pdb; pdb.set_trace()
+
 
     def objective_functions(self, population):
         '''
@@ -117,29 +130,18 @@ class Problem(ProblemDefinition_Abstract):
     def check_convergence(self, universe):
         '''
         TODO: add code for determining whether convergence has been reached
-        TODO: figure out if any of the below code is useful
         '''
-        GENERATION_LIMIT = 5
-        # SCORE_MIN = 1e-1
-
-        # # only going to look at the first objective value which is rmse
-        # # CAREFUL, after we added the ids, the values are now strings not floats
-        # min_firstobjective_index = universe.pop_fitness_scores[:,0].astype(float).argmin()
-        # min_firstobjective = universe.pop_fitness_scores[min_firstobjective_index,:-1].astype(float)
-        # logging.warning("Checking Convergence - generation %i, best score: %s" % (universe.generation, min_firstobjective))
-
+        GENERATION_LIMIT = 0 # TODO
         if universe.generation >= GENERATION_LIMIT:
-            logging.warning("TERMINATING...reached generation limit.")
+            ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
-        # if min_firstobjective[0] < SCORE_MIN:
-        #     logging.warning("TERMINATING...reached minimum scores.")
-        #     universe.converged = True
+
 
     def postprocess_generation(self, universe):
         '''
         Save fitness scores and the refiners on the pareto front of fitness scroes
         '''
-        logging.info("Post Processing Generation Run")
+        ezLogging.info("Post Processing Generation Run")
         save_things.save_fitness_scores(universe)
 
         print('testing')

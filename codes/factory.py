@@ -17,6 +17,8 @@ import pickle as pkl
 from copy import deepcopy
 from typing import List
 
+import pdb;
+
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
@@ -209,7 +211,7 @@ class FactoryDefinition():
         ith_node = 0
         while True:
             # from the start of the string, keep looking for lists []
-            match = re.search("\[[0-9A-Za-z_\-\s.,']+\]", lisp)
+            match = re.search("\[[0-9A-Za-z_\-()=\s.,']+\]", lisp)
             if match is None:
                 # no more lists inside lisp. so we're done
                 break
@@ -288,7 +290,15 @@ class FactoryDefinition():
                                 # kinda hacky but should work
                                 if 'float' in req_arg_type.__name__.lower():
                                     val = float(val)
+                                if 'learningrate' in req_arg_type.__name__.lower():
+                                    val = float(val)
                                 elif 'int' in req_arg_type.__name__.lower():
+                                    val = int(val)
+                                elif 'pow2' in req_arg_type.__name__.lower():
+                                    val = int(val)
+                                elif 'size' in req_arg_type.__name__.lower():
+                                    val = int(val)
+                                elif 'steps' in req_arg_type.__name__.lower():
                                     val = int(val)
                                 elif 'bool' in req_arg_type.__name__.lower():
                                     val = bool(val)
@@ -322,13 +332,14 @@ class FactoryDefinition():
                     arg_dtypes = block_def.operator_dict[ftn]["args"]
                     arg_index = [None]*len(arg_dtypes)
                     for ith_arg, arg_dtype in enumerate(arg_dtypes):
-                        arg_index[ith_arg] = block_def.get_random_arg(req_dtype=arg_dtype)
+                        arg_index[ith_arg] = block_def.get_random_arg(req_dtype=arg_dtype, exclude=args_used+arg_index)
                     if None in arg_index:
                         # failed to fill it in; try another ftn
                         continue
                     else:
                         pass
                     # all complete
+                    #args_used += arg_index # CHANGED MY MIND...okay for inactive node to use same arg as active node since not being set
                     block_material[node_index] = {"ftn": ftn,
                                                   "inputs": input_index,
                                                   "args": arg_index}

@@ -9,6 +9,7 @@ out how to build a graph/network given some genome.
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from torch import nn
+import numpy as np
 from collections import OrderedDict
 
 ### sys relative to root dir
@@ -21,6 +22,7 @@ from codes.block_definitions.evaluate.block_evaluate import BlockEvaluate_Abstra
 from codes.genetic_material import BlockMaterial
 from codes.utilities.custom_logging import ezLogging
 #from data.data_tools.simganData import SimGANDataset
+import codes.block_definitions.utilities.operators_pytorch as opPytorch
 
 
 
@@ -65,15 +67,19 @@ class MyTorchNetwork(nn.Module):
                     input_shapes.append(input_dict['output_shape'])
 
                 module_name = 'node_%i' % node_index
-                module = block_material[node_index]['function']
-                args = block_material[node_index]['args']
+                module = block_material[node_index]['ftn']
+
+                args = []
+                node_arg_indices = block_material[node_index]["args"]
+                for node_arg_index in node_arg_indices:
+                    args.append(block_material.args[node_arg_index].value)
+
                 ezLogging.debug("%s - Builing %s; Function: %s, Inputs: %s, Shapes: %s, Args: %s" % (block_material.id,
                                                                                                      module_name,
                                                                                                      module,
                                                                                                      input_connections,
                                                                                                      input_shapes,
                                                                                                      args))
-                print(node_index, module)
                 module_instance = module(input_shapes, *args)
                 if isinstance(module_instance, nn.Module):
                     self.add_module(name=module_name,
@@ -91,9 +97,11 @@ class MyTorchNetwork(nn.Module):
             module = module_dict["module"]
             args = module_dict["args"]
             if i == 0:
-                input_shapes = [self.graph_connections[node_index]["output_shape"]]
+                last_main_active = block_material[block_def.main_count]
+                input_shapes = [self.graph_connections[last_main_active]["output_shape"]]
             else:
                 input_shapes = [module_instance.get_out_shape()]
+
             module_instance = module(input_shapes, *args)
             self.add_module(name="final_module_%i" % i,
                             module=module_instance)
@@ -171,14 +179,35 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_Abstract):
                              input_layers):
         # always assuming one input so len(input_layers) should be 1
         input_shape = input_layers[0].shape
-        self.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts)
+        block_material.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts)
         ezLogging.info("%s - Ending build graph" % (block_material.id))
+
+
+    def preprocess_block_evaluate(self, block_material):
+        '''
+        should always happen before we evaluate...should be in BlockDefinition.evaluate()
+
+        Note we can always customize this to our block needs which is why we included in BlockEvaluate instead of BlockDefinition
+        '''
+        super().preprocess_block_evaluate(block_material)
+        block_material.graph = None
+
+
+    def postprocess_block_evaluate(self, block_material):
+        '''
+        should always happen after we evaluate. important to blow away block_material.evaluated to clear up memory
+
+        can always customize this method which is why we included it in BlockEvaluate and not BlockDefinition
+        '''
+        super().postprocess_block_evaluate(block_material)
+        block_material.graph = None
 
 
 
 class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
+        super().__init__()
 
 
     def build_graph(self, block_material, block_def, data):
@@ -187,21 +216,18 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
-        output_shape = output_list[0].get_out_shape()
-        ezLogging.info("%s - Ending building..." % (block_material.id))
+        in_channels = int(data[0].shape[1])
+        ezLogging.debug("debuging0 - in channels %i" % in_channels)
+        self.final_module_dicts.append({"module": opPytorch.conv1d_layer,
+                                        "args": [in_channels, 1, 1, 0, nn.Tanh()]})
+        ezLogging.debug("final module dicts set up")
 
-        # Add a layer to get the output back into the right shape
-        # TODO: consider using a linear layer instead of a conv1d and then unflattening. Not sure what is the right move
-        extra_layers = []
-        if len(output_shape) == 1:
-            extra_layers.append(nn.Unflatten(dim=0, unflattened_size=(1,)))
-        # Tanh to keep our output in the range of 0 to 1
-        extra_layers = extra_layers + [nn.Conv1d(output_shape[0], 1, kernel_size=1), nn.Tanh()]
+        self.standard_build_graph(block_material, block_def, data)
+        ezLogging.debug("standard build graph done")
 
-        block_material.graph = nn.Sequential(graph, *extra_layers)
-
-        return block_material.graph
+        # Verify new images match shapes of input images
+        if np.any(np.array(block_material.graph.final_layer_shape) != np.array(data[0].shape)):
+            raise Exception("Output of Refiner %s doesn't match the image shape we exepct %s" % (block_material.graph.final_layer_shape, data[0].shape))
 
 
     def evaluate(self,
@@ -216,20 +242,23 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
 
         try:
-            supplements.append(self.build_graph(block_material, block_def, training_datalist[0]))
+            input_images = training_datalist[0]
+            self.build_graph(block_material, block_def, [input_images])
+            #supplements.append(block_material.graph)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
 
-        block_material.output = [training_datalist, validating_datalist, supplements]
+        block_material.output = block_material.graph
 
 
 
 class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
+        super().__init__()
 
 
     def build_graph(self, block_material, block_def, data):
@@ -238,19 +267,14 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
-        graph, output_list = self.standard_build_graph(block_material, block_def, [data.real_raw[0], data.real_raw[0]]) # We don't need all the data, just a single row to get the shape of the input
-        output_shape = output_list[0].get_out_shape()
-        ezLogging.info("%s - Ending building..." % (block_material.id))
+        self.final_module_dicts.append({"module": opPytorch.linear_layer,
+                                        "args": [20]}) # TODO consider deleting later
+        self.final_module_dicts.append({"module": opPytorch.linear_layer,
+                                        "args": [2]})
+        self.final_module_dicts.append({"module": opPytorch.softmax_layer,
+                                        "args": []})
 
-        # Add a final linear layer and get the output in shape Nx2
-        in_features = 1
-        for dim in list(output_shape): 
-            in_features *= dim
-        extra_layers = [nn.Flatten(start_dim=1), nn.Linear(in_features, 2)]
-
-        block_material.graph = nn.Sequential(graph, *extra_layers)
-
-        return block_material.graph
+        self.standard_build_graph(block_material, block_def, data)
 
 
     def evaluate(self,
@@ -264,14 +288,16 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
-            supplements.append(self.build_graph(block_material, block_def, training_datalist[0]))
+            input_images = training_datalist[0]
+            self.build_graph(block_material, block_def, [input_images])
+            #supplements.append(block_material.graph)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import pdb; pdb.set_trace()
             return
 
-        block_material.output = [training_datalist, validating_datalist, supplements]
+        block_material.output = block_material.graph
 
 
 
@@ -290,45 +316,7 @@ class BlockEvaluate_SimGAN_Train_Config(BlockEvaluate_Abstract):
         Simply return the config
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
-        for node_index in block_material.active_nodes:
-            if node_index < 0:
-                # do nothing. at input node
-                continue
-            elif node_index >= block_def.main_count:
-                # do nothing NOW. at output node. we'll come back to grab output after this loop
-                continue
-            else:
-                # main node. this is where we evaluate
-                function = block_material[node_index]["ftn"]
-
-                inputs = []
-                node_input_indices = block_material[node_index]["inputs"]
-                for node_input_index in node_input_indices:
-                    inputs.append(block_material.evaluated[node_input_index])
-                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
-
-                args = []
-                node_arg_indices = block_material[node_index]["args"]
-                for node_arg_index in node_arg_indices:
-                    args.append(block_material.args[node_arg_index].value)
-                ezLogging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
-
-                ezLogging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
-                try:
-                    block_material.evaluated[node_index] = function(*inputs, *args)
-                    ezLogging.info("%s - Eval %i; Success" % (block_material.id, node_index))
-                except Exception as err:
-                    ezLogging.critical("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
-                    block_material.dead = True
-                    import pdb; pdb.set_trace()
-                    break
-
-            output_list = []
-
-            if not block_material.dead:
-                for output_index in range(block_def.main_count, block_def.main_count+block_def.output_count):
-                    output_list.append(block_material.evaluated[block_material.genome[output_index]])
-
-        supplements.append(output_list[0]) # this adds the config to supplements
-
-        block_material.output = [training_datalist, validating_datalist, supplements]
+        training_config_dict = training_datalist[-1]
+        output_list = self.standard_evaluate(block_material, block_def, [training_config_dict])
+        training_config_dict = output_list[0]
+        block_material.output = training_config_dict

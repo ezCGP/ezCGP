@@ -308,7 +308,7 @@ class BlockOperators_SimGAN_Refiner(BlockOperators_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Refiner Class" % (None, None))
         BlockOperators_Abstract.__init__(self)
 
-        modules = ['operators_simgan_refiner']
+        modules = ['operators_pytorch']
         self.import_operator_scripts(modules)
 
         weight_dict = {}

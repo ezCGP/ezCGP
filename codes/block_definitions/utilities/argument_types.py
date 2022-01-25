@@ -15,6 +15,7 @@ import numpy as np
 from numpy import random as rnd
 from copy import copy, deepcopy
 from abc import ABC, abstractmethod
+import re
 
 
 ### sys relative to root dir
@@ -172,6 +173,9 @@ class ArgumentType_TFActivation(ArgumentType_Abstract):
         if value is None:
             self.value = None
             self.mutate()
+        elif value == 'None':
+            self.value = None
+            self.get_name()
         else:
             self.value = value
             self.get_name()
@@ -582,6 +586,28 @@ class ArgumentType_PyTorchKernelSize(ArgumentType_Abstract):
 
 
 
+class ArgumentType_PyTorchStrideSize(ArgumentType_Abstract):
+    '''
+    quick way to pick [1,2,3]
+    '''
+    def __init__(self, value=None):
+        if value is None:
+            self.value = None
+            self.mutate()
+        else:
+            self.value = value
+        ezLogging.debug("%s-%s - Initialize ArgumentType_PyTorchStrideSize Class to %f" % (None, None, self.value))
+
+
+    def mutate(self):
+        choices = [1,2,3]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
+        self.value = np.random.choice(choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_PyTorchStrideSize to %f" % (None, None, self.value))
+
+
+
 class ArgumentType_PyTorchPaddingSize(ArgumentType_Abstract):
     '''
     quick way to pick [0, 2, 4, -1], if -1 is chosen, should use automatic padding to cancel out kernel
@@ -611,12 +637,29 @@ class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
     returns the actual function
     '''
     def __init__(self, value=None):
+        from torch import nn
         if value is None:
             self.value = None
             self.mutate()
-        else:
-            self.value = value
+        elif value == 'None':
+            self.value = None
             self.get_name()
+        elif 'LeakyReLU' in value:
+            match = re.search('0.\d*', value)
+            if match is not None:
+                slope = float(value[match.start():match.end()])
+                self.value = nn.LeakyReLU(slope)
+            else:
+                self.value = nn.LeakyReLU()
+            self.get_name()
+        elif 'ReLU' in value:
+            self.value = nn.ReLU()
+            self.get_name()
+        elif 'Tanh' in value:
+            self.value = nn.Tanh()
+            self.get_name()
+        else:
+            raise Exception("Given Activation %s not a built in choice yet" % value)
         ezLogging.debug("%s-%s - Initialize ArgumentType_PyTorchActivation Class to %s" % (None, None, self.name))
 
 
@@ -624,12 +667,13 @@ class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
         if self.value is None:
             self.name = "None"
         else:
-            self.name = self.value.__qualname__
+            #self.name = self.value.__qualname__ #since we are instantiating the activation, we can't use qualname
+            self.name = self.value._get_name()
 
 
     def mutate(self):
         from torch import nn
-        choices = [nn.ReLU, nn.LeakyReLU, nn.Tanh, None]
+        choices = [nn.ReLU(), nn.LeakyReLU(), nn.LeakyReLU(0.1), nn.Tanh(), None]
         if self.value in choices:
             choices.remove(self.value) # works in-place
         self.value = np.random.choice(choices)

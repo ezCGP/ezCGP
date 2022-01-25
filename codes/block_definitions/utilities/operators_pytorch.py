@@ -79,6 +79,12 @@ class MimicPyTorchModule(ABC):
 
 
 def pytorch_concat(input_shapes, dim=0):
+    '''
+    PROBLEM: originally was super clever to allow concat to work on any number of items,
+    but then I forgot about how the operator_dict will force arity to be well defined...crap.
+    I guess for now just assume 2 things being concat and that we can apply this method twice
+    to concat 3 things.
+    '''
     class PyTorch_Concat(MimicPyTorchModule):
         '''
         https://pytorch.org/docs/stable/generated/torch.cat.html
@@ -91,18 +97,41 @@ def pytorch_concat(input_shapes, dim=0):
             print(ting.get_out_shape(), z.shape)
         '''
         def __init__(self, input_shapes, dim=0):
+            # as an attempt to coerce data to not error on concate if number of dimensions differ...
+            # check numer of dimensions and flatten to smallest
+            num_dims = []
+            for shape in input_shapes:
+                num_dims.append(len(shape))
+            num_dims = np.array(num_dims)
+            smallest_dim = num_dims.min()
+            self.flatten_ith_shape = []
+            if num_dims.var() != 0.0:
+                for i, shape in enumerate(input_shapes):
+                    if len(shape) > smallest_dim:
+                        self.flatten_ith_shape.append(i)
+                        input_shapes[i] = (shape[0], np.array(shape)[1:].prod())
+
             # going to assume input_shapes have the same number of dimensions; if not it will error in __call__
-            dim = dim % len(input_shapes[0])
+            dim = dim % smallest_dim
             super().__init__(input_shapes, ftn=torch.cat, dim=dim)
 
         def __call__(self, *args):
+            args = list(args)
+            # complete coercion if num of dims in data is different
+            for i, val in enumerate(args):
+                args[i] = val.flatten(start_dim=1, end_dim=-1)
+
             # this method takes in a SEQUENCE of tensors as a single input, so dropping the asterisk
             return super().__call__(args)
 
         def get_out_shape(self):
             '''
-            going to assume that the shapes of the things we want to concat are valid
-            '''
+            going to assume that the shapes of the things we want to concat are valid.
+            also assuming we will never concat the 0th dim since that's the size of the batch
+            
+            this code is weird and the behavior of concat is weird...sometimes the other dimensions
+            get flattened instead of maintaining the number of dimensions...wtf
+            
             shape = ()
             for dim in range(len(self.input_shapes[0])):
                 length = 0
@@ -111,6 +140,17 @@ def pytorch_concat(input_shapes, dim=0):
                     if dim != self.kwargs['dim']:
                         break
                 shape += (length,)
+            '''
+            shape = (None,)
+            for dim in range(1, len(self.input_shapes[0])):
+                if dim == self.kwargs['dim']:
+                    # then this is the dim we are concatenating
+                    length = 0
+                    for tensor_shape in self.input_shapes:
+                        length += int(tensor_shape[dim])
+                    shape += (length,)
+                else:
+                    shape += (self.input_shapes[0][dim])
             return shape
 
     return PyTorch_Concat(input_shapes, dim)
@@ -137,6 +177,8 @@ class WrapPyTorchModule(ABC):
 def linear_layer(input_shapes, *args):
     '''
     https://pytorch.org/docs/stable/generated/torch.nn.Linear.html#torch.nn.Linear
+
+    TODO consider adding activation arg similar to conv1d
     '''
     class PyTorch_Linear(WrapPyTorchModule, nn.Linear):
         def __init__(self, input_shapes, out_features):
@@ -161,17 +203,19 @@ operator_dict[linear_layer] = {"inputs": [nn.Module],
 def conv1d_layer(input_shapes, *args):
     '''
     https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d
+
+    TODO!!!!! ADD STRIDE AND THEN ADJUST GET_OUT_sHAPE
     '''
     class PyTorch_Conv1d(WrapPyTorchModule, nn.Sequential):
-        def __init__(self, input_shapes, out_channels, kernel_size=3, padding=0, activation=nn.ReLU):
-            WrapPyTorchModule.__init__(self, input_shapes, out_channels=out_channels, kernel_size=kernel_size, padding=padding)
+        def __init__(self, input_shapes, out_channels, kernel_size=3, stride=1, padding=0, activation=nn.ReLU()):
+            WrapPyTorchModule.__init__(self, input_shapes, out_channels=out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
 
             in_channels = input_shapes[0][-2] # get number of channels
             modules = []
             modules.append(nn.Conv1d(in_channels=in_channels,
                                      out_channels=out_channels,
                                      kernel_size=kernel_size,
-                                     stride=1,
+                                     stride=stride,
                                      padding=padding,
                                      dilation=1,
                                      groups=1,
@@ -179,7 +223,7 @@ def conv1d_layer(input_shapes, *args):
                                      padding_mode='zeros'))
 
             if activation is not None:
-                modules.append(activation())
+                modules.append(activation)
 
             nn.Sequential.__init__(self, *modules)
 
@@ -187,7 +231,8 @@ def conv1d_layer(input_shapes, *args):
             out_channels = self.out_channels
             # going to assume 3 dimensions in shape
             num_samples, num_channels, sample_length = self.input_shapes[0]
-            new_sample_length = sample_length - (self.kernel_size-1) + self.padding*2
+            #new_sample_length = sample_length - (self.kernel_size-1) + self.padding*2
+            new_sample_length = (sample_length - self.kernel_size + 2*self.padding)//self.stride + 1
             output_shape = (num_samples, out_channels, new_sample_length)
             return output_shape
 
@@ -197,6 +242,7 @@ operator_dict[conv1d_layer] = {"inputs": [nn.Module],
                                "output": nn.Module,
                                "args": [argument_types.ArgumentType_Pow2,
                                         argument_types.ArgumentType_PyTorchKernelSize,
+                                        argument_types.ArgumentType_PyTorchStrideSize,
                                         argument_types.ArgumentType_PyTorchPaddingSize,
                                         argument_types.ArgumentType_PyTorchActivation]
                               }
@@ -269,7 +315,7 @@ def softmax_layer(input_shapes, *args):
     class PyTorch_Softmax(WrapPyTorchModule, nn.Softmax):
         def __init__(self, input_shapes):
             WrapPyTorchModule.__init__(self, input_shapes)
-            nn.Softmax.__init__(self)
+            nn.Softmax.__init__(self, dim=1)
 
         def get_out_shape(self):
             return self.input_shapes[0]
@@ -281,7 +327,7 @@ def avg_pool(input_shapes, *args):
     '''
     https://pytorch.org/docs/stable/generated/torch.nn.AvgPool1d.html#torch.nn.AvgPool1d
     '''
-    class PyTorch_AvgPool1d(WrapPyTorchModule, nn.BatchNorm1d):
+    class PyTorch_AvgPool1d(WrapPyTorchModule, nn.AvgPool1d):
         def __init__(self, input_shapes, kernel_size, stride=None, padding=0, ceil_mode=False, count_include_pad=True):
             if stride is None:
                 stride = kernel_size
@@ -289,14 +335,21 @@ def avg_pool(input_shapes, *args):
             nn.AvgPool1d.__init__(self, kernel_size, stride, padding, ceil_mode, count_include_pad)
 
         def get_out_shape(self):
-            features = self.input_shapes[0][-1]
-            return (features - self.kernel_size + 2*self.padding)//self.stride + 1
+            # going to assume 3 dimensions in shape
+            num_samples, num_channels, sample_length = self.input_shapes[0]
+            # nn.AvgPool1d sets stride, kernel_size, padding attributes and overwrites the WrapPyTorchModule ones as tuples
+            # so have to add in the [0] for those
+            new_sample_length = (sample_length - self.kernel_size[0] + 2*self.padding[0])//self.stride[0] + 1
+            output_shape = (num_samples, num_channels, new_sample_length)
+            return output_shape
 
     return PyTorch_AvgPool1d(input_shapes, *args)
 
 operator_dict[avg_pool] = {"inputs": [nn.Module],
                            "output": nn.Module,
-                           "args": [argument_types.ArgumentType_PyTorchKernelSize] #TODO
+                           "args": [argument_types.ArgumentType_PyTorchKernelSize,
+                                    argument_types.ArgumentType_PyTorchStrideSize,
+                                    argument_types.ArgumentType_PyTorchPaddingSize]
                           }
 
 
@@ -323,7 +376,7 @@ operator_dict[max_pool] = {"inputs": [nn.Module],
                           }
 
 
-def dropout(input_layer, *args):
+def dropout(input_shapes, *args):
     '''
     https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html#torch.nn.Dropout
     '''
@@ -343,24 +396,7 @@ operator_dict[dropout] = {"inputs": [nn.Module],
                          }
 
 
-class Resnet(nn.Module):
-    def __init__(self, in_channels, nb_channels, kernel_size, use_leaky_relu):
-        super().__init__()
-        self.convs = nn.Sequential(nn.Conv1d(in_channels, nb_channels, kernel_size, padding=kernel_size//2),
-                                   nn.BatchNorm1d(nb_channels),
-                                   nn.LeakyReLU() if use_leaky_relu else nn.ReLU(),
-                                   nn.Conv1d(nb_channels, nb_channels, kernel_size, padding=kernel_size//2),
-                                   nn.BatchNorm1d(nb_channels))
-        self.relu = nn.ReLU()
-
-    def forward(self, x):
-        convs = self.convs(x)
-        print(convs.shape, x.shape)
-        mysum = convs + x
-        output = self.relu(mysum)
-        return output
-
-def resnet(input_layer, nb_channels=16, kernel_size=5, use_leaky_relu=True):
+def resnet(input_shapes, nb_channels=16, kernel_size=5, use_leaky_relu=True):
     '''
     https://eoslcm.gtri.gatech.edu/bitbucket/projects/EMADE/repos/simgan/browse/network.py?at=2021-dev#9
     '''
@@ -387,20 +423,96 @@ def resnet(input_layer, nb_channels=16, kernel_size=5, use_leaky_relu=True):
 
 
     class ResnetBlock(WrapPyTorchModule, Resnet):
-        def __init__(self, in_channels, nb_channels, kernel_size, use_leaky_relu):
-            WrapPyTorchModule.__init__(self, in_channels=in_channels, nb_channels=nb_channels, kernel_size=kernel_size, use_leaky_relu=use_leaky_relu)
-            Resnet.__init__(self,)
+        def __init__(self, input_shapes, nb_channels, kernel_size, use_leaky_relu):
+            in_channels = input_shapes[0][1]
+            WrapPyTorchModule.__init__(self, input_shapes, in_channels=in_channels, nb_channels=nb_channels, kernel_size=kernel_size, use_leaky_relu=use_leaky_relu)
+            Resnet.__init__(self, in_channels, nb_channels, kernel_size, use_leaky_relu)
 
         def get_out_shape(self):
             '''
             i guess i can do a series of calculations for each layer but what happens if x and mysum are different shapes because of padding?
             '''
             # TODO!!!!!
-            return None
+            return self.input_shapes[0]
 
-    return ResnetBlock(input_layer.get_out_shape(), nb_channels, kernel_size, use_leaky_relu)
+    return ResnetBlock(input_shapes, nb_channels, kernel_size, use_leaky_relu)
 
 operator_dict[resnet] = {"inputs": [nn.Module],
                          "output": nn.Module,
-                         "args": [] #TODO
+                         "args": [argument_types.ArgumentType_Pow2,
+                                  argument_types.ArgumentType_PyTorchKernelSize,
+                                  argument_types.ArgumentType_Bool] #TODO
                         }
+
+
+def minibatch_discrimination(input_shapes, *args):
+    '''
+    stuff
+    '''
+    class MinibatchDiscrimination(WrapPyTorchModule, nn.Module):
+        def __init__(self, input_shapes, out_features, kernel_dims, mean=False):
+            in_features = input_shapes[0][1] # NOTE: assumed images are already flattened
+            WrapPyTorchModule.__init__(self, input_shapes, in_features=in_features, out_features=out_features, kernel_dims=kernel_dims, mean=mean)
+            nn.Module.__init__(self)
+
+            self.T = nn.Parameter(torch.Tensor(in_features, out_features, kernel_dims))
+            nn.init.normal_(self.T, mean=0, std=1)
+
+        def forward(self, x):
+            '''
+            x -> N x (in_features) ...assumed x already flattened
+            T -> (in_features) x (out_features) x (kernel)
+            '''
+            T_reshaped = self.T.view(self.in_features, -1)                    # (in_features) x (out_features*kernel)
+            matrices = x.mm(T_reshaped)                                       # N x (out_features*kernel)
+            matrices = matrices.view(-1, self.out_features, self.kernel_dims) # N x (out_features) x (kernel)
+            M = matrices.unsqueeze(0)                                         # 1 x N x (out_features) x (kernel)
+            M_T = M.permute(1, 0, 2, 3)                                       # N x 1 x (out_features) x (kernel)
+            norm = torch.abs(M-M_T).sum(3)                                    # N x N x (out_features)
+            expnorm = torch.exp(-norm)                                        # N x N x (out_features)
+            o_b = expnorm.sum(0)                                              # N x (out_features)
+            return o_b
+
+        def get_out_shape(self):
+            N = self.input_shapes[0][0]
+            return (N, self.out_features)
+
+    return MinibatchDiscrimination(input_shapes, *args)
+
+operator_dict[minibatch_discrimination] = {"inputs": [nn.Module],
+                                           "output": nn.Module,
+                                           "args": [argument_types.ArgumentType_Pow2,
+                                                    argument_types.ArgumentType_PyTorchKernelSize] #TODO
+                                          }
+
+
+
+def feature_extraction(input_shapes, *args):
+    '''
+    just calls some feature extraction class that was stolen from original simgan codebase.
+    should be in misc folder
+
+    NOTE: an idea was to make the output of this method to be a 2nd input into the 
+    discriminator block instead of a primitive of that block
+    '''
+    from misc import features
+    class FeatureExtractor(MimicPyTorchModule, features.FeatureExtractor):
+        def __init__(self, input_shapes, *args):
+            MimicPyTorchModule.__init__(self, input_shapes, ftn=None)
+            features.FeatureExtractor.__init__(self, *args)
+
+        def get_out_shape(self):
+            return (self.input_shapes[0][0], self.num_features)
+
+        def __call__(self, x):
+            # not sure why i have to do all this .cpu() etc stuff but in original simgan code
+            features = self.get_features(np.squeeze(x.cpu().detach().numpy()))
+            this = torch.Tensor(np.transpose(features)).to(x.device)
+            return this
+
+    return FeatureExtractor(input_shapes, *args)
+
+operator_dict[feature_extraction] = {"inputs": [nn.Module],
+                                     "output": nn.Module,
+                                     "args": [argument_types.ArgumentType_Bool]*9
+                                     }

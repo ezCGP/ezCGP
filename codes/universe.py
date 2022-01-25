@@ -205,7 +205,6 @@ class UniverseDefinition():
         Provides an option for anything we want to do with the universe + population now that we reached the
         complete end of the evolutionary cycle.
         '''
-        save_things.save_population(self) # always save the population at the end of the run
         problem.postprocess_universe(self)
 
 
@@ -404,9 +403,12 @@ class RelativePopulationUniverseDefinition(UniverseDefinition):
     '''
     def __init__(self,
                  problem: ProblemDefinition_Abstract,
-                 output_folder: str):
+                 output_folder: str,
+                 random_seed: int):
         ezLogging.info("Using Relative Population Universe")
-        super().__init__(problem, output_folder)
+        super().__init__(problem, output_folder, random_seed)
+
+
 
     def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
         '''

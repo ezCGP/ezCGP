@@ -18,7 +18,7 @@ import pdb
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
-sys.path.append(dirname(dirname(realpath(__file__))))
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.block_definitions.block_definition import BlockDefinition
@@ -30,6 +30,7 @@ class FakeDefinition():
         self.input_count = input_count
         self.main_count = main_count
         self.output_count = output_count
+        self.genome_count = input_count + main_count + output_count
 
     def get_actives(self, material):
         BlockDefinition.get_actives(self, material)

@@ -179,8 +179,8 @@ class ProblemDefinition_Abstract(ABC):
         the idea here is that the universe.run() is about to exit but before it does,
         we can export or plot things wrt the final population
         '''
-        ezLogging.info("Post Processing Universe Run - pass")
-        pass
+        ezLogging.info("Post Processing Universe Run - default is to save population")
+        save_things.save_population(self)
 
 
     def get_best_indiv(self, universe, ith_obj):

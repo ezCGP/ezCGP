@@ -54,7 +54,9 @@ def save_pytorch_model(universe, network, indiv_id):
     '''
     ezLogging.debug("saving pytorch model from population for generation %i" % universe.generation)
     path = os.path.join(universe.output_folder, "gen_%04d_id_%s.pkl" % (universe.generation, indiv_id))
-    torch.save(network, path)
+    # was getting a pickling error if didn't do .state_dict()
+    #...thanks https://github.com/pytorch/pytorch/issues/7545
+    torch.save(network.state_dict(), path)
 
             
 def save_population_asLisp(universe, indiv_definition):

@@ -122,6 +122,13 @@ class SimGANDataset():
         )
 
         self.data_history_buffer = DataHistoryBuffer((1, self.real_raw.shape[-1]), buffer_size, batch_size)
+
+        # a lot of times, we want to call .shape just to get num_channels and length of data so we cheat by doing this and doing None for num data
+        _, real_channels, real_length = self.real.data.shape
+        _, sim_channels, sim_length = self.simulated.data.shape
+        assert(real_channels==sim_channels), "Something wrong with shape of data...mismatch number of channels"
+        assert(real_length==sim_length), "Something wrong with shape of data...mismatch length of data"
+        self.shape = (None, real_channels, real_length)
     
     def get_real_batch():
         return self.real_loader.__iter__().next()
