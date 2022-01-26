@@ -107,7 +107,7 @@ def get_graph_ratings(refiners,
 
     # Get refiner and discriminator with best ratings
     ratings_pd = pd.DataFrame(ratings).T
-    refiner_ratings = ratings_pd.loc[refiners_ids]
+    refiner_ratings = ratings_pd.loc[refiner_ids]
     discriminator_ratings = ratings_pd.loc[discriminator_ids]
     return refiner_ratings, discriminator_ratings
 

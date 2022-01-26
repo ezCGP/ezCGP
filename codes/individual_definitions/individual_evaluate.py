@@ -387,7 +387,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                                                                    train_config['device'])
         # use idxmax instead of argmax since it is more correct that we want row label instead of index in dataframe
         best_refiner = refiners[refiner_ratings['r'].idxmax()]
-        best_discriminator = discriminators[discriminator_ratings['r'].idxmax()]
+        best_discriminator = discriminators[discriminator_ratings['r'].idxmax() - len(refiners)]
         
         indiv_material.output = (best_refiner, best_discriminator)
 
