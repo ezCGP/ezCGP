@@ -121,10 +121,14 @@ class Problem(ProblemDefinition_Abstract):
         
         # Run tournament and add ratings
         if len(refiners) > 0:
-            refiner_ratings, _ = get_graph_ratings(refiners, discriminators, self.validating_datalist[0], 'cpu')
+            refiner_ratings, _ = get_graph_ratings(refiners,
+                                                   discriminators,
+                                                   self.validating_datalist[0],
+                                                   'cpu')
         
         for refiner_rating, ind in zip(refiner_ratings['r'].to_numpy(), indiv_inds):
-            population.population[ind].fitness.values = (-1 * refiner_rating,) # Use negative ratings because ezCGP does minimization
+            # Use negative ratings because ezCGP does minimization
+            population.population[ind].fitness.values = (-1 * refiner_rating,)
 
 
     def check_convergence(self, universe):
