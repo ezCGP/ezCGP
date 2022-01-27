@@ -146,7 +146,7 @@ def calculate_new_glicko_scores(old_mu, old_phi, opponent_mus, opponent_phis, sc
     g = 1.0 / (1 + 3 * opponent_phis**2 / np.pi**2) ** 0.5 # TODO: explain/figure out what g is
     E = 1.0 / (1 + np.exp(-1 * g * (old_mu - opponent_mus))) # Probability of player winning each match
     v = np.sum(g**2 * E * (1 - E)) ** -1 # Estimated variance of the player's rating based on game outcomes
-    delta = v * np.sum(g * (scores - E)) # Estimated improvement in rating 
+    delta = v * np.sum(g * (scores - E)) # Estimated improvement in rating
     new_phi = 1 / (1/old_phi**2 + 1/v) ** 0.5
     new_mu = old_mu + new_phi**2 * np.sum(g * (scores - E))
     new_rating = norm_val * new_mu + starting_rating
