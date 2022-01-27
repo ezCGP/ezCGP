@@ -2,14 +2,26 @@ import numpy as np
 import pandas as pd
 import torch
 
-def get_graph_ratings(refiners, discriminators, validation_data, device, starting_rating=1500, starting_rd=350, norm_val=173.7178, 
-    n_rounds=3, matches_per_pairing=5, samples_per_match=10, discriminator_win_thresh=0.6):
+def get_graph_ratings(refiners,
+                      discriminators,
+                      validation_data,
+                      device,
+                      starting_rating=1500,
+                      starting_rd=350,
+                      norm_val=173.7178,
+                      n_rounds=3,
+                      matches_per_pairing=5,
+                      samples_per_match=10,
+                      discriminator_win_thresh=0.6):
     '''
-    Find the best refiner and discriminator from the list of refiners and discriminators using the Tournament Skill Rating Evaluation
+    TODO...can we get a Source?
+    https://arxiv.org/abs/1808.04888 ?????
+
+    Find the best refiner and discriminator from the list of refiners and discriminators using the Tournament Skill Rating Evaluation.
 
         Parameters:
-            refiner_tuples (list(torch.nn)): list of refiners
-            discriminator_tuples (list(torch.nn)): list of discriminators
+            refiners (list(torch.nn)): list of refiners
+            discriminators (list(torch.nn)): list of discriminators
             validation_data (simganData): SimGAN dataset
             train_config (dict): dictionary holding information related to training
             starting_rating (float): The rating that players were initialized to
@@ -19,6 +31,11 @@ def get_graph_ratings(refiners, discriminators, validation_data, device, startin
             matches_per_pairing(int): The number of matches per refiner/discriminator pairing to determine the overall winner
             samples_per_match(int): The number of samples per match to determine the winner of the match
             discriminator_win_thresh: The accuracy of the discriminator needed for the discriminator to be declared the winner
+
+        Returns:
+            A tuple a of Pandas DataFrames...
+            A Pandas DataFrame for metadata-ratings where 1 row is for 1 refiner (respectively for discriminator).
+
     '''
     n_refiners = len(refiners)
     ids = np.arange(n_refiners + len(discriminators))
@@ -42,6 +59,8 @@ def get_graph_ratings(refiners, discriminators, validation_data, device, startin
         # Perform matches between each pair (R,D)
         for id_R, R in zip(refiner_ids, refiners):
             for id_D, D in zip(discriminator_ids, discriminators):
+                # RODD - ?...why do we need multiple matches? why not just change samples to samples_per_match*matches_per_pairing
+                # ...like it's just running data through refiner and discrim. like why not just do that once but with more data?
                 for match in range(matches_per_pairing):
                     real_inds = np.random.choice(np.arange(len(all_real)), samples_per_match, replace=False)
                     real = torch.tensor(all_real[real_inds], dtype=torch.float, device=device)
@@ -76,16 +95,20 @@ def get_graph_ratings(refiners, discriminators, validation_data, device, startin
         new_ratings = ratings.copy()
         for id in ids:
             results = match_results[id]
-            glicko_calculations = calculate_new_glicko_scores(ratings[id]['mu'], ratings[id]['phi'], 
-                np.array(results['opponent_mus']), np.array(results['opponent_phis']), np.array(results['scores']),
-                starting_rating, norm_val)   
+            glicko_calculations = calculate_new_glicko_scores(ratings[id]['mu'],
+                                                              ratings[id]['phi'],
+                                                              np.array(results['opponent_mus']),
+                                                              np.array(results['opponent_phis']),
+                                                              np.array(results['scores']),
+                                                              starting_rating,
+                                                              norm_val)   
             new_ratings[id]['mu'], new_ratings[id]['phi'], new_ratings[id]['r'], new_ratings[id]['RD'] = glicko_calculations
         ratings = new_ratings
 
     # Get refiner and discriminator with best ratings
     ratings_pd = pd.DataFrame(ratings).T
-    refiner_ratings = ratings_pd.iloc[:n_refiners]
-    discriminator_ratings = ratings_pd.iloc[n_refiners:]
+    refiner_ratings = ratings_pd.loc[refiner_ids]
+    discriminator_ratings = ratings_pd.loc[discriminator_ids]
     return refiner_ratings, discriminator_ratings
 
 def calc_acc(softmax_output, tensor_labels):
@@ -98,11 +121,15 @@ def calc_acc(softmax_output, tensor_labels):
         Returns:
             acc (float): the probability accuracy of the output vs. the true labels
     '''
-    acc = softmax_output.data.max(1)[1].cpu().numpy() == tensor_labels.data.cpu().numpy()
+    acc = softmax_output.data.argmax(1)[1].cpu().numpy() == tensor_labels.data.cpu().numpy()
     return acc.mean()
 
-def calculate_new_glicko_scores(old_mu, old_phi, opponent_mus, opponent_phis, scores, starting_rating=1500, norm_val=173.7178):
+def calculate_new_glicko_scores(old_mu, old_phi, opponent_mus, opponent_phis, scores, starting_rating, norm_val):
     '''
+    TODO ...Source ????
+    http://www.glicko.net/glicko/glicko2.pdf ????
+    https://en.wikipedia.org/wiki/Glicko_rating_system ????
+
     Calculate and return the new glicko values for the player using Glicko2 calculation 
         Parameters:
             old_mu (float): The former mu rating
@@ -119,7 +146,7 @@ def calculate_new_glicko_scores(old_mu, old_phi, opponent_mus, opponent_phis, sc
     g = 1.0 / (1 + 3 * opponent_phis**2 / np.pi**2) ** 0.5 # TODO: explain/figure out what g is
     E = 1.0 / (1 + np.exp(-1 * g * (old_mu - opponent_mus))) # Probability of player winning each match
     v = np.sum(g**2 * E * (1 - E)) ** -1 # Estimated variance of the player's rating based on game outcomes
-    delta = v * np.sum(g * (scores - E)) # Estimated improvement in rating 
+    delta = v * np.sum(g * (scores - E)) # Estimated improvement in rating
     new_phi = 1 / (1/old_phi**2 + 1/v) ** 0.5
     new_mu = old_mu + new_phi**2 * np.sum(g * (scores - E))
     new_rating = norm_val * new_mu + starting_rating

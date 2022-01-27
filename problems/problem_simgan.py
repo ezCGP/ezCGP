@@ -107,24 +107,30 @@ class Problem(ProblemDefinition_Abstract):
         n_individuals = len(population.population)
         refiners = []
         discriminators = []
-        indiv_inds = []
-        bad_indiv_inds = []
+        #indiv_inds = []
+        #bad_indiv_inds = []
         # import pdb; pdb.set_trace()
         for i, indiv in enumerate(population.population):
             if indiv.dead:
                 indiv.fitness.values = (np.inf,)
             else:
-                indiv_inds.append(i)
+                #indiv_inds.append(i)
                 R, D = indiv.output
                 refiners.append(R.cpu())
                 discriminators.append(D.cpu())
         
         # Run tournament and add ratings
         if len(refiners) > 0:
-            refiner_ratings, _ = get_graph_ratings(refiners, discriminators, self.validating_datalist[0], 'cpu')
+            refiner_ratings, _ = get_graph_ratings(refiners,
+                                                   discriminators,
+                                                   self.validating_datalist[0],
+                                                   'cpu')
         
-        for refiner_rating, ind in zip(refiner_ratings['r'].to_numpy(), indiv_inds):
-            population.population[ind].fitness.values = (-1 * refiner_rating,) # Use negative ratings because ezCGP does minimization
+        # instead of using indiv_inds I think we can just use the row label of the df
+        #for refiner_rating, ind in zip(refiner_ratings['r'].to_numpy(), indiv_inds):
+        for indx, refiner_rating in refiner_ratings['r'].iteritems():
+            # Use negative ratings because ezCGP does minimization
+            population.population[indx].fitness.values = (-1 * refiner_rating,)
 
 
     def check_convergence(self, universe):
