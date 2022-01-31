@@ -34,6 +34,7 @@ from abc import ABC, abstractmethod
 import torch
 from torch import nn
 import numpy as np
+import copy
 
 ### sys relative to root dir
 import sys
@@ -76,6 +77,39 @@ class MimicPyTorchModule(ABC):
 
     def __call__(self, *args):
         return self.ftn(*args, **self.kwargs)
+
+
+def pytorch_squeeze(input_shapes, dim=None):
+    class PyTorch_Squeeze(MimicPyTorchModule):
+        '''
+        https://pytorch.org/docs/stable/generated/torch.squeeze.html
+        '''
+        def __init__(self, input_shapes, dim=None):
+            super().__init__(input_shapes, ftn=torch.squeeze, dim=dim)
+
+        def __call__(self, *args):
+            # for some reason, if dim is None, then it erros...someone should get fired
+            del self.kwargs['dim']
+            return super().__call__(*args)
+
+        def get_out_shape(self):
+            shape = list(self.input_shapes[0])
+
+            drop_index = []
+            if ('dim' not in self.kwargs) or (self.kwargs['dim'] is None):
+                for index, value in enumerate(shape):
+                    if value == 1:
+                        drop_index.append(index)
+            else:
+                if shape[self.kwargs['dim']] == 1:
+                    drop_index.append(self.kwargs['dim'])
+            
+            for index in reversed(drop_index):
+                _  = shape.pop(index)
+
+            return tuple(shape)
+
+    return PyTorch_Squeeze(input_shapes, dim)
 
 
 def pytorch_concat(input_shapes, dim=0):
@@ -321,6 +355,22 @@ def softmax_layer(input_shapes, *args):
             return self.input_shapes[0]
 
     return PyTorch_Softmax(input_shapes, *args)
+
+
+def sigmoid_layer(input_shapes, *args):
+    '''
+    no operator_dict entry yet so it isn't used in evolution
+    https://pytorch.org/docs/stable/generated/torch.nn.Sigmoid.html
+    '''
+    class PyTorch_Sigmoid(WrapPyTorchModule, nn.Sigmoid):
+        def __init__(self, input_shapes):
+            WrapPyTorchModule.__init__(self, input_shapes)
+            nn.Sigmoid.__init__(self)
+
+        def get_out_shape(self):
+            return self.input_shapes[0]
+
+    return PyTorch_Sigmoid(input_shapes, *args)
 
 
 def avg_pool(input_shapes, *args):

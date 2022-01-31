@@ -93,6 +93,7 @@ class MyTorchNetwork(nn.Module):
                                                           "output_shape": module_instance.get_out_shape()}
 
         # add any final modules...going to assume it is always nn.Module type
+        self.final_linear_connections = [] # synonomous with graph_connections ordered dict but linear so just a list
         for i, module_dict in enumerate(final_module_dicts):
             module = module_dict["module"]
             args = module_dict["args"]
@@ -100,11 +101,19 @@ class MyTorchNetwork(nn.Module):
                 last_main_active = block_material[block_def.main_count]
                 input_shapes = [self.graph_connections[last_main_active]["output_shape"]]
             else:
-                input_shapes = [module_instance.get_out_shape()]
+                input_shapes = [self.final_linear_connections[-1]["output_shape"]]
 
             module_instance = module(input_shapes, *args)
-            self.add_module(name="final_module_%i" % i,
-                            module=module_instance)
+            if isinstance(module_instance, nn.Module):
+                module_name = "final_module_%i" % i
+                self.add_module(name=module_name,
+                                module=module_instance)
+                final_module_dict = {"module": module_name,
+                                     "output_shape": module_instance.get_out_shape()}
+            else:
+                final_module_dict = {"module": module_instance,
+                                     "output_shape": module_instance.get_out_shape()}
+            self.final_linear_connections.append(final_module_dict)
 
         self.final_layer_shape = module_instance.get_out_shape()
         self.genome_length = block_def.genome_count
@@ -132,25 +141,21 @@ class MyTorchNetwork(nn.Module):
                 inputs.append(evaluated_connections[input_node])
 
             evaluated_connections[node_index] = callable_module(*inputs)
+        
+        # get output from most recent run
+        outputs = evaluated_connections[node_index]
 
         # evaluate any final layers
-        if "final_module_0" in self._modules:
-            callable_module = self._modules["final_module_0"]
-            inputs = [evaluated_connections[node_index]]
-            output = callable_module(*inputs)
-            final_module_count = 1
-            while True:
-                module_name = "final_module_%i" % final_module_count
-                if module_name in self._modules:
-                    callable_module = self._modules[module_name]
-                    output = callable_module(output)
-                    final_module_count+=1
-                else:
-                    break
-        else:
-            output = evaluated_connections[node_index]
+        for node_index, node_dict in enumerate(self.final_linear_connections):
+            if isinstance(node_dict["module"], str):
+                # then it is a nn.Module so grab directly from self
+                callable_module = self._modules[node_dict["module"]]
+            else:
+                callable_module = node_dict["module"]
 
-        return output
+            outputs = callable_module(outputs)
+
+        return outputs
 
 
 
@@ -267,15 +272,16 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
 
+        # removed since redundant to have 2 back-to-back linear layers without some non-linear layer
+        #self.final_module_dicts.append({"module": opPytorch.linear_layer,
+        #                                "args": [20]})
         self.final_module_dicts.append({"module": opPytorch.linear_layer,
-                                        "args": [20]}) # TODO consider deleting later
-        self.final_module_dicts.append({"module": opPytorch.linear_layer,
-                                        "args": [2]})
-        self.final_module_dicts.append({"module": opPytorch.softmax_layer,
+                                        "args": [1]})
+        self.final_module_dicts.append({"module": opPytorch.pytorch_squeeze,
                                         "args": []})
-
+        self.final_module_dicts.append({"module": opPytorch.sigmoid_layer,
+                                        "args": []})
         self.standard_build_graph(block_material, block_def, data)
-
 
     def evaluate(self,
                  block_material,
