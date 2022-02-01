@@ -1,3 +1,6 @@
+'''
+tournament to rank refiners + discriminators for simgan
+'''
 import numpy as np
 import pandas as pd
 import torch
@@ -69,10 +72,9 @@ def get_graph_ratings(refiners,
                     refined = R(simulated)
                     
                     # Get discriminator accuracy on real and refined data
-                    # TODO: consider moving the softmax's to the discriminator itself
-                    d_pred_real = torch.nn.functional.softmax(D(real), dim=1)
+                    d_pred_real = D(real)
                     acc_real = calc_acc(d_pred_real, labels_real)
-                    d_pred_refined = torch.nn.functional.softmax(D(refined), dim=1)
+                    d_pred_refined = D(refined)
                     acc_refined = calc_acc(d_pred_refined, labels_refined)
 
                     # Find the average accuracy of the discriminator
@@ -111,18 +113,22 @@ def get_graph_ratings(refiners,
     discriminator_ratings = ratings_pd.loc[discriminator_ids]
     return refiner_ratings, discriminator_ratings
 
-def calc_acc(softmax_output, tensor_labels):
+
+def calc_acc(tensor_output, tensor_labels):
     '''
-    Calculate the percent accuracy of the output, using the labels
+    Calculate the percent accuracy of the output, using the labels.
+    Note that the sigmoid is already calculated as part of the Discriminator Network.
         Parameters:
-            softmax_output (torch.Tensor): The softmax output of the discriminator
+            tensor_output (torch.Tensor): M tensor output of the discriminator (M samples,) probability of being class '1'
             tensor_labels (torch.Tensor): M tensor true labels for each sample
 
         Returns:
             acc (float): the probability accuracy of the output vs. the true labels
     '''
-    acc = softmax_output.data.argmax(1)[1].cpu().numpy() == tensor_labels.data.cpu().numpy()
-    return acc.mean()
+    y_pred = torch.round(tensor_output)#.detatch())
+    acc = torch.sum(y_pred == tensor_labels.detach()) / len(tensor_labels.detach())
+    return acc
+
 
 def calculate_new_glicko_scores(old_mu, old_phi, opponent_mus, opponent_phis, scores, starting_rating, norm_val):
     '''

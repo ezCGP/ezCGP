@@ -89,7 +89,9 @@ def pytorch_squeeze(input_shapes, dim=None):
 
         def __call__(self, *args):
             # for some reason, if dim is None, then it erros...someone should get fired
-            del self.kwargs['dim']
+            if ('dim' in self.kwargs) and (self.kwargs['dim'] is None):
+                del self.kwargs['dim']
+            
             return super().__call__(*args)
 
         def get_out_shape(self):

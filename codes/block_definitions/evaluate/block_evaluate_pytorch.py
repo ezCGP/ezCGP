@@ -96,6 +96,7 @@ class MyTorchNetwork(nn.Module):
         self.final_linear_connections = [] # synonomous with graph_connections ordered dict but linear so just a list
         for i, module_dict in enumerate(final_module_dicts):
             module = module_dict["module"]
+            module_name = "final_module_%i" % i
             args = module_dict["args"]
             if i == 0:
                 last_main_active = block_material[block_def.main_count]
@@ -103,9 +104,13 @@ class MyTorchNetwork(nn.Module):
             else:
                 input_shapes = [self.final_linear_connections[-1]["output_shape"]]
 
+            ezLogging.debug("%s - Builing %s; Function: %s, Inputs: PrevFinal, Shapes: %s, Args: %s" % (block_material.id,
+                                                                                                     module_name,
+                                                                                                     module,
+                                                                                                     input_shapes,
+                                                                                                     args))
             module_instance = module(input_shapes, *args)
             if isinstance(module_instance, nn.Module):
-                module_name = "final_module_%i" % i
                 self.add_module(name=module_name,
                                 module=module_instance)
                 final_module_dict = {"module": module_name,
@@ -140,6 +145,7 @@ class MyTorchNetwork(nn.Module):
             for input_node in input_connections:
                 inputs.append(evaluated_connections[input_node])
 
+            ezLogging.debug("%s - Network running 'forward' on %s" % ("id NA", callable_module))
             evaluated_connections[node_index] = callable_module(*inputs)
         
         # get output from most recent run
@@ -153,6 +159,7 @@ class MyTorchNetwork(nn.Module):
             else:
                 callable_module = node_dict["module"]
 
+            ezLogging.debug("%s - Network running 'forward' on %s" % ("id NA", callable_module))
             outputs = callable_module(outputs)
 
         return outputs
@@ -214,21 +221,17 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
         super().__init__()
 
+        in_channels = 1 # TODO hard coded...ish...i mean this is specific for simgan so it is okay...not like batch size
+        self.final_module_dicts.append({"module": opPytorch.conv1d_layer,
+                                        "args": [in_channels, 1, 1, 0, nn.Tanh()]})
+
 
     def build_graph(self, block_material, block_def, data):
         '''
         Build the SimGAN refiner network
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-
-        in_channels = int(data[0].shape[1])
-        ezLogging.debug("debuging0 - in channels %i" % in_channels)
-        self.final_module_dicts.append({"module": opPytorch.conv1d_layer,
-                                        "args": [in_channels, 1, 1, 0, nn.Tanh()]})
-        ezLogging.debug("final module dicts set up")
-
         self.standard_build_graph(block_material, block_def, data)
-        ezLogging.debug("standard build graph done")
 
         # Verify new images match shapes of input images
         if np.any(np.array(block_material.graph.final_layer_shape) != np.array(data[0].shape)):
@@ -265,23 +268,21 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
         super().__init__()
 
-
-    def build_graph(self, block_material, block_def, data):
-        '''
-        Build the SimGAN discriminator network
-        '''
-        ezLogging.debug("%s - Building Graph" % (block_material.id))
-
-        # removed since redundant to have 2 back-to-back linear layers without some non-linear layer
-        #self.final_module_dicts.append({"module": opPytorch.linear_layer,
-        #                                "args": [20]})
         self.final_module_dicts.append({"module": opPytorch.linear_layer,
                                         "args": [1]})
         self.final_module_dicts.append({"module": opPytorch.pytorch_squeeze,
                                         "args": []})
         self.final_module_dicts.append({"module": opPytorch.sigmoid_layer,
                                         "args": []})
+
+
+    def build_graph(self, block_material, block_def, data):
+        '''
+        Build the SimGAN discriminator network
+        '''
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
         self.standard_build_graph(block_material, block_def, data)
+
 
     def evaluate(self,
                  block_material,

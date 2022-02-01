@@ -61,7 +61,7 @@ def simgan_train_config(config,
 
     # Losses (currently hard coded)
     config['self_regularization_loss'] = torch.nn.L1Loss(reduction='sum')
-    config['local_adversarial_loss'] = torch.nn.CrossEntropyLoss(reduction='mean')
+    config['local_adversarial_loss'] = torch.nn.BCEWithLogitsLoss(reduction='mean')
 
     return config
     
