@@ -62,13 +62,23 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
 
 
 
-class BlockMate_WholeOnly_4Blocks(BlockMate_WholeOnly):
+class BlockMate_WholeOnly_3Blocks(BlockMate_WholeOnly):
     '''
     change prob by 1/numblocks
     '''
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockMate_WholeOnly Class" % (None, None))
         self.prob_mate = 0.33
+
+
+
+class BlockMate_WholeOnly_4Blocks(BlockMate_WholeOnly):
+    '''
+    change prob by 1/numblocks
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockMate_WholeOnly Class" % (None, None))
+        self.prob_mate = 0.25
 
 
 
