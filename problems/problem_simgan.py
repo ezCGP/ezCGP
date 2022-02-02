@@ -18,9 +18,9 @@ from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Sim
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
 from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
-from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB_4Blocks
-from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks
-from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_3Blocks
+from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock_LimitedMutants
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
@@ -39,16 +39,7 @@ class Problem(ProblemDefinition_Abstract):
         mpi = False
         genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
-                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
-                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
-                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]
+                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]*population_size
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
@@ -57,8 +48,8 @@ class Problem(ProblemDefinition_Abstract):
                                                operator_def = BlockOperators_SimGAN_Refiner, 
                                                argument_def = BlockArguments_SimGAN_Refiner,
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
-                                               mutate_def=BlockMutate_OptB_No_Single_Ftn,
-                                               mate_def=BlockMate_WholeOnly_4Blocks
+                                               mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2),
+                                               mate_def=BlockMate_WholeOnly_3Blocks
                                               )
 
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
@@ -66,8 +57,8 @@ class Problem(ProblemDefinition_Abstract):
                                                      operator_def = BlockOperators_SimGAN_Discriminator, 
                                                      argument_def = BlockArguments_SimGAN_Discriminator,
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
-                                                     mutate_def=BlockMutate_OptB_4Blocks,
-                                                     mate_def=BlockMate_WholeOnly_4Blocks
+                                                     mutate_def=BlockMutate_OptB(prob_mutate=0.2),
+                                                     mate_def=BlockMate_WholeOnly_3Blocks
                                                     )
 
         train_config_def = self.construct_block_def(nickname = "train_config",
@@ -75,16 +66,15 @@ class Problem(ProblemDefinition_Abstract):
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
                                                     argument_def = BlockArguments_SimGAN_Train_Config,
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                                    mutate_def=BlockMutate_OptB_No_Single_Ftn,
-                                                    mate_def=BlockMate_WholeOnly_4Blocks
+                                                    mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.1),
+                                                    mate_def=BlockMate_WholeOnly_3Blocks
                                                    )
 
         self.construct_individual_def(block_defs = [refiner_def, discriminator_def, train_config_def],
-                                      mutate_def = IndividualMutate_RollOnEachBlock,
+                                      mutate_def = IndividualMutate_RollOnEachBlock_LimitedMutants,
                                       mate_def = IndividualMate_RollOnEachBlock,
                                       evaluate_def = IndividualEvaluate_SimGAN
                                       )
-
         self.construct_dataset()
 
 
