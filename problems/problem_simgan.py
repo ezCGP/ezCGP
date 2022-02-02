@@ -150,7 +150,6 @@ class Problem(ProblemDefinition_Abstract):
         ezLogging.info("Post Processing Generation Run")
         save_things.save_fitness_scores(universe)
 
-        print('testing')
         pareto_front = self.get_pareto_front(universe)
         for ind in pareto_front:
             indiv = universe.population.population[ind]
