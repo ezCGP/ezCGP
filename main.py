@@ -42,7 +42,7 @@ def main(problem_filename: str,
     log_formatter = ezLogging.logging_setup(loglevel)
     if loglevel < logging.WARNING:
         # true only for DEBUG or INFO
-        log_handler_2stdout = ezLogging.logging_2stdout(log_formatter)
+        log_handler_2stdout = None #ezLogging.logging_2stdout(log_formatter) # TODO change back from None
     else:
         log_handler_2stdout = None
     
@@ -51,6 +51,20 @@ def main(problem_filename: str,
     ezLogging.warning("Setting seed, for file imports, to %i" % (seed))
     np.random.seed(seed)
     random.seed(seed) # shouldn't be using 'random' module but setting seed jic
+    # allow setting of seeds for packages unique to certain installations
+    # try/catch so that it won't break if you didn't include them in your python environmnet
+    try:
+        import tensorflow as tf
+        tf.random.set_seed(seed)
+    except:
+        pass
+    try:
+        import torch
+        torch.manual_seed(seed)
+        torch.use_deterministic_algorithms(True)
+    except:
+        pass
+
     problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
     problem = problem_module.Problem()
     if previous_run is not None:

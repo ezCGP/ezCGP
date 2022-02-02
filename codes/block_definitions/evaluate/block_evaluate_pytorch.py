@@ -256,7 +256,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = block_material.graph
@@ -301,7 +301,7 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = block_material.graph
