@@ -417,8 +417,11 @@ def max_pool(input_shapes, *args):
             nn.MaxPool1d.__init__(self, kernel_size, stride, padding, dilation, return_indices, ceil_mode)
 
         def get_out_shape(self):
-            features = self.input_shapes[0][-1]
-            return (features - self.kernel_size + 2*self.padding)//self.stride + 1
+            # going to assume 3 dimensions in shape
+            num_samples, num_channels, sample_length = self.input_shapes[0]
+            new_sample_length = (sample_length - self.kernel_size + 2*self.padding)//self.stride + 1
+            output_shape = (num_samples, num_channels, new_sample_length)
+            return output_shape
 
     return PyTorch_MaxPool1d(input_shapes, *args)
 
