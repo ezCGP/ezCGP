@@ -38,6 +38,8 @@ def selNSGA2(individuals, k, nd='standard'):
     .. [Deb2002] Deb, Pratab, Agarwal, and Meyarivan, "A fast elitist
        non-dominated sorting genetic algorithm for multi-objective
        optimization: NSGA-II", 2002.
+
+    From tests, looks like selNSGA2 maximises when Fitness.weights are positive
     '''
     return deap.tools.selNSGA2(individuals, k, nd)
 

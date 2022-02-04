@@ -52,59 +52,84 @@ class MyTorchNetwork(nn.Module):
                                       "output_shape": input_shape}
 
         for node_index in block_material.active_nodes:
-            if node_index < 0:
-                # do nothing. at input node
-                continue
-            elif node_index >= block_def.main_count:
-                # do nothing.
-                continue
-            else:
-                # main node. this is where we evaluate
-                input_connections = block_material[node_index]['inputs']
-                input_shapes = []
-                for input_index in input_connections:
-                    input_dict = self.graph_connections[input_index]
-                    input_shapes.append(input_dict['output_shape'])
+            try:
+                if node_index < 0:
+                    # do nothing. at input node
+                    continue
+                elif node_index >= block_def.main_count:
+                    # do nothing.
+                    continue
+                else:
+                    # main node. this is where we evaluate
+                    input_connections = block_material[node_index]['inputs']
+                    input_shapes = []
+                    for input_index in input_connections:
+                        input_dict = self.graph_connections[input_index]
+                        input_shapes.append(input_dict['output_shape'])
 
-                module_name = 'node_%i' % node_index
-                module = block_material[node_index]['ftn']
+                    module_name = 'node_%i' % node_index
+                    module = block_material[node_index]['ftn']
 
-                args = []
-                node_arg_indices = block_material[node_index]["args"]
-                for node_arg_index in node_arg_indices:
-                    args.append(block_material.args[node_arg_index].value)
+                    args = []
+                    node_arg_indices = block_material[node_index]["args"]
+                    for node_arg_index in node_arg_indices:
+                        args.append(block_material.args[node_arg_index].value)
 
-                ezLogging.debug("%s - Builing %s; Function: %s, Inputs: %s, Shapes: %s, Args: %s" % (block_material.id,
-                                                                                                     module_name,
-                                                                                                     module,
-                                                                                                     input_connections,
-                                                                                                     input_shapes,
-                                                                                                     args))
+                    ezLogging.debug("%s - Builing %s; Function: %s, Inputs: %s, Shapes: %s, Args: %s" % (block_material.id,
+                                                                                                         module_name,
+                                                                                                         module,
+                                                                                                         input_connections,
+                                                                                                         input_shapes,
+                                                                                                         args))
+                    module_instance = module(input_shapes, *args)
+                    if isinstance(module_instance, nn.Module):
+                        self.add_module(name=module_name,
+                                        module=module_instance)
+                        self.graph_connections[node_index] = {"module": module_name,
+                                                              "inputs": input_connections,
+                                                              "output_shape": module_instance.get_out_shape()}
+                    else:
+                        self.graph_connections[node_index] = {"module": module_instance,
+                                                              "inputs": input_connections,
+                                                              "output_shape": module_instance.get_out_shape()}
+            except Exception as err:
+                ezLogging.critical("crap #0 %s" % err)
+                #import pdb; pdb.set_trace()
+                raise Exception(err)
+
+        # add any final modules...going to assume it is always nn.Module type
+        self.final_linear_connections = [] # synonomous with graph_connections ordered dict but linear so just a list
+        for i, module_dict in enumerate(final_module_dicts):
+            try:
+                module = module_dict["module"]
+                module_name = "final_module_%i" % i
+                args = module_dict["args"]
+                if i == 0:
+                    last_main_active = block_material[block_def.main_count]
+                    input_shapes = [self.graph_connections[last_main_active]["output_shape"]]
+                else:
+                    input_shapes = [self.final_linear_connections[-1]["output_shape"]]
+
+                ezLogging.debug("%s - Builing %s; Function: %s, Inputs: PrevFinal, Shapes: %s, Args: %s" % (block_material.id,
+                                                                                                         module_name,
+                                                                                                         module,
+                                                                                                         input_shapes,
+                                                                                                         args))
                 module_instance = module(input_shapes, *args)
                 if isinstance(module_instance, nn.Module):
                     self.add_module(name=module_name,
                                     module=module_instance)
-                    self.graph_connections[node_index] = {"module": module_name,
-                                                          "inputs": input_connections,
-                                                          "output_shape": module_instance.get_out_shape()}
+                    final_module_dict = {"module": module_name,
+                                         "output_shape": module_instance.get_out_shape()}
                 else:
-                    self.graph_connections[node_index] = {"module": module_instance,
-                                                          "inputs": input_connections,
-                                                          "output_shape": module_instance.get_out_shape()}
+                    final_module_dict = {"module": module_instance,
+                                         "output_shape": module_instance.get_out_shape()}
+                self.final_linear_connections.append(final_module_dict)
 
-        # add any final modules...going to assume it is always nn.Module type
-        for i, module_dict in enumerate(final_module_dicts):
-            module = module_dict["module"]
-            args = module_dict["args"]
-            if i == 0:
-                last_main_active = block_material[block_def.main_count]
-                input_shapes = [self.graph_connections[last_main_active]["output_shape"]]
-            else:
-                input_shapes = [module_instance.get_out_shape()]
-
-            module_instance = module(input_shapes, *args)
-            self.add_module(name="final_module_%i" % i,
-                            module=module_instance)
+            except Exception as err:
+                ezLogging.critical("crap #1 %s" % err)
+                #import pdb; pdb.set_trace()
+                raise Exception(err)
 
         self.final_layer_shape = module_instance.get_out_shape()
         self.genome_length = block_def.genome_count
@@ -131,26 +156,24 @@ class MyTorchNetwork(nn.Module):
             for input_node in input_connections:
                 inputs.append(evaluated_connections[input_node])
 
+            ezLogging.debug("%s - Network running 'forward' on %s" % ("id NA", callable_module))
             evaluated_connections[node_index] = callable_module(*inputs)
+        
+        # get output from most recent run
+        outputs = evaluated_connections[node_index]
 
         # evaluate any final layers
-        if "final_module_0" in self._modules:
-            callable_module = self._modules["final_module_0"]
-            inputs = [evaluated_connections[node_index]]
-            output = callable_module(*inputs)
-            final_module_count = 1
-            while True:
-                module_name = "final_module_%i" % final_module_count
-                if module_name in self._modules:
-                    callable_module = self._modules[module_name]
-                    output = callable_module(output)
-                    final_module_count+=1
-                else:
-                    break
-        else:
-            output = evaluated_connections[node_index]
+        for node_index, node_dict in enumerate(self.final_linear_connections):
+            if isinstance(node_dict["module"], str):
+                # then it is a nn.Module so grab directly from self
+                callable_module = self._modules[node_dict["module"]]
+            else:
+                callable_module = node_dict["module"]
 
-        return output
+            ezLogging.debug("%s - Network running 'forward' on %s" % ("id NA", callable_module))
+            outputs = callable_module(outputs)
+
+        return outputs
 
 
 
@@ -209,21 +232,17 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Refiner Class" % (None, None))
         super().__init__()
 
+        in_channels = 1 # TODO hard coded...ish...i mean this is specific for simgan so it is okay...not like batch size
+        self.final_module_dicts.append({"module": opPytorch.conv1d_layer,
+                                        "args": [in_channels, 1, 1, 0, nn.Tanh()]})
+
 
     def build_graph(self, block_material, block_def, data):
         '''
         Build the SimGAN refiner network
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-
-        in_channels = int(data[0].shape[1])
-        ezLogging.debug("debuging0 - in channels %i" % in_channels)
-        self.final_module_dicts.append({"module": opPytorch.conv1d_layer,
-                                        "args": [in_channels, 1, 1, 0, nn.Tanh()]})
-        ezLogging.debug("final module dicts set up")
-
         self.standard_build_graph(block_material, block_def, data)
-        ezLogging.debug("standard build graph done")
 
         # Verify new images match shapes of input images
         if np.any(np.array(block_material.graph.final_layer_shape) != np.array(data[0].shape)):
@@ -248,7 +267,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = block_material.graph
@@ -260,20 +279,19 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockEvaluate_SimGAN_Discriminator Class" % (None, None))
         super().__init__()
 
+        self.final_module_dicts.append({"module": opPytorch.linear_layer,
+                                        "args": [1]})
+        self.final_module_dicts.append({"module": opPytorch.pytorch_squeeze,
+                                        "args": []})
+        self.final_module_dicts.append({"module": opPytorch.sigmoid_layer,
+                                        "args": []})
+
 
     def build_graph(self, block_material, block_def, data):
         '''
         Build the SimGAN discriminator network
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-
-        self.final_module_dicts.append({"module": opPytorch.linear_layer,
-                                        "args": [20]}) # TODO consider deleting later
-        self.final_module_dicts.append({"module": opPytorch.linear_layer,
-                                        "args": [2]})
-        self.final_module_dicts.append({"module": opPytorch.softmax_layer,
-                                        "args": []})
-
         self.standard_build_graph(block_material, block_def, data)
 
 
@@ -294,7 +312,7 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
-            import pdb; pdb.set_trace()
+            #import pdb; pdb.set_trace()
             return
 
         block_material.output = block_material.graph

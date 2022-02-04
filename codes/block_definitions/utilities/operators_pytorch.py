@@ -34,6 +34,7 @@ from abc import ABC, abstractmethod
 import torch
 from torch import nn
 import numpy as np
+import copy
 
 ### sys relative to root dir
 import sys
@@ -78,12 +79,49 @@ class MimicPyTorchModule(ABC):
         return self.ftn(*args, **self.kwargs)
 
 
-def pytorch_concat(input_shapes, dim=0):
+def pytorch_squeeze(input_shapes, dim=None):
+    class PyTorch_Squeeze(MimicPyTorchModule):
+        '''
+        https://pytorch.org/docs/stable/generated/torch.squeeze.html
+        '''
+        def __init__(self, input_shapes, dim=None):
+            super().__init__(input_shapes, ftn=torch.squeeze, dim=dim)
+
+        def __call__(self, *args):
+            # for some reason, if dim is None, then it erros...someone should get fired
+            if ('dim' in self.kwargs) and (self.kwargs['dim'] is None):
+                del self.kwargs['dim']
+            
+            return super().__call__(*args)
+
+        def get_out_shape(self):
+            shape = list(self.input_shapes[0])
+
+            drop_index = []
+            if ('dim' not in self.kwargs) or (self.kwargs['dim'] is None):
+                for index, value in enumerate(shape):
+                    if value == 1:
+                        drop_index.append(index)
+            else:
+                if shape[self.kwargs['dim']] == 1:
+                    drop_index.append(self.kwargs['dim'])
+            
+            for index in reversed(drop_index):
+                _  = shape.pop(index)
+
+            return tuple(shape)
+
+    return PyTorch_Squeeze(input_shapes, dim)
+
+
+def pytorch_concat(input_shapes, dim=1):
     '''
     PROBLEM: originally was super clever to allow concat to work on any number of items,
     but then I forgot about how the operator_dict will force arity to be well defined...crap.
     I guess for now just assume 2 things being concat and that we can apply this method twice
     to concat 3 things.
+
+    NOTE: going to force dim to never be 0 since we are assuming that it will almost always be batch size
     '''
     class PyTorch_Concat(MimicPyTorchModule):
         '''
@@ -96,7 +134,7 @@ def pytorch_concat(input_shapes, dim=0):
             z = ting(tensors=[x,y])
             print(ting.get_out_shape(), z.shape)
         '''
-        def __init__(self, input_shapes, dim=0):
+        def __init__(self, input_shapes, dim=1):
             # as an attempt to coerce data to not error on concate if number of dimensions differ...
             # check numer of dimensions and flatten to smallest
             num_dims = []
@@ -112,7 +150,11 @@ def pytorch_concat(input_shapes, dim=0):
                         input_shapes[i] = (shape[0], np.array(shape)[1:].prod())
 
             # going to assume input_shapes have the same number of dimensions; if not it will error in __call__
-            dim = dim % smallest_dim
+            if smallest_dim <= 1:
+                raise Exception("Input data has too few dimensions to concat by ezcgp rules.")
+
+            # force dim to be at least 1
+            dim = dim % (smallest_dim-1) + 1
             super().__init__(input_shapes, ftn=torch.cat, dim=dim)
 
         def __call__(self, *args):
@@ -204,7 +246,7 @@ def conv1d_layer(input_shapes, *args):
     '''
     https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html#torch.nn.Conv1d
 
-    TODO!!!!! ADD STRIDE AND THEN ADJUST GET_OUT_sHAPE
+    to make life easier...for now going to enforce input_shape to have at least 3 dimensions
     '''
     class PyTorch_Conv1d(WrapPyTorchModule, nn.Sequential):
         def __init__(self, input_shapes, out_channels, kernel_size=3, stride=1, padding=0, activation=nn.ReLU()):
@@ -235,6 +277,10 @@ def conv1d_layer(input_shapes, *args):
             new_sample_length = (sample_length - self.kernel_size + 2*self.padding)//self.stride + 1
             output_shape = (num_samples, out_channels, new_sample_length)
             return output_shape
+
+    if len(input_shapes[0]) < 3:
+        # we exepct at least (batch size, num channels, image length)
+        raise Exception("Not enough number of dimensions in data to cleanly perform convolution.")
 
     return PyTorch_Conv1d(input_shapes, *args)
 
@@ -323,9 +369,27 @@ def softmax_layer(input_shapes, *args):
     return PyTorch_Softmax(input_shapes, *args)
 
 
+def sigmoid_layer(input_shapes, *args):
+    '''
+    no operator_dict entry yet so it isn't used in evolution
+    https://pytorch.org/docs/stable/generated/torch.nn.Sigmoid.html
+    '''
+    class PyTorch_Sigmoid(WrapPyTorchModule, nn.Sigmoid):
+        def __init__(self, input_shapes):
+            WrapPyTorchModule.__init__(self, input_shapes)
+            nn.Sigmoid.__init__(self)
+
+        def get_out_shape(self):
+            return self.input_shapes[0]
+
+    return PyTorch_Sigmoid(input_shapes, *args)
+
+
 def avg_pool(input_shapes, *args):
     '''
     https://pytorch.org/docs/stable/generated/torch.nn.AvgPool1d.html#torch.nn.AvgPool1d
+
+    # TODO consider forcing padding to be in [0,kernel_size//2]
     '''
     class PyTorch_AvgPool1d(WrapPyTorchModule, nn.AvgPool1d):
         def __init__(self, input_shapes, kernel_size, stride=None, padding=0, ceil_mode=False, count_include_pad=True):
@@ -365,8 +429,11 @@ def max_pool(input_shapes, *args):
             nn.MaxPool1d.__init__(self, kernel_size, stride, padding, dilation, return_indices, ceil_mode)
 
         def get_out_shape(self):
-            features = self.input_shapes[0][-1]
-            return (features - self.kernel_size + 2*self.padding)//self.stride + 1
+            # going to assume 3 dimensions in shape
+            num_samples, num_channels, sample_length = self.input_shapes[0]
+            new_sample_length = (sample_length - self.kernel_size + 2*self.padding)//self.stride + 1
+            output_shape = (num_samples, num_channels, new_sample_length)
+            return output_shape
 
     return PyTorch_MaxPool1d(input_shapes, *args)
 
