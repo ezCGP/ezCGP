@@ -19,7 +19,7 @@ from codes.block_definitions.operators.block_operators import BlockOperators_Sim
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
 from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB
-from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_3Blocks
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock_LimitedMutants
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
@@ -49,7 +49,7 @@ class Problem(ProblemDefinition_Abstract):
                                                argument_def = BlockArguments_SimGAN_Refiner,
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
                                                mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2),
-                                               mate_def=BlockMate_WholeOnly_3Blocks
+                                               mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
                                               )
 
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
@@ -58,7 +58,7 @@ class Problem(ProblemDefinition_Abstract):
                                                      argument_def = BlockArguments_SimGAN_Discriminator,
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                                      mutate_def=BlockMutate_OptB(prob_mutate=0.2),
-                                                     mate_def=BlockMate_WholeOnly_3Blocks
+                                                     mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
                                                     )
 
         train_config_def = self.construct_block_def(nickname = "train_config",
@@ -67,7 +67,7 @@ class Problem(ProblemDefinition_Abstract):
                                                     argument_def = BlockArguments_SimGAN_Train_Config,
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.1),
-                                                    mate_def=BlockMate_WholeOnly_3Blocks
+                                                    mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
                                                    )
 
         self.construct_individual_def(block_defs = [refiner_def, discriminator_def, train_config_def],
@@ -97,14 +97,12 @@ class Problem(ProblemDefinition_Abstract):
         n_individuals = len(population.population)
         refiners = []
         discriminators = []
-        #indiv_inds = []
-        #bad_indiv_inds = []
-        # import pdb; pdb.set_trace()
+        alive_individual_index = []
         for i, indiv in enumerate(population.population):
             if indiv.dead:
-                indiv.fitness.values = (np.inf,)
+                indiv.fitness.values = (-np.inf,)
             else:
-                #indiv_inds.append(i)
+                alive_individual_index.append(i)
                 R, D = indiv.output
                 refiners.append(R.cpu())
                 discriminators.append(D.cpu())
@@ -116,21 +114,31 @@ class Problem(ProblemDefinition_Abstract):
                                                    self.validating_datalist[0],
                                                    'cpu')
         
-        # instead of using indiv_inds I think we can just use the row label of the df
-        #for refiner_rating, ind in zip(refiner_ratings['r'].to_numpy(), indiv_inds):
-        for indx, refiner_rating in refiner_ratings['r'].iteritems():
-            # Use negative ratings because ezCGP does minimization
-            population.population[indx].fitness.values = (-1 * refiner_rating,)
+        for i, refiner_rating in refiner_ratings['r'].iteritems():
+            # kinda paranoid but using the row index of the dataframe instead of assuming that
+            # the dataframe order was preserved to match and zip with alive_individual_index
+            indx = alive_individual_index[i]
+            population.population[indx].fitness.values = (refiner_rating,)
 
 
     def check_convergence(self, universe):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 1 # TODO
+        GENERATION_LIMIT = 5 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
+
+
+    def population_selection(self, universe):
+        for i, indiv in enumerate(universe.population.population):
+            ezLogging.info("Final Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+
+        super().population_selection(universe)
+
+        for i, indiv in enumerate(universe.population.population):
+            ezLogging.info("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
 
 
     def postprocess_generation(self, universe):

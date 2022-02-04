@@ -40,9 +40,9 @@ def main(problem_filename: str,
 
     # create custom logging.logger for this node
     log_formatter = ezLogging.logging_setup(loglevel)
-    if loglevel < logging.WARNING:
-        # true only for DEBUG or INFO
-        log_handler_2stdout = None #ezLogging.logging_2stdout(log_formatter) # TODO change back from None
+    if loglevel == logging.INFO:
+        # true only for INFO
+        log_handler_2stdout = ezLogging.logging_2stdout(log_formatter)
     else:
         log_handler_2stdout = None
     

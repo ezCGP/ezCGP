@@ -36,9 +36,9 @@ class IndividualMaterial():
      * need_evalute: checks the respective boolean flag in all blocks
      and returns True if at least any single block is True
     '''
-    def __init__(self, _id=None):
+    def __init__(self, _id=None, maximize=True):
         self.id = "default"
-        self.fitness = self.ezFitness()
+        self.fitness = self.ezFitness(maximize)
         self.blocks = []
         self.output = []
         self.dead = False
@@ -95,7 +95,7 @@ class IndividualMaterial():
         halloffame compares Fitness objects together rather than Fitness.values so we
         are just going to import deap.base.Fitness to leverage their dunders and other properties
         '''
-        def __init__(self):
+        def __init__(self, maximize=True):
             '''
             okay so weights attr is required by deap.base.Fitness and it HAS to be a sequence.
             if the sequence is shorter than the number of objectives (ie the length of Fitness.values) then
@@ -107,7 +107,11 @@ class IndividualMaterial():
             UPDATE: with a 'newer' version of deap, there is an assertion that self.weights is same len as number of objectives.
             So we are going to manually snip weights to the number of objectives by adding a line to setValues...see below
             '''
-            self.weights = (1,)*1000
+            if maximize:
+                weight = 1
+            else:
+                weight = -1
+            self.weights = (weight,)*1000
             super().__init__(values=())
 
 

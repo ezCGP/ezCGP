@@ -388,6 +388,8 @@ def sigmoid_layer(input_shapes, *args):
 def avg_pool(input_shapes, *args):
     '''
     https://pytorch.org/docs/stable/generated/torch.nn.AvgPool1d.html#torch.nn.AvgPool1d
+
+    # TODO consider forcing padding to be in [0,kernel_size//2]
     '''
     class PyTorch_AvgPool1d(WrapPyTorchModule, nn.AvgPool1d):
         def __init__(self, input_shapes, kernel_size, stride=None, padding=0, ceil_mode=False, count_include_pad=True):

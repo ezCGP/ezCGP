@@ -52,73 +52,84 @@ class MyTorchNetwork(nn.Module):
                                       "output_shape": input_shape}
 
         for node_index in block_material.active_nodes:
-            if node_index < 0:
-                # do nothing. at input node
-                continue
-            elif node_index >= block_def.main_count:
-                # do nothing.
-                continue
-            else:
-                # main node. this is where we evaluate
-                input_connections = block_material[node_index]['inputs']
-                input_shapes = []
-                for input_index in input_connections:
-                    input_dict = self.graph_connections[input_index]
-                    input_shapes.append(input_dict['output_shape'])
-
-                module_name = 'node_%i' % node_index
-                module = block_material[node_index]['ftn']
-
-                args = []
-                node_arg_indices = block_material[node_index]["args"]
-                for node_arg_index in node_arg_indices:
-                    args.append(block_material.args[node_arg_index].value)
-
-                ezLogging.debug("%s - Builing %s; Function: %s, Inputs: %s, Shapes: %s, Args: %s" % (block_material.id,
-                                                                                                     module_name,
-                                                                                                     module,
-                                                                                                     input_connections,
-                                                                                                     input_shapes,
-                                                                                                     args))
-                module_instance = module(input_shapes, *args)
-                if isinstance(module_instance, nn.Module):
-                    self.add_module(name=module_name,
-                                    module=module_instance)
-                    self.graph_connections[node_index] = {"module": module_name,
-                                                          "inputs": input_connections,
-                                                          "output_shape": module_instance.get_out_shape()}
+            try:
+                if node_index < 0:
+                    # do nothing. at input node
+                    continue
+                elif node_index >= block_def.main_count:
+                    # do nothing.
+                    continue
                 else:
-                    self.graph_connections[node_index] = {"module": module_instance,
-                                                          "inputs": input_connections,
-                                                          "output_shape": module_instance.get_out_shape()}
+                    # main node. this is where we evaluate
+                    input_connections = block_material[node_index]['inputs']
+                    input_shapes = []
+                    for input_index in input_connections:
+                        input_dict = self.graph_connections[input_index]
+                        input_shapes.append(input_dict['output_shape'])
+
+                    module_name = 'node_%i' % node_index
+                    module = block_material[node_index]['ftn']
+
+                    args = []
+                    node_arg_indices = block_material[node_index]["args"]
+                    for node_arg_index in node_arg_indices:
+                        args.append(block_material.args[node_arg_index].value)
+
+                    ezLogging.debug("%s - Builing %s; Function: %s, Inputs: %s, Shapes: %s, Args: %s" % (block_material.id,
+                                                                                                         module_name,
+                                                                                                         module,
+                                                                                                         input_connections,
+                                                                                                         input_shapes,
+                                                                                                         args))
+                    module_instance = module(input_shapes, *args)
+                    if isinstance(module_instance, nn.Module):
+                        self.add_module(name=module_name,
+                                        module=module_instance)
+                        self.graph_connections[node_index] = {"module": module_name,
+                                                              "inputs": input_connections,
+                                                              "output_shape": module_instance.get_out_shape()}
+                    else:
+                        self.graph_connections[node_index] = {"module": module_instance,
+                                                              "inputs": input_connections,
+                                                              "output_shape": module_instance.get_out_shape()}
+            except Exception as err:
+                ezLogging.critical("crap #0 %s" % err)
+                #import pdb; pdb.set_trace()
+                raise Exception(err)
 
         # add any final modules...going to assume it is always nn.Module type
         self.final_linear_connections = [] # synonomous with graph_connections ordered dict but linear so just a list
         for i, module_dict in enumerate(final_module_dicts):
-            module = module_dict["module"]
-            module_name = "final_module_%i" % i
-            args = module_dict["args"]
-            if i == 0:
-                last_main_active = block_material[block_def.main_count]
-                input_shapes = [self.graph_connections[last_main_active]["output_shape"]]
-            else:
-                input_shapes = [self.final_linear_connections[-1]["output_shape"]]
+            try:
+                module = module_dict["module"]
+                module_name = "final_module_%i" % i
+                args = module_dict["args"]
+                if i == 0:
+                    last_main_active = block_material[block_def.main_count]
+                    input_shapes = [self.graph_connections[last_main_active]["output_shape"]]
+                else:
+                    input_shapes = [self.final_linear_connections[-1]["output_shape"]]
 
-            ezLogging.debug("%s - Builing %s; Function: %s, Inputs: PrevFinal, Shapes: %s, Args: %s" % (block_material.id,
-                                                                                                     module_name,
-                                                                                                     module,
-                                                                                                     input_shapes,
-                                                                                                     args))
-            module_instance = module(input_shapes, *args)
-            if isinstance(module_instance, nn.Module):
-                self.add_module(name=module_name,
-                                module=module_instance)
-                final_module_dict = {"module": module_name,
-                                     "output_shape": module_instance.get_out_shape()}
-            else:
-                final_module_dict = {"module": module_instance,
-                                     "output_shape": module_instance.get_out_shape()}
-            self.final_linear_connections.append(final_module_dict)
+                ezLogging.debug("%s - Builing %s; Function: %s, Inputs: PrevFinal, Shapes: %s, Args: %s" % (block_material.id,
+                                                                                                         module_name,
+                                                                                                         module,
+                                                                                                         input_shapes,
+                                                                                                         args))
+                module_instance = module(input_shapes, *args)
+                if isinstance(module_instance, nn.Module):
+                    self.add_module(name=module_name,
+                                    module=module_instance)
+                    final_module_dict = {"module": module_name,
+                                         "output_shape": module_instance.get_out_shape()}
+                else:
+                    final_module_dict = {"module": module_instance,
+                                         "output_shape": module_instance.get_out_shape()}
+                self.final_linear_connections.append(final_module_dict)
+
+            except Exception as err:
+                ezLogging.critical("crap #1 %s" % err)
+                #import pdb; pdb.set_trace()
+                raise Exception(err)
 
         self.final_layer_shape = module_instance.get_out_shape()
         self.genome_length = block_def.genome_count
