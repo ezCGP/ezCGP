@@ -104,5 +104,14 @@ class IndividualDefinition():
         '''
         wrapper method that just directs evaluate call to the IndividualEvaluate class definition of mate
         '''
-        ezLogging.warning("%s - Sending to Individual Evaluate Definition" % (indiv_material.id))
-        self.evaluate_def.evaluate(indiv_material, self, training_datapair, validation_datapair)
+        need_evaluate = False
+        for block_material in indiv_material.blocks:
+            if block_material.need_evaluate:
+                need_evaluate = True
+                break
+
+        if need_evaluate:
+            ezLogging.warning("%s - Sending to Individual Evaluate Definition" % (indiv_material.id))
+            self.evaluate_def.evaluate(indiv_material, self, training_datapair, validation_datapair)
+        else:
+            ezLogging.warning("%s - Preserved from Previous Generation; No Need to Evaluate" % (indiv_material.id))
