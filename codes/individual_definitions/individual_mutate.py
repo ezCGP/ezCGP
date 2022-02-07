@@ -45,30 +45,6 @@ class IndividualMutate_Abstract(ABC):
         pass
 
 
-    def set_need_evaluate(self,
-                          mutant_material: IndividualMaterial,
-                          mutated_block_index: int):
-        # going to assume we always mutate an active part of the genome so every block needs to be re-evaluated
-        # TODO doc more
-        for block_index, block_material in enumerate(mutant_material.blocks):
-            if block_index >= mutated_block_index:
-                block_material.need_evaluate = True
-    
-    
-    def post_process(self,
-                     mutant_material: IndividualMaterial,
-                     indiv_def, #: IndividualDefinition,
-                     mutated_block_index: int):
-        # set need_evaluate
-        # and set ne ids?
-        mutant_material.set_id()
-        for block_index, block_material in enumerate(mutant_material.blocks):
-            #block_material.set_id(mutant_material.id) #moved to individual_mutate.set_id()
-            if block_index >= mutated_block_index:
-                block_material.need_evaluate = True
-        indiv_def.blocks[mutated_block_index].get_actives(block_material)
-
-
 
 class IndividualMutate_RollOnEachBlock(IndividualMutate_Abstract):
     '''
@@ -92,7 +68,6 @@ class IndividualMutate_RollOnEachBlock(IndividualMutate_Abstract):
                 for _ in range(block_def.num_mutants):
                     mutant_material = deepcopy(indiv_material)
                     block_def.mutate(mutant_material.blocks[block_index])
-                    #self.set_need_evaluate(mutant_material, block_index)
                     indiv_def.postprocess_evolved_individual(mutant_material, block_index)
                     mutants.append(mutant_material)
         return mutants
@@ -122,6 +97,7 @@ class IndividualMutate_RollOnEachBlock_LimitedMutants(IndividualMutate_Abstract)
             for _ in range(self.num_mutants):
                 # set up new mutants
                 mutated = False
+                first_mutated_block_index = None
                 mutant_material = deepcopy(indiv_material)
 
                 for block_index, block_def in enumerate(indiv_def.block_defs):
@@ -130,8 +106,11 @@ class IndividualMutate_RollOnEachBlock_LimitedMutants(IndividualMutate_Abstract)
                         block_def.mutate(mutant_material.blocks[block_index])
                         indiv_def.postprocess_evolved_individual(mutant_material, block_index)
                         mutated = True
+                        if first_mutated_block_index is None:
+                            first_mutated_block_index = block_index
 
                 if mutated:
+                    indiv_def.postprocess_evolved_individual(mutant_material, first_mutated_block_index)
                     mutants.append(mutant_material)
 
         return mutants
