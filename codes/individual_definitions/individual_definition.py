@@ -79,7 +79,7 @@ class IndividualDefinition():
         self[evolved_block_index].get_actives(evolved_material[evolved_block_index])
         evolved_material.dead = False
         evolved_material.output = []
-        evolved_material.fitness.values = ()
+        evolved_material.set_worst_score()
 
 
     def mutate(self, indiv_material: IndividualMaterial):

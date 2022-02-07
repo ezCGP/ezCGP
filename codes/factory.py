@@ -17,8 +17,6 @@ import pickle as pkl
 from copy import deepcopy
 from typing import List
 
-import pdb;
-
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
@@ -77,6 +75,7 @@ class FactoryDefinition():
         for i, genome_seed in enumerate(genome_seeds):
             indiv = self.build_individual_from_seed(problem.indiv_def,
                                                     genome_seed,
+                                                    problem.maximize_objectives,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
                 # if build_individual failed then we don't want to add to population
@@ -84,17 +83,21 @@ class FactoryDefinition():
 
         for i in range(len(my_population.population), population_size):
             indiv = self.build_individual(problem.indiv_def,
+                                          problem.maximize_objectives,
                                           indiv_id="initPop%i-%i" % (node_rank,i))
             my_population.population.append(indiv)
 
         return my_population
 
 
-    def build_individual(self, indiv_def: IndividualDefinition, indiv_id=None):
+    def build_individual(self,
+                         indiv_def: IndividualDefinition,
+                         maximize_objectives_list: List[bool],
+                         indiv_id=None):
         '''
         TODO
         '''
-        indiv_material = IndividualMaterial()
+        indiv_material = IndividualMaterial(maximize_objectives_list)
         indiv_material.set_id(indiv_id)
         for block_def in indiv_def.block_defs:
             block_material = self.build_block(block_def, indiv_id=indiv_id)
@@ -102,7 +105,11 @@ class FactoryDefinition():
         return indiv_material
 
 
-    def build_individual_from_seed(self, indiv_def: IndividualDefinition, block_seeds: List[str], indiv_id=None):
+    def build_individual_from_seed(self,
+                                   indiv_def: IndividualDefinition,
+                                   block_seeds: List[str],
+                                   maximize_objectives_list: List[bool],
+                                   indiv_id=None):
         '''
         block_seeds will be a list of file paths. number of blocks in individual need to match block_seed length
         If we don't have a seed for a block, set it to None like [None, None, seed.npz]
@@ -143,7 +150,7 @@ class FactoryDefinition():
                 indiv_material = None
                 
         if (isinstance(block_seeds, list)) and (len(block_seeds)>0):
-            indiv_material = IndividualMaterial()
+            indiv_material = IndividualMaterial(maximize_objectives_list)
             indiv_material.set_id(indiv_id)
             for ith_block in range(indiv_def.block_count):
                 # trying to refrain from zipping block_defs and block_seeds because it won't error if len don't match

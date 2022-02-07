@@ -9,7 +9,7 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from problems.problem_definition import ProblemDefinition_Abstract
+from problems.problem_definition import ProblemDefinition_Abstract, welless_check_decorator
 from codes.factory import FactoryDefinition
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
@@ -18,7 +18,7 @@ from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Sim
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
 from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
-from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB, BlockMutate_ArgsOnly
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock_LimitedMutants
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
@@ -66,7 +66,7 @@ class Problem(ProblemDefinition_Abstract):
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
                                                     argument_def = BlockArguments_SimGAN_Train_Config,
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                                    mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.1),
+                                                    mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1),
                                                     mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
                                                    )
 
@@ -89,6 +89,11 @@ class Problem(ProblemDefinition_Abstract):
         self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
 
 
+    def set_optimization_goals(self):
+        self.maximize_objectives = [True]
+
+
+    @welless_check_decorator
     def objective_functions(self, population):
         '''
         Get the best refiner and discriminator from each individual in the population and do a tournament selection to rate them
@@ -99,9 +104,7 @@ class Problem(ProblemDefinition_Abstract):
         discriminators = []
         alive_individual_index = []
         for i, indiv in enumerate(population.population):
-            if indiv.dead:
-                indiv.fitness.values = (-np.inf,)
-            else:
+            if not indiv.dead:
                 alive_individual_index.append(i)
                 R, D = indiv.output
                 refiners.append(R.cpu())
