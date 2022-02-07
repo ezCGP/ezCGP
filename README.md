@@ -5,6 +5,7 @@ Be sure to checkout the [Wiki](https://github.com/ezCGP/ezCGP/wiki) for more doc
 
 # Quickstart
 Create environment and download dependencies
+(use `conda_pytorch_environment.yml` instead if you need to use pytorch)
 ```
 $ git clone https://github.com/ezCGP/ezCGP.git
 $ cd ezcgp
