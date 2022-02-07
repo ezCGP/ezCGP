@@ -14,6 +14,7 @@ from codes.factory import FactoryDefinition
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
+from codes.utilities.simgan_feature_eval import calc_feature_distances
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
@@ -125,12 +126,14 @@ class Problem(ProblemDefinition_Abstract):
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
+
+            refiner_feature_dist = calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
         
         # instead of using indiv_inds I think we can just use the row label of the df
         #for refiner_rating, ind in zip(refiner_ratings['r'].to_numpy(), indiv_inds):
         for indx, refiner_rating in refiner_ratings['r'].iteritems():
             # Use negative ratings because ezCGP does minimization
-            population.population[indx].fitness.values = (-1 * refiner_rating,)
+            population.population[indx].fitness.values = (-1 * refiner_rating, -1 * refiner_feature_dist[indx]["kl_div"], -1 * refiner_feature_dist[indx]["wasserstein_dist"])
 
 
     def check_convergence(self, universe):
