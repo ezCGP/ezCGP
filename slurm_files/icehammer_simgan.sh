@@ -7,8 +7,6 @@
 #SBATCH -t 0-08:00                                   # job will run at most 8 hours D-HH:MM
 #SBATCH --mem=128gb                                  # memory limit
 #SBATCH --output=simgan.out # output file relative to ezcgp folder
-#SBATCH --mail-type=ALL                              # Will send a status email based on any combination of a,b,e
-#SBATCH --mail-user=rtalebi3@gatech.edu              # Where to send email updates to
 echo "Started on `/bin/hostname`" # prints name of compute node job was started on
 
 nvidia-smi
