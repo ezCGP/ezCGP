@@ -45,14 +45,6 @@ class IndividualMate_Abstract(ABC):
         pass
 
 
-    def set_need_evaluate(self,
-                          child: IndividualMaterial,
-                          mated_block_index: int):
-        for block_index, block_material in enumerate(child.blocks):
-            if block_index >= mated_block_index:
-                block_material.need_evaluate = True
-
-
 
 class IndividualMate_RollOnEachBlock(IndividualMate_Abstract):
     '''

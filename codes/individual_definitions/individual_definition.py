@@ -72,10 +72,14 @@ class IndividualDefinition():
         evolved_material.set_id()
         ezLogging.debug("%s - Inside postprocess_evolved_individual, block_index: %i, to process a new individual" % (evolved_material.id, evolved_block_index))
         for block_index, block_material in enumerate(evolved_material.blocks):
-            #block_material.set_id(evolved_material.id) # now moved into individual_material.set_id()
             if block_index >= evolved_block_index:
                 block_material.need_evaluate = True
+                block_material.dead = False
+                block_material.output = []
         self[evolved_block_index].get_actives(evolved_material[evolved_block_index])
+        evolved_material.dead = False
+        evolved_material.output = []
+        evolved_material.set_worst_score()
 
 
     def mutate(self, indiv_material: IndividualMaterial):

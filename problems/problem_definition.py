@@ -39,6 +39,31 @@ from codes.block_definitions.operators.block_operators import BlockOperators_Abs
 from codes.block_definitions.arguments.block_arguments import BlockArguments_Abstract
 
 
+def welless_check_decorator(func):
+    '''
+    just a convenient decorator to make it easier for the user to remember to check for dead
+    individuals and to quickly assign worst possible scores
+
+    inputs:
+        self -> Problem instance
+        population -> Population instance
+    '''
+    def inner(self, population):
+        for indiv in population.population:
+            if indiv.dead:
+                indiv.set_worst_score()
+            else:
+                but_really_is_dead = False
+                # double check just to be sure
+                for block in indiv.blocks:
+                    if block.dead:
+                        indiv.dead = True
+                        indiv.set_worst_score()
+        
+        func(self, population)
+
+    return inner
+
 
 class ProblemDefinition_Abstract(ABC):
     '''
@@ -77,7 +102,8 @@ class ProblemDefinition_Abstract(ABC):
         self.Factory = factory_def
         self.mpi = mpi
         self.genome_seeds = genome_seeds
-        self.number_of_objectives = number_of_objectives
+        self.set_optimization_goals()
+        self.number_of_objectives = len(self.maximize_objectives)
 
 
     @abstractmethod
@@ -87,6 +113,25 @@ class ProblemDefinition_Abstract(ABC):
         validating data + labels
         '''
         pass
+
+
+    @abstractmethod
+    def set_optimization_goals(self):
+        '''
+        Fill in the maximize_objectives attribute as a tuple/list of boolean values
+        where if the ith element is True, that indicates that the ith objective
+        is to be maximized in the optimization, and False indicates minimization.
+
+        Ex:
+        self.maximize_objectives = [True, True, False]
+
+        This tuple will be sued to set the weights and establish the number of
+        objectives for the IndividualMaterial.Fitness class,
+        And will be used to set the worst possible score for in individual_evaluate
+        if the individual is dead.
+        '''
+        pass
+
 
 
     @abstractmethod
