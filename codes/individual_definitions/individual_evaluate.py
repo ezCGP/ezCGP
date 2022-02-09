@@ -380,7 +380,8 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
-            block_outputs.append(block_material.output)
+            # adding deepcopy to make sure we can save the 'untrained' states in block.output and that they don't get overwritten in training
+            block_outputs.append(deepcopy(block_material.output))
 
         untrained_refiner, untrained_discriminator, train_config = block_outputs
         untrained_refiner.to(train_config['device'])

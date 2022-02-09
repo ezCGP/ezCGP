@@ -2,6 +2,9 @@
 import os
 import numpy as np
 import logging
+import torch
+import pickle as pkl
+from copy import deepcopy
 
 ### sys relative to root dir
 import sys
@@ -10,7 +13,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 from problems.problem_definition import ProblemDefinition_Abstract, welless_check_decorator
-from codes.factory import FactoryDefinition
+from codes.factory import Factory_SimGAN
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
@@ -35,7 +38,7 @@ class Problem(ProblemDefinition_Abstract):
     def __init__(self):
         population_size = 4 #must be divisible by 4 if doing mating
         number_universe = 1
-        factory = FactoryDefinition
+        factory = Factory_SimGAN
         mpi = False
         genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
@@ -128,7 +131,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 5 # TODO
+        GENERATION_LIMIT = 1 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
@@ -144,13 +147,56 @@ class Problem(ProblemDefinition_Abstract):
             ezLogging.info("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
 
 
+    def save_pytorch_individual(self, universe, original_individual):
+        '''
+        can't use save_things.save_population() because can't pickle nn.Module,
+        so we're going to save the block and individual outputs into a folder for each individual,
+        then delete those outputs so we can use save_things.save_population() normally.
+        '''
+        ezLogging.debug("Saving individual %s from generation %i" % (original_individual.id, universe.generation))
+        # deepcopy in-case we still plan on using individual for another evolution
+        individual = deepcopy(original_individual)
+
+        # handle file names and locations
+        name = "gen_%04d_indiv_%s" % (universe.generation, individual.id)
+        attachment_folder = os.path.join(universe.output_folder, name)
+        os.makedirs(attachment_folder, exist_ok=False)
+
+        # save models
+        torch.save(individual[0].output.state_dict(),
+                   os.path.join(attachment_folder, 'untrained_refiner'))
+        torch.save(individual[1].output.state_dict(),
+                   os.path.join(attachment_folder, 'untrained_discriminator'))
+        torch.save(individual.output[0].state_dict(),
+                   os.path.join(attachment_folder, 'trained_refiner'))
+        torch.save(individual.output[1].state_dict(),
+                   os.path.join(attachment_folder, 'trained_discriminator'))
+        with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
+            pkl.dump(individual[2].output, f)
+
+        # now overwrite
+        individual[0].output = []
+        individual[1].output = []
+        individual[2].output = []
+        individual.output = []
+
+        # save individual
+        indiv_file = os.path.join(universe.output_folder, name+".pkl")
+        with open(indiv_file, "wb") as f:
+            pkl.dump(individual, f)
+
+
     def postprocess_generation(self, universe):
         '''
         Save fitness scores and the refiners on the pareto front of fitness scroes
         '''
         ezLogging.info("Post Processing Generation Run")
         save_things.save_fitness_scores(universe)
+        
+        for individual in universe.population.population:
+            self.save_pytorch_individual(universe, individual)
 
+        '''
         pareto_front = self.get_pareto_front(universe)
         for ind in pareto_front:
             indiv = universe.population.population[ind]
@@ -170,7 +216,7 @@ class Problem(ProblemDefinition_Abstract):
             # plt.show()
 
             save_things.save_pytorch_model(universe, indiv.output[0], indiv.id + '-R') # Save refiner network and id
-            # TODO: consider saving discriminator
+            # TODO: consider saving discriminator'''
 
         # TODO: consider plotting the pareto front/metrics for the population
 
