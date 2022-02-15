@@ -17,6 +17,7 @@ from codes.factory import Factory_SimGAN
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
+from codes.utilities.simgan_fid_metric import get_fid_scores
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
@@ -119,12 +120,14 @@ class Problem(ProblemDefinition_Abstract):
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
-        
+            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
+            
+
         for i, refiner_rating in refiner_ratings['r'].iteritems():
             # kinda paranoid but using the row index of the dataframe instead of assuming that
             # the dataframe order was preserved to match and zip with alive_individual_index
             indx = alive_individual_index[i]
-            population.population[indx].fitness.values = (refiner_rating,)
+            population.population[indx].fitness.values = (refiner_rating, refiner_fids[i])
 
 
     def check_convergence(self, universe):
