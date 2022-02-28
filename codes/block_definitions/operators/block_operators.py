@@ -62,14 +62,12 @@ class BlockOperators_Abstract():
         if module_aliases is None:
             module_aliases = deepcopy(module_names)
         else:
-            assert(len(module_aliases) == len(module_names)
-                   ), "module names and aliases need to be the same length"
+            assert(len(module_aliases) == len(module_names)), "module names and aliases need to be the same length"
 
         for name, alias in zip(module_names, module_aliases):
             #globals()[alias] = __import__(name)
             # going to use importlib.import_module instead of __import __ because of convention and to do better absolute/relative imports
-            globals()[alias] = importlib.import_module(
-                "codes.block_definitions.utilities.%s" % name)
+            globals()[alias] = importlib.import_module("codes.block_definitions.utilities.%s" % name)
             # what about globals().update({alias: ...})
             self.operator_dict.update(globals()[alias].operator_dict)
 
@@ -314,6 +312,10 @@ class BlockOperators_SimGAN_Refiner(BlockOperators_Abstract):
         weight_dict = {}
         for module in modules:
             weight_dict.update(self.set_equal_weights(module))
+
+        # From Issue223 we identified that the outputs from these primitives would just be destructive for the refiner
+        weight_dict.pop(operators_pytorch.minibatch_discrimination)
+        weight_dict.pop(operators_pytorch.feature_extraction)
 
         self.init_from_weight_dict(weight_dict)
 
