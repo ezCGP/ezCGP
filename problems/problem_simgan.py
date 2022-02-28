@@ -120,10 +120,7 @@ class Problem(ProblemDefinition_Abstract):
                                                    self.validating_datalist[0],
                                                    'cpu')
         
-        for i, refiner_rating in refiner_ratings['r'].iteritems():
-            # kinda paranoid but using the row index of the dataframe instead of assuming that
-            # the dataframe order was preserved to match and zip with alive_individual_index
-            indx = alive_individual_index[i]
+        for indx, refiner_rating in zip(alive_individual_index, refiner_ratings['r']):
             population.population[indx].fitness.values = (refiner_rating,)
 
 
