@@ -81,7 +81,6 @@ class ProblemDefinition_Abstract(ABC):
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
                  genome_seeds: List=[],
-                 number_of_objectives: int=None,
                  hall_of_fame_size: int=None):
         '''
         genome_seeds:
