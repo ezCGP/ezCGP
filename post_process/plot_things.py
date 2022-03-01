@@ -140,14 +140,21 @@ def plot_pareto_front(axis,
                       minimization=True,
                       color='c', label='',
                       x_objective_index=0, y_objective_index=1,
+                      objective_names=None,
                       max_x=1, max_y=1):
     '''
     fitness_scores -> np array of shape (population size before population selection, number of objective scores defined in problem())
     x/y_objective_index -> say we have 4 objective scores, which of the 4 should be plotted on the x-axis and which on the y-axis...by index
     '''
-    # redcue fitness scores to the 2 objectives we care about
+    # reduce fitness scores to the 2 objectives we care about
+    
     fitness_scores = fitness_scores[:, [x_objective_index,y_objective_index]]
-
+    
+    #remove inf values
+    mask = np.all(np.isnan(fitness_scores) | np.isinf(fitness_scores), axis=1)
+    fitness_scores = fitness_scores[~mask]
+    
+    print(fitness_scores)
     if max_x is None:
         max_x = fitness_scores[:,0].max()
     if max_y is None:
@@ -168,10 +175,12 @@ def plot_pareto_front(axis,
 
     axis.set_xlim(0,max_x)
     axis.set_ylim(0,max_y)
-    axis.set_title("Pareto Front")
-
-    # Calculate the Area under the Curve as a Riemann sum
+    axis.set_xlabel(objective_names[x_objective_index])
+    axis.set_ylabel(objective_names[y_objective_index])
+    
     auc = np.sum(np.diff(pareto_scores[:,0])*pareto_scores[0:-1,1])
+    axis.set_title(f"Pareto Front AUC: {auc}")
+    # Calculate the Area under the Curve as a Riemann sum
     return auc
 
 
@@ -183,7 +192,6 @@ def plot_pareto_front_from_fitness_npz(axis, population_fitness_npz, minimizatio
         # then undo the negation here
         fitness_values *= -1
     auc = plot_pareto_front(axis, fitness_values, minimization, **kwargs)
-
 
 def plot_pareto_front_from_fitness_npz_all_generations(axis, output_folder, minimization, **kwargs):
     '''
@@ -200,7 +208,6 @@ def plot_pareto_front_from_fitness_npz_all_generations(axis, output_folder, mini
     all_npzs = sorted(glob.glob(os.path.join(output_folder, "gen*_fitness.npz")))
     if len(all_npzs)==0:
         print("couldn't find any fitness npzs")
-        import pdb; pdb.set_trace()
 
     for i, npz in enumerate(all_npzs):
         generation = int(os.path.basename(npz)[3:7]) # gen \d\d\d\d _fitness.npz

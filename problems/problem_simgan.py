@@ -28,7 +28,7 @@ from codes.individual_definitions.individual_mutate import IndividualMutate_Roll
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
-# from post_process import plot_things
+from post_process import plot_things
 
 
 class Problem(ProblemDefinition_Abstract):
@@ -37,7 +37,7 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 4 #must be divisible by 4 if doing mating
+        population_size = 16 #must be divisible by 4 if doing mating
         number_universe = 1
         factory = Factory_SimGAN
         mpi = False
@@ -94,7 +94,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [True]
+        self.maximize_objectives = [True, False]
 
 
     @welless_check_decorator
@@ -220,7 +220,17 @@ class Problem(ProblemDefinition_Abstract):
             # TODO: consider saving discriminator'''
 
         # TODO: consider plotting the pareto front/metrics for the population
-
+        ezLogging.info(f"fitnesscores {universe.pop_fitness_scores}")
+        fig, axes = plot_things.plot_init()
+        auc = plot_things.plot_pareto_front(axes[0,0],
+                                                    universe.pop_fitness_scores,
+                                                    minimization=True,
+                                                    objective_names=['Tournament', 'FID'],
+                                                    max_x=None,
+                                                    max_y=None)
+        plot_things.plot_legend(fig)
+        plot_things.plot_save(fig, os.path.join(universe.output_folder, f"ting{universe.generation}.jpg"))
+        ezLogging.info(f"AUC: {auc}")
 
     def postprocess_universe(self, universe):
         '''
