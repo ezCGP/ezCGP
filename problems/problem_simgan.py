@@ -94,7 +94,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [True, True]
+        self.maximize_objectives = [True, False]
 
 
     @welless_check_decorator
