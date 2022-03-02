@@ -52,7 +52,7 @@ class Problem(ProblemDefinition_Abstract):
                                                operator_def = BlockOperators_SimGAN_Refiner, 
                                                argument_def = BlockArguments_SimGAN_Refiner,
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
-                                               mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2),
+                                               mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
                                                mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                               )
 
@@ -61,7 +61,7 @@ class Problem(ProblemDefinition_Abstract):
                                                      operator_def = BlockOperators_SimGAN_Discriminator, 
                                                      argument_def = BlockArguments_SimGAN_Discriminator,
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
-                                                     mutate_def=BlockMutate_OptB(prob_mutate=0.2),
+                                                     mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
                                                      mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                     )
 
@@ -70,7 +70,7 @@ class Problem(ProblemDefinition_Abstract):
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
                                                     argument_def = BlockArguments_SimGAN_Train_Config,
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                                    mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1),
+                                                    mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                    )
 
