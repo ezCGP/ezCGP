@@ -143,10 +143,12 @@ class Problem(ProblemDefinition_Abstract):
         for i, indiv in enumerate(universe.population.population):
             ezLogging.info("Final Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
 
-        super().population_selection(universe)
+        next_pop = super().population_selection(universe)
 
-        for i, indiv in enumerate(universe.population.population):
+        for i, indiv in enumerate(next_pop):
             ezLogging.info("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+
+        return next_pop
 
 
     def save_pytorch_individual(self, universe, original_individual):
