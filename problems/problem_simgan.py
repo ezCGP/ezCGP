@@ -53,7 +53,7 @@ class Problem(ProblemDefinition_Abstract):
                                                argument_def = BlockArguments_SimGAN_Refiner,
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
                                                mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2),
-                                               mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
+                                               mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                               )
 
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
@@ -62,7 +62,7 @@ class Problem(ProblemDefinition_Abstract):
                                                      argument_def = BlockArguments_SimGAN_Discriminator,
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                                      mutate_def=BlockMutate_OptB(prob_mutate=0.2),
-                                                     mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
+                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                     )
 
         train_config_def = self.construct_block_def(nickname = "train_config",
@@ -71,7 +71,7 @@ class Problem(ProblemDefinition_Abstract):
                                                     argument_def = BlockArguments_SimGAN_Train_Config,
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1),
-                                                    mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
+                                                    mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                    )
 
         self.construct_individual_def(block_defs = [refiner_def, discriminator_def, train_config_def],
