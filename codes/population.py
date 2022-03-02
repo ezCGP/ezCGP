@@ -124,3 +124,5 @@ class PopulationDefinition():
         '''
         if self.hall_of_fame is not None:
             self.hall_of_fame.update(self.population)
+            ezLogging.debug("Updated Hall of Fame to size %i" % (len(self.hall_of_fame.items)))
+            print("updated hall of fame"); import pdb; pdb.set_trace()
