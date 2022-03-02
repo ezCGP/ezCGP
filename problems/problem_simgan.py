@@ -141,12 +141,12 @@ class Problem(ProblemDefinition_Abstract):
 
     def population_selection(self, universe):
         for i, indiv in enumerate(universe.population.population):
-            ezLogging.info("Final Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+            ezLogging.warning("Final Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
 
         next_pop = super().population_selection(universe)
 
         for i, indiv in enumerate(next_pop):
-            ezLogging.info("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+            ezLogging.warning("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
 
         return next_pop
 
