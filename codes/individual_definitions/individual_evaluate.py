@@ -369,7 +369,10 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
 
         # Build the Graphs/Networks
         block_outputs = []
-        for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
+        # going to go in reverse order since we need an flag fromTrain_Config to guide evaluation of discriminator
+        for block_index in range(indiv_def.block_count-1, -1, -1):
+            block_material = indiv_material.blocks[block_index]
+            block_def = indiv_def.block_defs[block_index]
             if block_material.need_evaluate:
                 ezLogging.info("%s - Sending to %ith BlockDefinition %s to Evaluate" % (indiv_material.id, block_index, block_def.nickname))
                 block_def.evaluate(block_material, training_datalist, None, None)
@@ -381,9 +384,15 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
             # adding deepcopy to make sure we can save the 'untrained' states in block.output and that they don't get overwritten in training
-            block_outputs.append(deepcopy(block_material.output))
+            block_outputs += deepcopy(block_material.output)
 
-        untrained_refiner, untrained_discriminator, train_config = block_outputs
+            if block_index == 2:
+                assert("train" in block_def.nickname and "config" in block_def.nickname), "Our assumption that index 2 is train_config block is wrong!"
+                if (not hasattr(indiv_material[1], 'train_local_loss')) or (indiv_material[1].train_local_loss != block_material.ouptut[0]['train_local_loss']):
+                    indiv_material[1].train_local_loss = block_material.output[0]['train_local_loss']
+                    indiv_material[1].need_evaluate = True
+
+        train_config, untrained_discriminator, untrained_local_discriminator, untrained_refiner = block_outputs
         untrained_refiner.to(train_config['device'])
         untrained_discriminator.to(train_config['device'])
 

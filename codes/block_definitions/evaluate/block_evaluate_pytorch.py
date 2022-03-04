@@ -270,7 +270,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
             #import pdb; pdb.set_trace()
             return
 
-        block_material.output = block_material.graph
+        block_material.output = [block_material.graph]
 
 
 
@@ -306,16 +306,26 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
+            # local discriminator
+            if block_material.train_local_loss:
+                local_input = training_datalist[0] # TODO...fake shape  for now
+                self.build_graph(block_material, block_def, [local_input])
+                block_material.local_graph = block_material.graph
+                block_material.graph = None
+            else:
+                block_material.local_graph = None
+
+            # discriminator
             input_images = training_datalist[0]
             self.build_graph(block_material, block_def, [input_images])
-            #supplements.append(block_material.graph)
+        
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             #import pdb; pdb.set_trace()
             return
 
-        block_material.output = block_material.graph
+        block_material.output = [block_material.graph, block_material.local_graph]
 
 
 
@@ -337,4 +347,4 @@ class BlockEvaluate_SimGAN_Train_Config(BlockEvaluate_Abstract):
         training_config_dict = training_datalist[-1]
         output_list = self.standard_evaluate(block_material, block_def, [training_config_dict])
         training_config_dict = output_list[0]
-        block_material.output = training_config_dict
+        block_material.output = [training_config_dict]
