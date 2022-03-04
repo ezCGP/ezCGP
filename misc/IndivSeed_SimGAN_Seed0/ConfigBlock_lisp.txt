@@ -1,1 +1,1 @@
-[simgan_train_config,-1n,100,50,50,5,5,0.0001,0.0001,0.0001,True]
+[simgan_train_config,-1n,100,50,50,5,5,0.0001,0.0001,0.0001,True,True]
