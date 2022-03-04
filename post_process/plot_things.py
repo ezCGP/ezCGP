@@ -141,6 +141,7 @@ def plot_pareto_front(axis,
                       color='c', label='',
                       x_objective_index=0, y_objective_index=1,
                       objective_names=None,
+                      maximize_objectives=None,
                       max_x=1, max_y=1):
     '''
     fitness_scores -> np array of shape (population size before population selection, number of objective scores defined in problem())
@@ -153,8 +154,19 @@ def plot_pareto_front(axis,
     #remove inf values
     mask = np.all(np.isnan(fitness_scores) | np.isinf(fitness_scores), axis=1)
     fitness_scores = fitness_scores[~mask]
-    
-    print(fitness_scores)
+
+    #Convert max objectives to min (*-1 to points) so that we can make nice plot
+    max_obj = [maximize_objectives[x_objective_index], 
+               maximize_objectives[y_objective_index]]
+   
+    labels = [objective_names[x_objective_index], 
+              objective_names[y_objective_index]]
+
+    for i, obj in enumerate(max_obj):
+        if obj == True:
+            fitness_scores[:, i] *= -1
+            labels[i] = labels[i] + ' (negated)'
+
     if max_x is None:
         max_x = fitness_scores[:,0].max()
     if max_y is None:
@@ -175,8 +187,8 @@ def plot_pareto_front(axis,
 
     axis.set_xlim(0,max_x)
     axis.set_ylim(0,max_y)
-    axis.set_xlabel(objective_names[x_objective_index])
-    axis.set_ylabel(objective_names[y_objective_index])
+    axis.set_xlabel(labels[0])
+    axis.set_ylabel(labels[1])
     
     auc = np.sum(np.diff(pareto_scores[:,0])*pareto_scores[0:-1,1])
     axis.set_title(f"Pareto Front AUC: {auc}")

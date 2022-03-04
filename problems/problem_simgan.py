@@ -37,7 +37,7 @@ class Problem(ProblemDefinition_Abstract):
     mating, mutating, operators etc with multiple blocks.
     '''
     def __init__(self):
-        population_size = 16 #must be divisible by 4 if doing mating
+        population_size = 4 #must be divisible by 4 if doing mating
         number_universe = 1
         factory = Factory_SimGAN
         mpi = False
@@ -132,7 +132,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 1 # TODO
+        GENERATION_LIMIT = 50 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
@@ -226,6 +226,7 @@ class Problem(ProblemDefinition_Abstract):
                                                     universe.pop_fitness_scores,
                                                     minimization=True,
                                                     objective_names=['Tournament', 'FID'],
+                                                    maximize_objectives=self.maximize_objectives,
                                                     max_x=None,
                                                     max_y=None)
         plot_things.plot_legend(fig)
