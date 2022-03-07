@@ -682,7 +682,7 @@ class ArgumentType_PyTorchActivation(ArgumentType_Abstract):
 
 
 
-class ArgumentType_TrainingStepsShort(ArgumentType_Abstract):
+class ArgumentType_PretrainingSteps(ArgumentType_Abstract):
     '''
     Quick way to pick a low number of training steps, used for SimGAN pretraining
     '''
@@ -692,22 +692,20 @@ class ArgumentType_TrainingStepsShort(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_TrainingStepsShort Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_PretrainingSteps Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
-        # choices = [100, 200, 300, 400, 500]
-        # if self.value in choices:
-        #     choices.remove(self.value) # works in-place
-
-        choices = [200] # NOTE: for testing, don't leave this
+        choices = [300, 400, 500, 600]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
 
         self.value = np.random.choice(choices)
-        ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsShort to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_PretrainingSteps to %f" % (None, None, self.value))
 
 
 
-class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
+class ArgumentType_TrainingSteps(ArgumentType_Abstract):
     '''
     Quick way to pick a medium number of training steps, used for SimGAN training
     '''
@@ -717,17 +715,16 @@ class ArgumentType_TrainingStepsMedium(ArgumentType_Abstract):
             self.mutate()
         else:
             self.value = value
-        ezLogging.debug("%s-%s - Initialize ArgumentType_TrainingStepsMedium Class to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Initialize ArgumentType_TrainingSteps Class to %f" % (None, None, self.value))
 
 
     def mutate(self):
-        # choices = [1000, 2000, 3000, 4000, 5000]
-        # if self.value in choices:
-        #     choices.remove(self.value) # works in-place
+        choices = [30000, 40000, 50000]
+        if self.value in choices:
+            choices.remove(self.value) # works in-place
 
-        choices = [500] # NOTE: for testing, don't leave this
         self.value = np.random.choice(choices)
-        ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingStepsMedium to %f" % (None, None, self.value))
+        ezLogging.debug("%s-%s - Mutated ArgumentType_TrainingSteps to %f" % (None, None, self.value))
 
 
 
