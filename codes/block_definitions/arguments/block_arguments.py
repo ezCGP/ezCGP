@@ -320,8 +320,8 @@ class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
 class BlockArguments_SimGAN_Train_Config(BlockArguments_Abstract):
     '''
     usage tally:
-    argument_types.ArgumentType_TrainingStepsMedium: 1
-    argument_types.ArgumentType_TrainingStepsShort: 11 
+    argument_types.ArgumentType_TrainingSteps: 1
+    argument_types.ArgumentType_PretrainingSteps: 11 
     argument_types.ArgumentType_Int1to5: 11
     argument_types.ArgumentType_LearningRate: 111
     argument_types.ArgumentType_Bool: 1
@@ -330,8 +330,8 @@ class BlockArguments_SimGAN_Train_Config(BlockArguments_Abstract):
         ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Train_Config Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
         self.arg_count = 10*5
-        arg_dict = {argument_types.ArgumentType_TrainingStepsMedium: 1.0/10,
-                    argument_types.ArgumentType_TrainingStepsShort: 2.0/10,
+        arg_dict = {argument_types.ArgumentType_TrainingSteps: 1.0/10,
+                    argument_types.ArgumentType_PretrainingSteps: 2.0/10,
                     argument_types.ArgumentType_Int1to5: 2.0/10,
                     argument_types.ArgumentType_LearningRate: 3.0/10,
                     argument_types.ArgumentType_Bool: 1
