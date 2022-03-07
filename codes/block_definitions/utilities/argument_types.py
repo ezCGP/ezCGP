@@ -719,7 +719,7 @@ class ArgumentType_TrainingSteps(ArgumentType_Abstract):
 
 
     def mutate(self):
-        choices = [30000, 40000, 50000]
+        choices = [3000, 4000, 5000]
         if self.value in choices:
             choices.remove(self.value) # works in-place
 
