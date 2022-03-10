@@ -33,6 +33,7 @@ def simgan_train_config(config,
                         delta,
                         use_data_history,
                         train_local_loss,
+                        local_section_size,
                         steps_per_log=100):
     """
     An operator that stores SimGAN training configuration variables
@@ -59,6 +60,7 @@ def simgan_train_config(config,
 
     # Switch to turn on adding a 'local discriminator loss' to training 
     config['train_local_loss'] = train_local_loss
+    config['local_section_size'] = local_section_size
 
     # Logging
     config['steps_per_log'] = steps_per_log # not currently evolved on
@@ -82,5 +84,6 @@ operator_dict[simgan_train_config] = {
              argument_types.ArgumentType_LearningRate,
              argument_types.ArgumentType_LearningRate,
              argument_types.ArgumentType_Bool,
-             argument_types.ArgumentType_Bool]
+             argument_types.ArgumentType_Bool,
+             argument_types.ArgumentType_Int1to5]
     }

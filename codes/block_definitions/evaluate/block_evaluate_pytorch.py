@@ -8,6 +8,7 @@ out how to build a graph/network given some genome.
 ### packages
 from abc import ABC, abstractmethod
 from copy import deepcopy
+import torch
 from torch import nn
 import numpy as np
 from collections import OrderedDict
@@ -308,7 +309,10 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         try:
             # local discriminator
             if block_material.train_local_loss:
-                local_input = training_datalist[0] # TODO...fake shape  for now
+                local_input = deepcopy(training_datalist[0])
+                _, original_channels, _ = local_input.shape
+                # The shape of the local input should be the same except the length of the sequence, which should be a parameter
+                local_input.shape = (None, original_channels, block_material.local_section_size)
                 self.build_graph(block_material, block_def, [local_input])
                 block_material.local_graph = block_material.graph
                 block_material.graph = None
