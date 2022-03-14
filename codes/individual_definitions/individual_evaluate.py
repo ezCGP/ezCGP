@@ -390,8 +390,12 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 assert("train" in block_def.nickname and "config" in block_def.nickname), "Our assumption that index 2 is train_config block is wrong!"
                 if (not hasattr(indiv_material[1], 'train_local_loss')) or (indiv_material[1].train_local_loss != block_material.ouptut[0]['train_local_loss']):
                     indiv_material[1].train_local_loss = block_material.output[0]['train_local_loss']
-                    indiv_material[1].local_section_size = block_material.output[0]['local_section_size']
                     indiv_material[1].need_evaluate = True
+                if (not hasattr(indiv_material[1], 'local_section_size')) or (indiv_material[1].local_section_size != block_material.output[0]['local_section_size']):
+                    indiv_material[1].local_section_size = block_material.output[0]['local_section_size']
+                    if indiv_material[1].train_local_loss:
+                        # even if 'local_section_size' changes, it won't matter if we are not training local loss
+                        indiv_material[1].need_evaluate = True
 
         train_config, untrained_discriminator, untrained_local_discriminator, untrained_refiner = block_outputs
         untrained_refiner.to(train_config['device'])
