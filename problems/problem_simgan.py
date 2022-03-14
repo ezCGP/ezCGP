@@ -20,7 +20,7 @@ from codes.utilities.gan_tournament_selection import get_graph_ratings
 from codes.utilities.simgan_fid_metric import get_fid_scores
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
-from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Auto
 from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB, BlockMutate_ArgsOnly
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
@@ -51,7 +51,7 @@ class Problem(ProblemDefinition_Abstract):
         refiner_def = self.construct_block_def(nickname = "refiner_block",
                                                shape_def = BlockShapeMeta_SimGAN_Network, 
                                                operator_def = BlockOperators_SimGAN_Refiner, 
-                                               argument_def = BlockArguments_SimGAN_Refiner,
+                                               argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Refiner().operator_dict, 10),
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
                                                mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
                                                mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -60,7 +60,7 @@ class Problem(ProblemDefinition_Abstract):
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
                                                      shape_def = BlockShapeMeta_SimGAN_Network, 
                                                      operator_def = BlockOperators_SimGAN_Discriminator, 
-                                                     argument_def = BlockArguments_SimGAN_Discriminator,
+                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Discriminator().operator_dict, 15),
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                                      mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
                                                      mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -69,7 +69,7 @@ class Problem(ProblemDefinition_Abstract):
         train_config_def = self.construct_block_def(nickname = "train_config",
                                                     shape_def = BlockShapeMeta_SimGAN_Train_Config, 
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
-                                                    argument_def = BlockArguments_SimGAN_Train_Config,
+                                                    argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config().operator_dict, 10),
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)
