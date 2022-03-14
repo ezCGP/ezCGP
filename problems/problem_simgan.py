@@ -116,17 +116,20 @@ class Problem(ProblemDefinition_Abstract):
                 discriminators.append(D.cpu())
         
         # Run tournament and add ratings
-        if len(refiners) > 0:
+        if len(alive_individual_index) > 0:
+            #  Objective #1
             refiner_ratings, _ = get_graph_ratings(refiners,
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
+            #  Objective #2
             refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
         
-        for indx, rating, fid in zip(alive_individual_index,
-                                     refiner_ratings['r'],
-                                     refiner_fids):
-            population.population[indx].fitness.values = (rating, fid)
+            # Add Objectives
+            for indx, rating, fid in zip(alive_individual_index,
+                                         refiner_ratings['r'],
+                                         refiner_fids):
+                population.population[indx].fitness.values = (rating, fid)
 
 
     def check_convergence(self, universe):
@@ -167,16 +170,24 @@ class Problem(ProblemDefinition_Abstract):
         os.makedirs(attachment_folder, exist_ok=False)
 
         # save models
-        torch.save(individual[0].output.state_dict(),
-                   os.path.join(attachment_folder, 'untrained_refiner'))
-        torch.save(individual[1].output.state_dict(),
-                   os.path.join(attachment_folder, 'untrained_discriminator'))
-        torch.save(individual.output[0].state_dict(),
-                   os.path.join(attachment_folder, 'trained_refiner'))
-        torch.save(individual.output[1].state_dict(),
-                   os.path.join(attachment_folder, 'trained_discriminator'))
-        with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
-            pkl.dump(individual[2].output, f)
+        # NOTE if indiv.dead then some of these values may not be filled
+        if not individual[0].dead:
+            torch.save(individual[0].output.state_dict(),
+                       os.path.join(attachment_folder, 'untrained_refiner'))
+
+        if not individual[1].dead:
+            torch.save(individual[1].output.state_dict(),
+                       os.path.join(attachment_folder, 'untrained_discriminator'))
+
+        if not individual[2].dead:
+            with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
+                pkl.dump(individual[2].output, f)
+
+        if not individual.dead:
+            torch.save(individual.output[0].state_dict(),
+                       os.path.join(attachment_folder, 'trained_refiner'))
+            torch.save(individual.output[1].state_dict(),
+                       os.path.join(attachment_folder, 'trained_discriminator'))
 
         # now overwrite
         individual[0].output = []
