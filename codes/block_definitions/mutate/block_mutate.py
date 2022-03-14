@@ -46,10 +46,10 @@ class BlockMutate_OptA(BlockMutate_Abstract):
     '''
     Good for things like symbolic regression with NO args since we only mutate the input node connections or the primitive function used.
     '''
-    def __init__(self, prob_mutate=1.0):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_OptA Class" % (None, None))
         self.prob_mutate = prob_mutate
-        self.num_mutants = 4
+        self.num_mutants = num_mutants
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
         roll = rnd.random()
@@ -65,10 +65,10 @@ class BlockMutate_OptB(BlockMutate_Abstract):
     '''
     Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
     '''
-    def __init__(self, prob_mutate=1.0):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_OptB Class" % (None, None))
         self.prob_mutate = prob_mutate
-        self.num_mutants = 4
+        self.num_mutants = num_mutants
 
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
@@ -88,10 +88,10 @@ class BlockMutate_OptB_No_Single_Ftn(BlockMutate_Abstract):
     '''
     Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
     '''
-    def __init__(self, prob_mutate=1.0):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_OptB_No_Single_Ftn Class" % (None, None))
         self.prob_mutate = prob_mutate
-        self.num_mutants = 4
+        self.num_mutants = num_mutants
 
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
@@ -120,10 +120,10 @@ class BlockMutate_NoFtn(BlockMutate_Abstract):
     '''
     used for guassian sum...we only have 1 primitive so no point in mutating ftns
     '''
-    def __init__(self, prob_mutate=1.0):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_NoFtn Class" % (None, None))
         self.prob_mutate = prob_mutate
-        self.num_mutants = 4
+        self.num_mutants = num_mutants
 
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
@@ -142,10 +142,10 @@ class BlockMutate_ArgsOnly(BlockMutate_Abstract):
     '''
     Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
     '''
-    def __init__(self, prob_mutate=1.0):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_ArgsOnly Class" % (None, None))
         self.prob_mutate = prob_mutate
-        self.num_mutants = 4
+        self.num_mutants = num_mutants
 
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):

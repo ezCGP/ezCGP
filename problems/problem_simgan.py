@@ -44,7 +44,8 @@ class Problem(ProblemDefinition_Abstract):
         genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]*population_size
-        super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
+        hall_of_fame_size = population_size*10 # too big?
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_size)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
@@ -52,8 +53,8 @@ class Problem(ProblemDefinition_Abstract):
                                                operator_def = BlockOperators_SimGAN_Refiner, 
                                                argument_def = BlockArguments_SimGAN_Refiner,
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
-                                               mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2),
-                                               mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
+                                               mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
+                                               mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                               )
 
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
@@ -61,8 +62,8 @@ class Problem(ProblemDefinition_Abstract):
                                                      operator_def = BlockOperators_SimGAN_Discriminator, 
                                                      argument_def = BlockArguments_SimGAN_Discriminator,
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
-                                                     mutate_def=BlockMutate_OptB(prob_mutate=0.2),
-                                                     mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
+                                                     mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
+                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                     )
 
         train_config_def = self.construct_block_def(nickname = "train_config",
@@ -70,8 +71,8 @@ class Problem(ProblemDefinition_Abstract):
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
                                                     argument_def = BlockArguments_SimGAN_Train_Config,
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                                    mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1),
-                                                    mate_def=BlockMate_WholeOnly(prob_mutate=1/3)
+                                                    mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
+                                                    mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                    )
 
         self.construct_individual_def(block_defs = [refiner_def, discriminator_def, train_config_def],
@@ -140,12 +141,14 @@ class Problem(ProblemDefinition_Abstract):
 
     def population_selection(self, universe):
         for i, indiv in enumerate(universe.population.population):
-            ezLogging.info("Final Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+            ezLogging.warning("Final Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
 
-        super().population_selection(universe)
+        next_pop = super().population_selection(universe)
 
-        for i, indiv in enumerate(universe.population.population):
-            ezLogging.info("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+        for i, indiv in enumerate(next_pop):
+            ezLogging.warning("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+
+        return next_pop
 
 
     def save_pytorch_individual(self, universe, original_individual):

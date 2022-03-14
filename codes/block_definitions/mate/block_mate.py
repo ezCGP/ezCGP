@@ -47,9 +47,9 @@ class BlockMate_WholeOnly(BlockMate_Abstract):
     each pair of block/parents will mate w/prob 25%
     if they mate, they will only mate with whole_block()
     '''
-    def __init__(self, prob_mutate=1.0):
+    def __init__(self, prob_mate=1.0):
         ezLogging.debug("%s-%s - Initialize BlockMate_WholeOnly Class" % (None, None))
-        self.prob_mate = prob_mutate
+        self.prob_mate = prob_mate
 
     def mate(self,
              parent1: IndividualMaterial,

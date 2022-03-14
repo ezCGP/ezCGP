@@ -176,7 +176,13 @@ class UniverseDefinition():
         selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module.
         method should alter the self.population.population attr
         '''
-        problem.population_selection(self)
+        # current default population selection is better to have halloffame from previous generation, ie not updated yet
+        next_population = problem.population_selection(self)
+
+        # update hall of fame with current population before replacing population with next_population
+        self.update_hall_of_fame()
+
+        self.population.population = next_population
 
 
     def check_convergence(self, problem: ProblemDefinition_Abstract):
@@ -215,7 +221,6 @@ class UniverseDefinition():
         self.generation = 0
         self.population = self.factory.build_population(problem, problem.pop_size, self.node_number, self.node_count)
         self.evaluate_score_population(problem)
-        self.update_hall_of_fame()
         self.population_selection(problem)
         self.check_convergence(problem)
         self.postprocess_generation(problem)
@@ -224,7 +229,6 @@ class UniverseDefinition():
             ezLogging.warning("Starting Generation %i" % self.generation)
             self.evolve_population(problem)
             self.evaluate_score_population(problem)
-            self.update_hall_of_fame()
             self.population_selection(problem)
             self.check_convergence(problem)
             self.postprocess_generation(problem)
@@ -374,7 +378,6 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.mpi_evaluate_score_population(problem)
         self.gather_population()
         if self.node_number == 0:
-            self.update_hall_of_fame()
             self.population_selection(problem)
             self.check_convergence(problem)
             self.postprocess_generation(problem)
@@ -385,7 +388,6 @@ class MPIUniverseDefinition(UniverseDefinition):
             self.mpi_evaluate_score_population(problem)
             self.gather_population()
             if self.node_number == 0:
-                self.update_hall_of_fame()
                 self.population_selection(problem)
                 self.check_convergence(problem)
                 self.postprocess_generation(problem)

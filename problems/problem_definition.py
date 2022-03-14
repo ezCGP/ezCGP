@@ -14,6 +14,7 @@ import glob
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
+from copy import deepcopy
 
 ### sys relative to root dir
 import sys
@@ -81,7 +82,6 @@ class ProblemDefinition_Abstract(ABC):
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
                  genome_seeds: List=[],
-                 number_of_objectives: int=None,
                  hall_of_fame_size: int=None):
         '''
         genome_seeds:
@@ -166,8 +166,22 @@ class ProblemDefinition_Abstract(ABC):
         selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module
 
         setting default method to selNSGA2
+
+        Going to select from hall_of_fame (if it exists) + population that aren't in hall_of_fame
         '''
-        universe.population.population = selections.selNSGA2(universe.population.population, self.pop_size, nd='standard')
+        hall_of_fame_ids = []
+        if universe.population.hall_of_fame is not None:
+            for indiv in universe.population.hall_of_fame.items:
+                hall_of_fame_ids.append(indiv.id)
+
+        new_individuals = []
+        for indiv in universe.population.population:
+            if indiv.id not in hall_of_fame_ids:
+                new_individuals.append(deepcopy(indiv))
+
+        return selections.selNSGA2(universe.population.hall_of_fame.items + new_individuals,
+                                   k=self.pop_size,
+                                   nd='standard')
 
 
     def parent_selection(self, universe):
