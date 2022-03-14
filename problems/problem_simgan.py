@@ -89,9 +89,9 @@ class Problem(ProblemDefinition_Abstract):
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
         train_config_dict = {'device': 'cuda'} # was gpu but that didn't work anymore
-        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
+        self.training_datalist = [simganData.TransformSimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
                                   train_config_dict]
-        self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
+        self.validating_datalist = [simganData.TransformSimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
 
 
     def set_optimization_goals(self):
@@ -112,6 +112,7 @@ class Problem(ProblemDefinition_Abstract):
             if not indiv.dead:
                 alive_individual_index.append(i)
                 R, D = indiv.output
+                print(indiv.output)
                 refiners.append(R.cpu())
                 discriminators.append(D.cpu())
         
@@ -122,11 +123,10 @@ class Problem(ProblemDefinition_Abstract):
                                                    self.validating_datalist[0],
                                                    'cpu')
             refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
-        
-        for indx, rating, fid in zip(alive_individual_index,
+            for indx, rating, fid in zip(alive_individual_index,
                                      refiner_ratings['r'],
                                      refiner_fids):
-            population.population[indx].fitness.values = (rating, fid)
+                population.population[indx].fitness.values = (rating, fid)
 
 
     def check_convergence(self, universe):
@@ -165,6 +165,8 @@ class Problem(ProblemDefinition_Abstract):
         name = "gen_%04d_indiv_%s" % (universe.generation, individual.id)
         attachment_folder = os.path.join(universe.output_folder, name)
         os.makedirs(attachment_folder, exist_ok=False)
+
+        print(individual.output)
 
         # save models
         torch.save(individual[0].output.state_dict(),
