@@ -532,7 +532,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
     # TODO: see if we should be utilizing validation data
     # TODO: find a better way of picking networks to save than just every n steps
     # TODO: change save_every to 200 or 100
-    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config, opt_R, opt_D, save_every=50):
+    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config, opt_R, opt_D, save_every=1000):
         '''
         Train the refiner and discriminator of the SimGAN, return a refiner and discriminator pair for every 'save_every' training steps
         '''
