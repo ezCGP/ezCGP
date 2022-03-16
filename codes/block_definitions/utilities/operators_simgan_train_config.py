@@ -61,7 +61,7 @@ def simgan_train_config(config,
 
     # Losses (currently hard coded)
     config['self_regularization_loss'] = torch.nn.L1Loss(reduction='sum')
-    config['local_adversarial_loss'] = torch.nn.CrossEntropyLoss(reduction='mean')
+    config['local_adversarial_loss'] = torch.nn.BCEWithLogitsLoss(reduction='mean')
 
     return config
     
@@ -69,9 +69,9 @@ def simgan_train_config(config,
 operator_dict[simgan_train_config] = {
     "inputs": [dict],
     "output": dict,
-    "args": [argument_types.ArgumentType_TrainingStepsMedium,
-             argument_types.ArgumentType_TrainingStepsShort,
-             argument_types.ArgumentType_TrainingStepsShort,
+    "args": [argument_types.ArgumentType_TrainingSteps,
+             argument_types.ArgumentType_PretrainingSteps,
+             argument_types.ArgumentType_PretrainingSteps,
              argument_types.ArgumentType_Int1to5,
              argument_types.ArgumentType_Int1to5,
              argument_types.ArgumentType_LearningRate,

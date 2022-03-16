@@ -36,9 +36,10 @@ class IndividualMaterial():
      * need_evalute: checks the respective boolean flag in all blocks
      and returns True if at least any single block is True
     '''
-    def __init__(self, _id=None):
+    def __init__(self, maximize_objectives_list, _id=None):
         self.id = "default"
-        self.fitness = self.ezFitness()
+        self.maximize_objectives = maximize_objectives_list
+        self.fitness = self.ezFitness(self.maximize_objectives)
         self.blocks = []
         self.output = []
         self.dead = False
@@ -86,6 +87,19 @@ class IndividualMaterial():
         return False
 
 
+    def set_worst_score(self):
+        score = ()
+        for maximize in self.maximize_objectives:
+            if maximize:
+                score += (-np.inf,)
+            else:
+                score += (np.inf,)
+        try:
+            self.fitness.values = score
+        except Exception as err:
+            print("waht"); import pdb; pdb.set_trace()
+
+
     class ezFitness(deap.base.Fitness):
         '''
         http://deap.readthedocs.io/en/master/api/base.html#fitness
@@ -95,7 +109,7 @@ class IndividualMaterial():
         halloffame compares Fitness objects together rather than Fitness.values so we
         are just going to import deap.base.Fitness to leverage their dunders and other properties
         '''
-        def __init__(self):
+        def __init__(self, maximize_objectives_list):
             '''
             okay so weights attr is required by deap.base.Fitness and it HAS to be a sequence.
             if the sequence is shorter than the number of objectives (ie the length of Fitness.values) then
@@ -106,8 +120,19 @@ class IndividualMaterial():
 
             UPDATE: with a 'newer' version of deap, there is an assertion that self.weights is same len as number of objectives.
             So we are going to manually snip weights to the number of objectives by adding a line to setValues...see below
+
+            ANOTHER UPDATE: we now force the user to define the number of objectives and which will be maxized and minimized
+            via maximize_objectives_list; so use that to set weights to +/-1 and prob can get rid of the line in setValues
+            to trim the weights.
             '''
-            self.weights = (1,)*1000
+            #self.weights = (1,)*1000
+            self.weights = ()
+            for maximize in maximize_objectives_list:
+                if maximize:
+                    self.weights += (1,)
+                else:
+                    self.weights += (-1,)
+
             super().__init__(values=())
 
 
@@ -123,7 +148,7 @@ class IndividualMaterial():
 
         def setValues(self, values):
             # see not in __init__
-            self.weights = self.weights[:len(values)]
+            #self.weights = self.weights[:len(values)] #no longer needed...see description
             super().setValues(values)
 
         def getValues(self):
@@ -131,6 +156,26 @@ class IndividualMaterial():
 
         def delValues(self):
             super().delValues()
+
+
+        def __deepcopy__(self, memo):
+            '''
+            copypaste from
+            https://github.com/DEAP/deap/blob/master/deap/base.py#L252
+            so that we can deepcopy 'normally'.
+
+            deap did this so it copies faster but made it so that you couldn't
+            pass in any new args to Fitness.__init__()...lame.
+            '''
+            maximize_objectives_list = []
+            for weight in self.weights:
+                if weight==1:
+                    maximize_objectives_list.append(True)
+                else:
+                    maximize_objectives_list.append(False)
+            copy_ = self.__class__(maximize_objectives_list)
+            copy_.wvalues = self.wvalues
+            return copy_
 
         values = property(getValues, setValues, delValues)
 

@@ -2,6 +2,9 @@
 import os
 import numpy as np
 import logging
+import torch
+import pickle as pkl
+from copy import deepcopy
 
 ### sys relative to root dir
 import sys
@@ -9,19 +12,20 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from problems.problem_definition import ProblemDefinition_Abstract
-from codes.factory import FactoryDefinition
+from problems.problem_definition import ProblemDefinition_Abstract, welless_check_decorator
+from codes.factory import Factory_SimGAN
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
 from codes.utilities.simgan_feature_eval import calc_feature_distances
+from codes.utilities.simgan_fid_metric import get_fid_scores
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
 from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
-from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB_4Blocks
-from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly_4Blocks
-from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
+from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB, BlockMutate_ArgsOnly
+from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
+from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock_LimitedMutants
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
@@ -36,21 +40,13 @@ class Problem(ProblemDefinition_Abstract):
     def __init__(self):
         population_size = 4 #must be divisible by 4 if doing mating
         number_universe = 1
-        factory = FactoryDefinition
+        factory = Factory_SimGAN
         mpi = False
         genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
-                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
-                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"],
-                        ["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
-                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]
-        super().__init__(population_size, number_universe, factory, mpi, genome_seeds)
+                         "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]*population_size
+        hall_of_fame_size = population_size*10 # too big?
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_size)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
@@ -58,8 +54,8 @@ class Problem(ProblemDefinition_Abstract):
                                                operator_def = BlockOperators_SimGAN_Refiner, 
                                                argument_def = BlockArguments_SimGAN_Refiner,
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
-                                               mutate_def=BlockMutate_OptB_No_Single_Ftn,
-                                               mate_def=BlockMate_WholeOnly_4Blocks
+                                               mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
+                                               mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                               )
 
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
@@ -67,8 +63,8 @@ class Problem(ProblemDefinition_Abstract):
                                                      operator_def = BlockOperators_SimGAN_Discriminator, 
                                                      argument_def = BlockArguments_SimGAN_Discriminator,
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
-                                                     mutate_def=BlockMutate_OptB_4Blocks,
-                                                     mate_def=BlockMate_WholeOnly_4Blocks
+                                                     mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
+                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                     )
 
         train_config_def = self.construct_block_def(nickname = "train_config",
@@ -76,16 +72,15 @@ class Problem(ProblemDefinition_Abstract):
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
                                                     argument_def = BlockArguments_SimGAN_Train_Config,
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
-                                                    mutate_def=BlockMutate_OptB_No_Single_Ftn,
-                                                    mate_def=BlockMate_WholeOnly_4Blocks
+                                                    mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
+                                                    mate_def=BlockMate_WholeOnly(prob_mate=1/3)
                                                    )
 
         self.construct_individual_def(block_defs = [refiner_def, discriminator_def, train_config_def],
-                                      mutate_def = IndividualMutate_RollOnEachBlock,
+                                      mutate_def = IndividualMutate_RollOnEachBlock_LimitedMutants,
                                       mate_def = IndividualMate_RollOnEachBlock,
                                       evaluate_def = IndividualEvaluate_SimGAN
                                       )
-
         self.construct_dataset()
 
 
@@ -100,6 +95,11 @@ class Problem(ProblemDefinition_Abstract):
         self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
 
 
+    def set_optimization_goals(self):
+        self.maximize_objectives = [True, False, False, False, False, False]
+
+
+    @welless_check_decorator
     def objective_functions(self, population):
         '''
         Get the best refiner and discriminator from each individual in the population and do a tournament selection to rate them
@@ -108,14 +108,10 @@ class Problem(ProblemDefinition_Abstract):
         n_individuals = len(population.population)
         refiners = []
         discriminators = []
-        #indiv_inds = []
-        #bad_indiv_inds = []
-        # import pdb; pdb.set_trace()
+        alive_individual_index = []
         for i, indiv in enumerate(population.population):
-            if indiv.dead:
-                indiv.fitness.values = (np.inf,)
-            else:
-                #indiv_inds.append(i)
+            if not indiv.dead:
+                alive_individual_index.append(i)
                 R, D = indiv.output
                 refiners.append(R.cpu())
                 discriminators.append(D.cpu())
@@ -126,24 +122,77 @@ class Problem(ProblemDefinition_Abstract):
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
-
+            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
             refiner_feature_dist = calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
         
-        # instead of using indiv_inds I think we can just use the row label of the df
-        #for refiner_rating, ind in zip(refiner_ratings['r'].to_numpy(), indiv_inds):
-        for indx, refiner_rating in refiner_ratings['r'].iteritems():
-            # Use negative ratings because ezCGP does minimization
-            population.population[indx].fitness.values = (-1 * refiner_rating, -1 * refiner_feature_dist[indx]["kl_div"], -1 * refiner_feature_dist[indx]["wasserstein_dist"])
+        for indx, rating, fid, kl_div, wasserstein_dist, ks_stat in zip(alive_individual_index,
+                                     refiner_ratings['r'],
+                                     refiner_fids,
+                                     refiner_feature_dist['kl_div'],
+                                     refiner_feature_dist['wasserstein_dist'],
+                                     refiner_feature_dist['ks_stat']):
+            population.population[indx].fitness.values = (rating, fid, kl_div, wasserstein_dist, ks_stat)
 
 
     def check_convergence(self, universe):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 0 # TODO
+        GENERATION_LIMIT = 1 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
+
+
+    def population_selection(self, universe):
+        for i, indiv in enumerate(universe.population.population):
+            ezLogging.warning("Final Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+
+        next_pop = super().population_selection(universe)
+
+        for i, indiv in enumerate(next_pop):
+            ezLogging.warning("Next Population Scores: (%i) %s %s" % (i, indiv.id, indiv.fitness.values))
+
+        return next_pop
+
+
+    def save_pytorch_individual(self, universe, original_individual):
+        '''
+        can't use save_things.save_population() because can't pickle nn.Module,
+        so we're going to save the block and individual outputs into a folder for each individual,
+        then delete those outputs so we can use save_things.save_population() normally.
+        '''
+        ezLogging.debug("Saving individual %s from generation %i" % (original_individual.id, universe.generation))
+        # deepcopy in-case we still plan on using individual for another evolution
+        individual = deepcopy(original_individual)
+
+        # handle file names and locations
+        name = "gen_%04d_indiv_%s" % (universe.generation, individual.id)
+        attachment_folder = os.path.join(universe.output_folder, name)
+        os.makedirs(attachment_folder, exist_ok=False)
+
+        # save models
+        torch.save(individual[0].output.state_dict(),
+                   os.path.join(attachment_folder, 'untrained_refiner'))
+        torch.save(individual[1].output.state_dict(),
+                   os.path.join(attachment_folder, 'untrained_discriminator'))
+        torch.save(individual.output[0].state_dict(),
+                   os.path.join(attachment_folder, 'trained_refiner'))
+        torch.save(individual.output[1].state_dict(),
+                   os.path.join(attachment_folder, 'trained_discriminator'))
+        with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
+            pkl.dump(individual[2].output, f)
+
+        # now overwrite
+        individual[0].output = []
+        individual[1].output = []
+        individual[2].output = []
+        individual.output = []
+
+        # save individual
+        indiv_file = os.path.join(universe.output_folder, name+".pkl")
+        with open(indiv_file, "wb") as f:
+            pkl.dump(individual, f)
 
 
     def postprocess_generation(self, universe):
@@ -152,8 +201,11 @@ class Problem(ProblemDefinition_Abstract):
         '''
         ezLogging.info("Post Processing Generation Run")
         save_things.save_fitness_scores(universe)
+        
+        for individual in universe.population.population:
+            self.save_pytorch_individual(universe, individual)
 
-        print('testing')
+        '''
         pareto_front = self.get_pareto_front(universe)
         for ind in pareto_front:
             indiv = universe.population.population[ind]
@@ -173,7 +225,7 @@ class Problem(ProblemDefinition_Abstract):
             # plt.show()
 
             save_things.save_pytorch_model(universe, indiv.output[0], indiv.id + '-R') # Save refiner network and id
-            # TODO: consider saving discriminator
+            # TODO: consider saving discriminator'''
 
         # TODO: consider plotting the pareto front/metrics for the population
 

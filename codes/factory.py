@@ -16,8 +16,7 @@ import numpy as np
 import pickle as pkl
 from copy import deepcopy
 from typing import List
-
-import pdb;
+import importlib
 
 ### sys relative to root dir
 import sys
@@ -77,6 +76,7 @@ class FactoryDefinition():
         for i, genome_seed in enumerate(genome_seeds):
             indiv = self.build_individual_from_seed(problem.indiv_def,
                                                     genome_seed,
+                                                    problem.maximize_objectives,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
                 # if build_individual failed then we don't want to add to population
@@ -84,17 +84,21 @@ class FactoryDefinition():
 
         for i in range(len(my_population.population), population_size):
             indiv = self.build_individual(problem.indiv_def,
+                                          problem.maximize_objectives,
                                           indiv_id="initPop%i-%i" % (node_rank,i))
             my_population.population.append(indiv)
 
         return my_population
 
 
-    def build_individual(self, indiv_def: IndividualDefinition, indiv_id=None):
+    def build_individual(self,
+                         indiv_def: IndividualDefinition,
+                         maximize_objectives_list: List[bool],
+                         indiv_id=None):
         '''
         TODO
         '''
-        indiv_material = IndividualMaterial()
+        indiv_material = IndividualMaterial(maximize_objectives_list)
         indiv_material.set_id(indiv_id)
         for block_def in indiv_def.block_defs:
             block_material = self.build_block(block_def, indiv_id=indiv_id)
@@ -102,7 +106,11 @@ class FactoryDefinition():
         return indiv_material
 
 
-    def build_individual_from_seed(self, indiv_def: IndividualDefinition, block_seeds: List[str], indiv_id=None):
+    def build_individual_from_seed(self,
+                                   indiv_def: IndividualDefinition,
+                                   block_seeds: List[str],
+                                   maximize_objectives_list: List[bool],
+                                   indiv_id=None):
         '''
         block_seeds will be a list of file paths. number of blocks in individual need to match block_seed length
         If we don't have a seed for a block, set it to None like [None, None, seed.npz]
@@ -143,7 +151,7 @@ class FactoryDefinition():
                 indiv_material = None
                 
         if (isinstance(block_seeds, list)) and (len(block_seeds)>0):
-            indiv_material = IndividualMaterial()
+            indiv_material = IndividualMaterial(maximize_objectives_list)
             indiv_material.set_id(indiv_id)
             for ith_block in range(indiv_def.block_count):
                 # trying to refrain from zipping block_defs and block_seeds because it won't error if len don't match
@@ -437,3 +445,68 @@ class FactoryDefinition():
         for ith_output, node_index in enumerate(range(block_def.main_count, block_def.main_count+block_def.output_count)):
             req_dtype = block_def.output_dtypes[ith_output]
             block_material[node_index] = block_def.get_random_input(block_material, req_dtype=req_dtype, _min=0, _max=block_def.main_count)
+
+
+
+class Factory_SimGAN(FactoryDefinition):
+    '''
+    For SimGAN we used PyTorch and we couldn't save the networks with pkl,
+    so we are going to inherit FactoryDefinition and adjust how we build_individual_from_seed
+    to tack on the networks that were saved with pytorch's own methods
+    '''
+    def __init__(self):
+        globals()['torch'] = importlib.import_module('torch')
+        globals()['MyTorchNetwork'] = getattr(importlib.import_module('codes.block_definitions.evaluate.block_evaluate_pytorch'), 'MyTorchNetwork')
+
+
+    def build_individual_from_seed(self,
+                                   indiv_def: IndividualDefinition,
+                                   block_seeds: List[str],
+                                   maximize_objectives_list: List[bool],
+                                   indiv_id=None):
+        indiv_material = super().build_individual_from_seed(indiv_def, block_seeds, maximize_objectives_list, indiv_id)
+        if (isinstance(block_seeds, str)) and (block_seeds.endswith(".pkl")):
+            # ...then we assume it was a saved individual from a previous evolution
+
+            # Get folder of items
+            attachment_folder = block_seeds[:-4] # just strip the '.pkl'
+
+            # frankly just don't have a clever way of getting input shape so just hardcoding it in...sorry, i failed
+            input_shape = (None,1,92)
+
+            # Load in Refiner
+            untrained_refiner = MyTorchNetwork(indiv_material[0],
+                                               indiv_def[0],
+                                               input_shape,
+                                               indiv_def[0].evaluate_def.final_module_dicts)
+            trained_refiner = deepcopy(untrained_refiner)
+            untrained_refiner.load_state_dict(torch.load(os.path.join(attachment_folder, "untrained_refiner")))
+            trained_refiner.load_state_dict(torch.load(os.path.join(attachment_folder, "trained_refiner")))
+            ''' untrained_refiner.eval()
+            Not gonna do eval...this is what doc says it does...
+                Remember that you must call model.eval() to set dropout and batch normalization layers
+                to evaluation mode before running inference.
+                Failing to do this will yield inconsistent inference results.
+            '''
+
+            # Load Discriminator
+            untrained_discriminator = MyTorchNetwork(indiv_material[1],
+                                                     indiv_def[1],
+                                                     (None,1,92),
+                                                     indiv_def[1].evaluate_def.final_module_dicts)
+            trained_discriminator = deepcopy(untrained_discriminator)
+            untrained_discriminator.load_state_dict(torch.load(os.path.join(attachment_folder, "untrained_discriminator")))
+            trained_discriminator.load_state_dict(torch.load(os.path.join(attachment_folder, "trained_discriminator")))
+
+            # Load TrainConfig
+            with open(os.path.join(attachment_folder, "trainconfig_dict.pkl"), 'rb') as f:
+                trainconfig_dict = pkl.load(f)
+
+            # Save to individual
+            indiv_material[0].output = untrained_refiner
+            indiv_material[1].output = untrained_discriminator
+            indiv_material[2].output = trainconfig_dict
+            indiv_material.output = (trained_refiner, trained_discriminator)
+
+
+        return indiv_material

@@ -281,7 +281,7 @@ class BlockArguments_SimGAN_Refiner(BlockArguments_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Refiner Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
-        self.arg_count = 40
+        self.arg_count = 60
         arg_dict = {argument_types.ArgumentType_Pow2: 0.25, # Assigns this a 50% chance and then splits the remainin 50% between the last 2
                     argument_types.ArgumentType_PyTorchKernelSize: 1,
                     argument_types.ArgumentType_PyTorchStrideSize: 1,
@@ -304,8 +304,8 @@ class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Discriminator Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
-        self.arg_count = 50
-        arg_dict = {argument_types.ArgumentType_Pow2: 0.3, # Assigns this a 50% chance and then splits the remainin 50% between the last 2
+        self.arg_count = 70
+        arg_dict = {argument_types.ArgumentType_Pow2: 0.3, 
                     argument_types.ArgumentType_PyTorchKernelSize: 0.15,
                     argument_types.ArgumentType_PyTorchStrideSize: 0.15,
                     argument_types.ArgumentType_PyTorchPaddingSize: 0.15,
@@ -320,8 +320,8 @@ class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
 class BlockArguments_SimGAN_Train_Config(BlockArguments_Abstract):
     '''
     usage tally:
-    argument_types.ArgumentType_TrainingStepsMedium: 1
-    argument_types.ArgumentType_TrainingStepsShort: 11 
+    argument_types.ArgumentType_TrainingSteps: 1
+    argument_types.ArgumentType_PretrainingSteps: 11 
     argument_types.ArgumentType_Int1to5: 11
     argument_types.ArgumentType_LearningRate: 111
     argument_types.ArgumentType_Bool: 1
@@ -329,11 +329,11 @@ class BlockArguments_SimGAN_Train_Config(BlockArguments_Abstract):
     def __init__(self):
         ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Train_Config Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
-        self.arg_count = 9*5
-        arg_dict = {argument_types.ArgumentType_TrainingStepsMedium: 1.0/9,
-                    argument_types.ArgumentType_TrainingStepsShort: 2.0/9,
-                    argument_types.ArgumentType_Int1to5: 2.0/9,
-                    argument_types.ArgumentType_LearningRate: 3.0/9,
+        self.arg_count = 10*5
+        arg_dict = {argument_types.ArgumentType_TrainingSteps: 1.0/10,
+                    argument_types.ArgumentType_PretrainingSteps: 2.0/10,
+                    argument_types.ArgumentType_Int1to5: 2.0/10,
+                    argument_types.ArgumentType_LearningRate: 3.0/10,
                     argument_types.ArgumentType_Bool: 1
                    }
         self.init_from_weight_dict(arg_dict)

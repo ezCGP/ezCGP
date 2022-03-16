@@ -5,6 +5,13 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 import torch.autograd as autograd
+from torch.nn.init import xavier_normal_
+
+
+def xavier_init(model):
+    for param in model.parameters():
+        if len(param.size()) == 2:
+            xavier_normal_(param)
 
 
 def get_loss_function(loss_name):

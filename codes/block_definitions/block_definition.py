@@ -22,6 +22,7 @@ This BlockDefinition will get instantiated in the user's problem class since it 
 ### packages
 from numpy import random as rnd
 import numpy as np
+import inspect
 
 ### sys relative to root dir
 import sys
@@ -56,28 +57,52 @@ class BlockDefinition():
         # Meta:
         self.nickname = nickname
         ezLogging.debug("%s-%s - Starting Initialize Block" % (None, self.nickname))
-        self.meta_def = meta_def()
+        if inspect.isclass(meta_def):
+            self.meta_def = meta_def()
+        else:
+            # then assume it has already been initialized
+            self.meta_def = meta_def
         for name, val in self.meta_def.__dict__.items():
             # quick way to take all attributes and add to self
             setattr(self, name, val)
+        
         # Mutate:
-        self.mutate_def = mutate_def()
+        if inspect.isclass(mutate_def):
+            self.mutate_def = mutate_def()
+        else:
+            self.mutate_def = mutate_def
         self.prob_mutate = self.mutate_def.prob_mutate
         self.num_mutants = self.mutate_def.num_mutants
+        
         # Mate:
-        self.mate_def = mate_def()
+        if inspect.isclass(mate_def):
+            self.mate_def = mate_def()
+        else:
+            self.mate_def = mate_def
         self.prob_mate = self.mate_def.prob_mate
+        
         # Evaluate:
-        self.evaluate_def = evaluate_def()
+        if inspect.isclass(evaluate_def):
+            self.evaluate_def = evaluate_def()
+        else:
+            self.evaluate_def = evaluate_def
+
         # Operator:
-        self.operator_def = operator_def()
+        if inspect.isclass(operator_def):
+            self.operator_def = operator_def()
+        else:
+            self.operator_def = operator_def
         self.operator_dict = self.operator_def.operator_dict
         self.operator_dict["input"] = self.meta_def.input_dtypes
         self.operator_dict["output"] = self.meta_def.output_dtypes
         self.operators = self.operator_def.operators
         self.operator_weights = self.operator_def.weights
+        
         # Argument:
-        self.argument_def = argument_def()
+        if inspect.isclass(argument_def):
+            self.argument_def = argument_def()
+        else:
+            self.argument_def = argument_def
         self.arg_count = self.argument_def.arg_count
         self.arg_types = self.argument_def.arg_types
         ezLogging.debug("%s-%s - Done Initialize Block" % (None, self.nickname))
