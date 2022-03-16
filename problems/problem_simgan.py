@@ -17,7 +17,9 @@ from codes.factory import Factory_SimGAN
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
+import codes.utilities.simgan_feature_eval as feature_eval
 from codes.utilities.simgan_fid_metric import get_fid_scores
+from codes.utilities.simgan_support_size_eval import get_support_size
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_Auto
@@ -95,7 +97,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [True, False]
+        self.maximize_objectives = [True, False, False, False, False, False, True, True]
 
 
     @welless_check_decorator
@@ -124,12 +126,21 @@ class Problem(ProblemDefinition_Abstract):
                                                    'cpu')
             #  Objective #2
             refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
+            refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
+            refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
+            support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
         
-            # Add Objectives
-            for indx, rating, fid in zip(alive_individual_index,
-                                         refiner_ratings['r'],
-                                         refiner_fids):
-                population.population[indx].fitness.values = (rating, fid)
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
+                in zip(alive_individual_index,
+                    refiner_ratings['r'],
+                    refiner_fids,
+                    refiner_feature_dist['kl_div'],
+                    refiner_feature_dist['wasserstein_dist'],
+                    refiner_feature_dist['ks_stat'],
+                    refiner_t_tests['num_sig'],
+                    refiner_t_tests['avg_feat_pval'],
+                    support_size['support_size']):
+                population.population[indx].fitness.values = (rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
 
 
     def check_convergence(self, universe):
