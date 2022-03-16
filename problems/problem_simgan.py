@@ -130,17 +130,17 @@ class Problem(ProblemDefinition_Abstract):
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
             support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
         
-        for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
-            in zip(alive_individual_index,
-                refiner_ratings['r'],
-                refiner_fids,
-                refiner_feature_dist['kl_div'],
-                refiner_feature_dist['wasserstein_dist'],
-                refiner_feature_dist['ks_stat'],
-                refiner_t_tests['num_sig'],
-                refiner_t_tests['avg_feat_pval'],
-                support_size['support_size']):
-            population.population[indx].fitness.values = (rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
+                in zip(alive_individual_index,
+                    refiner_ratings['r'],
+                    refiner_fids,
+                    refiner_feature_dist['kl_div'],
+                    refiner_feature_dist['wasserstein_dist'],
+                    refiner_feature_dist['ks_stat'],
+                    refiner_t_tests['num_sig'],
+                    refiner_t_tests['avg_feat_pval'],
+                    support_size['support_size']):
+                population.population[indx].fitness.values = (rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
 
 
     def check_convergence(self, universe):
