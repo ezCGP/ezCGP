@@ -22,7 +22,7 @@ from codes.utilities.simgan_fid_metric import get_fid_scores
 from codes.utilities.simgan_support_size_eval import get_support_size
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
-from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Auto
 from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB, BlockMutate_ArgsOnly
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
@@ -53,7 +53,7 @@ class Problem(ProblemDefinition_Abstract):
         refiner_def = self.construct_block_def(nickname = "refiner_block",
                                                shape_def = BlockShapeMeta_SimGAN_Network, 
                                                operator_def = BlockOperators_SimGAN_Refiner, 
-                                               argument_def = BlockArguments_SimGAN_Refiner,
+                                               argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Refiner().operator_dict, 10),
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
                                                mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
                                                mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -62,7 +62,7 @@ class Problem(ProblemDefinition_Abstract):
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
                                                      shape_def = BlockShapeMeta_SimGAN_Network, 
                                                      operator_def = BlockOperators_SimGAN_Discriminator, 
-                                                     argument_def = BlockArguments_SimGAN_Discriminator,
+                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Discriminator().operator_dict, 15),
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                                      mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
                                                      mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -71,7 +71,7 @@ class Problem(ProblemDefinition_Abstract):
         train_config_def = self.construct_block_def(nickname = "train_config",
                                                     shape_def = BlockShapeMeta_SimGAN_Train_Config, 
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
-                                                    argument_def = BlockArguments_SimGAN_Train_Config,
+                                                    argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config().operator_dict, 10),
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -118,11 +118,13 @@ class Problem(ProblemDefinition_Abstract):
                 discriminators.append(D.cpu())
         
         # Run tournament and add ratings
-        if len(refiners) > 0:
+        if len(alive_individual_index) > 0:
+            #  Objective #1
             refiner_ratings, _ = get_graph_ratings(refiners,
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
+            #  Objective #2
             refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
             refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
@@ -179,16 +181,24 @@ class Problem(ProblemDefinition_Abstract):
         os.makedirs(attachment_folder, exist_ok=False)
 
         # save models
-        torch.save(individual[0].output.state_dict(),
-                   os.path.join(attachment_folder, 'untrained_refiner'))
-        torch.save(individual[1].output.state_dict(),
-                   os.path.join(attachment_folder, 'untrained_discriminator'))
-        torch.save(individual.output[0].state_dict(),
-                   os.path.join(attachment_folder, 'trained_refiner'))
-        torch.save(individual.output[1].state_dict(),
-                   os.path.join(attachment_folder, 'trained_discriminator'))
-        with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
-            pkl.dump(individual[2].output, f)
+        # NOTE if indiv.dead then some of these values may not be filled
+        if not individual[0].dead:
+            torch.save(individual[0].output.state_dict(),
+                       os.path.join(attachment_folder, 'untrained_refiner'))
+
+        if not individual[1].dead:
+            torch.save(individual[1].output.state_dict(),
+                       os.path.join(attachment_folder, 'untrained_discriminator'))
+
+        if not individual[2].dead:
+            with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
+                pkl.dump(individual[2].output, f)
+
+        if not individual.dead:
+            torch.save(individual.output[0].state_dict(),
+                       os.path.join(attachment_folder, 'trained_refiner'))
+            torch.save(individual.output[1].state_dict(),
+                       os.path.join(attachment_folder, 'trained_discriminator'))
 
         # now overwrite
         individual[0].output = []

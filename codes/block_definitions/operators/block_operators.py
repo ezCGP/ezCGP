@@ -315,7 +315,9 @@ class BlockOperators_SimGAN_Refiner(BlockOperators_Abstract):
 
         # From Issue223 we identified that the outputs from these primitives would just be destructive for the refiner
         weight_dict.pop(operators_pytorch.minibatch_discrimination)
+        self.operator_dict.pop(operators_pytorch.minibatch_discrimination)
         weight_dict.pop(operators_pytorch.feature_extraction)
+        self.operator_dict.pop(operators_pytorch.feature_extraction)
 
         self.init_from_weight_dict(weight_dict)
 
