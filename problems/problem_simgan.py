@@ -28,7 +28,7 @@ from codes.individual_definitions.individual_mutate import IndividualMutate_Roll
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
-# from post_process import plot_things
+from post_process import plot_things
 
 
 class Problem(ProblemDefinition_Abstract):
@@ -206,10 +206,12 @@ class Problem(ProblemDefinition_Abstract):
         Save fitness scores and the refiners on the pareto front of fitness scroes
         '''
         ezLogging.info("Post Processing Generation Run")
+
         save_things.save_fitness_scores(universe)
         
         for individual in universe.population.population:
             self.save_pytorch_individual(universe, individual)
+            plot_things.draw_genome(universe, self, individual)
 
         '''
         pareto_front = self.get_pareto_front(universe)

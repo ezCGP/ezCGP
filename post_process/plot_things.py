@@ -17,6 +17,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
 from misc import fake_mixturegauss
+from codes.utilities.custom_logging import ezLogging
 
 
 matplotlib_colors = ['b','g','r','c','m','y'] # 6 colors and excludes black 'k'
@@ -246,3 +247,11 @@ def plot_fitness_over_time(axis, output_folder, minimization, objective_index=0,
     # force x-axis to be only integers
     axis.xaxis.set_major_locator(MaxNLocator(integer=True))
     #import pdb; pdb.set_trace()
+
+
+def draw_genome(universe, problem, individual_material, draw_inactive_nodes=False):
+    ezLogging.info("Drawing Individual %s" % individual_material.id)
+    from codes.utilities.visualize import Visualizer
+    viz = Visualizer(universe.output_folder)
+    filename = "gen_%04d_indiv_%s.pkl" % (universe.generation, individual_material.id)
+    viz.visualize(individual_material, problem.indiv_def, filename, draw_inactive_nodes)
