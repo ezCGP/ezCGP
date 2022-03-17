@@ -34,6 +34,7 @@ def simgan_train_config(config,
                         use_data_history,
                         train_local_loss,
                         local_section_size,
+                        optimizer,
                         steps_per_log=100):
     """
     An operator that stores SimGAN training configuration variables
@@ -69,15 +70,20 @@ def simgan_train_config(config,
     config['self_regularization_loss'] = torch.nn.L1Loss(reduction='sum')
     config['local_adversarial_loss'] = torch.nn.BCEWithLogitsLoss(reduction='mean')
 
+    # Optimizer
+    optimizer_options = ['adam', 'rmsprop']
+    ith_option = optimizer%len(optimizer_options)
+    config['optimizer'] = optimizer_options[ith_option]
+
     return config
     
 
 operator_dict[simgan_train_config] = {
     "inputs": [dict],
     "output": dict,
-    "args": [argument_types.ArgumentType_TrainingStepsMedium,
-             argument_types.ArgumentType_TrainingStepsShort,
-             argument_types.ArgumentType_TrainingStepsShort,
+    "args": [argument_types.ArgumentType_TrainingSteps,
+             argument_types.ArgumentType_PretrainingSteps,
+             argument_types.ArgumentType_PretrainingSteps,
              argument_types.ArgumentType_Int1to5,
              argument_types.ArgumentType_Int1to5,
              argument_types.ArgumentType_LearningRate,
@@ -85,5 +91,6 @@ operator_dict[simgan_train_config] = {
              argument_types.ArgumentType_LearningRate,
              argument_types.ArgumentType_Bool,
              argument_types.ArgumentType_Bool,
-             argument_types.ArgumentType_Int1to5]
+             argument_types.ArgumentType_Int1to5,
+             argument_types.ArgumentType_Int0to100]
     }

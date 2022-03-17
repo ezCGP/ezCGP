@@ -191,7 +191,7 @@ shapemeta_trainconfig = BlockShapeMeta_SimGAN_Train_Config()
 args = []
 genome = [None]*shapemeta_trainconfig.genome_count
 
-this_args = [100, 50, 50, 5, 5, 1e-4, 1e-4, 1e-4, True, True, 4] # TODO FILL WITH REAL VALUES
+this_args = [5000, 500, 400, 1, 2, 0.001, 0.0001, 0.0001, True, True, 4, 0]
 genome[0] = {"ftn": opTrainConfig.simgan_train_config,
              "inputs": [-1],
              "args": list(np.arange(len(this_args))+len(args))}
