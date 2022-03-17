@@ -152,11 +152,11 @@ def birthday_paradox_test(samples, same_signal_thresh, method="mae"):
     return n_matches > 0, n_matches
 
 
-def calculate_support_size(gen_func, same_signal_thresh, data_config=None, gen_func_kwargs=None, method="mae", iterations=100, starting_n_samples=100, max_samples=5000):
+def calculate_support_size(samples, same_signal_thresh, data_config=None, gen_func_kwargs=None, method="mae", iterations=100, starting_n_samples=100, max_samples=5000):
     '''
     Calculate the support size of the generating function using an iterative method that hones in on the support size using the birthday paradox test
         Parameters:
-            gen_func (func): The function to calculate support size for, used to generate samples for testing
+            samples (tensor): samples for testing
             same_signal_thresh (float): The threshold for a given similarity/divergence method that indicates two samples are the same 
             data_config (ET.Element): An ET xml element holding the data configuration needed for the gen_func
             gen_func_kwargs (dict): A dict of kwargs to pass into the gen_func
@@ -175,12 +175,6 @@ def calculate_support_size(gen_func, same_signal_thresh, data_config=None, gen_f
         # Find percent of iterations with duplicates
         iterations_with_duplicates = 0
         for i in range(iterations):
-            # Generate samples
-            samples = None
-            if gen_func_kwargs is None:
-                samples = gen_func(n_samples, data_config)
-            else:
-                samples = gen_func(n_samples, data_config, **gen_func_kwargs)
             duplicates_found, _ = birthday_paradox_test(samples, same_signal_thresh, method)
             if duplicates_found:
                 iterations_with_duplicates += 1
