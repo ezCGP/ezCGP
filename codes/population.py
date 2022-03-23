@@ -130,3 +130,18 @@ class PopulationDefinition():
                     alive_population.append(indiv)
             self.hall_of_fame.update(alive_population)
             ezLogging.debug("Updated Hall of Fame to size %i" % (len(self.hall_of_fame.items)))
+
+
+    def get_pareto_front(self, use_hall_of_fame=False, first_front_only=False):
+        '''
+        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.sortNondominated
+        https://github.com/DEAP/deap/blob/master/deap/tools/emo.py#L53
+        '''
+        if use_hall_of_fame:
+            individuals = self.hall_of_fame.items()
+        else:
+            individuals = population.population
+        k = len(individuals)
+        fronts = deap.tools.sortNondominated(individuals, k, first_front_only)
+        ezLogging.debug("Calculated and Found %i Pareto Fronts" % (len(fronts)))
+        return fronts
