@@ -97,7 +97,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [False, False, False, False, False, True, True]
+        self.maximize_objectives = [False, False, False, True]
 
 
     @welless_check_decorator
@@ -152,7 +152,10 @@ class Problem(ProblemDefinition_Abstract):
                     population.population[indx].refiner_rating.append(rating)
                 else:
                     population.population[indx].refiner_rating = [rating]
-                population.population[indx].fitness.values = (fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
+
+                # Issue 219 - filtering down to only 4 objectives:
+                # fid (#2), ks_stat (#5), num_sig (#6), and avg_feat_pval (#7)
+                population.population[indx].fitness.values = (fid, ks_stat, num_sig, avg_feat_pval)
 
 
     def check_convergence(self, universe):
