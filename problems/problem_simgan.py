@@ -31,6 +31,7 @@ from codes.individual_definitions.individual_mate import IndividualMate_RollOnEa
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
 from post_process import plot_things
+from codes.utilities import decorators
 
 
 class Problem(ProblemDefinition_Abstract):
@@ -85,6 +86,7 @@ class Problem(ProblemDefinition_Abstract):
         self.construct_dataset()
 
 
+    @decorators.stopwatch_decorator
     def construct_dataset(self):
         '''
         Constructs a train and validation 1D signal datasets
@@ -100,6 +102,7 @@ class Problem(ProblemDefinition_Abstract):
         self.maximize_objectives = [False, False, False, True]
 
 
+    @decorators.stopwatch_decorator
     @welless_check_decorator
     def objective_functions(self, population):
         '''
