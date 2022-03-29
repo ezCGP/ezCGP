@@ -57,21 +57,8 @@ class BlockArguments_Abstract():
         '''
         ezLogging.debug("%s-%s - Inside init_from_weight_dict; weight_dict: %s" % (None, None, weight_dict))
         args, weights = tools.build_weights(weight_dict)
-
-        ''' Issue #258
-        A while ago, we noticed how random values would sparadically change even though we were seeded.
-        It was tracked back to the arg_types changing because we depended on the order returned from
-        a for loop over the items of a dictionary which will not gaurentee the same order.
-        So now we sort the arg types based of their string representation and that should hold true
-        no matter the order of the .items() call
-        '''
-        str_names = []
-        for name in args:
-            str_names.append(str(name))
-        str_order = np.argsort(str_names)
-
-        self.each_type = np.array(args)[str_order].tolist()
-        self.each_weight = np.array(weights)[str_order].tolist()
+        self.each_type = args
+        self.each_weight = weights
         self.set_arg_types()
 
 
