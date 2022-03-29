@@ -43,11 +43,11 @@ def simgan_train_config(config,
         ezLogging.debug("'device' not set elsewhere so defaulting to 'cpu'.")
 
     # TODO: Consider finding a way to measure convergence vs. making hardcoding training steps
-    config['train_steps'] = train_steps
-    config['r_pretrain_steps'] = r_pretrain_steps
-    config['d_pretrain_steps'] = d_pretrain_steps
-    config['d_updates_per_train_step'] = d_updates_per_train_step
-    config['r_updates_per_train_step'] = r_updates_per_train_step
+    config['train_steps'] = 200 # TODO train_steps
+    config['r_pretrain_steps'] = 100 # TODO r_pretrain_steps
+    config['d_pretrain_steps'] = 100 # TODO d_pretrain_steps
+    config['d_updates_per_train_step'] = 50 # TODO d_updates_per_train_step
+    config['r_updates_per_train_step'] = 50 # TODO r_updates_per_train_step
 
     # Optim
     config['r_lr'] = r_lr
@@ -58,7 +58,7 @@ def simgan_train_config(config,
     config['use_data_history'] = use_data_history
 
     # Logging
-    config['steps_per_log'] = steps_per_log # not currently evolved on
+    config['steps_per_log'] = 50 # TODO steps_per_log # not currently evolved on
 
     # Losses (currently hard coded)
     config['self_regularization_loss'] = torch.nn.L1Loss(reduction='sum')

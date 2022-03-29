@@ -139,7 +139,8 @@ def find_pareto(data,
 
 def get_pareto_front(fitness_scores,
                      maximize_objectives_list,
-                     x_objective_index=0, y_objective_index=1,):
+                     x_objective_index=0, y_objective_index=1,
+                     first_front_only=False):
     '''
     There is already a similar method in Population class but this method hacks it so we look at
     strictly 2 objectives and plot the pareto for only those individuals.
@@ -158,6 +159,7 @@ def get_pareto_front(fitness_scores,
             super().set_id(add_fake)
 
     # if fitness_scores is actually a list of individuals then convert to np.array of scores
+    print("what"); import pdb; pdb.set_trace()
     if (isinstance(fitness_scores, list)) and (isinstance(fitness_scores[0], IndividualMaterial)):
         new_fitness_scores = []
         for indiv in fitness_scores:
@@ -174,7 +176,7 @@ def get_pareto_front(fitness_scores,
         fake_pop.append(fake_indiv)
 
     # get pareto
-    return deap.tools.sortNondominated(fake_pop, k=len(fake_pop), first_front_only=False)
+    return deap.tools.sortNondominated(fake_pop, k=len(fake_pop), first_front_only=first_front_only)
 
 
 

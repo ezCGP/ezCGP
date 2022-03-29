@@ -237,11 +237,13 @@ class Problem(ProblemDefinition_Abstract):
             plot_things.draw_genome(universe, self, individual)
 
         # Grab Pareto front and visualize secondary waveforms
+        print("check obj"); import pdb; pdb.set_trace()
         pareto_fig, pareto_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
         pareto_fronts = plot_things.get_pareto_front(universe.population.hall_of_fame.items,
                                                      self.maximize_objectives,
-                                                     x_objective_index=4,
-                                                     y_objective_index=6)
+                                                     x_objective_index=0,
+                                                     y_objective_index=1,
+                                                     first_front_only=True)
         plot_things.plot_pareto_front2(pareto_axis[0,0],
                                        pareto_fronts,
                                        color=None, label='',
