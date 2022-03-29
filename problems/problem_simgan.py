@@ -70,7 +70,7 @@ class Problem(ProblemDefinition_Abstract):
 
         train_config_def = self.construct_block_def(nickname = "train_config",
                                                     shape_def = BlockShapeMeta_SimGAN_Train_Config, 
-                                                    operator_def = BlockOperators_SimGAN_Train_Config, 
+                                                    operator_def = BlockOperators_SimGAN_Train_Config,
                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config().operator_dict, 10),
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
@@ -98,6 +98,7 @@ class Problem(ProblemDefinition_Abstract):
 
     def set_optimization_goals(self):
         self.maximize_objectives = [False, False, False, True]
+        self.objective_names = ["FID", "KS stat", "Significant Count", "Avg Feature P-value"] # will be helpful for plotting later
 
 
     @welless_check_decorator
@@ -120,23 +121,30 @@ class Problem(ProblemDefinition_Abstract):
         # Run tournament and add ratings
         if len(alive_individual_index) > 0:
             #  Objective #1 - NO LONGER AN OBJECTIVE FOR POPULATION SELECTION
+            ezLogging.info("Calculating Objective 1")
             refiner_ratings, _ = get_graph_ratings(refiners,
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
+
             #  Objective #2
-            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
+            ezLogging.info("Calculating Objective 2")
+            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0])
+            #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
             
             # Objective #3, #4, #5
+            ezLogging.info("Calculating Objective 3,4,5")
             refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
             
             # Objective #6, #7
+            ezLogging.info("Calculating Objective 6,7")
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
             
             # Objective #8
-            support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
-        
-            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
+            #ezLogging.info("Calculating Objective 8")
+            #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
+            
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
                     refiner_fids,
@@ -144,8 +152,7 @@ class Problem(ProblemDefinition_Abstract):
                     refiner_feature_dist['wasserstein_dist'],
                     refiner_feature_dist['ks_stat'],
                     refiner_t_tests['num_sig'],
-                    refiner_t_tests['avg_feat_pval'],
-                    support_size['support_size']):
+                    refiner_t_tests['avg_feat_pval']):
                 # since refiner rating is a 'relative' score, we are not going to set it to fitness value to be used in population selection
                 # BUT we will keep it available as metadata
                 if hasattr(population.population[indx], 'refiner_rating'):
@@ -234,28 +241,144 @@ class Problem(ProblemDefinition_Abstract):
         ezLogging.info("Post Processing Generation Run")
         
         save_things.save_fitness_scores(universe)
+        save_things.save_HOF_scores(universe)
 
         for individual in universe.population.population:
             self.save_pytorch_individual(universe, individual)
             plot_things.draw_genome(universe, self, individual)
 
-        # Grab Pareto front and visualize secondary waveforms
-        print("check obj"); import pdb; pdb.set_trace()
-        pareto_fig, pareto_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
-        pareto_fronts = plot_things.get_pareto_front(universe.population.hall_of_fame.items,
-                                                     self.maximize_objectives,
-                                                     x_objective_index=0,
-                                                     y_objective_index=1,
-                                                     first_front_only=True)
-        plot_things.plot_pareto_front2(pareto_axis[0,0],
-                                       pareto_fronts,
-                                       color=None, label='',
+
+
+
+        #################################################################################
+        #################################################################################
+        # TEST AREA
+        # make some fake fitness scores
+        data0 = [[0.25, 0.6], #<-pareto
+                [0.75, 0.2], #<-pareto
+                [0.50, 0.4], #<-pareto
+                [0.20, 0.2], #<-should become left border for AUC calc
+                [0.60, 0.1], #<-should become right border for AUC calc
+                [0.30, 0.3]] 
+        data0 = np.array(data0)
+        pareto_fronts0 = plot_things.get_pareto_front(data0,
+                                                      [True, True], # <- maximizing both objectives
+                                                      x_objective_index=0,
+                                                      y_objective_index=1,
+                                                      first_front_only=True)
+
+        print("Verify Pareto Front individuals in test case")
+        front = pareto_fronts0[0] # remember, it returns a list of lists but first_front_only is True so there is only 1 element
+        for indiv in front:
+            # NOTE: it'll get sorted in the plot_pareto_front2() method
+            print(indiv.fitness.wvalues)
+
+        test_fig, test_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+        plot_things.plot_pareto_front2(test_axis[0,0],
+                                       pareto_fronts0,
+                                       color=None, label="HOF Gen %i" % (universe.generation),
                                        x_objective_index=0, y_objective_index=1,
+                                       xlabel='bogus 0', ylabel='bogus 1',
                                        min_x=None, max_x=None,
                                        min_y=None, max_y=None)
-        #plot_things.plot_legend(pareto_fig)
-        plot_things.plot_save(pareto_fig, os.path.join(universe.output_folder, "pareto_front_gen%04d.jpg" % universe.generation))
+
+        import matplotlib.pyplot as plt
+        plt.show()
+        plt.close()
+
+        # calc auc
+        auc0 = plot_things.calc_auc([True, True],data0) # <-note we give it all data, not just the front
+
+        # but now what if we have multiple generations?
+        # make more fitness scores as if a second generation calculated
+        data1 = np.random.random((10,2))
+        pareto_fronts1 = plot_things.get_pareto_front(data1,
+                                                      [True, True], # <- maximizing both objectives
+                                                      x_objective_index=0,
+                                                      y_objective_index=1,
+                                                      first_front_only=True)
+
+        all_auc = plot_things.calc_auc_multi_gen([True, True], data0, data1) # <-again give it all the data not just the front
+
+        print("check test auc stuff"); import pdb; pdb.set_trace()
+        #################################################################################
+        #################################################################################
+
+
+
+        # Pareto Plot for each objective combo at current HOF:
+        for i in range(len(self.maximize_objectives)-1):
+            for j in range(i+1,len(self.maximize_objectives)):
+                x_obj = self.objective_names[i]
+                y_obj = self.objective_names[j]
+                # Grab Pareto front and visualize secondary waveforms...do it for each combo of objectives
+                pareto_fig, pareto_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+                pareto_fronts = plot_things.get_pareto_front(universe.population.hall_of_fame.items,
+                                                             self.maximize_objectives,
+                                                             x_objective_index=i,
+                                                             y_objective_index=j,
+                                                             first_front_only=False)
+                plot_things.plot_pareto_front2(pareto_axis[0,0],
+                                               pareto_fronts,
+                                               color=None, label='',
+                                               x_objective_index=0, y_objective_index=1,
+                                               xlabel=x_obj, ylabel=y_obj,
+                                               min_x=None, max_x=None,
+                                               min_y=None, max_y=None)
         
+                #plot_things.plot_legend(pareto_fig)
+                plot_things.plot_save(pareto_fig,
+                                      os.path.join(universe.output_folder,
+                                                   "pareto_front_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+
+
+
+
+
+        # Best Pareto Plot Over time
+        for i in range(len(self.maximize_objectives)-1):
+            for j in range(i+1,len(self.maximize_objectives)):
+                x_obj = self.objective_names[i]
+                y_obj = self.objective_names[j]
+
+                pareto_fig, pareto_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+                for gen in range(universe.generation+1):
+                    hof_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % gen)
+                    hof_fitness = np.load(hof_fitness_file)['fitness']
+                    pareto_fronts = plot_things.get_pareto_front(hof_fitness,
+                                                                 self.maximize_objectives,
+                                                                 x_objective_index=i,
+                                                                 y_objective_index=j,
+                                                                 first_front_only=True)
+                    plot_things.plot_pareto_front2(pareto_axis[0,0],
+                                                   pareto_fronts,
+                                                   color=None, label="HOF Gen %i" % (gen),
+                                                   x_objective_index=0, y_objective_index=1,
+                                                   xlabel=x_obj, ylabel=y_obj,
+                                                   min_x=None, max_x=None,
+                                                   min_y=None, max_y=None)
+                
+                plot_things.plot_legend(pareto_fig)
+                plot_things.plot_save(pareto_fig,
+                                      os.path.join(universe.output_folder,
+                                                   "pareto_front_overtime_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+
+
+
+
+        # AUC over time:
+        # get files:
+        all_hof_scores = []
+        for gen in range(universe.generation+1):
+            hof_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % gen)
+            hof_fitness = np.load(hof_fitness_file)['fitness']
+            all_hof_scores.append(hof_fitness)
+
+        all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, *all_hof_scores)
+        # TODO do somethin with it!
+
+
+
         '''
         pareto_front = self.get_pareto_front(universe)
         for ind in pareto_front:

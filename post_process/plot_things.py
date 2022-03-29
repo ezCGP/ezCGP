@@ -159,7 +159,6 @@ def get_pareto_front(fitness_scores,
             super().set_id(add_fake)
 
     # if fitness_scores is actually a list of individuals then convert to np.array of scores
-    print("what"); import pdb; pdb.set_trace()
     if (isinstance(fitness_scores, list)) and (isinstance(fitness_scores[0], IndividualMaterial)):
         new_fitness_scores = []
         for indiv in fitness_scores:
@@ -178,6 +177,81 @@ def get_pareto_front(fitness_scores,
     # get pareto
     return deap.tools.sortNondominated(fake_pop, k=len(fake_pop), first_front_only=first_front_only)
 
+
+def calc_auc(maximize_objectives_list, fitness_scores):
+    '''
+    assume fitness socres is a numpy array of ALL the scores for some group...not just the pareto front
+    since we need a way to define the 'edges' of the polynomial we draw to calc the area
+    '''
+    # first get pareto front
+    pareto_fronts = get_pareto_front(fitness_scores,
+                                     maximize_objectives_list,
+                                     x_objective_index=0, y_objective_index=1,
+                                     first_front_only=True)
+
+    # get and sort
+    pareto_scores = []
+    for indiv in pareto_fronts[0]:
+        pareto_scores.append(indiv.fitness.wvalues)
+    pareto_scores = np.array(pareto_scores)
+    pareto_scores =  pareto_scores[np.argsort(pareto_scores[:,0])]
+
+    # get left border
+    left_border = (fitness_scores[:,0].min(), pareto_scores[0,1])
+    right_border = (pareto_scores[-1,0], fitness_scores[:,1].min())
+
+    # combine together
+    auc_scores = np.vstack((left_border, pareto_scores))
+    auc_scores = np.vstack((auc_scores, right_border))
+
+    # calc
+    box_widths = np.diff(auc_scores[:-1,0])
+    box_heights = pareto_scores[:,1] - right_border[1] #auc_scores[1:-1:,1] - auc_scores[-1,1] <- the same calc
+    auc = np.sum(box_widths * box_heights)
+    return auc
+
+
+def calc_auc_multi_gen(maximize_objectives_list, *all_fitness_scores):
+    '''
+    basically the same as calc_auc but each generation uses the same left/right border values
+    '''
+    # calculate the borders
+    extreme_left = np.inf
+    extreme_right = np.inf
+    for gen_scores in all_fitness_scores:
+        extreme_left = min(extreme_left, gen_scores[:,0].min())
+        extreme_right = min(extreme_right, gen_scores[:,1].min())
+        print(extreme_left, extreme_right)
+
+    # now get pareto and calc auc for each gen
+    all_auc = []
+    for gen_scores in all_fitness_scores:
+        pareto_fronts = get_pareto_front(gen_scores,
+                                         maximize_objectives_list,
+                                         x_objective_index=0, y_objective_index=1,
+                                         first_front_only=True)
+        # get and sort
+        pareto_scores = []
+        for indiv in pareto_fronts[0]:
+            pareto_scores.append(indiv.fitness.wvalues)
+        pareto_scores = np.array(pareto_scores)
+        pareto_scores =  pareto_scores[np.argsort(pareto_scores[:,0])]
+
+        # get left border
+        left_border = (extreme_left, pareto_scores[0,1])
+        right_border = (pareto_scores[-1,0], extreme_right)
+
+        # combine together
+        auc_scores = np.vstack((left_border, pareto_scores))
+        auc_scores = np.vstack((auc_scores, right_border))
+
+        # calc
+        box_widths = np.diff(auc_scores[:-1,0])
+        box_heights = pareto_scores[:,1] - right_border[1] #auc_scores[1:-1:,1] - auc_scores[-1,1] <- the same calc
+        auc = np.sum(box_widths * box_heights)
+        all_auc.append(auc)
+
+    return all_auc
 
 
 def plot_pareto_front(axis,
@@ -224,6 +298,7 @@ def plot_pareto_front2(axis,
                        pareto_fronts,
                        color=None, label='',
                        x_objective_index=0, y_objective_index=1,
+                       xlabel=None, ylabel=None,
                        min_x=0, max_x=1,
                        min_y=0, max_y=1):
     '''
@@ -306,12 +381,11 @@ def plot_pareto_front2(axis,
     min_y, max_y = get_limits(1, min_y, max_y, sofar_min_y, sofar_max_y)
     axis.set_xlim(min_x,max_x)
     axis.set_ylim(min_y,max_y)
+    if xlabel is not None:
+        axis.set_xlabel("%s" % xlabel)
+    if ylabel is not None:
+        axis.set_ylabel("%s" % ylabel)
     axis.set_title("Pareto Front")
-
-    # Calculate the Area under the Curve as a Riemann sum
-    auc = np.sum(np.diff(fitness_scores[:,0])*fitness_scores[0:-1,1]) #TODO THIS NEEDS UPGRADE
-
-    return auc
 
 
 def plot_pareto_front_from_fitness_npz(axis, population_fitness_npz, minimization, **kwargs):
