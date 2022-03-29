@@ -138,7 +138,7 @@ class PopulationDefinition():
         https://github.com/DEAP/deap/blob/master/deap/tools/emo.py#L53
         '''
         if use_hall_of_fame:
-            individuals = self.hall_of_fame.items()
+            individuals = self.hall_of_fame.items
         else:
             individuals = population.population
         k = len(individuals)

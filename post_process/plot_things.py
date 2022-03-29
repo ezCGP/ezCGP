@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.ticker import MaxNLocator
+import deap.tools
 
 ### sys relative to root dir
 import sys
@@ -136,6 +137,47 @@ def find_pareto(data,
     return pareto_data
 
 
+def get_pareto_front(fitness_scores,
+                     maximize_objectives_list,
+                     x_objective_index=0, y_objective_index=1,):
+    '''
+    There is already a similar method in Population class but this method hacks it so we look at
+    strictly 2 objectives and plot the pareto for only those individuals.
+    '''
+    from codes.genetic_material import IndividualMaterial
+    class FakeIndividual(IndividualMaterial):
+        '''
+        warning: this will make ezLogging statements for set_id but hopefully won't be totally distracting in use
+        '''
+        def __init__(self, maximize_objectives_list):
+            super().__init__(maximize_objectives_list)
+
+        def set_id(self, _id=None):
+            super().set_id(_id)
+            add_fake = "fake_%s" % self.id
+            super().set_id(add_fake)
+
+    # if fitness_scores is actually a list of individuals then convert to np.array of scores
+    if (isinstance(fitness_scores, list)) and (isinstance(fitness_scores[0], IndividualMaterial)):
+        new_fitness_scores = []
+        for indiv in fitness_scores:
+            new_fitness_scores.append(indiv.fitness.values) # not weighted
+        fitness_scores = np.array(new_fitness_scores)
+
+    fake_pop = []
+    adjusted_objective_list = [maximize_objectives_list[x_objective_index],
+                               maximize_objectives_list[y_objective_index]]
+    for score in fitness_scores:
+        fake_indiv = FakeIndividual(adjusted_objective_list)
+        fake_indiv.fitness.values = (score[x_objective_index],
+                                     score[y_objective_index])
+        fake_pop.append(fake_indiv)
+
+    # get pareto
+    return deap.tools.sortNondominated(fake_pop, k=len(fake_pop), first_front_only=False)
+
+
+
 def plot_pareto_front(axis,
                       fitness_scores,
                       minimization=True,
@@ -173,6 +215,100 @@ def plot_pareto_front(axis,
 
     # Calculate the Area under the Curve as a Riemann sum
     auc = np.sum(np.diff(pareto_scores[:,0])*pareto_scores[0:-1,1])
+    return auc
+
+
+def plot_pareto_front2(axis,
+                       pareto_fronts,
+                       color=None, label='',
+                       x_objective_index=0, y_objective_index=1,
+                       min_x=0, max_x=1,
+                       min_y=0, max_y=1):
+    '''
+    New method now that we have a method in Population class to get the pareto fronts from hall of fame.
+    pareto_fronts should be a list of lists as returned by the Population.get_pareto_front() method.
+
+    Note that the Fitness class for each individual has a weighted values attribute which takes into
+    account whether we are maximizing or minimizing
+    
+    x/y_objective_index -> say we have 4 objective scores, which of the 4 should be plotted on the x-axis and which on the y-axis...by index
+    '''
+    sofar_min_x = np.inf
+    sofar_max_x = -np.inf
+    sofar_min_y = np.inf
+    sofar_max_y = -np.inf
+
+    pseudo_ninf = -1*int(1e12-1)
+
+    for c, front in enumerate(pareto_fronts):
+        # grab scores for front
+        fitness_scores = []
+        for indiv in front:
+            fitness_scores.append([indiv.fitness.wvalues[x_objective_index],
+                                   indiv.fitness.wvalues[y_objective_index]])
+        fitness_scores = np.array(fitness_scores)
+
+        # sort scores
+        fitness_scores =  fitness_scores[np.argsort(fitness_scores[:,0])]
+
+        # calculate before adding 'extreme points'
+        #...will use these to help set plt axis limits if not provided
+        sofar_min_x = min(sofar_min_x, fitness_scores[:,0].min())
+        sofar_max_x = max(sofar_max_x, fitness_scores[:,0].max())
+        sofar_min_y = min(sofar_min_y, fitness_scores[:,1].min())
+        sofar_max_y = max(sofar_max_y, fitness_scores[:,1].max())
+
+        # add 2 extreme performances
+        yaxis_limit = (pseudo_ninf, fitness_scores[0,1])
+        xaxis_limit = (fitness_scores[-1,0], pseudo_ninf)
+
+        # combine together
+        fitness_scores = np.vstack((yaxis_limit, fitness_scores))
+        fitness_scores = np.vstack((fitness_scores, xaxis_limit))
+
+        # get color
+        if color is None:
+            ith_color = c%len(matplotlib_colors)
+            use_color = matplotlib_colors[ith_color]
+        else:
+            use_color = color
+
+        # Plot Pareto steps.
+        # NOTE: if minimizing, we would use where='pre' post
+        axis.step(fitness_scores[:,0], fitness_scores[:,1], where='pre', color=color, label=label, marker="*")
+        ''' in the legend, change the line to a rectangle block; you will have to remove label from the axis.step() call as well
+        red_patch = mpatches.Patch(color=color, label=label)
+        axis.legend(handles=[red_patch])
+        '''
+
+    def get_limits(i, min_axis, max_axis, sofar_min, sofar_max):
+        # going to assume that the data is sorted so not going to call min() or max()
+        # that will also help avoid extreme points if added
+        if min_axis is None:
+            min_axis = sofar_min
+            if min_axis < 0:
+                min_axis *= 1.1
+            else:
+                min_axis *= 0.9
+
+        if max_axis is None:
+            max_axis = sofar_max
+            if max_axis < 0:
+                max_axis *= 0.9
+            else:
+                max_axis *= 1.1
+        
+        return min_axis, max_axis
+
+    min_x, max_x = get_limits(0, min_x, max_x, sofar_min_x, sofar_max_x)
+    min_y, max_y = get_limits(1, min_y, max_y, sofar_min_y, sofar_max_y)
+    axis.set_xlim(min_x,max_x)
+    axis.set_ylim(min_y,max_y)
+    axis.set_title("Pareto Front")
+
+    # Calculate the Area under the Curve as a Riemann sum
+    auc = np.sum(np.diff(fitness_scores[:,0])*fitness_scores[0:-1,1]) #TODO THIS NEEDS UPGRADE
+
     return auc
 
 

@@ -149,7 +149,7 @@ class FactoryDefinition():
             except Exception as err:
                 ezLogging.error("%s - for seed %s" % (err, block_seeds))
                 indiv_material = None
-                
+
         if (isinstance(block_seeds, list)) and (len(block_seeds)>0):
             indiv_material = IndividualMaterial(maximize_objectives_list)
             indiv_material.set_id(indiv_id)
