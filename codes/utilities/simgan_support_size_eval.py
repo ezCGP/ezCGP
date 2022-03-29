@@ -172,6 +172,10 @@ def calculate_support_size(samples, same_signal_thresh, data_config=None, gen_fu
     percent_duplicates = None
     n_samples = starting_n_samples
     while n_samples < max_samples:
+        
+        if n_samples == 0:
+            return max_samples**2, percent_duplicates
+
         # Find percent of iterations with duplicates
         iterations_with_duplicates = 0
         for i in range(iterations):
