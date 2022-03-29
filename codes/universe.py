@@ -402,6 +402,7 @@ class MPIUniverseDefinition(UniverseDefinition):
 class RelativePopulationUniverseDefinition(UniverseDefinition):
     '''
     Defines a Universe specifically for problems where the individuals are judged by a relative performance metric instead of an absolute performance metric
+    ie where the objective_function needs to be passed the whole population rather than a single individual.
     '''
     def __init__(self,
                  problem: ProblemDefinition_Abstract,

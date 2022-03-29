@@ -97,7 +97,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [True, False, False, False, False, False, True, True]
+        self.maximize_objectives = [False, False, False, False, False, True, True]
 
 
     @welless_check_decorator
@@ -119,15 +119,21 @@ class Problem(ProblemDefinition_Abstract):
         
         # Run tournament and add ratings
         if len(alive_individual_index) > 0:
-            #  Objective #1
+            #  Objective #1 - NO LONGER AN OBJECTIVE FOR POPULATION SELECTION
             refiner_ratings, _ = get_graph_ratings(refiners,
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
             #  Objective #2
             refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
+            
+            # Objective #3, #4, #5
             refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
+            
+            # Objective #6, #7
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
+            
+            # Objective #8
             support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
         
             for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
@@ -140,7 +146,13 @@ class Problem(ProblemDefinition_Abstract):
                     refiner_t_tests['num_sig'],
                     refiner_t_tests['avg_feat_pval'],
                     support_size['support_size']):
-                population.population[indx].fitness.values = (rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
+                # since refiner rating is a 'relative' score, we are not going to set it to fitness value to be used in population selection
+                # BUT we will keep it available as metadata
+                if hasattr(population.population[indx], 'refiner_rating'):
+                    population.population[indx].refiner_rating.append(rating)
+                else:
+                    population.population[indx].refiner_rating = [rating]
+                population.population[indx].fitness.values = (fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
 
 
     def check_convergence(self, universe):
@@ -217,9 +229,9 @@ class Problem(ProblemDefinition_Abstract):
         Save fitness scores and the refiners on the pareto front of fitness scroes
         '''
         ezLogging.info("Post Processing Generation Run")
-
-        save_things.save_fitness_scores(universe)
         
+        save_things.save_fitness_scores(universe)
+
         for individual in universe.population.population:
             self.save_pytorch_individual(universe, individual)
             plot_things.draw_genome(universe, self, individual)
