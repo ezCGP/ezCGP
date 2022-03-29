@@ -48,7 +48,7 @@ def calc_feature_distances(refiners, validation_data, device):
     maxs = np.expand_dims(np.max(np.concatenate([real_features, real_features], axis=1), axis=1), axis=1)
     normalized_real_features = (real_features - mins) / (maxs - mins)
     feature_scores = pd.DataFrame.from_dict(feature_scores, orient='index')
-    return feature_scores.T
+    return feature_scores
 
 def calc_t_tests(refiners, validation_data, device):
     '''
@@ -93,7 +93,7 @@ def calc_t_tests(refiners, validation_data, device):
     maxs = np.expand_dims(np.max(np.concatenate([real_features, real_features], axis=1), axis=1), axis=1)
     normalized_real_features = (real_features - mins) / (maxs - mins)
     feature_scores = pd.DataFrame.from_dict(feature_scores, orient='index')
-    return feature_scores.T
+    return feature_scores
 
 def estimated_trials(n, m): 
     '''
