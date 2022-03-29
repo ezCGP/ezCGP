@@ -134,9 +134,10 @@ class Problem(ProblemDefinition_Abstract):
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
             
             # Objective #8
-            support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
+            #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
+            #support_size['support_size']
         
-            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
                     refiner_fids,
@@ -144,8 +145,7 @@ class Problem(ProblemDefinition_Abstract):
                     refiner_feature_dist['wasserstein_dist'],
                     refiner_feature_dist['ks_stat'],
                     refiner_t_tests['num_sig'],
-                    refiner_t_tests['avg_feat_pval'],
-                    support_size['support_size']):
+                    refiner_t_tests['avg_feat_pval']):
                 # since refiner rating is a 'relative' score, we are not going to set it to fitness value to be used in population selection
                 # BUT we will keep it available as metadata
                 if hasattr(population.population[indx], 'refiner_rating'):
