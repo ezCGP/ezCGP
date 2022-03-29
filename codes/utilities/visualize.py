@@ -1,16 +1,21 @@
 """
 This class takes in an individual and writes it to a .csv for draw.io to process
 
-Use: Instantiate object, then pass an individual to create_csv
+Use:
+    Instantiate object, then pass an individual to create_csv
+
+Make Viz:
+    Go to draw.io or app.diagrams.net
+    Navigate to Arrange->Inser->Advanced->CSV...
+    Delete all contents in the pop-up text box
+    Copy-Paste all contents from the saved csv into the text box
+    Select 'Import'
 """
-import argparse
 import glob
 import os
 import pickle
 import random
 import string
-import sys
-
 import numpy as np
 
 
@@ -33,93 +38,135 @@ HEADER = '## Hello World \
 INPUT_ROW = '{}{}{},{},\"nickname = {}\",{},\"{}\",{}'
 NORMAL_ROW = '{}{}{},{},\"node #{}\",{},\"{}\",{}'
 OUTPUT_ROW = '{0}{1}{2},Output,,{3},\"{0}{1}{4}\",{5}'
-END_ROW = 'END,\"Fitness: ({},{},{})\",,#ffe6cc,\"{}\",'
+END_ROW = 'END,\"Fitness: ({})\",,#ffe6cc,\"{}\",'
 INACTIVE_NODE_COLOR = '#f8cecc'
 
 
 class Visualizer:
-    def __init__(self, output_path='vis'):
+    def __init__(self, output_path):
         # Limit on number of block is letters of alphabet
         self.output_path = output_path
         self.shifts = list(string.ascii_lowercase)
         self.colors = ['#dae8fc', '#f8cecc', "#d5e8d4"] * 9
         self.header = HEADER
         self.arrow_color = '#1500ff'
-        self.csv_rows = self.header.split('\n')
+        #self.csv_rows = self.header.split('\n')
         self.individual_num = 0
-        self.append_csv(True)
 
-    def add_to_csv(self, individual, print_entire_genome):
-        self.csv_rows = []
+
+    def visualize(self, individual_material, individual_def, individual_name, print_entire_genome):
         self.individual_num += 1
+        self.csv_rows = self.header.split('\n')
         prev_output = ''
-        for block_num, block in enumerate(individual.blocks):
+        for block_num, (block_material, block_def) in enumerate(zip(individual_material.blocks, individual_def.block_defs)):
+            print("\nBlock %i - %s" % (block_num, block_def.nickname))
             shift = self.shifts[block_num]
-            indices = block.active_nodes
+            indices = block_material.active_nodes
             if print_entire_genome:
+                # Rodd is unsure this is right...
                 indices = range(indices[0], len(block.genome) + indices[0])
+            
             for index in indices:
-                color = self.colors[block_num] if index in block.active_nodes else INACTIVE_NODE_COLOR
-                fn = block.genome[index]
+                color = self.colors[block_num] if index in block_material.active_nodes else INACTIVE_NODE_COLOR
+                node_dict = block_material.genome[index]
+                print("Index %i with contents %s" % (index, node_dict))
                 if index < 0:  # Input
-                    out = INPUT_ROW.format(self.individual_num, shift, index, fn, block.block_nickname, color, prev_output, self.arrow_color)
-                elif type(fn) == np.int64:
-                    out = OUTPUT_ROW.format(self.individual_num, shift, index, color, fn, self.arrow_color)
+                    print("...is genome input")
+                    out = INPUT_ROW.format(self.individual_num, shift, index, node_dict, block_material.block_nickname, color, prev_output, self.arrow_color)
+                elif type(node_dict) == np.int64:
+                    # ^has to be np.int64, won't work for int
+                    print("...is genome output")
+                    out = OUTPUT_ROW.format(self.individual_num, shift, index, color, node_dict, self.arrow_color)
                     prev_output = f'{self.individual_num}{shift}{index}'
                 else:
-                    # the max pool layer has 3 parameters, but only 2 args are given, so we need to repeat the first arg
-                    if fn["ftn"].__name__ == 'max_pool_layer':
-                        fn['args'].insert(0, fn['args'][0])
-                    arg_txt = []
-                    for idx, arg_name in enumerate(fn['ftn'].__code__.co_varnames[1:]):
-                        # print(fn['ftn'].__code__.co_varnames, fn['args'], [idx])
-                        #if fn['ftn'].__code__.co_varnames[idx+1] == 'units':
-                        #    break
-                        arg = fn['args'][idx]
-                        arg_val = block.args[arg].value
-                        if hasattr(arg_val, "__name__"):
-                            arg_val = arg_val.__name__
-                        arg_txt.append(f'{arg_name}: {arg_val}')
-                    arg_txt = ', '.join(arg_txt)
-                    if fn["ftn"].__name__ == 'max_pool_layer':
-                        fn['args'].remove(fn['args'][0])
+                    try:
+                        ftn = node_dict['ftn']
+                        ftn_name = ftn.__name__
+                        arg_txt = []
+                        for arg_type, arg_index in zip(block_def.operator_dict[ftn]["args"], node_dict["args"]):
+                            arg_name = arg_type.__name__
+                            arg_val = block_material.args[arg_index].value
+                            arg_txt.append(f'{arg_name}: {arg_val}')
+
+                    except Exception as err:
+                        print("Hit an error when trying to parse the node.\n%s" % err)
+                        import pdb; pdb.set_trace()
+                    
+                    # now combine items and format
+                    arg_txt = '<br>'.join(arg_txt)
                     index_n_args = "{}<br>{}".format(index, arg_txt)
-                    inputs = ','.join([f'{self.individual_num}{shift}{x}' for x in fn['inputs']])
-                    out = NORMAL_ROW.format(self.individual_num, shift, index, fn["ftn"].__name__, index_n_args, color, inputs, self.arrow_color)
+                    inputs = ','.join([f'{self.individual_num}{shift}{x}' for x in node_dict['inputs']])
+                    out = NORMAL_ROW.format(self.individual_num, shift, index, ftn_name, index_n_args, color, inputs, self.arrow_color)
+        
+                # add index info to list to be eventually written out
                 self.csv_rows.append(out + "")
-        accuracy, precision, recall = individual.fitness.values
-        self.csv_rows.append(END_ROW.format(-accuracy, -precision, -recall, prev_output))
-        self.append_csv()
+        
+        # make fitness scores into list of strings
+        scores = [str(x) for x in individual_material.fitness.values]
+        # now join into single string
+        scores = ', '.join(scores)
+        self.csv_rows.append(END_ROW.format(scores, prev_output))
+        self.write_csv(individual_name)
 
-    def append_csv(self, new=False):
-        if new:
-            ext = 0
-            while os.path.isfile(self.output_path):
-                ext += 1
-            self.output_path = f'{self.output_path}_{ext}'
 
-        with open(f'{self.output_path}.csv', 'a+') as f:
+    def write_csv(self, indiv_id):
+        with open(os.path.join(self.output_path, "%s_viz.csv" % indiv_id), 'w') as f:
             for row in self.csv_rows:
                 f.write(row + '\n')
 
 
 if __name__ == '__main__':
-    sys.path.append('../../../../')
-    parser = argparse.ArgumentParser(description="Navigate to univ0000 folder containing individual pickle files and "
-                                                 "call this function using 'python "
-                                                 "../../../../codes/utilities/visualize.py'")
-    parser.add_argument('individual', help='Name of the individual that you want to visualize. If not provided, '
-                                           'all individuals are visualized.', nargs='?', default='*.pkl')
-    parser.add_argument('-i', help='Show inactive nodes.', action='store_true')
+    import sys
+    import argparse
+    parser = argparse.ArgumentParser(description="Given the output path for a given universe, this script will attempt "
+                                                 "to visualize any pickled individual's genetic material via draw.io")
+    parser.add_argument('--output_universe', '-o', help='File path to the parent folder that stores the pickled individuals')
+    parser.add_argument('--individual', '-in', help='Base name of the individual that you want to visualize. If not provided, '
+                                               'all individuals are visualized.',
+                                               nargs='?',
+                                               default='*.pkl')
+    parser.add_argument('-i', help='Show inactive nodes.',
+                              action='store_true')
     args = parser.parse_args()
 
-    viz = Visualizer()
-    # Select 20 random individuals (only applicable if 'individual' argument not passed).
-    individuals = glob.glob(args.individual)
-    #random.shuffle(individuals)
-    for individual in individuals[-30:]:
-        print(individual)
+    
+    # Check validitiy of output folder
+    output_folder = args.output_universe
+    assert(os.path.isdir(output_folder)), "Given Output Universe folder does not exist or is not a directory: %s" % output_folder
+    if output_folder.endswith("/"):
+        # will help later when we do os.path.dirname if we remove the trailing '/' to get parent of this dir
+        output_folder = output_folder[:-1]
+
+    # Load our visualizing class defined above
+    viz = Visualizer(output_folder)
+
+    # Look for pickled Problem instance.
+    # In main.py (where we pickle.dump the Problem instance) we import our specific problem file after we add 'problems' to the
+    # sys.path list; so if we want to load the pickled Problem instance, we have to similarly add 'problems' to our sys.path or
+    # else the load will fail
+    sys.path.append("../../problems")
+    pickled_problem = os.path.join(os.path.dirname(output_folder), "problem_def.pkl")
+    assert(os.path.exists(pickled_problem)), "Couldn't find the pickled problem_def in the parent dir: %s" % pickled_problem
+    with open(pickled_problem, 'rb') as f:
+        problem = pickle.load(f)
+    
+    # What we really want from the Problem instance is the IndividualDefinition
+    individual_def = problem.indiv_def
+
+    # Look for pickled Individuals
+    individuals = glob.glob(os.path.join(output_folder, args.individual))
+    print("\nWe found %i pickled individuals in the given output directory" % len(individuals))
+    arbitrary_max_count = 20
+    if len(individuals) > arbitrary_max_count:
+        print("...going to only look at %i individuals though" % arbitrary_max_count)
+        individuals = individuals[-1*arbitrary_max_count:]
+
+    for individual in individuals:
+        individual_basename = os.path.basename(individual)[:-4] # strip ".pkl"
+        print("\nVisualizing %s" % individual_basename)
         with open(individual, 'rb') as f:
-            individual = pickle.load(f)
-            viz.add_to_csv(individual, args.i)
-    print("CSV successfully created!")
+            individual_material = pickle.load(f)
+            viz.visualize(individual_material, individual_def, individual_basename, args.i)
+        print("...done")
+
+    print("\nCSV successfully created!")

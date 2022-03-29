@@ -17,10 +17,12 @@ from codes.factory import Factory_SimGAN
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
+import codes.utilities.simgan_feature_eval as feature_eval
 from codes.utilities.simgan_fid_metric import get_fid_scores
+from codes.utilities.simgan_support_size_eval import get_support_size
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
-from codes.block_definitions.arguments.block_arguments import BlockArguments_SimGAN_Refiner, BlockArguments_SimGAN_Discriminator, BlockArguments_SimGAN_Train_Config
+from codes.block_definitions.arguments.block_arguments import BlockArguments_Auto
 from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB, BlockMutate_ArgsOnly
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
@@ -51,7 +53,7 @@ class Problem(ProblemDefinition_Abstract):
         refiner_def = self.construct_block_def(nickname = "refiner_block",
                                                shape_def = BlockShapeMeta_SimGAN_Network, 
                                                operator_def = BlockOperators_SimGAN_Refiner, 
-                                               argument_def = BlockArguments_SimGAN_Refiner,
+                                               argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Refiner().operator_dict, 10),
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
                                                mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
                                                mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -60,7 +62,7 @@ class Problem(ProblemDefinition_Abstract):
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
                                                      shape_def = BlockShapeMeta_SimGAN_Network, 
                                                      operator_def = BlockOperators_SimGAN_Discriminator, 
-                                                     argument_def = BlockArguments_SimGAN_Discriminator,
+                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Discriminator().operator_dict, 15),
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                                      mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
                                                      mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -69,7 +71,7 @@ class Problem(ProblemDefinition_Abstract):
         train_config_def = self.construct_block_def(nickname = "train_config",
                                                     shape_def = BlockShapeMeta_SimGAN_Train_Config, 
                                                     operator_def = BlockOperators_SimGAN_Train_Config, 
-                                                    argument_def = BlockArguments_SimGAN_Train_Config,
+                                                    argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config().operator_dict, 10),
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -95,7 +97,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [True, False]
+        self.maximize_objectives = [False, False, False, False, False, True, True]
 
 
     @welless_check_decorator
@@ -117,16 +119,41 @@ class Problem(ProblemDefinition_Abstract):
                 discriminators.append(D.cpu())
         
         # Run tournament and add ratings
-        if len(refiners) > 0:
+        if len(alive_individual_index) > 0:
+            #  Objective #1 - NO LONGER AN OBJECTIVE FOR POPULATION SELECTION
             refiner_ratings, _ = get_graph_ratings(refiners,
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
+            #  Objective #2
             refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
-            for indx, rating, fid in zip(alive_individual_index,
-                                     refiner_ratings['r'],
-                                     refiner_fids):
-                population.population[indx].fitness.values = (rating, fid)
+            
+            # Objective #3, #4, #5
+            refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
+            
+            # Objective #6, #7
+            refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
+            
+            # Objective #8
+            support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
+        
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
+                in zip(alive_individual_index,
+                    refiner_ratings['r'],
+                    refiner_fids,
+                    refiner_feature_dist['kl_div'],
+                    refiner_feature_dist['wasserstein_dist'],
+                    refiner_feature_dist['ks_stat'],
+                    refiner_t_tests['num_sig'],
+                    refiner_t_tests['avg_feat_pval'],
+                    support_size['support_size']):
+                # since refiner rating is a 'relative' score, we are not going to set it to fitness value to be used in population selection
+                # BUT we will keep it available as metadata
+                if hasattr(population.population[indx], 'refiner_rating'):
+                    population.population[indx].refiner_rating.append(rating)
+                else:
+                    population.population[indx].refiner_rating = [rating]
+                population.population[indx].fitness.values = (fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
 
 
     def check_convergence(self, universe):
@@ -169,16 +196,24 @@ class Problem(ProblemDefinition_Abstract):
         print(individual.output)
 
         # save models
-        torch.save(individual[0].output.state_dict(),
-                   os.path.join(attachment_folder, 'untrained_refiner'))
-        torch.save(individual[1].output.state_dict(),
-                   os.path.join(attachment_folder, 'untrained_discriminator'))
-        torch.save(individual.output[0].state_dict(),
-                   os.path.join(attachment_folder, 'trained_refiner'))
-        torch.save(individual.output[1].state_dict(),
-                   os.path.join(attachment_folder, 'trained_discriminator'))
-        with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
-            pkl.dump(individual[2].output, f)
+        # NOTE if indiv.dead then some of these values may not be filled
+        if not individual[0].dead:
+            torch.save(individual[0].output.state_dict(),
+                       os.path.join(attachment_folder, 'untrained_refiner'))
+
+        if not individual[1].dead:
+            torch.save(individual[1].output.state_dict(),
+                       os.path.join(attachment_folder, 'untrained_discriminator'))
+
+        if not individual[2].dead:
+            with open(os.path.join(attachment_folder, 'trainconfig_dict.pkl'), 'wb') as f:
+                pkl.dump(individual[2].output, f)
+
+        if not individual.dead:
+            torch.save(individual.output[0].state_dict(),
+                       os.path.join(attachment_folder, 'trained_refiner'))
+            torch.save(individual.output[1].state_dict(),
+                       os.path.join(attachment_folder, 'trained_discriminator'))
 
         # now overwrite
         individual[0].output = []
@@ -197,10 +232,12 @@ class Problem(ProblemDefinition_Abstract):
         Save fitness scores and the refiners on the pareto front of fitness scroes
         '''
         ezLogging.info("Post Processing Generation Run")
-        save_things.save_fitness_scores(universe)
         
+        save_things.save_fitness_scores(universe)
+
         for individual in universe.population.population:
             self.save_pytorch_individual(universe, individual)
+            plot_things.draw_genome(universe, self, individual)
 
         '''
         pareto_front = self.get_pareto_front(universe)
