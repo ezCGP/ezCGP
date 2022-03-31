@@ -461,7 +461,6 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                                                                    validating_datalist[0],
                                                                    train_config['device'])
         # use idxmax instead of argmax since it is more correct that we want row label instead of index in dataframe
-        import pdb; pdb.set_trace()
         best_refiner = refiners[refiner_ratings['r'].idxmax()]
         best_discriminator = discriminators[discriminator_ratings['r'].idxmax() - len(refiners)]
         

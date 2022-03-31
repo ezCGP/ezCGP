@@ -117,7 +117,6 @@ class Problem(ProblemDefinition_Abstract):
             if not indiv.dead:
                 alive_individual_index.append(i)
                 R, D = indiv.output
-                print(indiv.output)
                 refiners.append(R.cpu())
                 discriminators.append(D.cpu())
         
