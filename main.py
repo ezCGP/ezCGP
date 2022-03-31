@@ -49,8 +49,8 @@ def main(problem_filename: str,
     # set the seed before importing problem.
     # NOTE will set another seed when we start the universe
     ezLogging.warning("Setting seed, for file imports, to %i" % (seed))
-    np.random.seed(seed)
     random.seed(seed) # shouldn't be using 'random' module but setting seed jic
+    np.random.seed(seed)
     # allow setting of seeds for packages unique to certain installations
     # try/catch so that it won't break if you didn't include them in your python environmnet
     try:

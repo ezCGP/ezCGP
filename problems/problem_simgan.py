@@ -71,7 +71,7 @@ class Problem(ProblemDefinition_Abstract):
 
         train_config_def = self.construct_block_def(nickname = "train_config",
                                                     shape_def = BlockShapeMeta_SimGAN_Train_Config, 
-                                                    operator_def = BlockOperators_SimGAN_Train_Config, 
+                                                    operator_def = BlockOperators_SimGAN_Train_Config,
                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config().operator_dict, 10),
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
@@ -100,6 +100,7 @@ class Problem(ProblemDefinition_Abstract):
 
     def set_optimization_goals(self):
         self.maximize_objectives = [False, False, False, True]
+        self.objective_names = ["FID", "KS stat", "Significant Count", "Avg Feature P-value"] # will be helpful for plotting later
 
 
     @decorators.stopwatch_decorator
@@ -123,23 +124,29 @@ class Problem(ProblemDefinition_Abstract):
         # Run tournament and add ratings
         if len(alive_individual_index) > 0:
             #  Objective #1 - NO LONGER AN OBJECTIVE FOR POPULATION SELECTION
+            ezLogging.info("Calculating Objective 1")
             refiner_ratings, _ = get_graph_ratings(refiners,
                                                    discriminators,
                                                    self.validating_datalist[0],
                                                    'cpu')
+
             #  Objective #2
-            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0]) 
+            ezLogging.info("Calculating Objective 2")
+            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0])
+            #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
             
             # Objective #3, #4, #5
+            ezLogging.info("Calculating Objective 3,4,5")
             refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
             
             # Objective #6, #7
+            ezLogging.info("Calculating Objective 6,7")
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
             
             # Objective #8
+            #ezLogging.info("Calculating Objective 8")
             #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
-            #support_size['support_size']
-        
+    
             for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
@@ -165,7 +172,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 1 # TODO
+        GENERATION_LIMIT = 2 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
@@ -239,121 +246,90 @@ class Problem(ProblemDefinition_Abstract):
         ezLogging.info("Post Processing Generation Run")
         
         save_things.save_fitness_scores(universe)
+        save_things.save_HOF_scores(universe)
 
         for individual in universe.population.population:
             self.save_pytorch_individual(universe, individual)
             plot_things.draw_genome(universe, self, individual)
 
-        '''
-        pareto_front = self.get_pareto_front(universe)
-        for ind in pareto_front:
-            indiv = universe.population.population[ind]
-            ## Uncomment to take a look at refined waves
-            # import pdb; pdb.set_trace()
-            # R = indiv.output[0]
-            # sim = self.training_datalist[0].simulated_raw[:16]
-            # import torch 
-            # refined = R(torch.Tensor(sim)).detach().cpu().numpy()
 
-            # import matplotlib.pyplot as plt
-            # sim_wave = sim[0][0]
-            # plt.plot(sim_wave)
-            # plt.show()
-            # refined_wave = refined[0][0]
-            # plt.plot(refined_wave)
-            # plt.show()
+        # Pareto Plot for each objective combo at current HOF:
+        for i in range(len(self.maximize_objectives)-1):
+            for j in range(i+1,len(self.maximize_objectives)):
+                x_obj = self.objective_names[i]
+                y_obj = self.objective_names[j]
+                # Grab Pareto front and visualize secondary waveforms...do it for each combo of objectives
+                pareto_fig, pareto_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+                pareto_fronts = plot_things.get_pareto_front(universe.population.hall_of_fame.items,
+                                                             self.maximize_objectives,
+                                                             x_objective_index=i,
+                                                             y_objective_index=j,
+                                                             first_front_only=False)
+                plot_things.plot_pareto_front2(pareto_axis[0,0],
+                                               pareto_fronts,
+                                               color=None, label='',
+                                               x_objective_index=0, y_objective_index=1,
+                                               xlabel=x_obj, ylabel=y_obj,
+                                               min_x=None, max_x=None,
+                                               min_y=None, max_y=None)
+        
+                #plot_things.plot_legend(pareto_fig)
+                plot_things.plot_save(pareto_fig,
+                                      os.path.join(universe.output_folder,
+                                                   "pareto_front_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
 
-            save_things.save_pytorch_model(universe, indiv.output[0], indiv.id + '-R') # Save refiner network and id
-            # TODO: consider saving discriminator'''
 
-        # TODO: consider plotting the pareto front/metrics for the population
-        ezLogging.info(f"fitnesscores {universe.pop_fitness_scores}")
-        fig, axes = plot_things.plot_init()
-        auc = plot_things.plot_pareto_front(axes[0,0],
-                                                    universe.pop_fitness_scores,
-                                                    minimization=True,
-                                                    objective_names=['Tournament', 'FID'],
-                                                    maximize_objectives=self.maximize_objectives,
-                                                    max_x=None,
-                                                    max_y=None)
-        plot_things.plot_legend(fig)
-        plot_things.plot_save(fig, os.path.join(universe.output_folder, f"ting{universe.generation}.jpg"))
-        ezLogging.info(f"AUC: {auc}")
+        # Best Pareto Plot Over time
+        for i in range(len(self.maximize_objectives)-1):
+            for j in range(i+1,len(self.maximize_objectives)):
+                x_obj = self.objective_names[i]
+                y_obj = self.objective_names[j]
+
+                pareto_fig, pareto_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+                for gen in range(universe.generation+1):
+                    hof_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % gen)
+                    hof_fitness = np.load(hof_fitness_file)['fitness']
+                    pareto_fronts = plot_things.get_pareto_front(hof_fitness,
+                                                                 self.maximize_objectives,
+                                                                 x_objective_index=i,
+                                                                 y_objective_index=j,
+                                                                 first_front_only=True)
+                    plot_things.plot_pareto_front2(pareto_axis[0,0],
+                                                   pareto_fronts,
+                                                   color=None, label="HOF Gen %i" % (gen),
+                                                   x_objective_index=0, y_objective_index=1,
+                                                   xlabel=x_obj, ylabel=y_obj,
+                                                   min_x=None, max_x=None,
+                                                   min_y=None, max_y=None)
+                
+                plot_things.plot_legend(pareto_fig)
+                plot_things.plot_save(pareto_fig,
+                                      os.path.join(universe.output_folder,
+                                                   "pareto_front_overtime_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+
+
+        # AUC over time:
+        # get files:
+        all_hof_scores = []
+        for gen in range(universe.generation+1):
+            hof_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % gen)
+            hof_fitness = np.load(hof_fitness_file)['fitness']
+            all_hof_scores.append(hof_fitness)
+
+        all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, *all_hof_scores)
+        auc_fig, auc_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+        auc_axis[0,0].plot(all_auc, marker='*')
+        auc_axis[0,0].set_xlabel("ith Generation")
+        auc_axis[0,0].set_title("AUC over time")
+        plot_things.plot_save(auc_fig,
+                              os.path.join(universe.output_folder, "AUC_overtime_gen%04d.jpg" % (universe.generation)))
+
 
     def postprocess_universe(self, universe):
         '''
         TODO: add code for universe postprocessing
-        TODO: figure out if any of the below code is useful
         '''
-        # logging.info("Post Processing Universe Run")
+        # ezLogging.info("Post Processing Universe Run")
         # save_things.save_population(universe)
         # save_things.save_population_asLisp(universe, self.indiv_def)
-
-        # best_ids = np.array(self.roddcustom_bestindiv)
-        # best_scores = np.array(self.roddcustom_bestscore)
-        # best_activecount = np.array(self.roddcustom_bestactive)
-        # # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output   
-        # output_best_file = os.path.join(universe.output_folder, "custom_stats.npz")
-        # np.savez(output_best_file, ids=best_ids,
-        #                            scores=best_scores,
-        #                            active_count=best_activecount,
-        #                            genome_size=np.array([self.indiv_def[0].main_count]))
-        # # i guess i want to save all the roddcustom_ attributes
-        # # then open all the values for all the universes for each of the different runs
-        # # and plot the different number of genomes in one color
-
-        # # shoot...if doing more than one universe, need to delete these
-        # self.roddcustom_bestindiv = []
-        # self.roddcustom_bestscore = []
-        # self.roddcustom_bestactive = []
-
-
-    # TODO: see if anything here is useful for visualizaing simgans
-    # def plot_custom_stats(self, folders):
-    #     import glob
-    #     import matplotlib.pyplot as plt
-
-    #     if (type(folders) is str) and (os.path.isdir(folders)):
-    #         '''# then assume we are looking for folders within this single folder
-    #         poss_folders = os.listdir(folders)
-    #         folders = []
-    #         for poss in poss_folders:
-    #             if os.path.isdir(poss):
-    #                 folders.append(poss)'''
-    #         # now that we are using glob below, we are all good...just make this into a list
-    #         folders = [folders]
-    #     elif type(folders) is list:
-    #         # then continue as is
-    #         pass
-    #     else:
-    #         print("we don't know how to handle type %s yet" % (type(folders)))
-
-    #     # now try to find 'custom_stats.npz' in the folders
-    #     stats = {}
-    #     for folder in folders:
-    #         npzs = glob.glob(os.path.join(folder,"*","custom_stats.npz"), recursive=True)
-    #         for npz in npzs:
-    #             data = np.load(npz)
-    #             genome_size = data['genome_size'][0]
-    #             if genome_size not in stats:
-    #                 stats[genome_size] = {'ids': [],
-    #                                       'scores': [],
-    #                                       'active_count': []}
-    #             for key in ['ids','scores','active_count']:
-    #                 stats[genome_size][key].append(data[key])
-
-    #     # now go plot
-    #     #plt.figure(figsize=(15,10))
-    #     matplotlib_colors = ['b','g','r','c','m','y']
-    #     fig, axes = plt.subplots(2, 1, figsize=(16,8))
-    #     for ith_size, size in enumerate(stats.keys()):
-    #         for row, key in enumerate(['scores','active_count']):
-    #             datas = stats[size][key]
-    #             for data in datas:
-    #                 if key == 'scores':
-    #                     data = data[:,0]
-    #                 axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="-", alpha=0.5)
-
-    #     plt.show()
-    #     import pdb; pdb.set_trace()
-    #     plt.close()
+        pass

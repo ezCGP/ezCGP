@@ -20,7 +20,6 @@ This BlockDefinition will get instantiated in the user's problem class since it 
 '''
 
 ### packages
-from numpy import random as rnd
 import numpy as np
 import inspect
 
@@ -289,9 +288,9 @@ class BlockDefinition():
             weights /= weights.sum()
 
         if return_all:
-            return rnd.choice(choices, size=len(choices), replace=False, p=weights)
+            return np.random.choice(choices, size=len(choices), replace=False, p=weights)
         else:
-            return rnd.choice(choices, p=weights)
+            return np.random.choice(choices, p=weights)
 
 
     def get_random_arg(self, req_dtype, exclude=[]):
@@ -308,7 +307,7 @@ class BlockDefinition():
             ezLogging.warning("%s-%s - Eliminated all possible arg values for req_dtype: %s, exclude: %s" % (None, self.nickname, req_dtype, exclude))
             return None
         else:
-            return rnd.choice(choices)
+            return np.random.choice(choices)
 
 
     def get_actives(self, block_material: BlockMaterial):

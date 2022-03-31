@@ -49,7 +49,22 @@ def build_weights(method_dict):
     weights = [None] * len(method_dict)
     equally_distribute = []
     remove = []
-    for i, (meth_type, prob) in enumerate(method_dict.items()):
+
+    ''' Issue #258
+    A while ago, we noticed how random values would sparadically change even though we were seeded.
+    It was tracked back to the arg_types changing because we depended on the order returned from
+    a for loop over the items of a dictionary which will not gaurentee the same order.
+    So now we sort the keys of the dict and loop over that.
+    '''
+    keys = [*method_dict]
+    keys_str = []
+    for name in keys:
+        keys_str.append(str(name))
+    keys_order = np.argsort(keys_str)
+    keys = np.array(keys)[keys_order]
+
+    for i, meth_type in enumerate(keys):
+        prob = method_dict[meth_type]
         methods[i] = meth_type
         if prob <= 0:
             weights[i] = 0

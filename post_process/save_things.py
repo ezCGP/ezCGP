@@ -32,6 +32,27 @@ def save_fitness_scores(universe):
     ezLogging.debug("saved scores for generation %i" % universe.generation)
 
 
+def save_HOF_scores(universe):
+    '''
+    save scores as an npz...remember that the last item in each row is the individual id
+
+    here is how to open an npz:
+       ting = np.load(output_fitness_file)
+       fitness_values = ting['fitness']
+    '''
+    # gotta get scores as np.array first
+    hof_scores = []
+    #pareto_front = universe.population.get_pareto_front(use_hall_of_fame=True, first_front_only=True)[0]
+    #for indiv in pareto_front:
+    for indiv in universe.population.hall_of_fame.items:
+        hof_scores.append(indiv.fitness.wvalues) # <- used weighted!
+    hof_scores = np.array(hof_scores)
+
+    output_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % universe.generation)
+    np.savez(output_fitness_file, fitness=hof_scores)
+    ezLogging.debug("saved HOF scores for generation %i" % universe.generation)
+
+
 def save_population(universe):
     '''
     save each individual_material as a pickle file named with it's id
