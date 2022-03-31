@@ -381,6 +381,17 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+
+            TESTING_HACK = True
+            if (TESTING_HACK) and ('train_config' in block_def.nickname):
+                block_material.output['train_steps'] = 10
+                block_material.output['r_pretrain_steps'] = 10
+                block_material.output['d_pretrain_steps'] = 10
+                block_material.output['d_updates_per_train_step'] = 10
+                block_material.output['r_updates_per_train_step'] = 10
+                block_material.output['steps_per_log'] = 10
+                block_material.output['save_every'] = 10
+
             # adding deepcopy to make sure we can save the 'untrained' states in block.output and that they don't get overwritten in training
             block_outputs.append(deepcopy(block_material.output))
 
@@ -533,7 +544,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
     # TODO: see if we should be utilizing validation data
     # TODO: find a better way of picking networks to save than just every n steps
     # TODO: change save_every to 200 or 100
-    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config, opt_R, opt_D, save_every=1000):
+    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config, opt_R, opt_D):
         '''
         Train the refiner and discriminator of the SimGAN, return a refiner and discriminator pair for every 'save_every' training steps
         '''
@@ -670,7 +681,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     % (mean_d_loss.data.item(), mean_d_loss_real.data.item(), mean_d_loss_ref.data.item()))
         
             # Save every `save_every` steps:
-            if ((step+1) % save_every == 0):
+            if ((step+1) % train_config['save_every'] == 0):
                 refiners.append(deepcopy(R))
                 discriminators.append(deepcopy(D))
         

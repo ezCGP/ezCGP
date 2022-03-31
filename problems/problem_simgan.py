@@ -198,6 +198,8 @@ class Problem(ProblemDefinition_Abstract):
         attachment_folder = os.path.join(universe.output_folder, name)
         os.makedirs(attachment_folder, exist_ok=False)
 
+        print(individual.output)
+
         # save models
         # NOTE if indiv.dead then some of these values may not be filled
         if not individual[0].dead:
@@ -265,7 +267,18 @@ class Problem(ProblemDefinition_Abstract):
             # TODO: consider saving discriminator'''
 
         # TODO: consider plotting the pareto front/metrics for the population
-
+        ezLogging.info(f"fitnesscores {universe.pop_fitness_scores}")
+        fig, axes = plot_things.plot_init()
+        auc = plot_things.plot_pareto_front(axes[0,0],
+                                                    universe.pop_fitness_scores,
+                                                    minimization=True,
+                                                    objective_names=['Tournament', 'FID'],
+                                                    maximize_objectives=self.maximize_objectives,
+                                                    max_x=None,
+                                                    max_y=None)
+        plot_things.plot_legend(fig)
+        plot_things.plot_save(fig, os.path.join(universe.output_folder, f"ting{universe.generation}.jpg"))
+        ezLogging.info(f"AUC: {auc}")
 
     def postprocess_universe(self, universe):
         '''

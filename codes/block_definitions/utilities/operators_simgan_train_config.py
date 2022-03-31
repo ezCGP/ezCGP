@@ -33,7 +33,8 @@ def simgan_train_config(config,
                         delta,
                         use_data_history,
                         optimizer,
-                        steps_per_log=100):
+                        steps_per_log=100,
+                        save_every=1000):
     """
     An operator that stores SimGAN training configuration variables
     """
@@ -68,6 +69,9 @@ def simgan_train_config(config,
     optimizer_options = ['adam', 'rmsprop']
     ith_option = optimizer%len(optimizer_options)
     config['optimizer'] = optimizer_options[ith_option]
+
+    # Save Checkpoints
+    config['save_every'] = save_every
 
     return config
     
