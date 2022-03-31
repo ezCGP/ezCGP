@@ -93,9 +93,9 @@ class Problem(ProblemDefinition_Abstract):
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
         train_config_dict = {'device': 'cuda'} # was gpu but that didn't work anymore
-        self.training_datalist = [simganData.TransformSimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
+        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
                                   train_config_dict]
-        self.validating_datalist = [simganData.TransformSimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
+        self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
 
 
     def set_optimization_goals(self):
@@ -166,7 +166,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 50 # TODO
+        GENERATION_LIMIT = 1 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
