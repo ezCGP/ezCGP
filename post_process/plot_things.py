@@ -167,6 +167,7 @@ def plot_pareto_front(axis,
         if obj == True:
             fitness_scores[:, i] *= -1
             labels[i] = labels[i] + ' (negated)'
+    print(fitness_scores)
 
     if max_x is None:
         max_x = fitness_scores[:,0].max()

@@ -381,6 +381,16 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+            TESTING_HACK = True  
+            if (TESTING_HACK) and ('train_config' in block_def.nickname):
+                block_material.output['train_steps'] = 10
+                block_material.output['r_pretrain_steps'] = 10
+                block_material.output['d_pretrain_steps'] = 10
+                block_material.output['d_updates_per_train_step'] = 10
+                block_material.output['r_updates_per_train_step'] = 10
+                block_material.output['steps_per_log'] = 10
+                block_material.output['save_every'] = 10
+            
             # adding deepcopy to make sure we can save the 'untrained' states in block.output and that they don't get overwritten in training
             block_outputs.append(deepcopy(block_material.output))
 
