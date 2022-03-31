@@ -17,6 +17,7 @@ from codes.factory import Factory_SimGAN
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
+from codes.utilities.plot_signals import generate_img_batch
 import codes.utilities.simgan_feature_eval as feature_eval
 from codes.utilities.simgan_fid_metric import get_fid_scores
 from codes.utilities.simgan_support_size_eval import get_support_size
@@ -248,7 +249,18 @@ class Problem(ProblemDefinition_Abstract):
         save_things.save_fitness_scores(universe)
         save_things.save_HOF_scores(universe)
 
+        syn_batch = torch.tensor(self.validating_datalist[0].real_raw[:5], dtype=torch.float, device='cpu')
+        real_batch = torch.tensor(self.validating_datalist[0].simulated_raw[:5], dtype=torch.float, device='cpu')
+
         for individual in universe.population.population:
+            if not individual.dead:
+                R, D = individual.output
+                ref_batch = R.cpu()(syn_batch)
+                name = "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id)
+                attachment_folder = os.path.join(universe.output_folder, name)
+                ref_preds = D.cpu()(ref_batch)
+                real_preds = D.cpu()(real_batch)
+                generate_img_batch(syn_batch.data.cpu(), ref_batch.data.cpu(), real_batch.data.cpu(), attachment_folder, ref_preds, real_preds)
             self.save_pytorch_individual(universe, individual)
             plot_things.draw_genome(universe, self, individual)
 
