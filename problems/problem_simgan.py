@@ -169,7 +169,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 1 # TODO
+        GENERATION_LIMIT = 2 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
@@ -248,64 +248,6 @@ class Problem(ProblemDefinition_Abstract):
             plot_things.draw_genome(universe, self, individual)
 
 
-
-
-        #################################################################################
-        #################################################################################
-        # TEST AREA
-        # make some fake fitness scores
-        data0 = [[0.25, 0.6], #<-pareto
-                [0.75, 0.2], #<-pareto
-                [0.50, 0.4], #<-pareto
-                [0.20, 0.2], #<-should become left border for AUC calc
-                [0.60, 0.1], #<-should become right border for AUC calc
-                [0.30, 0.3]] 
-        data0 = np.array(data0)
-        pareto_fronts0 = plot_things.get_pareto_front(data0,
-                                                      [True, True], # <- maximizing both objectives
-                                                      x_objective_index=0,
-                                                      y_objective_index=1,
-                                                      first_front_only=True)
-
-        print("Verify Pareto Front individuals in test case")
-        front = pareto_fronts0[0] # remember, it returns a list of lists but first_front_only is True so there is only 1 element
-        for indiv in front:
-            # NOTE: it'll get sorted in the plot_pareto_front2() method
-            print(indiv.fitness.wvalues)
-
-        test_fig, test_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
-        plot_things.plot_pareto_front2(test_axis[0,0],
-                                       pareto_fronts0,
-                                       color=None, label="HOF Gen %i" % (universe.generation),
-                                       x_objective_index=0, y_objective_index=1,
-                                       xlabel='bogus 0', ylabel='bogus 1',
-                                       min_x=None, max_x=None,
-                                       min_y=None, max_y=None)
-
-        import matplotlib.pyplot as plt
-        plt.show()
-        plt.close()
-
-        # calc auc
-        auc0 = plot_things.calc_auc([True, True],data0) # <-note we give it all data, not just the front
-
-        # but now what if we have multiple generations?
-        # make more fitness scores as if a second generation calculated
-        data1 = np.random.random((10,2))
-        pareto_fronts1 = plot_things.get_pareto_front(data1,
-                                                      [True, True], # <- maximizing both objectives
-                                                      x_objective_index=0,
-                                                      y_objective_index=1,
-                                                      first_front_only=True)
-
-        all_auc = plot_things.calc_auc_multi_gen([True, True], data0, data1) # <-again give it all the data not just the front
-
-        print("check test auc stuff"); import pdb; pdb.set_trace()
-        #################################################################################
-        #################################################################################
-
-
-
         # Pareto Plot for each objective combo at current HOF:
         for i in range(len(self.maximize_objectives)-1):
             for j in range(i+1,len(self.maximize_objectives)):
@@ -330,9 +272,6 @@ class Problem(ProblemDefinition_Abstract):
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
                                                    "pareto_front_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
-
-
-
 
 
         # Best Pareto Plot Over time
@@ -364,8 +303,6 @@ class Problem(ProblemDefinition_Abstract):
                                                    "pareto_front_overtime_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
 
 
-
-
         # AUC over time:
         # get files:
         all_hof_scores = []
@@ -375,33 +312,12 @@ class Problem(ProblemDefinition_Abstract):
             all_hof_scores.append(hof_fitness)
 
         all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, *all_hof_scores)
-        # TODO do somethin with it!
-
-
-
-        '''
-        pareto_front = self.get_pareto_front(universe)
-        for ind in pareto_front:
-            indiv = universe.population.population[ind]
-            ## Uncomment to take a look at refined waves
-            # import pdb; pdb.set_trace()
-            # R = indiv.output[0]
-            # sim = self.training_datalist[0].simulated_raw[:16]
-            # import torch 
-            # refined = R(torch.Tensor(sim)).detach().cpu().numpy()
-
-            # import matplotlib.pyplot as plt
-            # sim_wave = sim[0][0]
-            # plt.plot(sim_wave)
-            # plt.show()
-            # refined_wave = refined[0][0]
-            # plt.plot(refined_wave)
-            # plt.show()
-
-            save_things.save_pytorch_model(universe, indiv.output[0], indiv.id + '-R') # Save refiner network and id
-            # TODO: consider saving discriminator'''
-
-        # TODO: consider plotting the pareto front/metrics for the population
+        auc_fig, auc_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+        auc_axis[0,0].plot(all_auc, marker='*')
+        auc_axis[0,0].set_xlabel("ith Generation")
+        auc_axis[0,0].set_title("AUC over time")
+        plot_things.plot_save(auc_fig,
+                              os.path.join(universe.output_folder, "AUC_overtime_gen%04d.jpg" % (universe.generation)))
 
 
     def postprocess_universe(self, universe):
