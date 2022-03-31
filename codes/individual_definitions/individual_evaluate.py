@@ -461,6 +461,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                                                                    validating_datalist[0],
                                                                    train_config['device'])
         # use idxmax instead of argmax since it is more correct that we want row label instead of index in dataframe
+        import pdb; pdb.set_trace()
         best_refiner = refiners[refiner_ratings['r'].idxmax()]
         best_discriminator = discriminators[discriminator_ratings['r'].idxmax() - len(refiners)]
         
@@ -544,7 +545,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
     # TODO: see if we should be utilizing validation data
     # TODO: find a better way of picking networks to save than just every n steps
     # TODO: change save_every to 200 or 100
-    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config, opt_R, opt_D, save_every=1000):
+    def train_graph(self, indiv_material, train_data, validation_data, R, D, train_config, opt_R, opt_D):
         '''
         Train the refiner and discriminator of the SimGAN, return a refiner and discriminator pair for every 'save_every' training steps
         '''
@@ -681,7 +682,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     % (mean_d_loss.data.item(), mean_d_loss_real.data.item(), mean_d_loss_ref.data.item()))
         
             # Save every `save_every` steps:
-            if ((step+1) % save_every == 0):
+            if ((step+1) % train_config['save_every'] == 0):
                 refiners.append(deepcopy(R))
                 discriminators.append(deepcopy(D))
         
