@@ -31,6 +31,7 @@ from codes.individual_definitions.individual_mate import IndividualMate_RollOnEa
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
 from post_process import plot_things
+from codes.utilities import decorators
 
 
 class Problem(ProblemDefinition_Abstract):
@@ -85,6 +86,7 @@ class Problem(ProblemDefinition_Abstract):
         self.construct_dataset()
 
 
+    @decorators.stopwatch_decorator
     def construct_dataset(self):
         '''
         Constructs a train and validation 1D signal datasets
@@ -97,9 +99,10 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [False, False, False, False, False, True, True]
+        self.maximize_objectives = [False, False, False, True]
 
 
+    @decorators.stopwatch_decorator
     @welless_check_decorator
     def objective_functions(self, population):
         '''
@@ -135,9 +138,10 @@ class Problem(ProblemDefinition_Abstract):
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
             
             # Objective #8
-            support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
+            #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
+            #support_size['support_size']
         
-            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size \
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
                     refiner_fids,
@@ -145,15 +149,17 @@ class Problem(ProblemDefinition_Abstract):
                     refiner_feature_dist['wasserstein_dist'],
                     refiner_feature_dist['ks_stat'],
                     refiner_t_tests['num_sig'],
-                    refiner_t_tests['avg_feat_pval'],
-                    support_size['support_size']):
+                    refiner_t_tests['avg_feat_pval']):
                 # since refiner rating is a 'relative' score, we are not going to set it to fitness value to be used in population selection
                 # BUT we will keep it available as metadata
                 if hasattr(population.population[indx], 'refiner_rating'):
                     population.population[indx].refiner_rating.append(rating)
                 else:
                     population.population[indx].refiner_rating = [rating]
-                population.population[indx].fitness.values = (fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, support_size)
+
+                # Issue 219 - filtering down to only 4 objectives:
+                # fid (#2), ks_stat (#5), num_sig (#6), and avg_feat_pval (#7)
+                population.population[indx].fitness.values = (fid, ks_stat, num_sig, avg_feat_pval)
 
 
     def check_convergence(self, universe):

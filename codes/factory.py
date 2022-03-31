@@ -31,6 +31,7 @@ from codes.individual_definitions.individual_definition import IndividualDefinit
 from codes.block_definitions.block_definition import BlockDefinition
 from codes.utilities.custom_logging import ezLogging
 from data.data_tools.ezData import ezData
+from codes.utilities import decorators
 
 
 
@@ -42,6 +43,7 @@ class FactoryDefinition():
         pass
 
 
+    @decorators.stopwatch_decorator
     def build_population(self,
                          problem,#: ProblemDefinition_Abstract,
                          population_size: int, # not grabbed from problem to allow mpi to make subpops
