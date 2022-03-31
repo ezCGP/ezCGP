@@ -249,8 +249,8 @@ class Problem(ProblemDefinition_Abstract):
         save_things.save_fitness_scores(universe)
         save_things.save_HOF_scores(universe)
 
-        syn_batch = torch.tensor(self.validating_datalist[0].real_raw[:5], dtype=torch.float, device='cpu')
-        real_batch = torch.tensor(self.validating_datalist[0].simulated_raw[:5], dtype=torch.float, device='cpu')
+        syn_batch = torch.tensor(self.validating_datalist[0].simulated_raw[:5], dtype=torch.float, device='cpu')
+        real_batch = torch.tensor(self.validating_datalist[0].real_raw[:5], dtype=torch.float, device='cpu')
 
         for individual in universe.population.population:
             if not individual.dead:
