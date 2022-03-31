@@ -63,12 +63,13 @@ def deepcopy_decorator(func):
         else:
             new_validating_datalist = None
         
-        func(self,
-             indiv_material,
-             indiv_def,
-             new_training_datalist,
-             new_validating_datalist,
-             supplements)
+        output = func(self,
+                      indiv_material,
+                      indiv_def,
+                      new_training_datalist,
+                      new_validating_datalist,
+                      supplements)
+        return output
 
     return inner
 

@@ -31,6 +31,7 @@ from codes.individual_definitions.individual_mate import IndividualMate_RollOnEa
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
 from post_process import plot_things
+from codes.utilities import decorators
 
 
 class Problem(ProblemDefinition_Abstract):
@@ -85,6 +86,7 @@ class Problem(ProblemDefinition_Abstract):
         self.construct_dataset()
 
 
+    @decorators.stopwatch_decorator
     def construct_dataset(self):
         '''
         Constructs a train and validation 1D signal datasets
@@ -101,6 +103,7 @@ class Problem(ProblemDefinition_Abstract):
         self.objective_names = ["FID", "KS stat", "Significant Count", "Avg Feature P-value"] # will be helpful for plotting later
 
 
+    @decorators.stopwatch_decorator
     @welless_check_decorator
     def objective_functions(self, population):
         '''
@@ -143,7 +146,7 @@ class Problem(ProblemDefinition_Abstract):
             # Objective #8
             #ezLogging.info("Calculating Objective 8")
             #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
-            
+    
             for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
@@ -201,6 +204,8 @@ class Problem(ProblemDefinition_Abstract):
         name = "gen_%04d_indiv_%s" % (universe.generation, individual.id)
         attachment_folder = os.path.join(universe.output_folder, name)
         os.makedirs(attachment_folder, exist_ok=False)
+
+        print(individual.output)
 
         # save models
         # NOTE if indiv.dead then some of these values may not be filled
@@ -323,77 +328,8 @@ class Problem(ProblemDefinition_Abstract):
     def postprocess_universe(self, universe):
         '''
         TODO: add code for universe postprocessing
-        TODO: figure out if any of the below code is useful
         '''
-        # logging.info("Post Processing Universe Run")
+        # ezLogging.info("Post Processing Universe Run")
         # save_things.save_population(universe)
         # save_things.save_population_asLisp(universe, self.indiv_def)
-
-        # best_ids = np.array(self.roddcustom_bestindiv)
-        # best_scores = np.array(self.roddcustom_bestscore)
-        # best_activecount = np.array(self.roddcustom_bestactive)
-        # # YO active nodes includes outputs and input nodes so 10 main nodes + 2 inputs + 1 output   
-        # output_best_file = os.path.join(universe.output_folder, "custom_stats.npz")
-        # np.savez(output_best_file, ids=best_ids,
-        #                            scores=best_scores,
-        #                            active_count=best_activecount,
-        #                            genome_size=np.array([self.indiv_def[0].main_count]))
-        # # i guess i want to save all the roddcustom_ attributes
-        # # then open all the values for all the universes for each of the different runs
-        # # and plot the different number of genomes in one color
-
-        # # shoot...if doing more than one universe, need to delete these
-        # self.roddcustom_bestindiv = []
-        # self.roddcustom_bestscore = []
-        # self.roddcustom_bestactive = []
-
-
-    # TODO: see if anything here is useful for visualizaing simgans
-    # def plot_custom_stats(self, folders):
-    #     import glob
-    #     import matplotlib.pyplot as plt
-
-    #     if (type(folders) is str) and (os.path.isdir(folders)):
-    #         '''# then assume we are looking for folders within this single folder
-    #         poss_folders = os.listdir(folders)
-    #         folders = []
-    #         for poss in poss_folders:
-    #             if os.path.isdir(poss):
-    #                 folders.append(poss)'''
-    #         # now that we are using glob below, we are all good...just make this into a list
-    #         folders = [folders]
-    #     elif type(folders) is list:
-    #         # then continue as is
-    #         pass
-    #     else:
-    #         print("we don't know how to handle type %s yet" % (type(folders)))
-
-    #     # now try to find 'custom_stats.npz' in the folders
-    #     stats = {}
-    #     for folder in folders:
-    #         npzs = glob.glob(os.path.join(folder,"*","custom_stats.npz"), recursive=True)
-    #         for npz in npzs:
-    #             data = np.load(npz)
-    #             genome_size = data['genome_size'][0]
-    #             if genome_size not in stats:
-    #                 stats[genome_size] = {'ids': [],
-    #                                       'scores': [],
-    #                                       'active_count': []}
-    #             for key in ['ids','scores','active_count']:
-    #                 stats[genome_size][key].append(data[key])
-
-    #     # now go plot
-    #     #plt.figure(figsize=(15,10))
-    #     matplotlib_colors = ['b','g','r','c','m','y']
-    #     fig, axes = plt.subplots(2, 1, figsize=(16,8))
-    #     for ith_size, size in enumerate(stats.keys()):
-    #         for row, key in enumerate(['scores','active_count']):
-    #             datas = stats[size][key]
-    #             for data in datas:
-    #                 if key == 'scores':
-    #                     data = data[:,0]
-    #                 axes[row].plot(data, color=matplotlib_colors[ith_size], linestyle="-", alpha=0.5)
-
-    #     plt.show()
-    #     import pdb; pdb.set_trace()
-    #     plt.close()
+        pass
