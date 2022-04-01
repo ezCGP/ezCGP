@@ -1,9 +1,24 @@
-import os, shutil
+'''
+For simgan project...
+After generating new signal refiner networks, we want a way to quickly sample some simulated data,
+run them through the refiner, and then visualize the changes as a quick n dirty way to give it the
+'eye'-test to see if the changes the refienr made make sense.
+'''
+
+### packages
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import torch
-import copy
+
+### sys relative to root dir
+import sys
+from os.path import dirname, realpath
+sys.path.append(dirname(dirname(realpath(__file__))))
+
+### absolute imports wrt root
+from codes.utilities.custom_logging import ezLogging
+
 
 def generate_img_batch(syn_batch, ref_batch, real_batch, png_path, ref_preds=None, real_preds=None):
     '''
