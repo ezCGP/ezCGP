@@ -49,8 +49,8 @@ def get_graph_ratings(refiners,
     for id in ids:
         ratings[id] = {'r': starting_rating, 'RD': starting_rd, 'mu': 0, 'phi': starting_rd/norm_val}
 
-    labels_real = torch.zeros(samples_per_match, dtype=torch.long, device=device)
-    labels_refined = torch.ones(samples_per_match, dtype=torch.long, device=device)
+    labels_real = torch.zeros(samples_per_match, dtype=torch.float, device=device)
+    labels_refined = torch.ones(samples_per_match, dtype=torch.float, device=device)
     all_real = validation_data.real_raw
     all_simulated = validation_data.simulated_raw
     for rnd in range(n_rounds):        

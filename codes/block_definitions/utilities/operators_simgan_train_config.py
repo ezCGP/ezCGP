@@ -1,9 +1,7 @@
 '''
 root/codes/block_definitions/utilities/operators...
-
 Overview:
 This file has operators for a SimGAN training config
-
 Rules:
 '''
 ### packages
@@ -32,10 +30,9 @@ def simgan_train_config(config,
                         d_lr,
                         delta,
                         use_data_history,
-                        train_local_loss,
-                        local_section_size,
                         optimizer,
-                        steps_per_log=100):
+                        steps_per_log=100,
+                        save_every=1000):
     """
     An operator that stores SimGAN training configuration variables
     """
@@ -59,10 +56,6 @@ def simgan_train_config(config,
     # Using image history
     config['use_data_history'] = use_data_history
 
-    # Switch to turn on adding a 'local discriminator loss' to training 
-    config['train_local_loss'] = train_local_loss
-    config['local_section_size'] = local_section_size
-
     # Logging
     config['steps_per_log'] = steps_per_log # not currently evolved on
 
@@ -74,6 +67,9 @@ def simgan_train_config(config,
     optimizer_options = ['adam', 'rmsprop']
     ith_option = optimizer%len(optimizer_options)
     config['optimizer'] = optimizer_options[ith_option]
+
+    # Save Checkpoints
+    config['save_every'] = save_every
 
     return config
     
@@ -90,7 +86,5 @@ operator_dict[simgan_train_config] = {
              argument_types.ArgumentType_LearningRate,
              argument_types.ArgumentType_LearningRate,
              argument_types.ArgumentType_Bool,
-             argument_types.ArgumentType_Bool,
-             argument_types.ArgumentType_Int1to5,
              argument_types.ArgumentType_Int0to100]
     }

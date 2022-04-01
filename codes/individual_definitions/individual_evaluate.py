@@ -388,7 +388,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
 
             if block_index == 2:
                 assert("train" in block_def.nickname and "config" in block_def.nickname), "Our assumption that index 2 is train_config block is wrong!"
-                if (not hasattr(indiv_material[1], 'train_local_loss')) or (indiv_material[1].train_local_loss != block_material.ouptut[0]['train_local_loss']):
+                if (not hasattr(indiv_material[1], 'train_local_loss')) or (indiv_material[1].train_local_loss != block_material.output[0]['train_local_loss']):
                     indiv_material[1].train_local_loss = block_material.output[0]['train_local_loss']
                     indiv_material[1].need_evaluate = True
                 if (not hasattr(indiv_material[1], 'local_section_size')) or (indiv_material[1].local_section_size != block_material.output[0]['local_section_size']):
@@ -516,11 +516,11 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
             # Get data
             real, labels_real = train_data.real_loader.__iter__().next()
             real = torch.Tensor(real).to(train_config['device'])
-            labels_real = torch.LongTensor(labels_real).to(train_config['device'])
+            labels_real = torch.FloatTensor(labels_real).to(train_config['device'])
 
             simulated, labels_refined = train_data.simulated_loader.__iter__().next()
             simulated = torch.Tensor(simulated).to(train_config['device'])
-            labels_refined = torch.LongTensor(labels_refined).to(train_config['device'])
+            labels_refined = torch.FloatTensor(labels_refined).to(train_config['device'])
 
             # Run the real batch through discriminator and calc loss
             pred_real = D(real)
@@ -532,17 +532,11 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
             d_loss_ref = train_config['local_adversarial_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
 
             if D_local:
-                print(D_local)
                 real_batch_split = torch.split(real, train_config['local_section_size'], dim=2)
                 # Calculate the predictions of the local section
                 real_section_preds = []
                 for section in real_batch_split:
-                    # TODO Getting an argmax on empty sequence error on the following line
-                    # We don't use argmax at all...
-                    # Double check the given network and make sure its right
-                    print("Before Error")
                     pred_real_section = D_local(section)
-                    print("After Error")
                     real_section_preds.append(pred_real_section)
 
                 # Stack and average the predictions together to get the "overall" prediction of the sample
@@ -618,7 +612,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 # Load data
                 simulated, _ = train_data.simulated_loader.__iter__().next()
                 simulated = torch.Tensor(simulated).to(train_config['device'])
-                real_labels = torch.zeros(simulated.shape[0], dtype=torch.long).to(train_config['device'])
+                real_labels = torch.zeros(simulated.shape[0], dtype=torch.float).to(train_config['device'])
 
                 # Run refiner and get self_regularization loss
                 refined = R(simulated)
@@ -651,11 +645,11 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 # Get data
                 real, labels_real = train_data.real_loader.__iter__().next()
                 real = torch.Tensor(real).to(train_config['device'])
-                labels_real = torch.LongTensor(labels_real).to(train_config['device'])
+                labels_real = torch.FloatTensor(labels_real).to(train_config['device'])
 
                 simulated, labels_refined = train_data.simulated_loader.__iter__().next()
                 simulated = torch.Tensor(simulated).to(train_config['device'])
-                labels_refined = torch.LongTensor(labels_refined).to(train_config['device'])
+                labels_refined = torch.FloatTensor(labels_refined).to(train_config['device'])
 
                 # import pdb; pdb.set_trace()
                 # Run the real batch through discriminator and calc loss

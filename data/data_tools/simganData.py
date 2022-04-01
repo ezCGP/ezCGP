@@ -8,7 +8,7 @@ class dataset(Dataset):
     """
     def __init__(self, data, target, transform=None):
         self.data = torch.from_numpy(data).float()
-        self.target = torch.from_numpy(target).long()
+        self.target = torch.from_numpy(target).float()
         self.transform = transform
         
     def __getitem__(self, index):

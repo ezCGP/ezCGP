@@ -159,6 +159,13 @@ def pytorch_concat(input_shapes, dim=1):
 
         def __call__(self, *args):
             args = list(args)
+            '''
+            If feature extraction is called on an incomplete signal it will return an empty tensor
+            This section returns a pass if such a case occurs, and assumes that the first element in args is nonzero
+            '''
+            for val in args:
+                if val.nelement() == 0:
+                    return args[0]
             # complete coercion if num of dims in data is different
             for i, val in enumerate(args):
                 args[i] = val.flatten(start_dim=1, end_dim=-1)
@@ -384,6 +391,21 @@ def sigmoid_layer(input_shapes, *args):
 
     return PyTorch_Sigmoid(input_shapes, *args)
 
+def relu_layer(input_shapes, *args):
+    '''
+    no operator_dict entry yet so it isn't used in evolution
+    https://pytorch.org/docs/stable/generated/torch.nn.ReLU.html
+    '''
+    class PyTorch_ReLU(WrapPyTorchModule, nn.ReLU):
+        def __init__(self, input_shapes):
+            WrapPyTorchModule.__init__(self, input_shapes)
+            nn.ReLU.__init__(self)
+
+        def get_out_shape(self):
+            return self.input_shapes[0]
+
+    return PyTorch_ReLU(input_shapes, *args)
+
 
 def avg_pool(input_shapes, *args):
     '''
@@ -573,6 +595,12 @@ def feature_extraction(input_shapes, *args):
 
         def __call__(self, x):
             # not sure why i have to do all this .cpu() etc stuff but in original simgan code
+            '''
+            Check if the input shape is the full signal, otherwise feature extraction is meaningless
+            '''
+            if input_shapes[0][-1] != 92:
+                return torch.Tensor()
+
             features = self.get_features(np.squeeze(x.cpu().detach().numpy()))
             this = torch.Tensor(np.transpose(features)).to(x.device)
             return this

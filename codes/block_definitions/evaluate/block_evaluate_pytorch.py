@@ -45,8 +45,9 @@ class MyTorchNetwork(nn.Module):
 
     TODO: need to pass data/input tensor shape for first few primitives to use!
     '''
-    def __init__(self, block_material, block_def, input_shape, final_module_dicts):
+    def __init__(self, block_material, block_def, input_shape, final_module_dicts, discriminator):
         super().__init__()
+        self.discriminator = discriminator
         self.graph_connections = OrderedDict()
         self.graph_connections[-1] = {"module": None,
                                       "inputs": [],
@@ -135,6 +136,10 @@ class MyTorchNetwork(nn.Module):
         self.final_layer_shape = module_instance.get_out_shape()
         self.genome_length = block_def.genome_count
 
+    def dynamic(self, name: str, module_class, *args, **kwargs):
+        if not hasattr(self, name):
+            self.add_module(name, module_class(*args, **kwargs))
+        return getattr(self, name)
 
     def forward(self, x):
         evaluated_connections = [None]*self.genome_length
@@ -165,7 +170,25 @@ class MyTorchNetwork(nn.Module):
 
         # evaluate any final layers
         for node_index, node_dict in enumerate(self.final_linear_connections):
-            if isinstance(node_dict["module"], str):
+            if self.discriminator and node_index == 0:
+                '''
+                This is an attempt at a "dynamically" sized linear layer
+                Within the discriminator, we expect some flattened tensor from a combination
+                of convolutions, minibatch discrimination, and feature extraction, however, 
+                the linear layer expects some defined value for the input shape. This is difficult
+                as we don't know what combination will occur therefore we don't always know the 
+                input shape during construction. Instead of using some set value, we apply a 
+                linear layer not attached to the graph to the flattened tensor to create a linear mapping.
+
+                Note: Not tested on GPUs yet, may have issues with different device configs 
+                '''
+                callable_module = self.dynamic("dynamic_linear",
+                                                nn.Linear,
+                                                in_features=outputs.shape[-1],
+                                                out_features=20,
+                                                #out_features=node_dict['output_shape'],
+                                                dtype=torch.float)           
+            elif isinstance(node_dict["module"], str):
                 # then it is a nn.Module so grab directly from self
                 callable_module = self._modules[node_dict["module"]]
             else:
@@ -200,10 +223,11 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_Abstract):
     def standard_build_graph(self,
                              block_material: BlockMaterial,
                              block_def,#: BlockDefinition,
-                             input_layers):
+                             input_layers,
+                             discriminator=True):
         # always assuming one input so len(input_layers) should be 1
         input_shape = input_layers[0].shape
-        block_material.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts)
+        block_material.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts, discriminator)
         ezLogging.info("%s - Ending build graph" % (block_material.id))
 
 
@@ -243,7 +267,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
         Build the SimGAN refiner network
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-        self.standard_build_graph(block_material, block_def, data)
+        self.standard_build_graph(block_material, block_def, data, discriminator=False)
 
         # Verify new images match shapes of input images
         if np.any(np.array(block_material.graph.final_layer_shape) != np.array(data[0].shape)):
@@ -281,6 +305,10 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         super().__init__()
 
         self.final_module_dicts.append({"module": opPytorch.linear_layer,
+                                        "args": [20]})
+        self.final_module_dicts.append({"module": opPytorch.relu_layer,
+                                        "args": []})
+        self.final_module_dicts.append({"module": opPytorch.linear_layer,
                                         "args": [1]})
         self.final_module_dicts.append({"module": opPytorch.pytorch_squeeze,
                                         "args": []})
@@ -293,7 +321,7 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         Build the SimGAN discriminator network
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-        self.standard_build_graph(block_material, block_def, data)
+        self.standard_build_graph(block_material, block_def, data, discriminator=True)
 
 
     def evaluate(self,
