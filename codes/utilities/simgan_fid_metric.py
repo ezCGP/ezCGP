@@ -74,14 +74,12 @@ def get_fid_scores(refiners, validation_data):
     chosen_sim = torch.tensor(all_sim[:batch_size, :, :], dtype=torch.float, device='cpu')
     chosen_real = torch.tensor(all_real[:batch_size, :, :], dtype=torch.float, device='cpu')
 
-    print(chosen_sim.shape)
-    print(chosen_real.shape)
-    all_ref = [R(chosen_sim)for R in refiners]
 
-    fid_scores = [calc_fid(ref.squeeze(), chosen_real.squeeze()) for ref in all_ref]
-   
-
-
+    fid_scores = []
+    for i, R in enumerate(refiners):
+        ref = R(chosen_sim)
+        fid = calc_fid(ref.squeeze(), chosen_real.squeeze())
+        fid_scores.append(fid)
 
     return fid_scores
 

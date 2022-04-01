@@ -1,4 +1,6 @@
 """
+root/codes/utilities/visualize.py
+
 This class takes in an individual and writes it to a .csv for draw.io to process
 
 Use:
@@ -11,12 +13,22 @@ Make Viz:
     Copy-Paste all contents from the saved csv into the text box
     Select 'Import'
 """
+
+### packages
 import glob
 import os
 import pickle
 import random
 import string
 import numpy as np
+
+### sys relative to root dir
+import sys
+from os.path import dirname, realpath
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+
+### absolute imports wrt root
+from codes.utilities.custom_logging import ezLogging
 
 
 HEADER = '## Hello World \
@@ -59,7 +71,7 @@ class Visualizer:
         self.csv_rows = self.header.split('\n')
         prev_output = ''
         for block_num, (block_material, block_def) in enumerate(zip(individual_material.blocks, individual_def.block_defs)):
-            print("\nBlock %i - %s" % (block_num, block_def.nickname))
+            ezLogging.debug("Visualize Genome %s - \nBlock %i - %s" % (individual_material.id, block_num, block_def.nickname))
             shift = self.shifts[block_num]
             indices = block_material.active_nodes
             if print_entire_genome:
@@ -69,13 +81,13 @@ class Visualizer:
             for index in indices:
                 color = self.colors[block_num] if index in block_material.active_nodes else INACTIVE_NODE_COLOR
                 node_dict = block_material.genome[index]
-                print("Index %i with contents %s" % (index, node_dict))
+                ezLogging.debug("Visualize Genome %s - Index %i with contents %s" % (individual_material.id, index, node_dict))
                 if index < 0:  # Input
-                    print("...is genome input")
+                    ezLogging.debug("Visualize Genome %s - ...is genome input" % (individual_material.id))
                     out = INPUT_ROW.format(self.individual_num, shift, index, node_dict, block_material.block_nickname, color, prev_output, self.arrow_color)
                 elif type(node_dict) == np.int64:
                     # ^has to be np.int64, won't work for int
-                    print("...is genome output")
+                    ezLogging.debug("Visualize Genome %s - ...is genome output" % (individual_material.id))
                     out = OUTPUT_ROW.format(self.individual_num, shift, index, color, node_dict, self.arrow_color)
                     prev_output = f'{self.individual_num}{shift}{index}'
                 else:
@@ -89,7 +101,7 @@ class Visualizer:
                             arg_txt.append(f'{arg_name}: {arg_val}')
 
                     except Exception as err:
-                        print("Hit an error when trying to parse the node.\n%s" % err)
+                        ezLogging.debug("Visualize Genome %s - Hit an error when trying to parse the node.\n%s" % (individual_material.id, err))
                         import pdb; pdb.set_trace()
                     
                     # now combine items and format
@@ -155,18 +167,18 @@ if __name__ == '__main__':
 
     # Look for pickled Individuals
     individuals = glob.glob(os.path.join(output_folder, args.individual))
-    print("\nWe found %i pickled individuals in the given output directory" % len(individuals))
+    ezLogging.debug("Visualize Genome %s - We found %i pickled individuals in the given output directory" % (individual_material.id, len(individuals)))
     arbitrary_max_count = 20
     if len(individuals) > arbitrary_max_count:
-        print("...going to only look at %i individuals though" % arbitrary_max_count)
+        ezLogging.debug("Visualize Genome %s - ...going to only look at %i individuals though" % (individual_material.id, arbitrary_max_count))
         individuals = individuals[-1*arbitrary_max_count:]
 
     for individual in individuals:
         individual_basename = os.path.basename(individual)[:-4] # strip ".pkl"
-        print("\nVisualizing %s" % individual_basename)
+        ezLogging.debug("Visualize Genome %s - Visualizing %s" % (individual_material.id, individual_basename))
         with open(individual, 'rb') as f:
             individual_material = pickle.load(f)
             viz.visualize(individual_material, individual_def, individual_basename, args.i)
-        print("...done")
+        ezLogging.debug("Visualize Genome %s - ...done" % (individual_material.id))
 
-    print("\nCSV successfully created!")
+    ezLogging.warning("Visualize Genome %s - CSV successfully created!")

@@ -31,6 +31,7 @@ from codes.individual_definitions.individual_definition import IndividualDefinit
 from codes.block_definitions.block_definition import BlockDefinition
 from codes.utilities.custom_logging import ezLogging
 from data.data_tools.ezData import ezData
+from codes.utilities import decorators
 
 
 
@@ -42,6 +43,7 @@ class FactoryDefinition():
         pass
 
 
+    @decorators.stopwatch_decorator
     def build_population(self,
                          problem,#: ProblemDefinition_Abstract,
                          population_size: int, # not grabbed from problem to allow mpi to make subpops
@@ -149,7 +151,7 @@ class FactoryDefinition():
             except Exception as err:
                 ezLogging.error("%s - for seed %s" % (err, block_seeds))
                 indiv_material = None
-                
+
         if (isinstance(block_seeds, list)) and (len(block_seeds)>0):
             indiv_material = IndividualMaterial(maximize_objectives_list)
             indiv_material.set_id(indiv_id)

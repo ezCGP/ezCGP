@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
+import torch.nn.functional as F
 
 class dataset(Dataset):
     """
@@ -214,3 +215,40 @@ class SimGANDataset():
         kernel = ( (1 / (np.sqrt(2 * np.pi) * sigma**2)) * np.exp(-.5 * (((x - mu) ** 2) / sigma**2)) )
 
         return kernel
+
+class TransformSimGANDataset(SimGANDataset):
+    def __init__(self,
+                 real_size=512,
+                 sim_size=128**2,
+                 batch_size=128,
+                 buffer_size=12800):
+        super().__init__(real_size=real_size,
+                         sim_size=sim_size,
+                         batch_size=batch_size,
+                         buffer_size=buffer_size)
+        #transform
+        self.real_raw = self.transform(self.simulated_raw, real_size)
+        
+        #bookkeeping since we modified self.real
+        self.real = dataset(self.real_raw, self.labels_real)
+        self.real_loader = DataLoader(
+            self.real,
+            batch_size,
+            shuffle=True,
+            # **kwargs
+        )
+        self.data_history_buffer = DataHistoryBuffer((1, self.real_raw.shape[-1]), buffer_size, batch_size)
+        _, real_channels, real_length = self.real.data.shape
+        _, sim_channels, sim_length = self.simulated.data.shape
+        assert(real_channels==sim_channels), "Something wrong with shape of data...mismatch number of channels"
+        assert(real_length==sim_length), "Something wrong with shape of data...mismatch length of data"
+        self.shape = (None, real_channels, real_length)
+ 
+    def transform(self, dataset, real_size):
+        dim_size = dataset[0].shape
+        w = torch.rand([dim_size[-1], dim_size[-1]])
+        b = torch.rand(dim_size[-1])
+        i = torch.tensor(dataset).float()
+        return F.linear(i, w, bias=b).numpy()[:real_size]
+
+
