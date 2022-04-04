@@ -17,7 +17,6 @@ from codes.factory import Factory_SimGAN
 from data.data_tools import simganData
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities.gan_tournament_selection import get_graph_ratings
-from codes.utilities.plot_signals import generate_img_batch
 import codes.utilities.simgan_feature_eval as feature_eval
 from codes.utilities.simgan_fid_metric import get_fid_scores
 from codes.utilities.simgan_support_size_eval import get_support_size
@@ -32,6 +31,7 @@ from codes.individual_definitions.individual_mate import IndividualMate_RollOnEa
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
 from post_process import plot_things
+from post_process import plot_signals
 from codes.utilities import decorators
 
 
@@ -250,20 +250,28 @@ class Problem(ProblemDefinition_Abstract):
         save_things.save_fitness_scores(universe)
         save_things.save_HOF_scores(universe)
 
-        syn_batch = torch.tensor(self.validating_datalist[0].simulated_raw[:5], dtype=torch.float, device='cpu')
-        real_batch = torch.tensor(self.validating_datalist[0].real_raw[:5], dtype=torch.float, device='cpu')
-
         for individual in universe.population.population:
             if not individual.dead:
+                self.save_pytorch_individual(universe, individual)
+                plot_things.draw_genome(universe, self, individual)
+
+                # the rest is just to plot signals
+                num_signals = 5
+                sample_index_sim = np.random.choice(np.arange(len(self.validating_datalist[0].simulated_raw)), size=num_signals)
+                simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw[sample_index_sim], dtype=torch.float, device='cpu')
+                sample_index_real = np.random.choice(np.arange(len(self.validating_datalist[0].real_raw)), size=num_signals)
+                real_batch = torch.tensor(self.validating_datalist[0].real_raw[sample_index_real], dtype=torch.float, device='cpu')
                 R, D = individual.output
-                ref_batch = R.cpu()(syn_batch)
-                name = "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id)
-                attachment_folder = os.path.join(universe.output_folder, name)
-                ref_preds = D.cpu()(ref_batch)
+                refined_sim_batch = R.cpu()(simulated_batch)
+                refined_sim_preds = D.cpu()(refined_sim_batch)
                 real_preds = D.cpu()(real_batch)
-                generate_img_batch(syn_batch.data.cpu(), ref_batch.data.cpu(), real_batch.data.cpu(), attachment_folder, ref_preds, real_preds)
-            self.save_pytorch_individual(universe, individual)
-            plot_things.draw_genome(universe, self, individual)
+                attachment_folder = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id))
+                plot_signals.generate_img_batch(simulated_batch.data.cpu(),
+                                                refined_sim_batch.data.cpu(),
+                                                real_batch.data.cpu(),
+                                                attachment_folder,
+                                                refined_sim_preds,
+                                                real_preds)
 
 
         # Pareto Plot for each objective combo at current HOF:
