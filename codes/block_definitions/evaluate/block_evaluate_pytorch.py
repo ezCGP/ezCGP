@@ -259,7 +259,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
 
         in_channels = 1 # TODO hard coded...ish...i mean this is specific for simgan so it is okay...not like batch size
         self.final_module_dicts.append({"module": opPytorch.conv1d_layer,
-                                        "args": [in_channels, 1, 1, 0, nn.Tanh()]})
+                                        "args": [in_channels, 1, 1, 0, nn.Sigmoid()]})
 
 
     def build_graph(self, block_material, block_def, data, device):
