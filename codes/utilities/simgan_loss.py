@@ -5,14 +5,28 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 import torch.autograd as autograd
-from torch.nn.init import xavier_normal_
+from torch.nn.init import xavier_normal_, uniform_, normal_, kaiming_normal_
 
 
-def xavier_init(model):
+def get_initialization_function(method_name, model):
+    '''
+    Determines which weight initialization method to use for the network layers
+        Parameters:
+            method_name (string): The name of the weight initialization method to use
+            model: network to initialize 
+    '''
     for param in model.parameters():
         if len(param.size()) == 2:
-            xavier_normal_(param)
-
+            if method_name == 'xavier':
+                xavier_normal_(param)
+            elif method_name == 'uniform':
+                uniform_(param)
+            elif method_name == 'normal':
+                normal_(param)
+            elif method_name == 'kaiming':
+                kaiming_normal_(param)
+            else:
+                break
 
 def get_loss_function(loss_name):
     '''

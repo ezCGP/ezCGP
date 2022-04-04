@@ -336,19 +336,17 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
             # local discriminator
-            if block_material.train_local_loss:
-                # At this point, all we need is the shape of the data and not the real data,
-                # so going to make something fake of the right shape
-                temp_fake_data = deepcopy(training_datalist[0])
-                # The shape of the local input should be the same except the length of the sequence, which should be a parameter
-                _, original_channels, _ = training_datalist[0].shape
-                temp_fake_data.shape = (None, original_channels, block_material.local_section_size)
-                self.build_graph(block_material, block_def, [temp_fake_data])
-                del temp_fake_data
-                block_material.local_graph = block_material.graph
-                block_material.graph = None
-            else:
-                block_material.local_graph = None
+
+            # At this point, all we need is the shape of the data and not the real data,
+            # so going to make something fake of the right shape
+            temp_fake_data = deepcopy(training_datalist[0])
+            # The shape of the local input should be the same except the length of the sequence, which should be a parameter
+            _, original_channels, _ = training_datalist[0].shape
+            temp_fake_data.shape = (None, original_channels, block_material.local_section_size)
+            self.build_graph(block_material, block_def, [temp_fake_data])
+            del temp_fake_data
+            block_material.local_graph = block_material.graph
+            block_material.graph = None
 
             # discriminator
             input_images = training_datalist[0]

@@ -77,6 +77,7 @@ class DataHistoryBuffer():
             nb_to_get = self.batch_size // 2
 
         try:
+            np.random.shuffle(self.history_buffer)
             return self.history_buffer[:nb_to_get]
         except IndexError:
             return np.zeros(shape=0)

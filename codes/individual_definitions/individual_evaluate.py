@@ -345,14 +345,6 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         # import torch to be used throughout IndividualEvaluate class
         globals()['torch'] = importlib.import_module('torch')
 
-        from codes.utilities.simgan_loss import get_gradient_penalty, get_loss_function, xavier_init
-        self.gradient_penalty = get_gradient_penalty(gradient_penalty)
-        if gradient_penalty == "dragan":
-            self.model_init = xavier_init
-        else:
-            self.model_init = None
-        self.loss_function = get_loss_function(loss) # TODO wasserstein
-        self.penalty_constant = penalty_constant
 
 
     @deepcopy_decorator
@@ -401,14 +393,9 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
 
             if block_index == 2:
                 assert("train" in block_def.nickname and "config" in block_def.nickname), "Our assumption that index 2 is train_config block is wrong!"
-                if (not hasattr(indiv_material[1], 'train_local_loss')) or (indiv_material[1].train_local_loss != block_material.output[0]['train_local_loss']):
-                    indiv_material[1].train_local_loss = block_material.output[0]['train_local_loss']
-                    indiv_material[1].need_evaluate = True
                 if (not hasattr(indiv_material[1], 'local_section_size')) or (indiv_material[1].local_section_size != block_material.output[0]['local_section_size']):
                     indiv_material[1].local_section_size = block_material.output[0]['local_section_size']
-                    if indiv_material[1].train_local_loss:
-                        # even if 'local_section_size' changes, it won't matter if we are not training local loss
-                        indiv_material[1].need_evaluate = True
+                    indiv_material[1].need_evaluate = True
 
         # Adding GPU meta data info
         #https://stackoverflow.com/questions/48152674/how-to-check-if-pytorch-is-using-the-gpu
@@ -422,26 +409,23 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         train_config, untrained_discriminator, untrained_local_discriminator, untrained_refiner = block_outputs
         untrained_refiner.to(train_config['device'])
         untrained_discriminator.to(train_config['device'])
-        if untrained_local_discriminator:
-            untrained_local_discriminator.to(train_config['device'])
+        untrained_local_discriminator.to(train_config['device'])
         # if using dragan gradient penalty, init with xavier per their implementation
         # https://github.com/kodalinaveen3/DRAGAN
-        if hasattr(self, 'model_init') and self.model_init is not None:
-            self.model_init(untrained_refiner)
-            self.model_init(untrained_discriminator)
-            if untrained_local_discriminator:
-                self.model_init(untrained_local_discriminator)
+        if hasattr(train_config, 'optimizer'):
+            from codes.utilities.simgan_loss import get_initialization_function
+            get_initialization_function(train_config['model_init'], untrained_refiner)
+            get_initialization_function(train_config['model_init'], untrained_discriminator)
+            get_initialization_function(train_config['model_init'], untrained_local_discriminator)
 
         if train_config['optimizer'] == 'adam':
             opt_R = torch.optim.Adam(untrained_refiner.parameters(), lr=train_config['r_lr'], betas=(0.5,0.999))
             opt_D = torch.optim.Adam(untrained_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
-            if untrained_local_discriminator:
-                opt_D_local = torch.optim.Adam(untrained_local_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
+            opt_D_local = torch.optim.Adam(untrained_local_discriminator.parameters(), lr=train_config['d_local_lr'], betas=(0.5,0.999))
         elif train_config['optimizer'] == 'rmsprop':
             opt_R = torch.optim.RMSprop(untrained_refiner.parameters(), lr=train_config['r_lr'])
             opt_D = torch.optim.RMSprop(untrained_discriminator.parameters(), lr=train_config['d_lr'])
-            if untrained_local_discriminator:
-                opt_D_local = torch.optim.RMSprop(untrained_local_discriminator.parameters(), lr=train_config['d_lr'])
+            opt_D_local = torch.optim.RMSprop(untrained_local_discriminator.parameters(), lr=train_config['d_local_lr'])
         else:
             ezLogging.critical("%s - Reached an invalid value for Network Optimizer: %s" % (indiv_material.id, train_config['optimizer']))
 
@@ -514,7 +498,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
             # Run refiner and get self_regularization loss
             refined = R(simulated)
             r_loss = train_config['self_regularization_loss'](simulated, refined)
-            r_loss = torch.mul(r_loss, train_config['delta'])
+            r_loss = torch.mul(r_loss, train_config['self_regularization_loss_weight'])
 
             # Compute the gradients and backprop
             r_loss.backward()
@@ -540,12 +524,17 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
 
             # Run the real batch through discriminator and calc loss
             pred_real = D(real)
-            d_loss_real = train_config['local_adversarial_loss'](pred_real.to(torch.float32), labels_real.to(torch.float32))
+            d_loss_real = train_config['minimax_loss'](pred_real.to(torch.float32), labels_real.to(torch.float32))
+            d_loss_real = torch.mul(d_loss_real, train_config['minimax_loss_weight'])
+
+            d_loss_wasserstein = train_config['wasserstein_loss'](pred_real.to(torch.float32), labels_real.to(torch.float32))
+            d_loss_real += torch.mul(d_loss_wasserstein, train_config['wasserstein_loss_weight'])
 
             # Run the refined batch through discriminator and calc loss
             refined = R(simulated)
             pred_refined = D(refined)
-            d_loss_ref = train_config['local_adversarial_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
+            d_loss_ref =  train_config['minimax_loss_weight'] * train_config['minimax_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
+            d_loss_ref +=  train_config['wasserstein_loss_weight'] * train_config['wasserstein_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
 
             if D_local:
                 real_batch_split = torch.split(real, train_config['local_section_size'], dim=2)
@@ -558,8 +547,11 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 # Stack and average the predictions together to get the "overall" prediction of the sample
                 preds_real_agg = torch.stack(real_section_preds)
                 pred_real_local = torch.mean(preds_real_agg, dim=0)
-                d_loss_real_local = train_config['local_adversarial_loss'](pred_real_local.to(torch.float32), labels_real.to(torch.float32))
-                d_loss_real += d_loss_real_local
+                d_loss_real_local = train_config['minimax_loss'](pred_real_local.to(torch.float32), labels_real.to(torch.float32))
+                d_loss_real_local = torch.mul(d_loss_real_local, train_config['local_minimax_loss_weight'])
+                d_loss_real_local_wasserstein = train_config['wasserstein_loss'](pred_real_local.to(torch.float32), labels_real.to(torch.float32))
+                d_loss_real_local_wasserstein = torch.mul(d_loss_real_local_wasserstein, train_config['local_wasserstein_loss_weight'])
+                d_loss_real += d_loss_real_local + d_loss_real_local_wasserstein
 
                 # Continue the same process on the refined samples
                 ref_batch_split = torch.split(refined, train_config['local_section_size'], dim=2)
@@ -570,22 +562,34 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     
                 preds_ref_agg = torch.stack(ref_section_preds)
                 pred_ref_local = torch.mean(preds_ref_agg, dim=0)
-                d_loss_ref_local = train_config['local_adversarial_loss'](pred_ref_local.to(torch.float32), labels_refined.to(torch.float32))
-                d_loss_ref += d_loss_ref_local
+                d_loss_ref_local = train_config['minimax_loss'](pred_ref_local.to(torch.float32), labels_refined.to(torch.float32))
+                d_loss_ref_local = torch.mul(d_loss_ref_local, train_config['local_minimax_loss_weight'])
+                d_loss_ref_local_wasserstein = train_config['wasserstein_loss'](pred_ref_local.to(torch.float32), labels_refined.to(torch.float32))
+                d_loss_ref_local_wasserstein = torch.mul(d_loss_ref_local_wasserstein, train_config['local_wasserstein_loss_weight'])
+                
+                d_loss_ref += d_loss_ref_local + d_loss_ref_local_wasserstein
 
 
             # Compute the gradients.
             d_loss = d_loss_real + d_loss_ref
 
             # Gradient Penalty
-            if hasattr(self, 'gradient_penalty') and self.gradient_penalty is not None:
-                d_loss += self.gradient_penalty(D,
-                                                real, 
-                                                refined,
-                                                train_data.batch_size,
-                                                self.penalty_constant,
-                                                cuda=True,
-                                                device=train_config['device'])
+            #if hasattr(self, 'gradient_penalty') and self.gradient_penalty is not None:
+            d_loss += train_config['dragan'](D,
+                                            real, 
+                                            refined,
+                                            train_data.batch_size,
+                                            train_config['dragan_weight'],
+                                            cuda=True,
+                                            device=train_config['device'])
+
+            d_loss += train_config['wgan_gp'](D,
+                                            real, 
+                                            refined,
+                                            train_data.batch_size,
+                                            train_config['wgan_gp_weight'],
+                                            cuda=True,
+                                            device=train_config['device'])
 
             # Backpropogate the gradient through the discriminator.
             d_loss.backward()
@@ -632,10 +636,11 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
 
                 # Run refiner and get self_regularization loss
                 refined = R(simulated)
-                r_loss_reg = train_config['delta'] * train_config['self_regularization_loss'](simulated, refined) 
+                r_loss_reg = train_config['self_regularization_loss_weight'] * train_config['self_regularization_loss'](simulated, refined) 
                 # Run discriminator on refined data and get adversarial loss
                 d_pred = D(refined)
-                r_loss_adv = train_config['local_adversarial_loss'](d_pred.to(torch.float32), real_labels.to(torch.float32)) # want discriminator to think they are real
+                r_loss_adv = train_config['minimax_loss_weight'] * train_config['minimax_loss'](d_pred.to(torch.float32), real_labels.to(torch.float32)) # want discriminator to think they are real
+                r_loss_adv += train_config['wasserstein_loss_weight'] * train_config['wasserstein_loss'](d_pred.to(torch.float32), real_labels.to(torch.float32))
 
                 # Compute the gradients and backprop
                 r_loss = r_loss_reg + r_loss_adv
@@ -670,7 +675,8 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 # import pdb; pdb.set_trace()
                 # Run the real batch through discriminator and calc loss
                 pred_real = D(real)
-                d_loss_real = train_config['local_adversarial_loss'](pred_real.to(torch.float32), labels_real.to(torch.float32))
+                d_loss_real = train_config['minimax_loss_weight'] * train_config['minimax_loss'](pred_real.to(torch.float32), labels_real.to(torch.float32))
+                d_loss_real += train_config['wasserstein_loss_weight'] * train_config['wasserstein_loss'](pred_real.to(torch.float32), labels_real.to(torch.float32))
 
                 # Run the refined batch through discriminator and calc loss
                 refined = R(simulated)
@@ -678,114 +684,96 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 # use a history of refined signals
                 # TODO: investigate keeping track of loss of old refined from history buffer and new refined seperately
                 d_loss_ref = None
-                if train_config['use_data_history']:
-                    if not train_data.data_history_buffer.is_empty():
-                        refined_hist = train_data.data_history_buffer.get()
-                        refined_hist = torch.Tensor(refined_hist).to(train_config['device'])
-                        pred_refined_size = len(refined) - len(refined_hist)
+                if not train_data.data_history_buffer.is_empty():
+                    refined_hist = train_data.data_history_buffer.get()
+                    refined_hist = torch.Tensor(refined_hist).to(train_config['device'])
+                    pred_refined_hist_size = len(refined_hist)
 
-                        pred_refined = D(refined[:pred_refined_size])
-                        pred_refined_hist = D(refined_hist)
+                    pred_refined = D(refined)
+                    pred_refined_hist = D(refined_hist)
 
-                        d_loss_ref = train_config['local_adversarial_loss'](pred_refined.to(torch.float32), labels_refined[:pred_refined_size].to(torch.float32))
-                        d_loss_ref_hist = train_config['local_adversarial_loss'](pred_refined_hist.to(torch.float32), labels_refined[pred_refined_size:].to(torch.float32))
-                        d_loss_ref += d_loss_ref_hist
+                    d_loss_ref = train_config['minimax_loss_weight'] * train_config['minimax_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
+                    d_loss_ref_hist = train_config['data_history_weight'] * train_config['minimax_loss'](pred_refined_hist.to(torch.float32), labels_refined[:pred_refined_hist_size].to(torch.float32))
+                    d_loss_ref += train_config['wasserstein_loss_weight'] * train_config['wasserstein_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
+                    d_loss_ref_hist += train_config['data_history_weight'] * train_config['wasserstein_loss'](pred_refined_hist.to(torch.float32), labels_refined[:pred_refined_hist_size].to(torch.float32))
+                    d_loss_ref += d_loss_ref_hist
 
-                        if D_local:
-                            ref_batch_split = torch.split(refined, train_config['local_section_size'], dim=2)
-                            ref_section_preds = []
-                            ref_hist_split = torch.split(refined_hist, train_config['local_section_size'], dim=2)
+                    ref_batch_split = torch.split(refined, train_config['local_section_size'], dim=2)
+                    ref_section_preds = []
+                    ref_hist_split = torch.split(refined_hist, train_config['local_section_size'], dim=2)
 
-                            for section in ref_batch_split:
-                                pred_ref_section = D_local(section[:pred_refined_size])
-                                ref_section_preds.append(pred_ref_section)                    
-                            preds_ref_agg = torch.stack(ref_section_preds)
-                            pred_ref_local_curr = torch.mean(preds_ref_agg, dim=0)
-            
-                            ref_hist_preds = []
-                            for section in ref_hist_split:
-                                pred_ref_hist_local = D_local(section)
-                                ref_hist_preds.append(pred_ref_hist_local) 
-                            preds_ref_hist_agg = torch.stack(ref_hist_preds)
-                            pred_ref_local_hist = torch.mean(preds_ref_hist_agg, dim=0)
+                    for section in ref_batch_split:
+                        pred_ref_section = D_local(section)
+                        ref_section_preds.append(pred_ref_section)                    
+                    preds_ref_agg = torch.stack(ref_section_preds)
+                    pred_ref_local_curr = torch.mean(preds_ref_agg, dim=0)
+    
+                    ref_hist_preds = []
+                    for section in ref_hist_split:
+                        pred_ref_hist_local = D_local(section)
+                        ref_hist_preds.append(pred_ref_hist_local) 
+                    preds_ref_hist_agg = torch.stack(ref_hist_preds)
+                    pred_ref_local_hist = torch.mean(preds_ref_hist_agg, dim=0)
 
-                            # Run the refined batch through discriminator and calc loss/accuracy
-                            d_loss_ref_local = train_config['local_adversarial_loss'](pred_ref_local_curr, labels_refined[:pred_refined_size])
-                            d_loss_ref_hist_local = train_config['local_adversarial_loss'](pred_ref_local_hist, labels_refined[:pred_refined_size])
-                            d_loss_ref += d_loss_ref_local + d_loss_ref_hist_local
-                    else:
-                        pred_refined = D(refined)
-                        d_loss_ref = train_config['local_adversarial_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
-
-                        if D_local:
-                            real_batch_split = torch.split(real, train_config['local_section_size'], dim=2)
-                            # Calculate the predictions of the local section
-                            real_section_preds = []
-                            for section in real_batch_split:
-                                pred_real_section = D_local(section)
-                                real_section_preds.append(pred_real_section)
-
-                            # Stack and average the predictions together to get the "overall" prediction of the sample
-                            preds_real_agg = torch.stack(real_section_preds)
-                            pred_real_local = torch.mean(preds_real_agg, dim=0)
-                            d_loss_real_local = train_config['local_adversarial_loss'](pred_real_local.to(torch.float32), labels_real.to(torch.float32))
-                            d_loss_real += d_loss_real_local
-
-                            # Continue the same process on the refined samples
-                            ref_batch_split = torch.split(refined, train_config['local_section_size'], dim=2)
-                            ref_section_preds = []
-                            for section in ref_batch_split:
-                                pred_ref_section = D_local(section)
-                                ref_section_preds.append(pred_ref_section)
-                                
-                            preds_ref_agg = torch.stack(ref_section_preds)
-                            pred_ref_local = torch.mean(preds_ref_agg, dim=0)
-                            d_loss_ref_local = train_config['local_adversarial_loss'](pred_ref_local.to(torch.float32), labels_refined.to(torch.float32))
-                            d_loss_ref += d_loss_ref_local
-
-                    train_data.data_history_buffer.add(refined.cpu().data.numpy())
+                    # Run the refined batch through discriminator and calc loss/accuracy
+                    d_loss_ref_local = train_config['local_minimax_loss_weight'] * train_config['minimax_loss'](pred_ref_local_curr, labels_refined)
+                    d_loss_ref_hist_local = train_config['data_history_weight'] * train_config['minimax_loss'](pred_ref_local_hist, labels_refined[:pred_refined_hist_size])
+                    d_loss_ref_local += train_config['local_wasserstein_loss_weight'] * train_config['wasserstein_loss'](pred_ref_local_curr, labels_refined)
+                    d_loss_ref_hist_local += train_config['data_history_weight'] * train_config['wasserstein_loss'](pred_ref_local_hist, labels_refined[:pred_refined_hist_size])
+                    d_loss_ref += d_loss_ref_local + d_loss_ref_hist_local
                 else:
                     pred_refined = D(refined)
-                    d_loss_ref = train_config['local_adversarial_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
+                    d_loss_ref = train_config['minimax_loss_weight'] * train_config['minimax_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
+                    d_loss_ref += train_config['wasserstein_loss_weight'] * train_config['wasserstein_loss'](pred_refined.to(torch.float32), labels_refined.to(torch.float32))
 
-                    if D_local:
-                        real_batch_split = torch.split(real, train_config['local_section_size'], dim=2)
-                        # Calculate the predictions of the local section
-                        real_section_preds = []
-                        for section in real_batch_split:
-                            pred_real_section = D_local(section)
-                            real_section_preds.append(pred_real_section)
+                    real_batch_split = torch.split(real, train_config['local_section_size'], dim=2)
+                    # Calculate the predictions of the local section
+                    real_section_preds = []
+                    for section in real_batch_split:
+                        pred_real_section = D_local(section)
+                        real_section_preds.append(pred_real_section)
 
-                        # Stack and average the predictions together to get the "overall" prediction of the sample
-                        preds_real_agg = torch.stack(real_section_preds)
-                        pred_real_local = torch.mean(preds_real_agg, dim=0)
-                        d_loss_real_local = train_config['local_adversarial_loss'](pred_real_local.to(torch.float32), labels_real.to(torch.float32))
-                        d_loss_real += d_loss_real_local
+                    # Stack and average the predictions together to get the "overall" prediction of the sample
+                    preds_real_agg = torch.stack(real_section_preds)
+                    pred_real_local = torch.mean(preds_real_agg, dim=0)
+                    d_loss_real_local = train_config['local_minimax_loss_weight'] * train_config['minimax_loss'](pred_real_local.to(torch.float32), labels_real.to(torch.float32))
+                    d_loss_real_local += train_config['local_wasserstein_loss_weight'] * train_config['wasserstein_loss'](pred_real_local.to(torch.float32), labels_real.to(torch.float32))
+                    d_loss_real += d_loss_real_local
 
-                        # Continue the same process on the refined samples
-                        ref_batch_split = torch.split(refined, train_config['local_section_size'], dim=2)
-                        ref_section_preds = []
-                        for section in ref_batch_split:
-                            pred_ref_section = D_local(section)
-                            ref_section_preds.append(pred_ref_section)
-                            
-                        preds_ref_agg = torch.stack(ref_section_preds)
-                        pred_ref_local = torch.mean(preds_ref_agg, dim=0)
-                        d_loss_ref_local = train_config['local_adversarial_loss'](pred_ref_local.to(torch.float32), labels_refined.to(torch.float32))
-                        d_loss_ref += d_loss_ref_local
+                    # Continue the same process on the refined samples
+                    ref_batch_split = torch.split(refined, train_config['local_section_size'], dim=2)
+                    ref_section_preds = []
+                    for section in ref_batch_split:
+                        pred_ref_section = D_local(section)
+                        ref_section_preds.append(pred_ref_section)
+                        
+                    preds_ref_agg = torch.stack(ref_section_preds)
+                    pred_ref_local = torch.mean(preds_ref_agg, dim=0)
+                    d_loss_ref_local = train_config['local_minimax_loss_weight'] * train_config['minimax_loss'](pred_ref_local.to(torch.float32), labels_refined.to(torch.float32))
+                    d_loss_ref_local += train_config['local_wasserstein_loss_weight'] * train_config['wasserstein_loss'](pred_ref_local.to(torch.float32), labels_refined.to(torch.float32))
+                    d_loss_ref += d_loss_ref_local
+
+                train_data.data_history_buffer.add(refined.cpu().data.numpy())
 
                 # Compute the gradients.
                 d_loss = d_loss_real + d_loss_ref
 
                 # Gradient Penalty
-                if hasattr(self, 'gradient_penalty') and self.gradient_penalty is not None:
-                    d_loss += self.gradient_penalty(D,
-                                                    real, 
-                                                    refined,
-                                                    train_data.batch_size,
-                                                    self.penalty_constant,
-                                                    cuda=True,
-                                                    device=train_config['device'])
+                d_loss += train_config['dragan'](D,
+                                            real, 
+                                            refined,
+                                            train_data.batch_size,
+                                            train_config['dragan_weight'],
+                                            cuda=True,
+                                            device=train_config['device'])
+
+                d_loss += train_config['wgan_gp'](D,
+                                                real, 
+                                                refined,
+                                                train_data.batch_size,
+                                                train_config['wgan_gp_weight'],
+                                                cuda=True,
+                                                device=train_config['device'])
 
 
                 # Backpropogate the gradient through the discriminator.
