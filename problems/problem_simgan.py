@@ -94,9 +94,9 @@ class Problem(ProblemDefinition_Abstract):
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
         train_config_dict = {'device': 'cuda'} # was gpu but that didn't work anymore
-        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
+        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128, device=train_config_dict['device']),
                                   train_config_dict]
-        self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
+        self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128, device=train_config_dict['device'])]
 
 
     def set_optimization_goals(self):
@@ -119,8 +119,8 @@ class Problem(ProblemDefinition_Abstract):
             if not indiv.dead:
                 alive_individual_index.append(i)
                 R, D = indiv.output
-                refiners.append(R.cpu())
-                discriminators.append(D.cpu())
+                refiners.append(R)
+                discriminators.append(D)
         
         # Run tournament and add ratings
         if len(alive_individual_index) > 0:
@@ -129,20 +129,20 @@ class Problem(ProblemDefinition_Abstract):
             refiner_ratings, _ = get_graph_ratings(refiners,
                                                    discriminators,
                                                    self.validating_datalist[0],
-                                                   'cpu')
+                                                   'cuda')
 
             #  Objective #2
             ezLogging.info("Calculating Objective 2")
-            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0])
+            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0], 'cuda')
             #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
             
             # Objective #3, #4, #5
             ezLogging.info("Calculating Objective 3,4,5")
-            refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
+            refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cuda')
             
             # Objective #6, #7
             ezLogging.info("Calculating Objective 6,7")
-            refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
+            refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cuda')
             
             # Objective #8
             #ezLogging.info("Calculating Objective 8")
@@ -258,13 +258,13 @@ class Problem(ProblemDefinition_Abstract):
                 # the rest is just to plot signals
                 num_signals = 5
                 sample_index_sim = np.random.choice(np.arange(len(self.validating_datalist[0].simulated_raw)), size=num_signals)
-                simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw[sample_index_sim], dtype=torch.float, device='cpu')
+                simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw[sample_index_sim], dtype=torch.float, device='cuda')
                 sample_index_real = np.random.choice(np.arange(len(self.validating_datalist[0].real_raw)), size=num_signals)
-                real_batch = torch.tensor(self.validating_datalist[0].real_raw[sample_index_real], dtype=torch.float, device='cpu')
+                real_batch = torch.tensor(self.validating_datalist[0].real_raw[sample_index_real], dtype=torch.float, device='cuda')
                 R, D = individual.output
-                refined_sim_batch = R.cpu()(simulated_batch)
-                refined_sim_preds = D.cpu()(refined_sim_batch)
-                real_preds = D.cpu()(real_batch)
+                refined_sim_batch = R(simulated_batch)
+                refined_sim_preds = D(refined_sim_batch)
+                real_preds = D(real_batch)
                 attachment_folder = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id))
                 plot_signals.generate_img_batch(simulated_batch.data.cpu(),
                                                 refined_sim_batch.data.cpu(),

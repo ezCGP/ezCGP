@@ -32,7 +32,7 @@ def calc_feature_distances(refiners, validation_data, device):
     feature_scores = {}
     for id_R, R in enumerate(refiners):
         refined_tensor = R(simulated_tensor.clone())
-        refined = refined_tensor.detach().numpy().squeeze()
+        refined = refined_tensor.detach().cpu().numpy().squeeze()
         refined_features = fe.get_features(refined)
 
         # Normalize features
@@ -71,7 +71,7 @@ def calc_t_tests(refiners, validation_data, device):
     feature_scores = {}
     for id_R, R in enumerate(refiners):
         refined_tensor = R(simulated_tensor.clone())
-        refined = refined_tensor.detach().numpy().squeeze()
+        refined = refined_tensor.detach().cpu().numpy().squeeze()
         refined_features = fe.get_features(refined)
 
         # Normalize features
