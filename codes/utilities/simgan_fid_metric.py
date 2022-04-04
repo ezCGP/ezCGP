@@ -21,9 +21,9 @@ def get_features(name):
 model.avgpool.register_forward_hook(get_features('feats'))
 model.eval()
 
-def process(input):
+def process(input, device):
     batch_size = input.shape[0]
-    z = torch.zeros((batch_size, 23))
+    z = torch.zeros((batch_size, 23), device=device)
     h = torch.hstack([input, input, input, z])
     
     output = torch.stack([h for _ in range(299)])
@@ -33,12 +33,12 @@ def process(input):
     output = output.permute(1,0,2,3)
     return output
 
-def get_activations(model, inputs):
-    inputs = process(inputs)
-        
+def get_activations(model, inputs, device):    
     if torch.cuda.is_available():
         inputs = inputs.to('cuda')
         model.to('cuda')
+
+    inputs = process(inputs, device)
 
     with torch.no_grad():
         output = model(inputs)
@@ -60,25 +60,25 @@ def calculate_fid(act1, act2):
     fid = ssdiff + np.trace(sigma1 + sigma2 - 2.0 * covmean)
     return fid
 
-def calc_fid(ref, real):
-    act1 = get_activations(model, ref).cpu().data
-    act2 = get_activations(model, real).cpu().data
+def calc_fid(ref, real, device):
+    act1 = get_activations(model, ref, device).cpu().data
+    act2 = get_activations(model, real, device).cpu().data
     return calculate_fid(act1, act2).item()
 
-def get_fid_scores(refiners, validation_data):
+def get_fid_scores(refiners, validation_data, device):
     all_real = validation_data.real_raw
     all_sim = validation_data.simulated_raw
     
     batch_size = min([all_real.shape[0], all_sim.shape[0]])
    
-    chosen_sim = torch.tensor(all_sim[:batch_size, :, :], dtype=torch.float, device='cpu')
-    chosen_real = torch.tensor(all_real[:batch_size, :, :], dtype=torch.float, device='cpu')
+    chosen_sim = torch.tensor(all_sim[:batch_size, :, :], dtype=torch.float, device=device)
+    chosen_real = torch.tensor(all_real[:batch_size, :, :], dtype=torch.float, device=device)
 
 
     fid_scores = []
     for i, R in enumerate(refiners):
         ref = R(chosen_sim)
-        fid = calc_fid(ref.squeeze(), chosen_real.squeeze())
+        fid = calc_fid(ref.squeeze(), chosen_real.squeeze(), device)
         fid_scores.append(fid)
 
     return fid_scores

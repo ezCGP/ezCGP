@@ -90,7 +90,7 @@ class SimGANDataset():
     Holds a simulated and real dataset, each composed of 1D signals
     """
 
-    def __init__(self, real_size=512, sim_size=128**2, batch_size=128, buffer_size=12800):
+    def __init__(self, real_size=512, sim_size=128**2, batch_size=128, buffer_size=12800, device='cpu'):
         self.batch_size = batch_size
         
         ### Get the real and simulated datasets
@@ -130,6 +130,7 @@ class SimGANDataset():
         _, sim_channels, sim_length = self.simulated.data.shape
         assert(real_channels==sim_channels), "Something wrong with shape of data...mismatch number of channels"
         assert(real_length==sim_length), "Something wrong with shape of data...mismatch length of data"
+        self.device = device
         self.shape = (None, real_channels, real_length)
     
     def get_real_batch():

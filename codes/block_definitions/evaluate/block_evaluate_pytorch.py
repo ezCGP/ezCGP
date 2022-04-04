@@ -45,7 +45,7 @@ class MyTorchNetwork(nn.Module):
 
     TODO: need to pass data/input tensor shape for first few primitives to use!
     '''
-    def __init__(self, block_material, block_def, input_shape, final_module_dicts, discriminator, device):
+    def __init__(self, block_material, block_def, input_shape, final_module_dicts, device, discriminator):
         super().__init__()
         self.discriminator = discriminator
         self.device = device
@@ -223,11 +223,11 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_Abstract):
                              block_material: BlockMaterial,
                              block_def,#: BlockDefinition,
                              input_layers,
-                             discriminator=True,
-                             device='cuda'):
+                             device,
+                             discriminator=True):
         # always assuming one input so len(input_layers) should be 1
         input_shape = input_layers[0].shape
-        block_material.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts, discriminator, device)
+        block_material.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts, device, discriminator)
         ezLogging.info("%s - Ending build graph" % (block_material.id))
 
 
@@ -262,12 +262,12 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
                                         "args": [in_channels, 1, 1, 0, nn.Tanh()]})
 
 
-    def build_graph(self, block_material, block_def, data):
+    def build_graph(self, block_material, block_def, data, device):
         '''
         Build the SimGAN refiner network
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-        self.standard_build_graph(block_material, block_def, data, discriminator=False)
+        self.standard_build_graph(block_material, block_def, data, device, discriminator=False)
 
         # Verify new images match shapes of input images
         if np.any(np.array(block_material.graph.final_layer_shape) != np.array(data[0].shape)):
@@ -287,7 +287,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
 
         try:
             input_images = training_datalist[0]
-            self.build_graph(block_material, block_def, [input_images])
+            self.build_graph(block_material, block_def, [input_images], input_images.device)
             #supplements.append(block_material.graph)
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
@@ -316,12 +316,12 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
                                         "args": []})
 
 
-    def build_graph(self, block_material, block_def, data):
+    def build_graph(self, block_material, block_def, data, device):
         '''
         Build the SimGAN discriminator network
         '''
         ezLogging.debug("%s - Building Graph" % (block_material.id))
-        self.standard_build_graph(block_material, block_def, data, discriminator=True)
+        self.standard_build_graph(block_material, block_def, data, device, discriminator=True)
 
 
     def evaluate(self,
@@ -336,21 +336,20 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
             # local discriminator
-
+            input_images = training_datalist[0]
             # At this point, all we need is the shape of the data and not the real data,
             # so going to make something fake of the right shape
             temp_fake_data = deepcopy(training_datalist[0])
             # The shape of the local input should be the same except the length of the sequence, which should be a parameter
             _, original_channels, _ = training_datalist[0].shape
             temp_fake_data.shape = (None, original_channels, block_material.local_section_size)
-            self.build_graph(block_material, block_def, [temp_fake_data])
+            self.build_graph(block_material, block_def, [temp_fake_data], input_images.device)
             del temp_fake_data
             block_material.local_graph = block_material.graph
             block_material.graph = None
 
             # discriminator
-            input_images = training_datalist[0]
-            self.build_graph(block_material, block_def, [input_images])
+            self.build_graph(block_material, block_def, [input_images], input_images.device)
         
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
