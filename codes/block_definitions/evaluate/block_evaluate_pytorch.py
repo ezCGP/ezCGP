@@ -45,9 +45,10 @@ class MyTorchNetwork(nn.Module):
 
     TODO: need to pass data/input tensor shape for first few primitives to use!
     '''
-    def __init__(self, block_material, block_def, input_shape, final_module_dicts, discriminator):
+    def __init__(self, block_material, block_def, input_shape, final_module_dicts, discriminator, device):
         super().__init__()
         self.discriminator = discriminator
+        self.device = device
         self.graph_connections = OrderedDict()
         self.graph_connections[-1] = {"module": None,
                                       "inputs": [],
@@ -185,9 +186,7 @@ class MyTorchNetwork(nn.Module):
                 callable_module = self.dynamic("dynamic_linear",
                                                 nn.Linear,
                                                 in_features=outputs.shape[-1],
-                                                out_features=20,
-                                                #out_features=node_dict['output_shape'],
-                                                dtype=torch.float)           
+                                                out_features=20).to(self.device)           
             elif isinstance(node_dict["module"], str):
                 # then it is a nn.Module so grab directly from self
                 callable_module = self._modules[node_dict["module"]]
@@ -224,10 +223,11 @@ class BlockEvaluate_PyTorch_Abstract(BlockEvaluate_Abstract):
                              block_material: BlockMaterial,
                              block_def,#: BlockDefinition,
                              input_layers,
-                             discriminator=True):
+                             discriminator=True,
+                             device='cuda'):
         # always assuming one input so len(input_layers) should be 1
         input_shape = input_layers[0].shape
-        block_material.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts, discriminator)
+        block_material.graph = MyTorchNetwork(block_material, block_def, input_shape, self.final_module_dicts, discriminator, device)
         ezLogging.info("%s - Ending build graph" % (block_material.id))
 
 
