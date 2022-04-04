@@ -31,6 +31,7 @@ from codes.individual_definitions.individual_mate import IndividualMate_RollOnEa
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SimGAN
 from post_process import save_things
 from post_process import plot_things
+from post_process import plot_signals
 from codes.utilities import decorators
 
 
@@ -250,8 +251,27 @@ class Problem(ProblemDefinition_Abstract):
         save_things.save_HOF_scores(universe)
 
         for individual in universe.population.population:
-            self.save_pytorch_individual(universe, individual)
-            plot_things.draw_genome(universe, self, individual)
+            if not individual.dead:
+                self.save_pytorch_individual(universe, individual)
+                plot_things.draw_genome(universe, self, individual)
+
+                # the rest is just to plot signals
+                num_signals = 5
+                sample_index_sim = np.random.choice(np.arange(len(self.validating_datalist[0].simulated_raw)), size=num_signals)
+                simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw[sample_index_sim], dtype=torch.float, device='cpu')
+                sample_index_real = np.random.choice(np.arange(len(self.validating_datalist[0].real_raw)), size=num_signals)
+                real_batch = torch.tensor(self.validating_datalist[0].real_raw[sample_index_real], dtype=torch.float, device='cpu')
+                R, D = individual.output
+                refined_sim_batch = R.cpu()(simulated_batch)
+                refined_sim_preds = D.cpu()(refined_sim_batch)
+                real_preds = D.cpu()(real_batch)
+                attachment_folder = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id))
+                plot_signals.generate_img_batch(simulated_batch.data.cpu(),
+                                                refined_sim_batch.data.cpu(),
+                                                real_batch.data.cpu(),
+                                                attachment_folder,
+                                                refined_sim_preds,
+                                                real_preds)
 
 
         # Pareto Plot for each objective combo at current HOF:
