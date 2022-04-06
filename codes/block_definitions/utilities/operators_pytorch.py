@@ -565,17 +565,33 @@ def feature_extraction(input_shapes, *args):
     from misc import features
     class FeatureExtractor(MimicPyTorchModule, features.FeatureExtractor):
         def __init__(self, input_shapes, *args):
-            MimicPyTorchModule.__init__(self, input_shapes, ftn=None)
+            '''
+            if input_shapes[0] doesn't 92 features then the code will
+            automatically return 0s. so for now, trick it to think there are 92
+            features regardless so that num_features get's set correctly
+            and we can preserve the expected output regardless of 0s or not
+            '''
+            fake_shape = input_shapes[0]
+            fake_shape = fake_shape[:-1] + (92,)
+            MimicPyTorchModule.__init__(self, [fake_shape], ftn=None)
             features.FeatureExtractor.__init__(self, *args)
 
         def get_out_shape(self):
             return (self.input_shapes[0][0], self.num_features)
 
         def __call__(self, x):
-            # not sure why i have to do all this .cpu() etc stuff but in original simgan code
-            features = self.get_features(np.squeeze(x.cpu().detach().numpy()))
-            this = torch.Tensor(np.transpose(features)).to(x.device)
-            return this
+            # Check if the input shape is the full signal, otherwise feature extraction is meaningless
+            if x.shape[-1] != 92:
+                batch_size = x.shape[0]
+                output_shape = (batch_size, self.num_features)
+                import pdb; pdb.set_trace()
+                return torch.zeros(output_shape, device=x.device)
+
+            else:
+                # not sure why i have to do all this .cpu() etc stuff but in original simgan code
+                features = self.get_features(np.squeeze(x.cpu().detach().numpy()))
+                this = torch.Tensor(np.transpose(features)).to(x.device)
+                return this
 
     return FeatureExtractor(input_shapes, *args)
 
