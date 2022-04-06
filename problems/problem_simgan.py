@@ -93,7 +93,8 @@ class Problem(ProblemDefinition_Abstract):
         Constructs a train and validation 1D signal datasets
         '''
         # Can configure the real and simulated sizes + batch size, but we will use default
-        train_config_dict = {'device': 'cuda'} # was gpu but that didn't work anymore
+        train_config_dict = {'device': 'cuda', # was gpu but that didn't work anymore
+                             'offline_mode': False} # see Issue #268 to get pretrained models working offline
         self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
                                   train_config_dict]
         self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
@@ -133,7 +134,7 @@ class Problem(ProblemDefinition_Abstract):
 
             #  Objective #2
             ezLogging.info("Calculating Objective 2")
-            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0])
+            refiner_fids = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
             #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
             
             # Objective #3, #4, #5
