@@ -474,7 +474,7 @@ class Factory_SimGAN(FactoryDefinition):
             attachment_folder = block_seeds[:-4] # just strip the '.pkl'
 
             # frankly just don't have a clever way of getting input shape so just hardcoding it in...sorry, i failed
-            input_shape = (None,1,92)
+            input_shape = (None,1,3600)
 
             # Load in Refiner
             untrained_refiner = MyTorchNetwork(indiv_material[0],
@@ -494,7 +494,7 @@ class Factory_SimGAN(FactoryDefinition):
             # Load Discriminator
             untrained_discriminator = MyTorchNetwork(indiv_material[1],
                                                      indiv_def[1],
-                                                     (None,1,92),
+                                                     (None,1,3600),
                                                      indiv_def[1].evaluate_def.final_module_dicts)
             trained_discriminator = deepcopy(untrained_discriminator)
             untrained_discriminator.load_state_dict(torch.load(os.path.join(attachment_folder, "untrained_discriminator")))

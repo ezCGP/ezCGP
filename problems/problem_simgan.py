@@ -95,9 +95,9 @@ class Problem(ProblemDefinition_Abstract):
         # Can configure the real and simulated sizes + batch size, but we will use default
         train_config_dict = {'device': 'cuda', # was gpu but that didn't work anymore
                              'offline_mode': False} # see Issue #268 to get pretrained models working offline
-        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
+        self.training_datalist = [simganData.SimGANECGDataset(real_size=512, sim_size=128**2, batch_size=4),
                                   train_config_dict]
-        self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
+        self.validating_datalist = [simganData.SimGANECGDataset(real_size=128, sim_size=int((128**2)/4), batch_size=4)]
 
 
     def set_optimization_goals(self):
@@ -266,7 +266,7 @@ class Problem(ProblemDefinition_Abstract):
                 refined_sim_preds = D.cpu()(refined_sim_batch)
                 real_preds = D.cpu()(real_batch)
                 attachment_folder = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id))
-                plot_signals.generate_img_batch(simulated_batch.data.cpu(),
+                plot_signals.generate_ecg_img(simulated_batch.data.cpu(),
                                                 refined_sim_batch.data.cpu(),
                                                 real_batch.data.cpu(),
                                                 attachment_folder,
