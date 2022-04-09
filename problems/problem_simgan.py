@@ -95,7 +95,7 @@ class Problem(ProblemDefinition_Abstract):
         # Can configure the real and simulated sizes + batch size, but we will use default
         train_config_dict = {'device': 'cuda', # was gpu but that didn't work anymore
                              'offline_mode': False} # see Issue #268 to get pretrained models working offline
-        self.training_datalist = [simganData.SimGANDatset(real_size=512, sim_size=128**2, batch_size=4),
+        self.training_datalist = [simganData.SimGANDataset(real_size=512, sim_size=128**2, batch_size=4),
                                   train_config_dict]
         self.validating_datalist = [simganData.SimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=4)]
 

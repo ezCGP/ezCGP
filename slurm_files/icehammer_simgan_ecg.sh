@@ -30,4 +30,4 @@ module load anaconda3/2020.02
 module load cuda/10.1
 conda activate simgan-cgp
 rm -rf ~/.nv
-python main.py -p problem_simgan_ecg -d $setseed $setprevrun
+python main.py -p problem_simgan_ecg -v $setseed $setprevrun

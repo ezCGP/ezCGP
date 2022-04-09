@@ -104,10 +104,6 @@ class DataHistoryBuffer():
     def is_empty(self):
         return len(self.history_buffer) <= 0
 
-class SimGANECGDataset():
-    """
-    Holds a simulated and real dataset, each composed of 1D signals
-    """
 
     def __init__(self, real_size=512, sim_size=128**2, batch_size=4, buffer_size=12800):
         self.batch_size = batch_size
@@ -326,5 +322,61 @@ class TransformSimGANDataset(SimGANDataset):
         b = torch.rand(dim_size[-1])
         i = torch.tensor(dataset).float()
         return F.linear(i, w, bias=b).numpy()[:real_size]
+
+class SimGANECGDataset():
+    """
+    Holds a simulated and real dataset, each composed of 1D signals
+    """
+
+    def __init__(self, real_size=512, sim_size=128**2, batch_size=4, buffer_size=12800):
+        self.batch_size = batch_size
+        
+        ### Get the real and simulated datasets
+        # Generate Datasets:
+        # Dataset  | Peak Locations | Ratio of Normed Peak Amplitudes | Frequency Content (Hz) in [Peak 1],[Peak 2]
+        # -------------------------------------------------------------------------------------------------------------
+        # REAL     |     24,56      |          1:0.64				  |              [1,4,6],[5,8,10]   
+        # SYNTHETIC|    23.5,55.5   |          1:0.78                 |                [4]  ,  [10]  
+        # Can configure these, but they are a bit obtuse
+        self.real_raw = np.expand_dims(np.load('./data/datasets/abnormal.npy', allow_pickle=True), axis=1)[:32]
+        self.simulated_raw = np.expand_dims(np.load('./data/datasets/sim_dataset.npy', allow_pickle=True), axis=1)[:400]
+        print(self.real_raw.shape)
+        print(self.simulated_raw.shape)
+        print('_______________________________')
+        ### Get the labels
+        self.labels_real = np.zeros(self.real_raw.shape[0])
+        self.labels_simulated = np.ones(self.simulated_raw.shape[0])
+
+        ### Put the data into pytorch friendly format
+        self.real = ECGDataset(self.real_raw, self.labels_real)
+        self.simulated = ECGDataset(self.simulated_raw, self.labels_simulated)
+        # kwargs = {'num_workers': 1, 'pin_memory': False} if cuda else {} # Put in the original code by Alex, but I'm not sure for what, commenting them out in the meantime
+        self.real_loader = DataLoader(
+            self.real,
+            batch_size,
+            shuffle=True,
+            # **kwargs
+        )
+        self.simulated_loader = DataLoader(
+            self.simulated,
+            batch_size,
+            shuffle=True,
+            # **kwargs
+        )
+
+        self.data_history_buffer = DataHistoryBuffer((1, self.real_raw.shape[-1]), buffer_size, batch_size)
+
+        # a lot of times, we want to call .shape just to get num_channels and length of data so we cheat by doing this and doing None for num data
+        _, real_channels, real_length = self.real.data.shape
+        _, sim_channels, sim_length = self.simulated.data.shape
+        assert(real_channels==sim_channels), "Something wrong with shape of data...mismatch number of channels"
+        assert(real_length==sim_length), "Something wrong with shape of data...mismatch length of data"
+        self.shape = (None, real_channels, real_length)
+    
+    def get_real_batch():
+        return self.real_loader.__iter__().next()
+    
+    def get_simulated_batch():
+        return self.simulated_loader.__iter__().next()
 
 
