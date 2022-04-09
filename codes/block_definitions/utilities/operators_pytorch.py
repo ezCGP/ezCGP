@@ -91,7 +91,7 @@ def pytorch_squeeze(input_shapes, dim=None):
             # for some reason, if dim is None, then it erros...someone should get fired
             if ('dim' in self.kwargs) and (self.kwargs['dim'] is None):
                 del self.kwargs['dim']
-            
+
             return super().__call__(*args)
 
         def get_out_shape(self):
@@ -105,7 +105,7 @@ def pytorch_squeeze(input_shapes, dim=None):
             else:
                 if shape[self.kwargs['dim']] == 1:
                     drop_index.append(self.kwargs['dim'])
-            
+
             for index in reversed(drop_index):
                 _  = shape.pop(index)
 
@@ -170,10 +170,10 @@ def pytorch_concat(input_shapes, dim=1):
             '''
             going to assume that the shapes of the things we want to concat are valid.
             also assuming we will never concat the 0th dim since that's the size of the batch
-            
+
             this code is weird and the behavior of concat is weird...sometimes the other dimensions
             get flattened instead of maintaining the number of dimensions...wtf
-            
+
             shape = ()
             for dim in range(len(self.input_shapes[0])):
                 length = 0
@@ -559,7 +559,7 @@ def feature_extraction(input_shapes, *args):
     just calls some feature extraction class that was stolen from original simgan codebase.
     should be in misc folder
 
-    NOTE: an idea was to make the output of this method to be a 2nd input into the 
+    NOTE: an idea was to make the output of this method to be a 2nd input into the
     discriminator block instead of a primitive of that block
     '''
     from misc import features
@@ -584,8 +584,8 @@ def feature_extraction(input_shapes, *args):
             if x.shape[-1] != 92:
                 batch_size = x.shape[0]
                 output_shape = (batch_size, self.num_features)
-                import pdb; pdb.set_trace()
-                return torch.zeros(output_shape, device=x.device)
+                #import pdb; pdb.set_trace()
+                return torch.zeros(output_shape, dtype=torch.float, device=x.device)
 
             else:
                 # not sure why i have to do all this .cpu() etc stuff but in original simgan code
