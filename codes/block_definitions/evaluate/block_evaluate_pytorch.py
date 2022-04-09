@@ -8,6 +8,7 @@ out how to build a graph/network given some genome.
 ### packages
 from abc import ABC, abstractmethod
 from copy import deepcopy
+import torch
 from torch import nn
 import numpy as np
 from collections import OrderedDict
@@ -270,7 +271,7 @@ class BlockEvaluate_SimGAN_Refiner(BlockEvaluate_PyTorch_Abstract):
             #import pdb; pdb.set_trace()
             return
 
-        block_material.output = block_material.graph
+        block_material.output = [block_material.graph]
 
 
 
@@ -280,7 +281,9 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         super().__init__()
 
         self.final_module_dicts.append({"module": opPytorch.linear_layer,
-                                        "args": [1]})
+                                        "args": [20, nn.ReLU()]})
+        self.final_module_dicts.append({"module": opPytorch.linear_layer,
+                                        "args": [1, None]})
         self.final_module_dicts.append({"module": opPytorch.pytorch_squeeze,
                                         "args": []})
         self.final_module_dicts.append({"module": opPytorch.sigmoid_layer,
@@ -306,16 +309,32 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         '''
         ezLogging.info("%s - Start evaluating..." % (block_material.id))
         try:
+            # local discriminator
+            if block_material.train_local_loss:
+                # At this point, all we need is the shape of the data and not the real data,
+                # so going to make something fake of the right shape
+                temp_fake_data = deepcopy(training_datalist[0])
+                # The shape of the local input should be the same except the length of the sequence, which should be a parameter
+                _, original_channels, _ = training_datalist[0].shape
+                temp_fake_data.shape = (None, original_channels, block_material.local_section_size)
+                self.build_graph(block_material, block_def, [temp_fake_data])
+                del temp_fake_data
+                block_material.local_graph = block_material.graph
+                block_material.graph = None
+            else:
+                block_material.local_graph = None
+
+            # discriminator
             input_images = training_datalist[0]
             self.build_graph(block_material, block_def, [input_images])
-            #supplements.append(block_material.graph)
+        
         except Exception as err:
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             #import pdb; pdb.set_trace()
             return
 
-        block_material.output = block_material.graph
+        block_material.output = [block_material.graph, block_material.local_graph]
 
 
 
@@ -337,4 +356,4 @@ class BlockEvaluate_SimGAN_Train_Config(BlockEvaluate_Abstract):
         training_config_dict = training_datalist[-1]
         output_list = self.standard_evaluate(block_material, block_def, [training_config_dict])
         training_config_dict = output_list[0]
-        block_material.output = training_config_dict
+        block_material.output = [training_config_dict]
