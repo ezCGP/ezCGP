@@ -223,8 +223,8 @@ def linear_layer(input_shapes, *args):
     TODO consider adding activation arg similar to conv1d
     '''
     class PyTorch_Linear(WrapPyTorchModule, nn.Sequential):
-        def __init__(self, input_shapes, out_features, activation=None):
-            WrapPyTorchModule.__init__(self, input_shapes)
+        def __init__(self, input_shapes, out_features, activation=nn.ReLU()):
+            WrapPyTorchModule.__init__(self, input_shapes, out_features=out_features)
             assert(len(input_shapes)==1), "expected 1 input but got %i" % len(input_shapes)
             in_features = input_shapes[0][-1] # get number of channels
             modules = []
