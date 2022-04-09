@@ -68,7 +68,7 @@ def simgan_train_config(config,
     config['steps_per_log'] = steps_per_log # not currently evolved on
 
     # Losses (currently hard coded)
-    config['self_regularization_loss'] = torch.nn.L1Loss(reduction='sum')
+    config['self_regularization_loss'] = torch.nn.L1Loss(reduction='mean')
     config['local_adversarial_loss'] = torch.nn.BCEWithLogitsLoss(reduction='mean')
 
     # Optimizer

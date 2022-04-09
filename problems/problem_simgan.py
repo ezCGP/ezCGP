@@ -174,7 +174,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 2 # TODO
+        GENERATION_LIMIT = 50 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
