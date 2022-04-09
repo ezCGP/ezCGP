@@ -29,18 +29,18 @@ class ECGDataset(Dataset):
     '''
     def __init__(self, data, target, transform=None):
         self.data = torch.from_numpy(data).float()
-        self.target = torch.from_numpy(target).long()
+        self.target = torch.from_numpy(target).float()
         self.transform = transform
-        
+
     def __getitem__(self, index):
         x = self.data[index]
         y = self.target[index]
-        
+
         if self.transform:
             x = self.transform(x)
-        
+
         return x, y
-    
+
     def __len__(self):
         return len(self.data)
 
@@ -111,13 +111,13 @@ class SimGANECGDataset():
 
     def __init__(self, real_size=512, sim_size=128**2, batch_size=4, buffer_size=12800):
         self.batch_size = batch_size
-        
+
         ### Get the real and simulated datasets
         # Generate Datasets:
         # Dataset  | Peak Locations | Ratio of Normed Peak Amplitudes | Frequency Content (Hz) in [Peak 1],[Peak 2]
         # -------------------------------------------------------------------------------------------------------------
-        # REAL     |     24,56      |          1:0.64				  |              [1,4,6],[5,8,10]   
-        # SYNTHETIC|    23.5,55.5   |          1:0.78                 |                [4]  ,  [10]  
+        # REAL     |     24,56      |          1:0.64				  |              [1,4,6],[5,8,10]
+        # SYNTHETIC|    23.5,55.5   |          1:0.78                 |                [4]  ,  [10]
         # Can configure these, but they are a bit obtuse
         self.real_raw = np.expand_dims(np.load('./data/datasets/abnormal.npy', allow_pickle=True), axis=1)[:32]
         self.simulated_raw = np.expand_dims(np.load('./data/datasets/sim_dataset.npy', allow_pickle=True), axis=1)[:400]
@@ -153,10 +153,10 @@ class SimGANECGDataset():
         assert(real_channels==sim_channels), "Something wrong with shape of data...mismatch number of channels"
         assert(real_length==sim_length), "Something wrong with shape of data...mismatch length of data"
         self.shape = (None, real_channels, real_length)
-    
+
     def get_real_batch():
         return self.real_loader.__iter__().next()
-    
+
     def get_simulated_batch():
         return self.simulated_loader.__iter__().next()
 
@@ -304,7 +304,7 @@ class TransformSimGANDataset(SimGANDataset):
                          buffer_size=buffer_size)
         #transform
         self.real_raw = self.transform(self.simulated_raw, real_size)
-        
+
         #bookkeeping since we modified self.real
         self.real = dataset(self.real_raw, self.labels_real)
         self.real_loader = DataLoader(
@@ -319,7 +319,7 @@ class TransformSimGANDataset(SimGANDataset):
         assert(real_channels==sim_channels), "Something wrong with shape of data...mismatch number of channels"
         assert(real_length==sim_length), "Something wrong with shape of data...mismatch length of data"
         self.shape = (None, real_channels, real_length)
- 
+
     def transform(self, dataset, real_size):
         dim_size = dataset[0].shape
         w = torch.rand([dim_size[-1], dim_size[-1]])
