@@ -584,7 +584,6 @@ def feature_extraction(input_shapes, *args):
             if x.shape[-1] != 92:
                 batch_size = x.shape[0]
                 output_shape = (batch_size, self.num_features)
-                import pdb; pdb.set_trace()
                 return torch.zeros(output_shape, device=x.device)
 
             else:
