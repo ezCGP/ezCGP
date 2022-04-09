@@ -413,7 +413,6 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         # Adding GPU meta data info
         #https://stackoverflow.com/questions/48152674/how-to-check-if-pytorch-is-using-the-gpu
         if torch.cuda.is_available():
-            #gpu_device = torch.cuda.current_device()
             for gpu_device in range(torch.cuda.device_count()):
                 gpu_name = torch.cuda.get_device_name(gpu_device)
                 if gpu_name is not None:
@@ -422,30 +421,27 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         train_config, untrained_discriminator, untrained_local_discriminator, untrained_refiner = block_outputs
         untrained_refiner.to(train_config['device'])
         untrained_discriminator.to(train_config['device'])
+        if untrained_local_discriminator:
+            untrained_local_discriminator.to(train_config['device'])
 
         # if using dragan gradient penalty, init with xavier per their implementation
         # https://github.com/kodalinaveen3/DRAGAN
         if hasattr(self, 'model_init') and self.model_init is not None:
             self.model_init(untrained_refiner)
             self.model_init(untrained_discriminator)
+            if untrained_local_discriminator:
+                self.model_init(untrained_local_discriminator)
 
-        opt_D_local = None
         if train_config['optimizer'] == 'adam':
             opt_R = torch.optim.Adam(untrained_refiner.parameters(), lr=train_config['r_lr'], betas=(0.5,0.999))
             opt_D = torch.optim.Adam(untrained_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
             if untrained_local_discriminator:
-                untrained_local_discriminator.to(train_config['device'])
                 opt_D_local = torch.optim.Adam(untrained_local_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
-                if hasattr(self, 'model_init') and self.model_init is not None:
-                    self.model_init(untrained_local_discriminator)
         elif train_config['optimizer'] == 'rmsprop':
             opt_R = torch.optim.RMSprop(untrained_refiner.parameters(), lr=train_config['r_lr'])
-            opt_D = torch.optim.RMSprop(untrained_refiner.parameters(), lr=train_config['d_lr'])
+            opt_D = torch.optim.RMSprop(untrained_discriminator.parameters(), lr=train_config['d_lr'])
             if untrained_local_discriminator:
-                untrained_local_discriminator.to(train_config['device'])
                 opt_D_local = torch.optim.RMSprop(untrained_local_discriminator.parameters(), lr=train_config['d_lr'])
-                if hasattr(self, 'model_init') and self.model_init is not None:
-                    self.model_init(untrained_local_discriminator)
         else:
             ezLogging.critical("%s - Reached an invalid value for Network Optimizer: %s" % (indiv_material.id, train_config['optimizer']))
 

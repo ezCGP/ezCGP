@@ -210,6 +210,7 @@ class Problem(ProblemDefinition_Abstract):
         print(individual.output)
 
         # save models
+        # NOTE if indiv.dead then some of these values may not be filled
         if not individual[0].dead:
             torch.save(individual[0].output[0].state_dict(),
                        os.path.join(attachment_folder, 'untrained_refiner'))
