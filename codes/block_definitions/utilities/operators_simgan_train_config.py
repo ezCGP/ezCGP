@@ -96,5 +96,5 @@ operator_dict[simgan_train_config] = {
              argument_types.ArgumentType_Bool,
              argument_types.ArgumentType_Int0to100,
              argument_types.ArgumentType_Bool,
-             argument_types.ArgumentType_Int0to25]
+             argument_types.ArgumentType_Int0to100]
     }
