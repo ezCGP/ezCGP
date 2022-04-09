@@ -228,9 +228,7 @@ def linear_layer(input_shapes, *args):
             assert(len(input_shapes)==1), "expected 1 input but got %i" % len(input_shapes)
             in_features = input_shapes[0][-1] # get number of channels
             modules = []
-            modules.append(nn.Linear.__init__(in_features,
-                                              out_features,
-                                              bias=True))
+            modules.append(nn.Linear(in_features, out_features, bias=True))
             if activation is not None:
                 modules.append(activation)
 
