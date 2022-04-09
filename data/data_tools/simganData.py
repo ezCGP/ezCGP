@@ -5,22 +5,22 @@ import torch.nn.functional as F
 
 class dataset(Dataset):
     """
-    Defines a torch Dataset used for training 
+    Defines a torch Dataset used for training
     """
     def __init__(self, data, target, transform=None):
         self.data = torch.from_numpy(data).float()
-        self.target = torch.from_numpy(target).long()
+        self.target = torch.from_numpy(target).float()
         self.transform = transform
-        
+
     def __getitem__(self, index):
         x = self.data[index]
         y = self.target[index]
-        
+
         if self.transform:
             x = self.transform(x)
-        
+
         return x, y
-    
+
     def __len__(self):
         return len(self.data)
 
@@ -80,7 +80,7 @@ class DataHistoryBuffer():
             return self.history_buffer[:nb_to_get]
         except IndexError:
             return np.zeros(shape=0)
-    
+
     def is_empty(self):
         return len(self.history_buffer) <= 0
 
@@ -91,13 +91,13 @@ class SimGANDataset():
 
     def __init__(self, real_size=512, sim_size=128**2, batch_size=128, buffer_size=12800):
         self.batch_size = batch_size
-        
+
         ### Get the real and simulated datasets
         # Generate Datasets:
         # Dataset  | Peak Locations | Ratio of Normed Peak Amplitudes | Frequency Content (Hz) in [Peak 1],[Peak 2]
         # -------------------------------------------------------------------------------------------------------------
-        # REAL     |     24,56      |          1:0.64				  |              [1,4,6],[5,8,10]   
-        # SYNTHETIC|    23.5,55.5   |          1:0.78                 |                [4]  ,  [10]  
+        # REAL     |     24,56      |          1:0.64				  |              [1,4,6],[5,8,10]
+        # SYNTHETIC|    23.5,55.5   |          1:0.78                 |                [4]  ,  [10]
         # Can configure these, but they are a bit obtuse
         self.real_raw = self.gen_fake_dataset(real_size, [24,56], [0.5,0.5], [5,8], [0.5,0.5], [1,0.64], [0.1,0.2], [[1,4,6],[5,8,10]], [0.25,0.25], True)
         self.simulated_raw = self.gen_fake_dataset(sim_size, [23.5,55.5], [0.5,0.5], [5,10], [0.5,0.5], [1,0.78], [0.05,0.17], [[4],[10]], [0.25,0.25], False)
@@ -130,16 +130,16 @@ class SimGANDataset():
         assert(real_channels==sim_channels), "Something wrong with shape of data...mismatch number of channels"
         assert(real_length==sim_length), "Something wrong with shape of data...mismatch length of data"
         self.shape = (None, real_channels, real_length)
-    
+
     def get_real_batch():
         return self.real_loader.__iter__().next()
-    
+
     def get_simulated_batch():
         return self.simulated_loader.__iter__().next()
-    
+
     def gen_fake_dataset(self, n_signals, peak_locs_mu, peak_locs_sigma, mu_sigma, avg_peak_std_dev, amp_mu, amp_sigma, freq_mu, freq_sigma, add_noise=False):
         """
-        Code to generate our fake dataset that mocks the in-room 
+        Code to generate our fake dataset that mocks the in-room
         """
         data = []
         peaks = np.zeros((len(peak_locs_mu), n_signals))
@@ -151,11 +151,11 @@ class SimGANDataset():
             peaks[i,:] = np.random.normal(loc = peak_locs_mu[i], scale = peak_locs_sigma[i], size = n_signals)
             sigmas[i,:] = np.random.normal(loc = mu_sigma[i], scale = peak_locs_sigma[i], size = n_signals)
             g_amplitudes[i,:] = np.random.normal(loc = amp_mu[i], scale = amp_sigma[i], size = n_signals)
-        
+
         temp_f = []
         for i in range(0, len(freq_mu)):
             temp_f.append(np.array([np.random.normal(loc = m, scale = s, size = n_signals) for m, s in zip(freq_mu[i], freq_sigma)]))
-        
+
         temp_f = np.array(temp_f)
         for i in range(0, n_signals):
             freqs.append(np.array(temp_f)[:,:,i].tolist())
@@ -176,14 +176,14 @@ class SimGANDataset():
             for i in range(len(data)):
                 data[i] -= data[i].min(axis=1)
                 data[i] /= data[i].max(axis=1)
-        
+
         return data
-    
+
     def gen_siganl(self, peaks, sigmas, g_amplitudes, freqs, f_amplitudes = 0.02, fs = 1/60, size = 92):
         '''
-        Generate a synthetic signal with sinusoidal components added at the peaks. 
-        
-        Inputs peaks, sigmas, g_amplitudes, and freqs to be list where each entry corresponds to the 
+        Generate a synthetic signal with sinusoidal components added at the peaks.
+
+        Inputs peaks, sigmas, g_amplitudes, and freqs to be list where each entry corresponds to the
         first, second, ... etc gaussian components in the signal.
 
         Freqs entries can contain multiple frequencies in an array.
@@ -199,7 +199,7 @@ class SimGANDataset():
 
             smoothing = temp / temp.max()
             for f in freq:
-                f_signal += (f_amplitudes * np.sin(x*2*np.pi*f)) 
+                f_signal += (f_amplitudes * np.sin(x*2*np.pi*f))
 
         return signal, f_signal
 
@@ -207,8 +207,8 @@ class SimGANDataset():
         '''
         Generate a gaussian kernel of the desired size
         '''
-        nstds = 1  
-        xmax = 91 
+        nstds = 1
+        xmax = 91
         xmin = 0
         x =  np.linspace(xmin, xmax, size)
 

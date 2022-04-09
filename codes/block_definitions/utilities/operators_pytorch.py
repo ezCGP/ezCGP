@@ -91,7 +91,7 @@ def pytorch_squeeze(input_shapes, dim=None):
             # for some reason, if dim is None, then it erros...someone should get fired
             if ('dim' in self.kwargs) and (self.kwargs['dim'] is None):
                 del self.kwargs['dim']
-            
+
             return super().__call__(*args)
 
         def get_out_shape(self):
@@ -105,7 +105,7 @@ def pytorch_squeeze(input_shapes, dim=None):
             else:
                 if shape[self.kwargs['dim']] == 1:
                     drop_index.append(self.kwargs['dim'])
-            
+
             for index in reversed(drop_index):
                 _  = shape.pop(index)
 
@@ -170,10 +170,10 @@ def pytorch_concat(input_shapes, dim=1):
             '''
             going to assume that the shapes of the things we want to concat are valid.
             also assuming we will never concat the 0th dim since that's the size of the batch
-            
+
             this code is weird and the behavior of concat is weird...sometimes the other dimensions
             get flattened instead of maintaining the number of dimensions...wtf
-            
+
             shape = ()
             for dim in range(len(self.input_shapes[0])):
                 length = 0
@@ -222,12 +222,20 @@ def linear_layer(input_shapes, *args):
 
     TODO consider adding activation arg similar to conv1d
     '''
-    class PyTorch_Linear(WrapPyTorchModule, nn.Linear):
-        def __init__(self, input_shapes, out_features):
+    class PyTorch_Linear(WrapPyTorchModule, nn.Sequential):
+        def __init__(self, input_shapes, out_features, activation=None):
             WrapPyTorchModule.__init__(self, input_shapes)
             assert(len(input_shapes)==1), "expected 1 input but got %i" % len(input_shapes)
             in_features = input_shapes[0][-1] # get number of channels
-            nn.Linear.__init__(self, in_features, out_features, bias=True)
+            modules = []
+            modules.append(nn.Linear.__init__(self,
+                                              in_features,
+                                              out_features,
+                                              bias=True))
+            if activation is not None:
+                modules.append(activation)
+
+            nn.Sequential.__init__(self, *modules)
 
         def get_out_shape(self):
             out_features = self.out_features
@@ -238,7 +246,8 @@ def linear_layer(input_shapes, *args):
 
 operator_dict[linear_layer] = {"inputs": [nn.Module],
                                "output": nn.Module,
-                               "args": [argument_types.ArgumentType_Pow2]
+                               "args": [argument_types.ArgumentType_Pow2,
+                                        argument_types.ArgumentType_PyTorchActivation]
                               }
 
 
@@ -559,23 +568,39 @@ def feature_extraction(input_shapes, *args):
     just calls some feature extraction class that was stolen from original simgan codebase.
     should be in misc folder
 
-    NOTE: an idea was to make the output of this method to be a 2nd input into the 
+    NOTE: an idea was to make the output of this method to be a 2nd input into the
     discriminator block instead of a primitive of that block
     '''
     from misc import features
     class FeatureExtractor(MimicPyTorchModule, features.FeatureExtractor):
         def __init__(self, input_shapes, *args):
-            MimicPyTorchModule.__init__(self, input_shapes, ftn=None)
+            '''
+            if input_shapes[0] doesn't 92 features then the code will
+            automatically return 0s. so for now, trick it to think there are 92
+            features regardless so that num_features get's set correctly
+            and we can preserve the expected output regardless of 0s or not
+            '''
+            fake_shape = input_shapes[0]
+            fake_shape = fake_shape[:-1] + (92,)
+            MimicPyTorchModule.__init__(self, [fake_shape], ftn=None)
             features.FeatureExtractor.__init__(self, *args)
 
         def get_out_shape(self):
             return (self.input_shapes[0][0], self.num_features)
 
         def __call__(self, x):
-            # not sure why i have to do all this .cpu() etc stuff but in original simgan code
-            features = self.get_features(np.squeeze(x.cpu().detach().numpy()))
-            this = torch.Tensor(np.transpose(features)).to(x.device)
-            return this
+            # Check if the input shape is the full signal, otherwise feature extraction is meaningless
+            if x.shape[-1] != 92:
+                batch_size = x.shape[0]
+                output_shape = (batch_size, self.num_features)
+                #import pdb; pdb.set_trace()
+                return torch.zeros(output_shape, dtype=torch.float, device=x.device)
+
+            else:
+                # not sure why i have to do all this .cpu() etc stuff but in original simgan code
+                features = self.get_features(np.squeeze(x.cpu().detach().numpy()))
+                this = torch.Tensor(np.transpose(features)).to(x.device)
+                return this
 
     return FeatureExtractor(input_shapes, *args)
 

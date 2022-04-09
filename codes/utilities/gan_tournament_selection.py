@@ -49,11 +49,11 @@ def get_graph_ratings(refiners,
     for id in ids:
         ratings[id] = {'r': starting_rating, 'RD': starting_rd, 'mu': 0, 'phi': starting_rd/norm_val}
 
-    labels_real = torch.zeros(samples_per_match, dtype=torch.long, device=device)
-    labels_refined = torch.ones(samples_per_match, dtype=torch.long, device=device)
+    labels_real = torch.zeros(samples_per_match, dtype=torch.float, device=device)
+    labels_refined = torch.ones(samples_per_match, dtype=torch.float, device=device)
     all_real = validation_data.real_raw
     all_simulated = validation_data.simulated_raw
-    for rnd in range(n_rounds):        
+    for rnd in range(n_rounds):
         # instantiate match results
         match_results = {}
         for id in ids:
@@ -70,7 +70,7 @@ def get_graph_ratings(refiners,
                     sim_inds = np.random.choice(np.arange(len(all_simulated)), samples_per_match, replace=False)
                     simulated = torch.tensor(all_simulated[sim_inds], dtype=torch.float, device=device)
                     refined = R(simulated)
-                    
+
                     # Get discriminator accuracy on real and refined data
                     d_pred_real = D(real)
                     acc_real = calc_acc(d_pred_real, labels_real)
@@ -92,7 +92,7 @@ def get_graph_ratings(refiners,
                     else:
                         match_results[id_D]['scores'].append(0)
                         match_results[id_R]['scores'].append(1)
-        
+
         # Update scores for the refiners and discriminators
         new_ratings = ratings.copy()
         for id in ids:
@@ -103,7 +103,7 @@ def get_graph_ratings(refiners,
                                                               np.array(results['opponent_phis']),
                                                               np.array(results['scores']),
                                                               starting_rating,
-                                                              norm_val)   
+                                                              norm_val)
             new_ratings[id]['mu'], new_ratings[id]['phi'], new_ratings[id]['r'], new_ratings[id]['RD'] = glicko_calculations
         ratings = new_ratings
 
@@ -136,7 +136,7 @@ def calculate_new_glicko_scores(old_mu, old_phi, opponent_mus, opponent_phis, sc
     http://www.glicko.net/glicko/glicko2.pdf ????
     https://en.wikipedia.org/wiki/Glicko_rating_system ????
 
-    Calculate and return the new glicko values for the player using Glicko2 calculation 
+    Calculate and return the new glicko values for the player using Glicko2 calculation
         Parameters:
             old_mu (float): The former mu rating
             old_phi (float): The former phi rating

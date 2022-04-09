@@ -122,7 +122,7 @@ class Problem(ProblemDefinition_Abstract):
                 R, D = indiv.output
                 refiners.append(R.cpu())
                 discriminators.append(D.cpu())
-        
+
         # Run tournament and add ratings
         if len(alive_individual_index) > 0:
             #  Objective #1 - NO LONGER AN OBJECTIVE FOR POPULATION SELECTION
@@ -212,11 +212,11 @@ class Problem(ProblemDefinition_Abstract):
         # save models
         # NOTE if indiv.dead then some of these values may not be filled
         if not individual[0].dead:
-            torch.save(individual[0].output.state_dict(),
+            torch.save(individual[0].output[0].state_dict(),
                        os.path.join(attachment_folder, 'untrained_refiner'))
 
         if not individual[1].dead:
-            torch.save(individual[1].output.state_dict(),
+            torch.save(individual[1].output[0].state_dict(),
                        os.path.join(attachment_folder, 'untrained_discriminator'))
 
         if not individual[2].dead:
@@ -234,6 +234,7 @@ class Problem(ProblemDefinition_Abstract):
         individual[1].output = []
         individual[2].output = []
         individual.output = []
+        individual.blocks[1].local_graph = None
 
         # save individual
         indiv_file = os.path.join(universe.output_folder, name+".pkl")
@@ -246,7 +247,7 @@ class Problem(ProblemDefinition_Abstract):
         Save fitness scores and the refiners on the pareto front of fitness scroes
         '''
         ezLogging.info("Post Processing Generation Run")
-        
+
         save_things.save_fitness_scores(universe)
         save_things.save_HOF_scores(universe)
 
