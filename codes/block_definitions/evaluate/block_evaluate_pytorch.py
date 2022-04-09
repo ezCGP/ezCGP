@@ -281,7 +281,9 @@ class BlockEvaluate_SimGAN_Discriminator(BlockEvaluate_PyTorch_Abstract):
         super().__init__()
 
         self.final_module_dicts.append({"module": opPytorch.linear_layer,
-                                        "args": [1]})
+                                        "args": [20, nn.ReLU()]})
+        self.final_module_dicts.append({"module": opPytorch.linear_layer,
+                                        "args": [1, None]})
         self.final_module_dicts.append({"module": opPytorch.pytorch_squeeze,
                                         "args": []})
         self.final_module_dicts.append({"module": opPytorch.sigmoid_layer,
