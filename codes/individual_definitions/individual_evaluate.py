@@ -62,7 +62,7 @@ def deepcopy_decorator(func):
                     new_validating_datalist.append(deepcopy(data))
         else:
             new_validating_datalist = None
-        
+
         output = func(self,
                       indiv_material,
                       indiv_def,
@@ -384,7 +384,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
-            
+
             # just a way so we can run through evaluation of each individual quickly
             TESTING_HACK = False
             if (TESTING_HACK) and ('train_config' in block_def.nickname):
@@ -441,7 +441,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
             opt_R = torch.optim.RMSprop(untrained_refiner.parameters(), lr=train_config['r_lr'])
             opt_D = torch.optim.RMSprop(untrained_discriminator.parameters(), lr=train_config['d_lr'])
             if untrained_local_discriminator:
-                opt_D_local = torch.optim.RMSprop(untrained_discriminator.parameters(), lr=train_config['d_lr'])
+                opt_D_local = torch.optim.RMSprop(untrained_local_discriminator.parameters(), lr=train_config['d_lr'])
         else:
             ezLogging.critical("%s - Reached an invalid value for Network Optimizer: %s" % (indiv_material.id, train_config['optimizer']))
 
@@ -492,7 +492,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
 
         # clear gpu memory
         torch.cuda.empty_cache()
-        
+
         indiv_material.output = (best_refiner, best_discriminator)
 
 

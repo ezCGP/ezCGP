@@ -35,7 +35,8 @@ def simgan_train_config(config,
                         optimizer,
                         train_local_loss,
                         local_section_size,
-                        steps_per_log=100):
+                        steps_per_log=100,
+                        save_every=1000):
     """
     An operator that stores SimGAN training configuration variables
     """
@@ -59,7 +60,7 @@ def simgan_train_config(config,
     # Using image history
     config['use_data_history'] = use_data_history
 
-    # Switch to turn on adding a 'local discriminator loss' to training 
+    # Switch to turn on adding a 'local discriminator loss' to training
     config['train_local_loss'] = train_local_loss
     config['local_section_size'] = local_section_size
 
@@ -79,7 +80,7 @@ def simgan_train_config(config,
     config['save_every'] = save_every
 
     return config
-    
+
 
 operator_dict[simgan_train_config] = {
     "inputs": [dict],
@@ -95,5 +96,5 @@ operator_dict[simgan_train_config] = {
              argument_types.ArgumentType_Bool,
              argument_types.ArgumentType_Int0to100,
              argument_types.ArgumentType_Bool,
-             argument_types.ArgumentType_Int1to5]
+             argument_types.ArgumentType_Int0to25]
     }

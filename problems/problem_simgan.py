@@ -23,7 +23,7 @@ from codes.utilities.simgan_support_size_eval import get_support_size
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_SimGAN_Network, BlockShapeMeta_SimGAN_Train_Config
 from codes.block_definitions.operators.block_operators import BlockOperators_SimGAN_Refiner, BlockOperators_SimGAN_Discriminator, BlockOperators_SimGAN_Train_Config
 from codes.block_definitions.arguments.block_arguments import BlockArguments_Auto
-from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config 
+from codes.block_definitions.evaluate.block_evaluate_pytorch import BlockEvaluate_SimGAN_Refiner, BlockEvaluate_SimGAN_Discriminator, BlockEvaluate_SimGAN_Train_Config
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB_No_Single_Ftn, BlockMutate_OptB, BlockMutate_ArgsOnly
 from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock_LimitedMutants
@@ -53,8 +53,8 @@ class Problem(ProblemDefinition_Abstract):
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
-                                               shape_def = BlockShapeMeta_SimGAN_Network, 
-                                               operator_def = BlockOperators_SimGAN_Refiner, 
+                                               shape_def = BlockShapeMeta_SimGAN_Network,
+                                               operator_def = BlockOperators_SimGAN_Refiner,
                                                argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Refiner().operator_dict, 10),
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
                                                mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
@@ -62,8 +62,8 @@ class Problem(ProblemDefinition_Abstract):
                                               )
 
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
-                                                     shape_def = BlockShapeMeta_SimGAN_Network, 
-                                                     operator_def = BlockOperators_SimGAN_Discriminator, 
+                                                     shape_def = BlockShapeMeta_SimGAN_Network,
+                                                     operator_def = BlockOperators_SimGAN_Discriminator,
                                                      argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Discriminator().operator_dict, 15),
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                                      mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
@@ -71,7 +71,7 @@ class Problem(ProblemDefinition_Abstract):
                                                     )
 
         train_config_def = self.construct_block_def(nickname = "train_config",
-                                                    shape_def = BlockShapeMeta_SimGAN_Train_Config, 
+                                                    shape_def = BlockShapeMeta_SimGAN_Train_Config,
                                                     operator_def = BlockOperators_SimGAN_Train_Config,
                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config().operator_dict, 10),
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
@@ -136,19 +136,19 @@ class Problem(ProblemDefinition_Abstract):
             ezLogging.info("Calculating Objective 2")
             refiner_fids = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
             #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
-            
+
             # Objective #3, #4, #5
             ezLogging.info("Calculating Objective 3,4,5")
             refiner_feature_dist = feature_eval.calc_feature_distances(refiners, self.validating_datalist[0], 'cpu')
-            
+
             # Objective #6, #7
             ezLogging.info("Calculating Objective 6,7")
             refiner_t_tests = feature_eval.calc_t_tests(refiners, self.validating_datalist[0], 'cpu')
-            
+
             # Objective #8
             #ezLogging.info("Calculating Objective 8")
             #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
-    
+
             for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
@@ -294,7 +294,7 @@ class Problem(ProblemDefinition_Abstract):
                                                xlabel=x_obj, ylabel=y_obj,
                                                min_x=None, max_x=None,
                                                min_y=None, max_y=None)
-        
+
                 #plot_things.plot_legend(pareto_fig)
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
@@ -323,7 +323,7 @@ class Problem(ProblemDefinition_Abstract):
                                                    xlabel=x_obj, ylabel=y_obj,
                                                    min_x=None, max_x=None,
                                                    min_y=None, max_y=None)
-                
+
                 plot_things.plot_legend(pareto_fig)
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
