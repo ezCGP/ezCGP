@@ -62,13 +62,14 @@ def deepcopy_decorator(func):
                     new_validating_datalist.append(deepcopy(data))
         else:
             new_validating_datalist = None
-
-        func(self,
-             indiv_material,
-             indiv_def,
-             new_training_datalist,
-             new_validating_datalist,
-             supplements)
+        
+        output = func(self,
+                      indiv_material,
+                      indiv_def,
+                      new_training_datalist,
+                      new_validating_datalist,
+                      supplements)
+        return output
 
     return inner
 
@@ -383,6 +384,18 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     pass
             else:
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
+            
+            # just a way so we can run through evaluation of each individual quickly
+            TESTING_HACK = False
+            if (TESTING_HACK) and ('train_config' in block_def.nickname):
+                block_material.output['train_steps'] = 10
+                block_material.output['r_pretrain_steps'] = 10
+                block_material.output['d_pretrain_steps'] = 10
+                block_material.output['d_updates_per_train_step'] = 10
+                block_material.output['r_updates_per_train_step'] = 10
+                block_material.output['steps_per_log'] = 10
+                block_material.output['save_every'] = 10
+
             # adding deepcopy to make sure we can save the 'untrained' states in block.output and that they don't get overwritten in training
             block_outputs += deepcopy(block_material.output)
 
@@ -397,25 +410,40 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                         # even if 'local_section_size' changes, it won't matter if we are not training local loss
                         indiv_material[1].need_evaluate = True
 
+        # Adding GPU meta data info
+        #https://stackoverflow.com/questions/48152674/how-to-check-if-pytorch-is-using-the-gpu
+        if torch.cuda.is_available():
+            for gpu_device in range(torch.cuda.device_count()):
+                gpu_name = torch.cuda.get_device_name(gpu_device)
+                if gpu_name is not None:
+                    ezLogging.debug("%s - Using GPU #%i: %s" % (indiv_material.id, gpu_device, gpu_name))
+
         train_config, untrained_discriminator, untrained_local_discriminator, untrained_refiner = block_outputs
         untrained_refiner.to(train_config['device'])
         untrained_discriminator.to(train_config['device'])
+        if untrained_local_discriminator:
+            untrained_local_discriminator.to(train_config['device'])
 
         # if using dragan gradient penalty, init with xavier per their implementation
         # https://github.com/kodalinaveen3/DRAGAN
         if hasattr(self, 'model_init') and self.model_init is not None:
             self.model_init(untrained_refiner)
             self.model_init(untrained_discriminator)
-
-        opt_R = torch.optim.Adam(untrained_refiner.parameters(), lr=train_config['r_lr'], betas=(0.5,0.999))
-        opt_D = torch.optim.Adam(untrained_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
-        opt_D_local = None
-
-        if untrained_local_discriminator:
-            untrained_local_discriminator.to(train_config['device'])
-            opt_D_local = torch.optim.Adam(untrained_local_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
-            if hasattr(self, 'model_init') and self.model_init is not None:
+            if untrained_local_discriminator:
                 self.model_init(untrained_local_discriminator)
+
+        if train_config['optimizer'] == 'adam':
+            opt_R = torch.optim.Adam(untrained_refiner.parameters(), lr=train_config['r_lr'], betas=(0.5,0.999))
+            opt_D = torch.optim.Adam(untrained_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
+            if untrained_local_discriminator:
+                opt_D_local = torch.optim.Adam(untrained_local_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
+        elif train_config['optimizer'] == 'rmsprop':
+            opt_R = torch.optim.RMSprop(untrained_refiner.parameters(), lr=train_config['r_lr'])
+            opt_D = torch.optim.RMSprop(untrained_discriminator.parameters(), lr=train_config['d_lr'])
+            if untrained_local_discriminator:
+                opt_D_local = torch.optim.RMSprop(untrained_discriminator.parameters(), lr=train_config['d_lr'])
+        else:
+            ezLogging.critical("%s - Reached an invalid value for Network Optimizer: %s" % (indiv_material.id, train_config['optimizer']))
 
         # NOTE that block_def.evaluate() will have their own try/except to catch errors and kill the individual and return None
         try:
@@ -462,6 +490,9 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         best_refiner = refiners[refiner_ratings['r'].idxmax()]
         best_discriminator = discriminators[discriminator_ratings['r'].idxmax() - len(refiners)]
 
+        # clear gpu memory
+        torch.cuda.empty_cache()
+        
         indiv_material.output = (best_refiner, best_discriminator)
 
 
@@ -472,8 +503,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         '''
 
         # Pretrain Refiner to learn the identity function
-        ezLogging.debug("Pretraining refiner for %i steps" % (train_config['r_pretrain_steps']))
-        ezLogging.debug("Pretraining discriminator for %i steps"  % (train_config['d_pretrain_steps']))
+        ezLogging.info("Pretraining refiner for %i steps" % (train_config['r_pretrain_steps']))
         for i in range(train_config['r_pretrain_steps']):
             opt_R.zero_grad()
 
@@ -495,6 +525,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 print('[%d/%d] (R)reg_loss: %.4f' % (i+1, train_config['r_pretrain_steps'], r_loss.data.item()))
 
         # Pretrain Discriminator (basically to learn the difference between simulated and real data)
+        ezLogging.info("Pretraining discriminator for %i steps"  % (train_config['d_pretrain_steps']))
         for i in range(train_config['d_pretrain_steps']):
             opt_D.zero_grad()
 
@@ -575,12 +606,12 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
     # TODO: see if we should be utilizing validation data
     # TODO: find a better way of picking networks to save than just every n steps
     # TODO: change save_every to 200 or 100
-    def train_graph(self, indiv_material, train_data, validation_data, R, D, D_local, train_config, opt_R, opt_D, opt_D_local, save_every=50):
+    def train_graph(self, indiv_material, train_data, validation_data, R, D, D_local, train_config, opt_R, opt_D, opt_D_local):
         '''
-        Train the refiner and discriminator of the SimGAN, return a refiner and discriminator pair for every 'save_every' training steps
+        Train the refiner and discriminator of the SimGAN, return a refiner and discriminator pair for every train_config['save_every'] training steps
         '''
 
-        ezLogging.debug("%s - Training Graph - %i batch size, %i steps" % (indiv_material.id,
+        ezLogging.info("%s - Training Graph - %i batch size, %i steps" % (indiv_material.id,
                                                                            train_data.batch_size,
                                                                            train_config['train_steps']))
 
@@ -790,7 +821,8 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                     % (mean_d_loss.data.item(), mean_d_loss_real.data.item(), mean_d_loss_ref.data.item()))
 
             # Save every `save_every` steps:
-            if ((step+1) % save_every == 0):
+            if ((step+1) % train_config['save_every'] == 0):
+                ezLogging.info("Training %i/%i" % (step, train_config['train_steps']))
                 refiners.append(deepcopy(R))
                 discriminators.append(deepcopy(D))
 

@@ -25,6 +25,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.utilities.custom_logging import ezLogging
 from post_process import save_things
+from codes.utilities import decorators
 
 
 
@@ -93,6 +94,7 @@ class UniverseDefinition():
         problem.pop_size = possible_size
 
 
+    @decorators.stopwatch_decorator
     def parent_selection(self, problem: ProblemDefinition_Abstract):
         '''
         moved to problem class so user can easily customize selection method.
@@ -102,6 +104,7 @@ class UniverseDefinition():
         return problem.parent_selection(self)
 
 
+    @decorators.stopwatch_decorator
     def mate_population(self, problem: ProblemDefinition_Abstract):
         '''
         do a ranking/sorting of parents, then pair them off, mate the pairs, return and add the children
@@ -117,7 +120,7 @@ class UniverseDefinition():
         ezLogging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
-
+    @decorators.stopwatch_decorator
     def mutate_population(self, problem: ProblemDefinition_Abstract):
         '''
         super simple...just loop through am call mutate. at the block level is where it decides to mutate or not
@@ -130,7 +133,7 @@ class UniverseDefinition():
         ezLogging.info("Node %i - Mutation took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
-
+    @decorators.stopwatch_decorator
     def evolve_population(self, problem: ProblemDefinition_Abstract):
         '''
         TODO
@@ -144,6 +147,7 @@ class UniverseDefinition():
         ezLogging.info("Population size after Mutating: %i" % (len(self.population.population)))
 
 
+    @decorators.stopwatch_decorator
     def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
         '''
         TODO
@@ -163,6 +167,7 @@ class UniverseDefinition():
         self.pop_individual_ids = np.array(self.pop_individual_ids)
 
 
+    @decorators.stopwatch_decorator
     def update_hall_of_fame(self):
         '''
         wrapper function to call the deap.tools.HallOfFame.update(population) method
@@ -170,6 +175,7 @@ class UniverseDefinition():
         self.population.update_hall_of_fame()
 
 
+    @decorators.stopwatch_decorator
     def population_selection(self, problem: ProblemDefinition_Abstract):
         '''
         moved to problem class so user can easily customize selection method.
@@ -185,6 +191,7 @@ class UniverseDefinition():
         self.population.population = next_population
 
 
+    @decorators.stopwatch_decorator
     def check_convergence(self, problem: ProblemDefinition_Abstract):
         '''
         Should update self.converged
@@ -192,6 +199,7 @@ class UniverseDefinition():
         problem.check_convergence(self)
 
 
+    @decorators.stopwatch_decorator
     def postprocess_generation(self, problem: ProblemDefinition_Abstract):
         '''
         Just a wrapper to problem.postprocess_universe()
@@ -204,6 +212,7 @@ class UniverseDefinition():
         problem.postprocess_generation(self)
 
 
+    @decorators.stopwatch_decorator
     def postprocess_universe(self, problem: ProblemDefinition_Abstract):
         '''
         Wrapper to problem.postprocess_universe()
@@ -268,6 +277,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         globals().update({name: getattr(mdl, name) for name in names})'''
 
 
+    @decorators.stopwatch_decorator
     def mpi_mate_population(self, problem: ProblemDefinition_Abstract):
         '''
         the only difference here with mate_population() [<-no mpi] is that we do parent_selection before hand
@@ -289,6 +299,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         ezLogging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
+    @decorators.stopwatch_decorator
     def mpi_evolve_population(self, problem: ProblemDefinition_Abstract):
         '''
         mpi wrapper around UniverseDefinition.evolve_population
@@ -301,6 +312,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.mutate_population(problem)
 
 
+    @decorators.stopwatch_decorator
     def mpi_evaluate_score_population(self, problem: ProblemDefinition_Abstract):
         '''
         a wrapper method to handle the scatter+gather to evaluate
@@ -312,6 +324,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.evaluate_score_population(problem)
 
 
+    @decorators.stopwatch_decorator
     def split_scatter_population(self, problem: ProblemDefinition_Abstract, parent_selection=False):
         '''
         small method where we assume that the population is a full list of individualmaterial
@@ -328,6 +341,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         MPI.COMM_WORLD.Barrier()
 
 
+    @decorators.stopwatch_decorator
     def gather_population(self):
         '''
         each node has a subpopulation and now we want to collect all the subpops into a single list
@@ -402,6 +416,7 @@ class MPIUniverseDefinition(UniverseDefinition):
 class RelativePopulationUniverseDefinition(UniverseDefinition):
     '''
     Defines a Universe specifically for problems where the individuals are judged by a relative performance metric instead of an absolute performance metric
+    ie where the objective_function needs to be passed the whole population rather than a single individual.
     '''
     def __init__(self,
                  problem: ProblemDefinition_Abstract,
@@ -411,7 +426,7 @@ class RelativePopulationUniverseDefinition(UniverseDefinition):
         super().__init__(problem, output_folder, random_seed)
 
 
-
+    @decorators.stopwatch_decorator
     def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
         '''
         Evaluates and scores the population
