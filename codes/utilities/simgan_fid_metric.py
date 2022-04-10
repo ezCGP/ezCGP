@@ -122,12 +122,14 @@ def get_fid_scores(refiners, validation_data, offline_mode):
     chosen_real = torch.tensor(all_real[:batch_size, :, :], dtype=torch.float, device='cpu')
 
     fid_scores = []
+    refs = []
     for i, R in enumerate(refiners):
         ref = R(chosen_sim)
         fid = calculate_fid(model, features, ref.squeeze(), chosen_real.squeeze())
         fid_scores.append(fid)
+        refs.append(ref.cpu())        
 
-    return fid_scores
+    return fid_scores, refs, chosen_real.cpu() #return refs and chosenreal as a hack for now for trasnform dataset, will update later
 
 
 def test():

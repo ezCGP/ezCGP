@@ -230,11 +230,21 @@ class TransformSimGANDataset(SimGANDataset):
         self.real_raw = self.transform(self.simulated_raw, real_size)
         
         #bookkeeping since we modified self.real
+        self.simulated = dataset(self.simulated_raw, self.labels_simulated)
+        self.simulated_loader = DataLoader(
+            self.simulated,
+            batch_size,
+            shuffle=False,
+            # **kwargs
+        )
+        
+        
+        
         self.real = dataset(self.real_raw, self.labels_real)
         self.real_loader = DataLoader(
             self.real,
             batch_size,
-            shuffle=True,
+            shuffle=False,
             # **kwargs
         )
         self.data_history_buffer = DataHistoryBuffer((1, self.real_raw.shape[-1]), buffer_size, batch_size)
