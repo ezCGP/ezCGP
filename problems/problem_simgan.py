@@ -134,7 +134,7 @@ class Problem(ProblemDefinition_Abstract):
 
             #  Objective #2
             ezLogging.info("Calculating Objective 2")
-            refiner_fids, _, _ = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
+            refiner_fids, _ = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
             #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
 
             # Objective #3, #4, #5
@@ -174,7 +174,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 2 # TODO
+        GENERATION_LIMIT = 50 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True

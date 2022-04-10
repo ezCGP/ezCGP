@@ -1,5 +1,9 @@
 ### packages
-
+import os
+import numpy as np
+import logging
+import torch
+import pickle as pkl
 
 ### sys relative to root dir
 import sys
@@ -10,6 +14,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 ### absolute imports wrt root
 from problems import problem_simgan
 from data.data_tools import simganData
+from copy import deepcopy
 
 from problems.problem_definition import ProblemDefinition_Abstract, welless_check_decorator
 from codes.utilities.custom_logging import ezLogging
@@ -21,6 +26,7 @@ from post_process import save_things
 from post_process import plot_things
 from post_process import plot_signals
 from codes.utilities import decorators
+import torch
 
 class Problem(problem_simgan.Problem):
     """
@@ -36,7 +42,7 @@ class Problem(problem_simgan.Problem):
         Constructs a train and validation 1D signal datasets
         """
         # Can configure the real and simulated sizes + batch size, but we will use default
-        train_config_dict = {"device": "cuda"}  # was gpu but that didn't work anymore
+        train_config_dict = {"device": "cuda", 'offline_mode': False}  # was gpu but that didn't work anymore
         self.training_datalist = [simganData.TransformSimGANDataset(real_size=512, sim_size=128**2, batch_size=128),
                                   train_config_dict]
         self.validating_datalist = [simganData.TransformSimGANDataset(real_size=128, sim_size=int((128**2)/4), batch_size=128)]
@@ -75,7 +81,7 @@ class Problem(problem_simgan.Problem):
 
             #  Objective #2
             ezLogging.info("Calculating Objective 2")
-            refiner_fids, ref_data, real_data = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
+            refiner_fids, mses = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
             #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
 
             # Objective #3, #4, #5
@@ -90,10 +96,8 @@ class Problem(problem_simgan.Problem):
             #ezLogging.info("Calculating Objective 8")
             #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
 
-            # Objective #9: MSE (Not optimized, used for meta eval)
-            mse = torch.mean(torch.square(real_data - ref_data))
 
-            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, refmse \
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, mse \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
                     refiner_fids,
@@ -102,7 +106,7 @@ class Problem(problem_simgan.Problem):
                     refiner_feature_dist['ks_stat'],
                     refiner_t_tests['num_sig'],
                     refiner_t_tests['avg_feat_pval'],
-                    mse):
+                    mses):
                 # since refiner rating is a 'relative' score, we are not going to set it to fitness value to be used in population selection
                 # BUT we will keep it available as metadata
                 if hasattr(population.population[indx], 'refiner_rating'):
@@ -113,9 +117,9 @@ class Problem(problem_simgan.Problem):
                 # mse is used to eval eval functions, we are not going to set it to fitness value to be used in population selection
                 # BUT we will keep it available as metadata
                 if hasattr(population.population[indx], 'mse'):
-                    population.population[indx].mse.append(refmse)
+                    population.population[indx].mse.append(mse)
                 else:
-                    population.population[indx].mse = [refmse]
+                    population.population[indx].mse = [mse]
                 
                 # Issue 219 - filtering down to only 4 objectives:
                 # fid (#2), ks_stat (#5), num_sig (#6), and avg_feat_pval (#7)
@@ -203,6 +207,8 @@ class Problem(problem_simgan.Problem):
         save_things.save_fitness_scores(universe)
         save_things.save_HOF_scores(universe)
 
+        fitlist = []
+        mses=[]
         for individual in universe.population.population:
             if not individual.dead:
                 self.save_pytorch_individual(universe, individual)
@@ -219,7 +225,7 @@ class Problem(problem_simgan.Problem):
                 refined_sim_preds = D.cpu()(refined_sim_batch)
                 real_preds = D.cpu()(real_batch)
                 attachment_folder = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id))
-                plot_signals.generate_ecg_img(simulated_batch.data.cpu(),
+                plot_signals.generate_img_batch(simulated_batch.data.cpu(),
                                                 refined_sim_batch.data.cpu(),
                                                 real_batch.data.cpu(),
                                                 attachment_folder,
@@ -228,9 +234,21 @@ class Problem(problem_simgan.Problem):
 
                 # print meta eval
                 if hasattr(individual, 'mse'):
-                    ezLogging.warning("Meta eval mse: %s fitness scores: %s", individual.mse, individual.finess.value)
+                    mses.append(individual.mse[-1])
+                    fitlist.append(individual.fitness.values)
+                    ezLogging.warning("Meta eval mse: %s fitness scores: %s" % (individual.mse, individual.fitness.values))
                 else:
                     ezLogging.warning("No mse")
+        mses = np.array(mses)
+        fitlist = np.array(fitlist)
+        for i in range(len(self.maximize_objectives)):
+            plot_things.plot_mse_metric(mses, 
+                                        fitlist, 
+                                        objective_names=self.objective_names,
+                                        maximize_objectives=self.maximize_objectives,
+                                        fitness_index=i,
+                                        save_path=universe.output_folder)
+
 
         # Pareto Plot for each objective combo at current HOF:
         for i in range(len(self.maximize_objectives)-1):
@@ -256,6 +274,7 @@ class Problem(problem_simgan.Problem):
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
                                                    "pareto_front_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+
 
 
         # Best Pareto Plot Over time
@@ -303,12 +322,3 @@ class Problem(problem_simgan.Problem):
         plot_things.plot_save(auc_fig,
                               os.path.join(universe.output_folder, "AUC_overtime_gen%04d.jpg" % (universe.generation)))
 
-
-    def postprocess_universe(self, universe):
-        '''
-        TODO: add code for universe postprocessing
-        '''
-        # ezLogging.info("Post Processing Universe Run")
-        # save_things.save_population(universe)
-        # save_things.save_population_asLisp(universe, self.indiv_def)
-        pass

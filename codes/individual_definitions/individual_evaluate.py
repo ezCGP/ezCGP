@@ -386,7 +386,7 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 ezLogging.info("%s - Didn't need to evaluate %ith BlockDefinition %s" % (indiv_material.id, block_index, block_def.nickname))
 
             # just a way so we can run through evaluation of each individual quickly
-            TESTING_HACK = True 
+            TESTING_HACK = False 
             if (TESTING_HACK) and ('train_config' in block_def.nickname):
                 block_material.output[0]['train_steps'] = 10
                 block_material.output[0]['r_pretrain_steps'] = 10
