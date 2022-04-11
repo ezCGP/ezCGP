@@ -388,13 +388,13 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
             # just a way so we can run through evaluation of each individual quickly
             TESTING_HACK = False
             if (TESTING_HACK) and ('train_config' in block_def.nickname):
-                block_material.output['train_steps'] = 10
-                block_material.output['r_pretrain_steps'] = 10
-                block_material.output['d_pretrain_steps'] = 10
-                block_material.output['d_updates_per_train_step'] = 10
-                block_material.output['r_updates_per_train_step'] = 10
-                block_material.output['steps_per_log'] = 10
-                block_material.output['save_every'] = 10
+                block_material.output[0]['train_steps'] = 10
+                block_material.output[0]['r_pretrain_steps'] = 10
+                block_material.output[0]['d_pretrain_steps'] = 10
+                block_material.output[0]['d_updates_per_train_step'] = 10
+                block_material.output[0]['r_updates_per_train_step'] = 10
+                block_material.output[0]['steps_per_log'] = 10
+                block_material.output[0]['save_every'] = 10
 
             # adding deepcopy to make sure we can save the 'untrained' states in block.output and that they don't get overwritten in training
             block_outputs += deepcopy(block_material.output)
