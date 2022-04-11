@@ -11,6 +11,7 @@ import numpy as np
 import scipy.linalg
 import torch
 from torchvision import models
+from torchvision import __version__ as torchvision_version
 import torch.nn as nn
 from torchvision import transforms
 from numpy.random import random
@@ -34,9 +35,19 @@ def get_model(offline_mode=False, model_name='inception_v3'):
         '''
         # note: glob relative to ezCGP repo root, not this file
         if len(glob.glob("./test_area/%s*" % model_name)) > 0:
-            model_weights_file = glob.glob("./test_area/%s*" % model_name)[-1]
+            # get model file
+            if model_name == 'inception_v3':
+                if (int(torchvision_version.split(".")[0]) == 0) and\
+                   (int(torchvision_version.split(".")[1]) <= 9):
+                    # everything including and under v0.9.0
+                    model_weights_file = "./test_area/inception_v3_google-1a9a5a14.pth"
+                else:
+                    model_weights_file = "./test_area/inception_v3_google-0cc3c7bd.pth"
+            else:
+                model_weights_file = glob.glob("./test_area/%s*" % model_name)[-1]
+
             model_weights = torch.load(model_weights_file)
-            model = models.__dict__[model_name](pretrained=False, init_weights=False)
+            model = models.__dict__[model_name](pretrained=False)
             model.load_state_dict(model_weights)
             del model_weights, model_weights_file
             ezLogging.info("In 'offline_mode' and successfully found .pth file for %s" % model_name)
