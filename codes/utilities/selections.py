@@ -7,6 +7,7 @@ https://deap.readthedocs.io/en/master/api/tools.html
 
 ### packages
 import deap.tools
+from deap import __version__ as deap_version
 import inspect
 
 ### sys relative to root dir
@@ -41,7 +42,11 @@ def selNSGA2(individuals, k, nd='standard'):
 
     From tests, looks like selNSGA2 maximises when Fitness.weights are positive
     '''
-    return deap.tools.selNSGA2(individuals, k, nd)
+    if (int(deap_version.split(".")[0]) >= 1) and\
+       (int(deap_version.split(".")[1]) > 0):
+        return deap.tools.selNSGA2(individuals, k, nd)
+    else:
+        return deap.tools.selNSGA2(individuals, k)
 
 
 def sortNondominated(individuals, k, first_front_only=False):
