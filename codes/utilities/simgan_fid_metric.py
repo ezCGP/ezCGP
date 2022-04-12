@@ -34,17 +34,18 @@ def get_model(offline_mode=False, model_name='inception_v3'):
         https://github.com/pytorch/vision/tree/main/torchvision/models
         '''
         # note: glob relative to ezCGP repo root, not this file
-        if len(glob.glob("./test_area/%s*" % model_name)) > 0:
+        if len(glob.glob("./data/datasets/pytorch_models/%s*" % model_name)) > 0:
             # get model file
             if model_name == 'inception_v3':
                 if (int(torchvision_version.split(".")[0]) == 0) and\
                    (int(torchvision_version.split(".")[1]) <= 9):
                     # everything including and under v0.9.0
-                    model_weights_file = "./test_area/inception_v3_google-1a9a5a14.pth"
+                    model_weights_file = "./data/datasets/pytorch_models/inception_v3_google-1a9a5a14.pth"
                 else:
-                    model_weights_file = "./test_area/inception_v3_google-0cc3c7bd.pth"
+                    model_weights_file = "./data/datasets/pytorch_models/inception_v3_google-0cc3c7bd.pth"
+                assert(os.path.exists(model_weights_file)), "model_weights_file %s does not exist" % model_weights_file
             else:
-                model_weights_file = glob.glob("./test_area/%s*" % model_name)[-1]
+                model_weights_file = glob.glob("./data/datasets/pytorch_models/%s*" % model_name)[-1]
 
             model_weights = torch.load(model_weights_file)
             model = models.__dict__[model_name](pretrained=False)
