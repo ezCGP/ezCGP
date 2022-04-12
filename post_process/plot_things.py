@@ -20,9 +20,10 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from misc import fake_mixturegauss
 from codes.utilities.custom_logging import ezLogging
 
-
+import matplotlib as mpl
 matplotlib_colors = ['b','g','r','c','m','y'] # 6 colors and excludes black 'k'
-
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 
 def plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None):
     '''
@@ -489,12 +490,18 @@ def draw_genome(universe, problem, individual_material, draw_inactive_nodes=Fals
 
 def plot_mse_metric(mse, fitness_scores, objective_names=None, maximize_objectives=None, fitness_index=None, save_path=None):
     # reduce fitness scores to the 2 objectives we care about
+    ezLogging.info("Fitnesses %s" % fitness_scores)
     fitness_scores = fitness_scores[:, fitness_index]
-    
+  
+    fitness_scores = fitness_scores.flatten()
+    ezLogging.info("Fitnesses %s" % fitness_scores)
     #remove inf values
     mask = np.all(np.isnan(fitness_scores) | np.isinf(fitness_scores))
     fitness_scores = fitness_scores[~mask]
+    fitness_scores = fitness_scores.flatten()
+    ezLogging.info("Fitnesses %s" % fitness_scores)
 
+    ezLogging.info("MSE %s" % mse)
     #Convert max objectives to min (*-1 to points) so that we can make nice plot
     max_obj = maximize_objectives[fitness_index] 
    
@@ -517,3 +524,5 @@ def plot_mse_metric(mse, fitness_scores, objective_names=None, maximize_objectiv
     plt.ylabel('MSE')
     plt.title(f"{labels} vs MSE")
     plt.savefig(os.path.join(save_path, f"{labels}_vs_mse.png"))
+    plt.close()
+

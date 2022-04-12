@@ -3,10 +3,10 @@
 #SBATCH -N 1                                         # number of machines
 #SBATCH -c 8                                         # number of cores
 #SBATCH --gres=gpu:1                                 # number of gpus
-#SBATCH -C TeslaV100S-PCIE-32GB                       # QuadroRTX4000
-#SBATCH -t 0-08:00                                   # job will run at most 8 hours D-HH:MM
+#SBATCH -C TeslaV100-PCIE-32GB                       # QuadroRTX4000
+#SBATCH -t 5-08:00                                   # job will run at most 8 hours D-HH:MM
 #SBATCH --mem=128gb                                  # memory limit
-#SBATCH --output=simganplottr.out # output file relative to ezcgp folder
+##SBATCH --output=simganplottr.out # output file relative to ezcgp folder
 echo "Started on `/bin/hostname`" # prints name of compute node job was started on
 
 nvidia-smi
