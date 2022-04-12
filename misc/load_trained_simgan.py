@@ -16,8 +16,6 @@ from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
 
 ### absolute imports wrt root
-from codes.factory import FactoryDefinition, Factory_SimGAN
-
 PROBLEM_TYPE = "ecg"
 if PROBLEM_TYPE == "":
     from problems.problem_simgan import Problem
@@ -38,8 +36,7 @@ def build_individual(individual_pkl):
     '''
     problem = Problem()
     indiv_def = problem.indiv_def
-    factory = Factory_SimGAN()
-
+    factory = problem.Factory()
 
     # try to grab id from name
     try:
