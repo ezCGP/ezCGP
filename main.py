@@ -65,7 +65,7 @@ def main(problem_filename: str,
     except:
         pass
 
-    problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
+    problem_module = __import__(problem_filename[:-3]) #remove the '.py' from filename
     problem = problem_module.Problem()
     if previous_run is not None:
         problem.seed_with_previous_run(previous_run)
