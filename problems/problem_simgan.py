@@ -134,7 +134,7 @@ class Problem(ProblemDefinition_Abstract):
 
             #  Objective #2
             ezLogging.info("Calculating Objective 2")
-            refiner_fids, _ = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
+            refiner_fids, mses = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
             #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
 
             # Objective #3, #4, #5
@@ -149,7 +149,8 @@ class Problem(ProblemDefinition_Abstract):
             #ezLogging.info("Calculating Objective 8")
             #support_size = get_support_size(refiners, self.validating_datalist[0], 'cpu')
 
-            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval \
+
+            for indx, rating, fid, kl_div, wasserstein_dist, ks_stat, num_sig, avg_feat_pval, mse \
                 in zip(alive_individual_index,
                     refiner_ratings['r'],
                     refiner_fids,
@@ -157,7 +158,8 @@ class Problem(ProblemDefinition_Abstract):
                     refiner_feature_dist['wasserstein_dist'],
                     refiner_feature_dist['ks_stat'],
                     refiner_t_tests['num_sig'],
-                    refiner_t_tests['avg_feat_pval']):
+                    refiner_t_tests['avg_feat_pval'],
+                    mses):
                 # since refiner rating is a 'relative' score, we are not going to set it to fitness value to be used in population selection
                 # BUT we will keep it available as metadata
                 if hasattr(population.population[indx], 'refiner_rating'):
@@ -165,6 +167,13 @@ class Problem(ProblemDefinition_Abstract):
                 else:
                     population.population[indx].refiner_rating = [rating]
 
+                # mse is used to eval eval functions, we are not going to set it to fitness value to be used in population selection
+                # BUT we will keep it available as metadata
+                if hasattr(population.population[indx], 'mse'):
+                    population.population[indx].mse.append(mse)
+                else:
+                    population.population[indx].mse = [mse]
+                
                 # Issue 219 - filtering down to only 4 objectives:
                 # fid (#2), ks_stat (#5), num_sig (#6), and avg_feat_pval (#7)
                 population.population[indx].fitness.values = (fid, ks_stat, num_sig, avg_feat_pval)
