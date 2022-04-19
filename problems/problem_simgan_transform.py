@@ -15,7 +15,6 @@ from post_process import plot_things
 
 
 
-
 class Problem(problem_simgan.Problem):
     """
     Basically the same as the other simgan problem but we want to use a different dataset.
@@ -23,6 +22,10 @@ class Problem(problem_simgan.Problem):
     """
     def __init__(self):
         super().__init__()
+        # overwrite genome seed
+        genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
+                         "misc/IndivSeed_SimGAN_Transform_Seed0/ConfigBlock_lisp.txt"]]*self.pop_size
 
 
     def construct_dataset(self):

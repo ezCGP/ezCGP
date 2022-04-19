@@ -134,7 +134,7 @@ class Problem(ProblemDefinition_Abstract):
             #  Objective #2
             ezLogging.info("Calculating Objective 2")
             refiner_fids, mses = get_fid_scores(refiners, self.validating_datalist[0], offline_mode=self.training_datalist[1]['offline_mode'])
-            #refiner_fids = np.random.random(size=len(refiners)) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
+            #refiner_fids, mses = (np.random.random(size=len(refiners)), np.random.random(size=len(refiners))) #<-sometimes i get a gpu memory error on above step so i replace with this in testing
 
             # Objective #3, #4, #5
             ezLogging.info("Calculating Objective 3,4,5")

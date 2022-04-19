@@ -274,3 +274,50 @@ config = material.output[-1][0] # get from supplements
 # COMPILE AND SAVE!
 lisp_generator.generate_individual_seed(list_of_info=block_seed_info,
                                         individual_name="SimGAN_ECG_Seed0")
+
+
+
+
+
+### Train Config for Transform
+shapemeta_trainconfig = BlockShapeMeta_SimGAN_Train_Config()
+args = []
+genome = [None]*shapemeta_trainconfig.genome_count
+
+this_args = [2000, 500, 400, 1, 2, 0.001, 0.0001, 0.01, True, 0, True, 4]
+genome[0] = {"ftn": opTrainConfig.simgan_train_config,
+             "inputs": [-1],
+             "args": list(np.arange(len(this_args))+len(args))}
+args+=this_args
+
+genome[shapemeta_trainconfig.main_count] = 0
+
+material = lisp_generator.FakeMaterial(genome, args, "poop")
+definition = lisp_generator.FakeDefinition(shapemeta_trainconfig.input_count, shapemeta_trainconfig.main_count, shapemeta_trainconfig.output_count)
+material.evaluated = [None]*definition.genome_count
+material.dead = False
+definition.input_dtypes = [dict]
+definition.get_lisp(material)
+block_seed_info = []
+block_seed_info.append([genome,
+                        args,
+                        shapemeta_trainconfig.input_count,
+                        shapemeta_trainconfig.main_count,
+                        shapemeta_trainconfig.output_count,
+                        "ConfigBlock"])
+
+''' # Verify lisp working
+print(material.lisp)
+# now try evaluating to see that evaluate_def works and graph builds
+evaluate_def = BlockEvaluate_SimGAN_Train_Config()
+fake_data = torch.randn(500,1,92)
+evaluate_def.evaluate(material, definition, [fake_data], None, [])
+print("Built graph!")
+config = material.output[-1][0] # get from supplements
+'''
+
+
+
+# COMPILE AND SAVE!
+lisp_generator.generate_individual_seed(list_of_info=block_seed_info,
+                                        individual_name="SimGAN_Transform_Seed0")
