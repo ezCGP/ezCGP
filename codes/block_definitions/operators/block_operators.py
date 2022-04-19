@@ -62,14 +62,12 @@ class BlockOperators_Abstract():
         if module_aliases is None:
             module_aliases = deepcopy(module_names)
         else:
-            assert(len(module_aliases) == len(module_names)
-                   ), "module names and aliases need to be the same length"
+            assert(len(module_aliases) == len(module_names)), "module names and aliases need to be the same length"
 
         for name, alias in zip(module_names, module_aliases):
             #globals()[alias] = __import__(name)
             # going to use importlib.import_module instead of __import __ because of convention and to do better absolute/relative imports
-            globals()[alias] = importlib.import_module(
-                "codes.block_definitions.utilities.%s" % name)
+            globals()[alias] = importlib.import_module("codes.block_definitions.utilities.%s" % name)
             # what about globals().update({alias: ...})
             self.operator_dict.update(globals()[alias].operator_dict)
 
@@ -299,5 +297,72 @@ class BlockOperators_Dense(BlockOperators_Abstract):
             weight_dict.update(self.set_equal_weights(module))
 
         weight_dict[operators_TensorFlow_basiclayers.dense_layer] = 0.8
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_Refiner(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Refiner Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_pytorch']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        # From Issue223 we identified that the outputs from these primitives would just be destructive for the refiner
+        weight_dict.pop(operators_pytorch.minibatch_discrimination)
+        self.operator_dict.pop(operators_pytorch.minibatch_discrimination)
+        weight_dict.pop(operators_pytorch.feature_extraction)
+        self.operator_dict.pop(operators_pytorch.feature_extraction)
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_Discriminator(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Discriminator Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_pytorch']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        for module in modules:
+            weight_dict.update(self.set_equal_weights(module))
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_Train_Config(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_Train_Config Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_simgan_train_config']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        weight_dict[operators_simgan_train_config.simgan_train_config] = 1
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_ECG_Train_Config(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_ECG_Train_Config Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_simgan_train_config']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        weight_dict[operators_simgan_train_config.simgan_train_config_ecg] = 1
 
         self.init_from_weight_dict(weight_dict)

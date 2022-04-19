@@ -45,14 +45,6 @@ class IndividualMate_Abstract(ABC):
         pass
 
 
-    def set_need_evaluate(self,
-                          child: IndividualMaterial,
-                          mated_block_index: int):
-        for block_index, block_material in enumerate(child.blocks):
-            if block_index >= mated_block_index:
-                block_material.need_evaluate = True
-
-
 
 class IndividualMate_RollOnEachBlock(IndividualMate_Abstract):
     '''
@@ -76,4 +68,8 @@ class IndividualMate_RollOnEachBlock(IndividualMate_Abstract):
                     #self.set_need_evaluate(child, block_index)
                     indiv_def.postprocess_evolved_individual(child, block_index)
                     all_children.append(child)
+                ezLogging.debug("IndividualMate block %i roll %.4f < %.4f; new children count up to %i" % (block_index, roll, block_def.mate_def.prob_mate, len(all_children)))
+            else:
+                # TODO delete this else after debugging mate
+                ezLogging.debug("IndividualMate block %i roll %.4f >= %.4f; no mating" % (block_index, roll, block_def.mate_def.prob_mate))
         return all_children

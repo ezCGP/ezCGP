@@ -42,8 +42,8 @@ class Problem(ProblemDefinition_Abstract):
         number_universe = 1
         factory = FactoryDefinition
         mpi = False
-        genome_seeds = glob.glob("outputs/problem_multiGaussian_mpi/%s/univ0000/gen_%04d_*.pkl" % ("testing-20210521-175044", 3))[:3]
-        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, number_of_objectives=3, hall_of_fame_size=2*9)
+        genome_seeds = [] #glob.glob("outputs/problem_multiGaussian_mpi/%s/univ0000/gen_%04d_*.pkl" % ("testing-20210521-175044", 3))[:3]
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_size=2*9)
 
         block_def = self.construct_block_def(nickname = "GaussBlock",
                                              shape_def = BlockShapeMeta_Gaussian, #maybe have x2 num of gaussians so 20

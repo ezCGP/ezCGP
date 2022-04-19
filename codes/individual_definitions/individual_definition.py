@@ -72,10 +72,14 @@ class IndividualDefinition():
         evolved_material.set_id()
         ezLogging.debug("%s - Inside postprocess_evolved_individual, block_index: %i, to process a new individual" % (evolved_material.id, evolved_block_index))
         for block_index, block_material in enumerate(evolved_material.blocks):
-            #block_material.set_id(evolved_material.id) # now moved into individual_material.set_id()
             if block_index >= evolved_block_index:
                 block_material.need_evaluate = True
+                block_material.dead = False
+                block_material.output = []
         self[evolved_block_index].get_actives(evolved_material[evolved_block_index])
+        evolved_material.dead = False
+        evolved_material.output = []
+        evolved_material.set_worst_score()
 
 
     def mutate(self, indiv_material: IndividualMaterial):
@@ -100,5 +104,14 @@ class IndividualDefinition():
         '''
         wrapper method that just directs evaluate call to the IndividualEvaluate class definition of mate
         '''
-        ezLogging.info("%s - Sending to Individual Evaluate Definition" % (indiv_material.id))
-        self.evaluate_def.evaluate(indiv_material, self, training_datapair, validation_datapair)
+        need_evaluate = False
+        for block_material in indiv_material.blocks:
+            if block_material.need_evaluate:
+                need_evaluate = True
+                break
+
+        if need_evaluate:
+            ezLogging.warning("%s - Sending to Individual Evaluate Definition" % (indiv_material.id))
+            self.evaluate_def.evaluate(indiv_material, self, training_datapair, validation_datapair)
+        else:
+            ezLogging.warning("%s - Preserved from Previous Generation; No Need to Evaluate" % (indiv_material.id))

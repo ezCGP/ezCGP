@@ -120,6 +120,34 @@ class BlockArguments_Abstract():
 
 
 
+class BlockArguments_Auto(BlockArguments_Abstract):
+    '''
+    See if we can get the argument info to be automatically populated by passing in the operator dict.
+    Kinda sucks we have to pass in operator_dict which means that the operator_def has to somehow 
+    already been initialized or just initialized again for to initialize this class. best way for now I guess
+    '''
+    def __init__(self, operator_dict, multiplier=5):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_Auto Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.multiplier = multiplier
+
+        # get set of all arg types
+        arg_types = []
+        for method, method_dict in operator_dict.items():
+            arg_types += method_dict['args']
+        arg_types = list(set(arg_types))
+        self.arg_count = multiplier*len(arg_types)
+
+        # set equal weights
+        arg_dict = {}
+        for arg in arg_types:
+            arg_dict[arg] = 1
+
+        # init
+        self.init_from_weight_dict(arg_dict)
+
+
+
 class BlockArguments_Size50(BlockArguments_Abstract):
     '''
     super simple implementation...50 args: 25 ints, and 25 power of 2s
@@ -266,4 +294,74 @@ class BlockArguments_Dense(BlockArguments_Abstract):
                     argument_types.ArgumentType_Pow2: 1,
                     argument_types.ArgumentType_TFFilterSize: 1,
                     argument_types.ArgumentType_TFActivation: 1}
+        self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_SimGAN_Refiner(BlockArguments_Abstract):
+    '''
+    usage tally:
+    // TODO: keep argument usage tally updated
+    argument_types.ArgumentType_Pow2 - ll
+    argument_types.ArgumentType_PyTorchFilterSize - l
+    argument_types.ArgumentType_PyTorchActivation - l
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Refiner Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 60
+        arg_dict = {argument_types.ArgumentType_Pow2: 0.25, # Assigns this a 50% chance and then splits the remainin 50% between the last 2
+                    argument_types.ArgumentType_PyTorchKernelSize: 1,
+                    argument_types.ArgumentType_PyTorchStrideSize: 1,
+                    argument_types.ArgumentType_PyTorchPaddingSize: 1,
+                    argument_types.ArgumentType_PyTorchActivation: 1,
+                    argument_types.ArgumentType_Bool: 1,
+                   }
+        self.init_from_weight_dict(arg_dict)
+
+
+class BlockArguments_SimGAN_Discriminator(BlockArguments_Abstract):
+    '''
+    usage tally:
+    // TODO: keep argument usage tally updated
+    argument_types.ArgumentType_Pow2 - ll
+    argument_types.ArgumentType_PyTorchFilterSize - l
+    argument_types.ArgumentType_PyTorchActivation - l
+    argument_types.ArgumentType_PyTorchPaddingSize - l
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Discriminator Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 70
+        arg_dict = {argument_types.ArgumentType_Pow2: 0.3, 
+                    argument_types.ArgumentType_PyTorchKernelSize: 0.15,
+                    argument_types.ArgumentType_PyTorchStrideSize: 0.15,
+                    argument_types.ArgumentType_PyTorchPaddingSize: 0.15,
+                    argument_types.ArgumentType_PyTorchActivation: 0.15,
+                    argument_types.ArgumentType_Int0to25: 1,
+                    argument_types.ArgumentType_LimitedFloat0to1: 1,
+                   }
+        self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_SimGAN_Train_Config(BlockArguments_Abstract):
+    '''
+    usage tally:
+    argument_types.ArgumentType_TrainingSteps: 1
+    argument_types.ArgumentType_PretrainingSteps: 11 
+    argument_types.ArgumentType_Int1to5: 11
+    argument_types.ArgumentType_LearningRate: 111
+    argument_types.ArgumentType_Bool: 1
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_SimGAN_Train_Config Class" % (None, None))
+        BlockArguments_Abstract.__init__(self)
+        self.arg_count = 10*5
+        arg_dict = {argument_types.ArgumentType_TrainingSteps: 1.0/10,
+                    argument_types.ArgumentType_PretrainingSteps: 2.0/10,
+                    argument_types.ArgumentType_Int1to5: 2.0/10,
+                    argument_types.ArgumentType_LearningRate: 3.0/10,
+                    argument_types.ArgumentType_Bool: 1
+                   }
         self.init_from_weight_dict(arg_dict)
