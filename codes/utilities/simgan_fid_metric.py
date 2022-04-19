@@ -6,11 +6,13 @@ https://machinelearningmastery.com/how-to-implement-the-frechet-inception-distan
 '''
 
 ### packages
+import os
 import glob
 import numpy as np
 import scipy.linalg
 import torch
 from torchvision import models
+from torchvision import __version__ as torchvision_version
 import torch.nn as nn
 from torchvision import transforms
 from numpy.random import random
@@ -33,10 +35,21 @@ def get_model(offline_mode=False, model_name='inception_v3'):
         https://github.com/pytorch/vision/tree/main/torchvision/models
         '''
         # note: glob relative to ezCGP repo root, not this file
-        if len(glob.glob("./test_area/%s*" % model_name)) > 0:
-            model_weights_file = glob.glob("./test_area/%s*" % model_name)[-1]
+        if len(glob.glob("./data/datasets/pytorch_models/%s*" % model_name)) > 0:
+            # get model file
+            if model_name == 'inception_v3':
+                if (int(torchvision_version.split(".")[0]) == 0) and\
+                   (int(torchvision_version.split(".")[1]) <= 9):
+                    # everything including and under v0.9.0
+                    model_weights_file = "./data/datasets/pytorch_models/inception_v3_google-1a9a5a14.pth"
+                else:
+                    model_weights_file = "./data/datasets/pytorch_models/inception_v3_google-0cc3c7bd.pth"
+                assert(os.path.exists(model_weights_file)), "model_weights_file %s does not exist" % model_weights_file
+            else:
+                model_weights_file = glob.glob("./data/datasets/pytorch_models/%s*" % model_name)[-1]
+
             model_weights = torch.load(model_weights_file)
-            model = models.__dict__[model_name](pretrained=False, init_weights=False)
+            model = models.__dict__[model_name](pretrained=False)
             model.load_state_dict(model_weights)
             del model_weights, model_weights_file
             ezLogging.info("In 'offline_mode' and successfully found .pth file for %s" % model_name)
@@ -47,21 +60,47 @@ def get_model(offline_mode=False, model_name='inception_v3'):
         model = torch.hub.load('pytorch/vision:v0.8.0', model_name, pretrained=True)
         ezLogging.info("Successfully downloaded or found in cache pretrained %s" % model_name)
 
+    return model
+
+
+def hook_activations(model):
+    '''
+    https://pytorch.org/docs/stable/generated/torch.nn.modules.module.register_module_forward_hook.html
+    Kinda like a decorator for a specific forward call...
+    So AFTER a module (or layer in this case) get's called, the method 'hook()' get's called.
+    '''
     features = {}
     def get_features(name):
         def hook(model, input, output):
             features[name] = output.detach()
         return hook
-    model.avgpool.register_forward_hook(get_features('feats'))
+
+    if 'inception' in model.__module__:
+        '''
+        for inception, we care about the AdaptiveAvgPool layer.
+        in recent versions, this get's set as a module in __init__ (convenient!):
+        https://github.com/pytorch/vision/blob/release/0.8.0/torchvision/models/inception.py#L110
+        in old versions, this get's called only in forward so it is hard to hook it:
+        https://github.com/pytorch/vision/blob/v0.4.2/torchvision/models/inception.py#L141
+        '''
+        if (int(torchvision_version.split(".")[0]) == 0) and\
+           (int(torchvision_version.split(".")[1]) <= 6):
+            model.Mixed_7c.register_forward_hook(get_features('prev_feats'))
+        else:
+            model.avgpool.register_forward_hook(get_features('feats'))
+
+    else:
+        raise Exception("Don't know which activation to hook for %s model to calc FID." % (model.__module__))
+
     model.eval()
 
-    return model, features
+    return features
 
 
 def process(input):
     batch_size = input.shape[0]
     z = torch.zeros((batch_size, 23))
-    h = torch.hstack([input, input, input, z])
+    h = torch.cat([input, input, input, z], dim=1) # could do hstack but not in old versions of torch
     
     output = torch.stack([h for _ in range(299)])
     output = output.permute(1,0,2)
@@ -75,12 +114,19 @@ def get_activations(model, features, inputs):
     inputs = process(inputs)
         
     if torch.cuda.is_available():
+        torch.cuda.empty_cache()
         inputs = inputs.to('cuda')
         model.to('cuda')
 
     with torch.no_grad():
         output = model(inputs)
-        return features['feats'].squeeze()
+    
+    if ('feats' not in features) and ('prev_feats' in features):
+        x = features['prev_feats']
+        x = torch.nn.functional.adaptive_avg_pool2d(x, (1, 1))
+        features['feats'] = x.detach()
+
+    return features['feats'].squeeze()
 
 
 def calculate_fid(model, features, ref, real):
@@ -117,7 +163,8 @@ def get_fid_scores(refiners, validation_data, offline_mode):
     
     batch_size = min([all_real.shape[0], all_sim.shape[0]])
    
-    model, features = get_model(offline_mode)
+    model = get_model(offline_mode)
+    features = hook_activations(model)
     chosen_sim = torch.tensor(all_sim[:batch_size, :, :], dtype=torch.float, device='cpu')
     chosen_real = torch.tensor(all_real[:batch_size, :, :], dtype=torch.float, device='cpu')
 

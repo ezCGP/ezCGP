@@ -435,11 +435,13 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
         if train_config['optimizer'] == 'adam':
             opt_R = torch.optim.Adam(untrained_refiner.parameters(), lr=train_config['r_lr'], betas=(0.5,0.999))
             opt_D = torch.optim.Adam(untrained_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
+            opt_D_local = None
             if untrained_local_discriminator:
                 opt_D_local = torch.optim.Adam(untrained_local_discriminator.parameters(), lr=train_config['d_lr'], betas=(0.5,0.999))
         elif train_config['optimizer'] == 'rmsprop':
             opt_R = torch.optim.RMSprop(untrained_refiner.parameters(), lr=train_config['r_lr'])
             opt_D = torch.optim.RMSprop(untrained_discriminator.parameters(), lr=train_config['d_lr'])
+            opt_D_local = None
             if untrained_local_discriminator:
                 opt_D_local = torch.optim.RMSprop(untrained_local_discriminator.parameters(), lr=train_config['d_lr'])
         else:

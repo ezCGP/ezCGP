@@ -9,6 +9,7 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import os
 import numpy as np
 from typing import List
 import importlib
@@ -148,7 +149,7 @@ class UniverseDefinition():
 
 
     @decorators.stopwatch_decorator
-    def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
+    def evaluate_score_population(self, problem: ProblemDefinition_Abstract):
         '''
         TODO
         '''
@@ -374,18 +375,12 @@ class MPIUniverseDefinition(UniverseDefinition):
                                                         problem.pop_size//self.node_count, #each node make their own fraction of indiv...but how does seeding work, are they dups?
                                                         self.node_number,
                                                         self.node_count)
-        ezLogging.warning("START")
-        import tensorflow as tf
-        ezLogging.warning("A")
-        gpu_count = tf.config.experimental.list_physical_devices('GPU')
-        ezLogging.warning("B")
-        import os
+        # Get host info for metadata
         cmd = "hostname -I | awk '{print $1}'"
         ip_address = os.popen(cmd).read()[:-1]
         cmd = "uname -n"
         hostname = os.popen(cmd).read()[:-1]
-        ezLogging.warning("C")
-        ezLogging.critical("Node %i - gpu count: %s at %s on %s" % (self.node_number, gpu_count, ip_address, hostname))
+        ezLogging.warning("Node %i - gpu count: (not avail rn) at %s on %s" % (self.node_number, ip_address, hostname))
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
         # TODO verify ezLogging
@@ -427,7 +422,7 @@ class RelativePopulationUniverseDefinition(UniverseDefinition):
 
 
     @decorators.stopwatch_decorator
-    def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
+    def evaluate_score_population(self, problem: ProblemDefinition_Abstract):
         '''
         Evaluates and scores the population
         '''
@@ -450,3 +445,87 @@ class RelativePopulationUniverseDefinition(UniverseDefinition):
 
         self.pop_fitness_scores = np.array(self.pop_fitness_scores)
         self.pop_individual_ids = np.array(self.pop_individual_ids)
+
+
+
+class RelativePopulationMPIUniverseDefinition(MPIUniverseDefinition):
+    '''
+    we have been using the RelativePopulationUniverse class for SimGAN
+    and now we want to try it with mpi to speed things up.
+    
+    Going to split up evaluate_score_population so we can distribute evaluate
+    but score on the same process...that's kinda the whole point of the relativepopulation
+    universe class
+    '''
+    def __init__(self,
+                 problem: ProblemDefinition_Abstract,
+                 output_folder: str,
+                 random_seed: int):
+        ezLogging.info("Using Relative Population !MPI! Universe")
+        super().__init__(problem, output_folder, random_seed)
+
+
+    @decorators.stopwatch_decorator
+    def mpi_evaluate_population(self, problem: ProblemDefinition_Abstract):
+        # EVALUATE
+        ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
+        for indiv in self.population.population:
+            problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
+
+
+    @decorators.stopwatch_decorator
+    def score_population(self, problem: ProblemDefinition_Abstract):
+        self.pop_fitness_scores = []
+        self.pop_individual_ids = []
+
+        # SCORE
+        ezLogging.info("Scoring Population of size %i" % (len(self.population.population)))
+        problem.objective_functions(self.population)
+
+        # GET SCORES AND IDS
+        for indiv in self.population.population:
+            self.pop_fitness_scores.append(indiv.fitness.values)
+            self.pop_individual_ids.append(indiv.id)
+
+        self.pop_fitness_scores = np.array(self.pop_fitness_scores)
+        self.pop_individual_ids = np.array(self.pop_individual_ids)
+
+
+    def run(self, problem: ProblemDefinition_Abstract):
+        self.generation = 0
+        # start split until after evaluate
+        self.population = self.factory.build_population(problem,
+                                                        problem.pop_size//self.node_count, #each node make their own fraction of indiv...but how does seeding work, are they dups?
+                                                        self.node_number,
+                                                        self.node_count)
+        # Get host info for metadata
+        import torch
+        gpu_count = torch.cuda.device_count()
+        cmd = "hostname -I | awk '{print $1}'"
+        ip_address = os.popen(cmd).read()[:-1]
+        cmd = "uname -n"
+        hostname = os.popen(cmd).read()[:-1]
+        ezLogging.warning("Node %i - gpu count: %i at %s on %s" % (self.node_number, gpu_count, ip_address, hostname))
+        self.mpi_evaluate_population(problem) #NEW
+        self.gather_population()
+        if self.node_number == 0:
+            self.score_population(problem) #NEW
+            self.population_selection(problem)
+            self.check_convergence(problem)
+            self.postprocess_generation(problem)
+        while not self.converged:
+            self.generation += 1
+            self.split_scatter_population(problem, parent_selection=True)
+            self.mpi_evolve_population(problem)
+            self.mpi_evaluate_population(problem) #NEW
+            self.gather_population()
+            if self.node_number == 0:
+                self.score_population(problem) #NEW
+                self.population_selection(problem)
+                self.check_convergence(problem)
+                self.postprocess_generation(problem)
+            # if converged goes to True then we want all nodes to have that value changed
+            MPI.COMM_WORLD.Barrier()
+            self.converged = MPI.COMM_WORLD.bcast(self.converged, root=0)
+        if self.node_number == 0:
+            self.postprocess_universe(problem)

@@ -28,6 +28,6 @@ fi
 cd ~/ezCGP
 module load anaconda3/2020.02
 module load cuda/10.1
-conda activate ezcgp-py
+conda activate simgan-cgp 
 rm -rf ~/.nv
 mpiexec -n 6 python main.py -p problem_multiGaussian_mpi -t -v $setseed $setprevrun

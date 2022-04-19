@@ -41,7 +41,7 @@ def calc_feature_distances(refiners, validation_data, device):
         normalized_real_features = (real_features - mins) / (maxs - mins)
         normalized_refined_features = (refined_features - mins) / (maxs - mins)
 
-        kl_div, wasserstein_dist, ks_stat, pval = get_sampled_distribution_relation_scores(normalized_real_features.T, normalized_refined_features.T, bin=True, batch_size=128)
+        kl_div, wasserstein_dist, ks_stat, pval = get_sampled_distribution_relation_scores(normalized_real_features.T, normalized_refined_features.T, bin=True)
         feature_scores[id_R] = {'kl_div': kl_div, 'wasserstein_dist': wasserstein_dist, 'ks_stat': ks_stat, 'sampled_pval': pval}
 
     mins = np.expand_dims(np.min(np.concatenate([real_features, real_features], axis=1), axis=1), axis=1)
@@ -515,7 +515,7 @@ def get_distribution_relation_scores(dist1, dist2, bin, use_median=False, clip_f
         return median_kl_div, median_wasserstein_dist, ks_stat
     return mean_kl_div, mean_wasserstein_dist, ks_stat
 
-def get_sampled_distribution_relation_scores(dist1, dist2, bin, use_median=False, clip_for_kl=True, batch_size=128):
+def get_sampled_distribution_relation_scores(dist1, dist2, bin, use_median=False, clip_for_kl=True, batch_size=4):
     '''
     Calculate and return a set of scores that relate two distributions. Currently includes the average Wasserstein distance
     and average KL-Divergence between two random samples and the average Kolmogorov-Smirnov test value across feature values 
@@ -543,7 +543,7 @@ def get_sampled_distribution_relation_scores(dist1, dist2, bin, use_median=False
         return median_kl_div, median_wasserstein_dist, ks_stat, pvalue
     return mean_kl_div, mean_wasserstein_dist, ks_stat, pvalue
 
-def get_full_distribution_relation_scores(dist1, dist2, bin, use_median=False, clip_for_kl=True, batch_size=128):
+def get_full_distribution_relation_scores(dist1, dist2, bin, use_median=False, clip_for_kl=True, batch_size=4):
     '''
     Calculate and return a set of scores that relate two distributions. Currently includes the average Wasserstein distance
     and average KL-Divergence between two random samples and the average Kolmogorov-Smirnov test value across feature values 

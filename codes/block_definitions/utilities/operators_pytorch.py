@@ -128,11 +128,12 @@ def pytorch_concat(input_shapes, dim=1):
         https://pytorch.org/docs/stable/generated/torch.cat.html
 
         Tested with:
-            x = torch.randn(2,3,2)
-            y = torch.randn(3,3,2)
-            ting = PyTorch_Concat(input_shapes = [x.shape, y.shape], dim = 6)
-            z = ting(tensors=[x,y])
-            print(ting.get_out_shape(), z.shape)
+x = torch.randn(15,2,3,2)
+y = torch.randn(15,3,3,2)
+layer = pytorch_concat([x.shape, y.shape], dim=4)
+z = layer(x,y)
+z_torch = torch.cat((x,y), dim=1)
+print(layer.get_out_shape(), z.shape)
         '''
         def __init__(self, input_shapes, dim=1):
             # as an attempt to coerce data to not error on concate if number of dimensions differ...
@@ -141,28 +142,22 @@ def pytorch_concat(input_shapes, dim=1):
             for shape in input_shapes:
                 num_dims.append(len(shape))
             num_dims = np.array(num_dims)
-            smallest_dim = num_dims.min()
-            self.flatten_ith_shape = []
-            if num_dims.var() != 0.0:
-                for i, shape in enumerate(input_shapes):
-                    if len(shape) > smallest_dim:
-                        self.flatten_ith_shape.append(i)
-                        input_shapes[i] = (shape[0], np.array(shape)[1:].prod())
+            smallest_dim_count = num_dims.min()
 
             # going to assume input_shapes have the same number of dimensions; if not it will error in __call__
-            if smallest_dim <= 1:
+            if smallest_dim_count <= 1:
                 raise Exception("Input data has too few dimensions to concat by ezcgp rules.")
 
             # force dim to be at least 1
-            dim = dim % (smallest_dim-1) + 1
+            if smallest_dim_count == 2:
+                # only one possible place dim index can be
+                dim = 1
+            else:
+                dim = int((dim-1) % (smallest_dim_count-1) + 1)
+            
             super().__init__(input_shapes, ftn=torch.cat, dim=dim)
 
         def __call__(self, *args):
-            args = list(args)
-            # complete coercion if num of dims in data is different
-            for i, val in enumerate(args):
-                args[i] = val.flatten(start_dim=1, end_dim=-1)
-
             # this method takes in a SEQUENCE of tensors as a single input, so dropping the asterisk
             return super().__call__(args)
 
@@ -170,18 +165,6 @@ def pytorch_concat(input_shapes, dim=1):
             '''
             going to assume that the shapes of the things we want to concat are valid.
             also assuming we will never concat the 0th dim since that's the size of the batch
-
-            this code is weird and the behavior of concat is weird...sometimes the other dimensions
-            get flattened instead of maintaining the number of dimensions...wtf
-
-            shape = ()
-            for dim in range(len(self.input_shapes[0])):
-                length = 0
-                for input_shape in self.input_shapes:
-                    length += input_shape[dim]
-                    if dim != self.kwargs['dim']:
-                        break
-                shape += (length,)
             '''
             shape = (None,)
             for dim in range(1, len(self.input_shapes[0])):
@@ -192,7 +175,7 @@ def pytorch_concat(input_shapes, dim=1):
                         length += int(tensor_shape[dim])
                     shape += (length,)
                 else:
-                    shape += (self.input_shapes[0][dim])
+                    shape += (self.input_shapes[0][dim],)
             return shape
 
     return PyTorch_Concat(input_shapes, dim)
