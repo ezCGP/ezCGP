@@ -41,7 +41,7 @@ def calc_feature_distances(refiners, validation_data, device):
         normalized_real_features = (real_features - mins) / (maxs - mins)
         normalized_refined_features = (refined_features - mins) / (maxs - mins)
 
-        kl_div, wasserstein_dist, ks_stat, pval = get_sampled_distribution_relation_scores(normalized_real_features.T, normalized_refined_features.T, bin=True, batch_size=4)
+        kl_div, wasserstein_dist, ks_stat, pval = get_sampled_distribution_relation_scores(normalized_real_features.T, normalized_refined_features.T, bin=True)
         feature_scores[id_R] = {'kl_div': kl_div, 'wasserstein_dist': wasserstein_dist, 'ks_stat': ks_stat, 'sampled_pval': pval}
 
     mins = np.expand_dims(np.min(np.concatenate([real_features, real_features], axis=1), axis=1), axis=1)

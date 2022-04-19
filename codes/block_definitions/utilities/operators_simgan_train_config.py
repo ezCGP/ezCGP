@@ -68,7 +68,7 @@ def simgan_train_config(config,
     config['steps_per_log'] = steps_per_log # not currently evolved on
 
     # Losses (currently hard coded)
-    config['self_regularization_loss'] = torch.nn.L1Loss(reduction='mean')
+    config['self_regularization_loss'] = torch.nn.L1Loss(reduction='sum')
     config['local_adversarial_loss'] = torch.nn.BCEWithLogitsLoss(reduction='mean')
 
     # Optimizer
@@ -83,6 +83,30 @@ def simgan_train_config(config,
 
 
 operator_dict[simgan_train_config] = {
+    "inputs": [dict],
+    "output": dict,
+    "args": [argument_types.ArgumentType_TrainingSteps,
+             argument_types.ArgumentType_PretrainingSteps,
+             argument_types.ArgumentType_PretrainingSteps,
+             argument_types.ArgumentType_Int1to5,
+             argument_types.ArgumentType_Int1to5,
+             argument_types.ArgumentType_LearningRate,
+             argument_types.ArgumentType_LearningRate,
+             argument_types.ArgumentType_LearningRate,
+             argument_types.ArgumentType_Bool,
+             argument_types.ArgumentType_Int0to100,
+             argument_types.ArgumentType_Bool,
+             argument_types.ArgumentType_Int0to25]
+    }
+
+
+def simgan_train_config_ecg(*args, **kwargs):
+    train_config = simgan_train_config(*args, **kwargs)
+    train_config['self_regularization_loss'] = torch.nn.L1Loss(reduction='mean')
+    return train_config
+
+
+operator_dict[simgan_train_config_ecg] = {
     "inputs": [dict],
     "output": dict,
     "args": [argument_types.ArgumentType_TrainingSteps,

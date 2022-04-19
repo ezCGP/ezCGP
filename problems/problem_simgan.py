@@ -174,7 +174,7 @@ class Problem(ProblemDefinition_Abstract):
         '''
         TODO: add code for determining whether convergence has been reached
         '''
-        GENERATION_LIMIT = 50 # TODO
+        GENERATION_LIMIT = 1 # TODO
         if universe.generation >= GENERATION_LIMIT:
             ezLogging.warning("TERMINATING...reached generation limit.")
             universe.converged = True
@@ -267,7 +267,7 @@ class Problem(ProblemDefinition_Abstract):
                 refined_sim_preds = D.cpu()(refined_sim_batch)
                 real_preds = D.cpu()(real_batch)
                 attachment_folder = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_signals.png" % (universe.generation, individual.id))
-                plot_signals.generate_ecg_img(simulated_batch.data.cpu(),
+                plot_signals.generate_img_batch(simulated_batch.data.cpu(),
                                                 refined_sim_batch.data.cpu(),
                                                 real_batch.data.cpu(),
                                                 attachment_folder,

@@ -184,9 +184,10 @@ class FactoryDefinition():
                         if not self.validate_material_wDefinition(block_def, block_material):
                             raise Exception("%ith block material does not match block definition")
                     except Exception as err:
-                        ezLogging.error("%s - for %ith block and seed %s" % (err, ith_block, block_seed))
-                        indiv_material = None
-                        break
+                        ezLogging.critical("%s - for %ith block and seed %s" % (err, ith_block, block_seed))
+                        ezLogging.warning("Randomly making block instead...")
+                        block_material = self.build_block(block_def, indiv_id=indiv_id)
+
                 indiv_material.blocks.append(block_material)
         
         return indiv_material
@@ -460,6 +461,9 @@ class Factory_SimGAN(FactoryDefinition):
         globals()['torch'] = importlib.import_module('torch')
         globals()['MyTorchNetwork'] = getattr(importlib.import_module('codes.block_definitions.evaluate.block_evaluate_pytorch'), 'MyTorchNetwork')
 
+        # frankly just don't have a clever way of getting input shape so just hardcoding it in...sorry, i failed
+        self.input_shape = (None, 1, 92)
+
 
     def build_individual_from_seed(self,
                                    indiv_def: IndividualDefinition,
@@ -473,13 +477,13 @@ class Factory_SimGAN(FactoryDefinition):
             # Get folder of items
             attachment_folder = block_seeds[:-4] # just strip the '.pkl'
 
-            # frankly just don't have a clever way of getting input shape so just hardcoding it in...sorry, i failed
-            input_shape = (None,1,3600)
+            
+            
 
             # Load in Refiner
             untrained_refiner = MyTorchNetwork(indiv_material[0],
                                                indiv_def[0],
-                                               input_shape,
+                                               self.input_shape,
                                                indiv_def[0].evaluate_def.final_module_dicts)
             trained_refiner = deepcopy(untrained_refiner)
             untrained_refiner.load_state_dict(torch.load(os.path.join(attachment_folder, "untrained_refiner")))
@@ -494,7 +498,7 @@ class Factory_SimGAN(FactoryDefinition):
             # Load Discriminator
             untrained_discriminator = MyTorchNetwork(indiv_material[1],
                                                      indiv_def[1],
-                                                     (None,1,3600),
+                                                     self.input_shape,
                                                      indiv_def[1].evaluate_def.final_module_dicts)
             trained_discriminator = deepcopy(untrained_discriminator)
             untrained_discriminator.load_state_dict(torch.load(os.path.join(attachment_folder, "untrained_discriminator")))
@@ -512,3 +516,13 @@ class Factory_SimGAN(FactoryDefinition):
 
 
         return indiv_material
+
+
+
+class Factory_SimGAN_ECG(FactoryDefinition):
+    '''
+    just gotta chage data shape for when we read in seeds
+    '''
+    def __init__(self):
+        super().__init__()
+        self.input_shape = (None, 1, 3600)
