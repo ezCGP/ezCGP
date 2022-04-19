@@ -215,8 +215,6 @@ class Problem(ProblemDefinition_Abstract):
         attachment_folder = os.path.join(universe.output_folder, name)
         os.makedirs(attachment_folder, exist_ok=False)
 
-        print(individual.output)
-
         # save models
         # NOTE if indiv.dead then some of these values may not be filled
         if not individual[0].dead:
@@ -344,6 +342,7 @@ class Problem(ProblemDefinition_Abstract):
         for gen in range(universe.generation+1):
             hof_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % gen)
             hof_fitness = np.load(hof_fitness_file)['fitness']
+            print("test hof npz"); import pdb; pdb.set_trace()
             all_hof_scores.append(hof_fitness)
 
         all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, *all_hof_scores)

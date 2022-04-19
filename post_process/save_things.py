@@ -28,7 +28,7 @@ def save_fitness_scores(universe):
        fitness_values = ting['fitness']
     '''
     output_fitness_file = os.path.join(universe.output_folder, "gen%04d_fitness.npz" % universe.generation)
-    np.savez(output_fitness_file, fitness=universe.pop_fitness_scores)
+    np.savez(output_fitness_file, fitness=universe.pop_fitness_scores, ids=universe.pop_individual_ids)
     ezLogging.debug("saved scores for generation %i" % universe.generation)
 
 
@@ -42,14 +42,15 @@ def save_HOF_scores(universe):
     '''
     # gotta get scores as np.array first
     hof_scores = []
-    #pareto_front = universe.population.get_pareto_front(use_hall_of_fame=True, first_front_only=True)[0]
-    #for indiv in pareto_front:
+    hof_ids = []
     for indiv in universe.population.hall_of_fame.items:
         hof_scores.append(indiv.fitness.wvalues) # <- used weighted!
+        hof_ids.append(indiv.id)
     hof_scores = np.array(hof_scores)
+    hof_ids = np.array(hof_ids)
 
     output_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % universe.generation)
-    np.savez(output_fitness_file, fitness=hof_scores)
+    np.savez(output_fitness_file, fitness=hof_scores, ids=hof_ids)
     ezLogging.debug("saved HOF scores for generation %i" % universe.generation)
 
 
