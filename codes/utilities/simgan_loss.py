@@ -48,7 +48,7 @@ def get_gradient_penalty(penalty_name):
         return None
 
 
-def calc_wgan_gradient_penalty(netD, real_data, fake_data, batch_size=128, penalty_constant=10, cuda=True, device=None):
+def calc_wgan_gradient_penalty(netD, real_data, fake_data, batch_size=4, penalty_constant=10, cuda=True, device=None):
     '''
     Calculates the WGAN-GP gradient penalty
     https://arxiv.org/abs/1704.00028
@@ -65,7 +65,8 @@ def calc_wgan_gradient_penalty(netD, real_data, fake_data, batch_size=128, penal
         Returns:
             gradient_penalty (float): Value of the penalty
     '''
-    alpha = torch.rand(batch_size, 1, 92, requires_grad=True)
+    _, layers, feature_count = real_data.shape
+    alpha = torch.rand(batch_size, layers, feature_count, requires_grad=True)
     if cuda:
         alpha = alpha.cuda(device)
  
@@ -90,7 +91,7 @@ def calc_wgan_gradient_penalty(netD, real_data, fake_data, batch_size=128, penal
     return gradient_penalty
 
 
-def calc_dragan_gradient_penalty(netD, real_data, fake_data, batch_size=128, penalty_constant=10, cuda=True, device=None):
+def calc_dragan_gradient_penalty(netD, real_data, fake_data, batch_size=4, penalty_constant=10, cuda=True, device=None):
     '''
     Calculates the DRAGAN gradient penalty
     https://arxiv.org/abs/1705.07215
@@ -107,7 +108,8 @@ def calc_dragan_gradient_penalty(netD, real_data, fake_data, batch_size=128, pen
         Returns:
             gradient_penalty (float): Value of the penalty
     '''
-    alpha = torch.rand(batch_size, 1, 92, requires_grad=True)
+    _, layers, feature_count = real_data.shape
+    alpha = torch.rand(batch_size, layers, feature_count, requires_grad=True)
     if cuda:
         alpha = alpha.cuda(device)
         interpolates = alpha * real_data + ((1 - alpha) * (fake_data + 0.5 * fake_data.std() * torch.rand(fake_data.size()).cuda(device)))

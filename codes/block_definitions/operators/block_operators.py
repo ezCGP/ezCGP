@@ -348,7 +348,21 @@ class BlockOperators_SimGAN_Train_Config(BlockOperators_Abstract):
         self.import_operator_scripts(modules)
 
         weight_dict = {}
-        for module in modules:
-            weight_dict.update(self.set_equal_weights(module))
+        weight_dict[operators_simgan_train_config.simgan_train_config] = 1
+
+        self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SimGAN_ECG_Train_Config(BlockOperators_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockOperators_SimGAN_ECG_Train_Config Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_simgan_train_config']
+        self.import_operator_scripts(modules)
+
+        weight_dict = {}
+        weight_dict[operators_simgan_train_config.simgan_train_config_ecg] = 1
 
         self.init_from_weight_dict(weight_dict)
