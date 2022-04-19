@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.ticker import MaxNLocator
 import deap.tools
-
+from scipy import stats 
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
@@ -20,9 +20,10 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from misc import fake_mixturegauss
 from codes.utilities.custom_logging import ezLogging
 
-
+import matplotlib as mpl
 matplotlib_colors = ['b','g','r','c','m','y'] # 6 colors and excludes black 'k'
-
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 
 def plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None):
     '''
@@ -486,3 +487,42 @@ def draw_genome(universe, problem, individual_material, draw_inactive_nodes=Fals
     viz = Visualizer(universe.output_folder)
     filename = "gen_%04d_indiv_%s.pkl" % (universe.generation, individual_material.id)
     viz.visualize(individual_material, problem.indiv_def, filename, draw_inactive_nodes)
+
+def plot_mse_metric(mse, fitness_scores, objective_names=None, maximize_objectives=None, fitness_index=None, save_path=None):
+    # reduce fitness scores to the 2 objectives we care about
+    ezLogging.info("Fitnesses %s" % fitness_scores)
+    fitness_scores = fitness_scores[:, fitness_index]
+  
+    fitness_scores = fitness_scores.flatten()
+    ezLogging.info("Fitnesses %s" % fitness_scores)
+    #remove inf values
+    mask = np.all(np.isnan(fitness_scores) | np.isinf(fitness_scores))
+    fitness_scores = fitness_scores[~mask]
+    fitness_scores = fitness_scores.flatten()
+    ezLogging.info("Fitnesses %s" % fitness_scores)
+
+    ezLogging.info("MSE %s" % mse)
+    #Convert max objectives to min (*-1 to points) so that we can make nice plot
+    max_obj = maximize_objectives[fitness_index] 
+   
+    labels = objective_names[fitness_index] 
+    if max_obj == True:
+        fitness_scores *= -1
+        labels = labels + ' (negated)'
+    
+    plt.figure(figsize=(19, 26))
+
+    slope, intercept, r, p, se = stats.linregress(fitness_scores, mse)
+    r = r * r
+    plt.scatter(fitness_scores, mse) 
+    plt.plot(fitness_scores, intercept + slope * np.array(fitness_scores),
+    label=f"fitted line, m = {slope}, b = {intercept}, r^2 = {r}, p = {p}",
+    )
+    plt.legend()
+    plt.tight_layout()
+    plt.xlabel(labels)
+    plt.ylabel('MSE')
+    plt.title(f"{labels} vs MSE")
+    plt.savefig(os.path.join(save_path, f"{labels}_vs_mse.png"))
+    plt.close()
+
