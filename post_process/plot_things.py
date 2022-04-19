@@ -179,7 +179,7 @@ def get_pareto_front(fitness_scores,
     return deap.tools.sortNondominated(fake_pop, k=len(fake_pop), first_front_only=first_front_only)
 
 
-def calc_auc(maximize_objectives_list, fitness_scores):
+def calc_auc(maximize_objectives_list, x_objective_index, y_objective_index, fitness_scores):
     '''
     assume fitness socres is a numpy array of ALL the scores for some group...not just the pareto front
     since we need a way to define the 'edges' of the polynomial we draw to calc the area
@@ -187,7 +187,7 @@ def calc_auc(maximize_objectives_list, fitness_scores):
     # first get pareto front
     pareto_fronts = get_pareto_front(fitness_scores,
                                      maximize_objectives_list,
-                                     x_objective_index=0, y_objective_index=1,
+                                     x_objective_index, y_objective_index,
                                      first_front_only=True)
 
     # get and sort
@@ -212,7 +212,7 @@ def calc_auc(maximize_objectives_list, fitness_scores):
     return auc
 
 
-def calc_auc_multi_gen(maximize_objectives_list, *all_fitness_scores):
+def calc_auc_multi_gen(maximize_objectives_list, x_objective_index, y_objective_index, *all_fitness_scores):
     '''
     basically the same as calc_auc but each generation uses the same left/right border values
     '''
@@ -229,7 +229,7 @@ def calc_auc_multi_gen(maximize_objectives_list, *all_fitness_scores):
     for gen_scores in all_fitness_scores:
         pareto_fronts = get_pareto_front(gen_scores,
                                          maximize_objectives_list,
-                                         x_objective_index=0, y_objective_index=1,
+                                         x_objective_index, y_objective_index,
                                          first_front_only=True)
         # get and sort
         pareto_scores = []

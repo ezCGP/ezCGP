@@ -305,7 +305,7 @@ class Problem(ProblemDefinition_Abstract):
                 #plot_things.plot_legend(pareto_fig)
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
-                                                   "pareto_front_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+                                                   "pareto_front_gen%04d_%s_vs_%s.png" % (universe.generation, x_obj, y_obj)))
 
 
         # Best Pareto Plot Over time
@@ -334,7 +334,7 @@ class Problem(ProblemDefinition_Abstract):
                 plot_things.plot_legend(pareto_fig)
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
-                                                   "pareto_front_overtime_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+                                                   "pareto_front_overtime_gen%04d_%s_vs_%s.png" % (universe.generation, x_obj, y_obj)))
 
 
         # AUC over time:
@@ -343,16 +343,21 @@ class Problem(ProblemDefinition_Abstract):
         for gen in range(universe.generation+1):
             hof_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % gen)
             hof_fitness = np.load(hof_fitness_file)['fitness']
-            print("test hof npz"); import pdb; pdb.set_trace()
             all_hof_scores.append(hof_fitness)
 
-        all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, *all_hof_scores)
-        auc_fig, auc_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
-        auc_axis[0,0].plot(all_auc, marker='*')
-        auc_axis[0,0].set_xlabel("ith Generation")
-        auc_axis[0,0].set_title("AUC over time")
-        plot_things.plot_save(auc_fig,
-                              os.path.join(universe.output_folder, "AUC_overtime_gen%04d.jpg" % (universe.generation)))
+        # now for each combo of objectives, make a plot
+        for i in range(len(self.maximize_objectives)-1):
+            for j in range(i+1,len(self.maximize_objectives)):
+                x_obj = self.objective_names[i]
+                y_obj = self.objective_names[j]
+
+                all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, i, j, *all_hof_scores)
+                auc_fig, auc_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+                auc_axis[0,0].plot(all_auc, marker='*')
+                auc_axis[0,0].set_xlabel("ith Generation")
+                auc_axis[0,0].set_title("AUC over time\n%s_vs_%s" % (x_obj, y_obj))
+                plot_things.plot_save(auc_fig,
+                                      os.path.join(universe.output_folder, "AUC_overtime_gen%04d_%s_vs_%s.png" % (universe.generation, x_obj, y_obj)))
 
 
     def postprocess_universe(self, universe):
