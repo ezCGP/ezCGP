@@ -264,7 +264,8 @@ class Problem(ProblemDefinition_Abstract):
 
                 # the rest is just to plot signals
                 num_signals = 5
-                sample_index_sim = np.random.choice(np.arange(len(self.validating_datalist[0].simulated_raw)), size=num_signals)
+                #sample_index_sim = np.random.choice(np.arange(len(self.validating_datalist[0].simulated_raw)), size=num_signals)
+                sample_index_sim = np.arange(num_signals) #not letting it be random so we can easily compare between refiners
                 simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw[sample_index_sim], dtype=torch.float, device='cpu')
                 sample_index_real = np.random.choice(np.arange(len(self.validating_datalist[0].real_raw)), size=num_signals)
                 real_batch = torch.tensor(self.validating_datalist[0].real_raw[sample_index_real], dtype=torch.float, device='cpu')
