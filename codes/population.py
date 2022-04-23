@@ -30,6 +30,7 @@ class PopulationDefinition():
         #self.pop_size = population_size #moved to problem.pop_size
         self.population = []
         self.hall_of_fame = None
+        self.hof_ids = []
 
 
     def __setitem__(self, node_index, value):
@@ -127,9 +128,16 @@ class PopulationDefinition():
             alive_population = []
             for indiv in self.population:
                 if not indiv.dead:
-                    alive_population.append(indiv)
+                    if indiv.id not in self.hof_ids:
+                        alive_population.append(indiv)
+
             self.hall_of_fame.update(alive_population)
             ezLogging.debug("Updated Hall of Fame to size %i" % (len(self.hall_of_fame.items)))
+
+        # keep a running list of HOF id's just to keep handy...won't be too much extra space
+        self.hof_ids = []
+        for indiv in self.hall_of_fame.items:
+            self.hof_ids.append(indiv.id)
 
 
     def get_pareto_front(self, use_hall_of_fame=False, first_front_only=False):

@@ -170,16 +170,20 @@ class ProblemDefinition_Abstract(ABC):
         Going to select from hall_of_fame (if it exists) + population that aren't in hall_of_fame
         '''
         hall_of_fame_ids = []
+        hall_of_fame_individuals= []
         if universe.population.hall_of_fame is not None:
             for indiv in universe.population.hall_of_fame.items:
                 hall_of_fame_ids.append(indiv.id)
+                # deepcopying from hall of fame so that in the future, any changes to this indiv,
+                # won't affect the halloffame individuals.
+                hall_of_fame_individuals.append(deepcopy(indiv))
 
         new_individuals = []
         for indiv in universe.population.population:
             if indiv.id not in hall_of_fame_ids:
-                new_individuals.append(deepcopy(indiv))
+                new_individuals.append(indiv)
 
-        return selections.selNSGA2(universe.population.hall_of_fame.items + new_individuals,
+        return selections.selNSGA2(hall_of_fame_individuals + new_individuals,
                                    k=self.pop_size,
                                    nd='standard')
 
