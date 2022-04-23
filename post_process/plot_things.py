@@ -159,21 +159,31 @@ def get_pareto_front(fitness_scores,
             add_fake = "fake_%s" % self.id
             super().set_id(add_fake)
 
-    # if fitness_scores is actually a list of individuals then convert to np.array of scores
-    if (isinstance(fitness_scores, list)) and (isinstance(fitness_scores[0], IndividualMaterial)):
-        new_fitness_scores = []
-        for indiv in fitness_scores:
-            new_fitness_scores.append(indiv.fitness.values) # not weighted
-        fitness_scores = np.array(new_fitness_scores)
 
     fake_pop = []
     adjusted_objective_list = [maximize_objectives_list[x_objective_index],
                                maximize_objectives_list[y_objective_index]]
-    for score in fitness_scores:
-        fake_indiv = FakeIndividual(adjusted_objective_list)
-        fake_indiv.fitness.values = (score[x_objective_index],
-                                     score[y_objective_index])
-        fake_pop.append(fake_indiv)
+
+    # if fitness_scores is actually a list of individuals then convert to np.array of scores
+    if (isinstance(fitness_scores, list)) and (isinstance(fitness_scores[0], IndividualMaterial)):
+        new_fitness_scores = []
+        for indiv in fitness_scores:
+            scores = indiv.fitness.values # not weighted
+            fake_indiv = FakeIndividual(adjusted_objective_list)
+            fake_indiv.fitness.values = (scores[x_objective_index],
+                                         scores[y_objective_index])
+            fake_pop.append(fake_indiv)
+
+    elif isinstance(fitness_scores, np.ndarray):
+        for scores in fitness_scores:
+            fake_indiv = FakeIndividual(adjusted_objective_list)
+            fake_indiv.fitness.values = (scores[x_objective_index],
+                                         scores[y_objective_index])
+            fake_pop.append(fake_indiv)
+
+    else:
+        print("passed the wrong data type as 'fitness_scores'")
+        import pdb; pdb.set_trace()
 
     # get pareto
     return deap.tools.sortNondominated(fake_pop, k=len(fake_pop), first_front_only=first_front_only)
@@ -206,8 +216,8 @@ def calc_auc(maximize_objectives_list, x_objective_index, y_objective_index, fit
     auc_scores = np.vstack((auc_scores, right_border))
 
     # calc
-    box_widths = np.diff(auc_scores[:-1,0])
-    box_heights = pareto_scores[:,1] - right_border[1] #auc_scores[1:-1:,1] - auc_scores[-1,1] <- the same calc
+    box_widths = np.abs(np.diff(auc_scores[:-1,0])) # need abs() since doing small-bigger
+    box_heights = pareto_scores[:,1] - right_border[1]
     auc = np.sum(box_widths * box_heights)
     return auc
 
@@ -216,13 +226,20 @@ def calc_auc_multi_gen(maximize_objectives_list, x_objective_index, y_objective_
     '''
     basically the same as calc_auc but each generation uses the same left/right border values
     '''
+
     # calculate the borders
     extreme_left = np.inf
     extreme_right = np.inf
     for gen_scores in all_fitness_scores:
+        # calculate weighted fitness scores
+        gen_scores = gen_scores[:,[x_objective_index, y_objective_index]]
+        if not maximize_objectives_list[x_objective_index]:
+            gen_scores[:,0] *= -1
+        if not maximize_objectives_list[y_objective_index]:
+            gen_scores[:,1] *= -1
+
         extreme_left = min(extreme_left, gen_scores[:,0].min())
         extreme_right = min(extreme_right, gen_scores[:,1].min())
-        print(extreme_left, extreme_right)
 
     # now get pareto and calc auc for each gen
     all_auc = []
@@ -247,8 +264,8 @@ def calc_auc_multi_gen(maximize_objectives_list, x_objective_index, y_objective_
         auc_scores = np.vstack((auc_scores, right_border))
 
         # calc
-        box_widths = np.diff(auc_scores[:-1,0])
-        box_heights = pareto_scores[:,1] - right_border[1] #auc_scores[1:-1:,1] - auc_scores[-1,1] <- the same calc
+        box_widths = np.abs(np.diff(auc_scores[:-1,0])) # need abs() since doing small-bigger
+        box_heights = pareto_scores[:,1] - right_border[1]
         auc = np.sum(box_widths * box_heights)
         all_auc.append(auc)
 

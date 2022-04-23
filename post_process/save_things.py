@@ -42,15 +42,18 @@ def save_HOF_scores(universe):
     '''
     # gotta get scores as np.array first
     hof_scores = []
+    hof_scores_weighted = []
     hof_ids = []
     for indiv in universe.population.hall_of_fame.items:
-        hof_scores.append(indiv.fitness.wvalues) # <- used weighted!
+        hof_scores.append(indiv.fitness.values)
+        hof_scores_weighted.append(indiv.fitness.wvalues)
         hof_ids.append(indiv.id)
     hof_scores = np.array(hof_scores)
+    hof_scores_weighted = np.array(hof_scores_weighted)
     hof_ids = np.array(hof_ids)
 
     output_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % universe.generation)
-    np.savez(output_fitness_file, fitness=hof_scores, ids=hof_ids)
+    np.savez(output_fitness_file, fitness=hof_scores, weighted=hof_scores_weighted, ids=hof_ids)
     ezLogging.debug("saved HOF scores for generation %i" % universe.generation)
 
 
