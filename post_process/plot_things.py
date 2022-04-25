@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.ticker import MaxNLocator
 import deap.tools
-from scipy import stats 
+from scipy import stats
+
 ### sys relative to root dir
 import sys
 from os.path import dirname, realpath
@@ -543,3 +544,13 @@ def plot_mse_metric(mse, fitness_scores, objective_names=None, maximize_objectiv
     plt.savefig(os.path.join(save_path, f"{labels}_vs_mse.png"))
     plt.close()
 
+
+def violin(axis, values_list, labels_list):
+    '''
+    https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.violinplot.html
+    Used in simgan to see how/if features from one label were moved to closer to
+    the other label
+    '''
+    dict_mapping = axis.violinplot(values_list)
+    axis.set_xticks(np.arange(1, len(labels_list) + 1))
+    axis.set_xticklabels(labels_list)

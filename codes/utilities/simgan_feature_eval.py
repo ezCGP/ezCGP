@@ -8,6 +8,16 @@ from scipy.stats import ks_2samp, wasserstein_distance
 import torch
 from scipy.stats import ks_2samp, wasserstein_distance, ttest_ind
 
+
+### sys relative to root dir
+import sys
+from os.path import dirname, realpath
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+
+### absolute imports wrt root
+from codes.utilities.custom_logging import ezLogging
+
+
 def calc_feature_distances(refiners, validation_data, device):
     '''
     TODO...get the source from the room
@@ -726,26 +736,38 @@ class FeatureExtractor:
         self.use_changes = use_changes
         self.use_roughness = use_roughness
         self.use_th = use_th
+        self.feature_names = []
 
         self.num_features = 0
         if use_phdif:
             self.num_features += 1
+            self.feature_names.append("phdif")
         if use_phratio:
             self.num_features += 1
+            self.feature_names.append("phratio")
         if use_pdist:
             self.num_features += 1
+            self.feature_names.append("pdist")
         if use_thdiff:
             self.num_features += 2
+            self.feature_names.append("thdiff0")
+            self.feature_names.append("thdiff1")
         if use_thdist:
             self.num_features += 2
+            self.feature_names.append("thdist0")
+            self.feature_names.append("thdist1")
         if use_area:
             self.num_features += 1
+            self.feature_names.append("area")
         if use_changes:
             self.num_features += 1
+            self.feature_names.append("changes")
         if use_roughness:
             self.num_features += 1
+            self.feature_names.append("roughness")
         if use_th:
             self.num_features += 1
+            self.feature_names.append("th")
 
     def get_features(self, dataset):
         '''
@@ -755,6 +777,8 @@ class FeatureExtractor:
 
             Returns:
                 features (ndarray): MxN' numpy array of N' features for M signals
+                (Rodd Added) - LIES! it's actually N'xM so we have to transpose whatever gets returned
+                    ...could be fixed if np.expand_dims axis is changed from 0 to 1 I think
         '''
         features = []
         if self.use_phdif:
@@ -823,7 +847,7 @@ def get_peak_distance(data, lrs=10, lre=40, rrs=40, rre=80):
             distance (ndarray): numpy array of the distances between the left and right peaks
     '''
     left_peak_inds = get_peaks(data, lrs, lre)
-    right_peak_inds = get_peaks(data, rrs, rre) 
+    right_peak_inds = get_peaks(data, rrs, rre)
     distances = right_peak_inds - left_peak_inds
     return distances
 

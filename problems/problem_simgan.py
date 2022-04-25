@@ -47,7 +47,7 @@ class Problem(ProblemDefinition_Abstract):
         genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]*population_size
-        hall_of_fame_size = population_size*10 # too big?
+        hall_of_fame_size = population_size*50
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_size)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
@@ -257,6 +257,9 @@ class Problem(ProblemDefinition_Abstract):
         save_things.save_fitness_scores(universe)
         save_things.save_HOF_scores(universe)
 
+        # to be used later to extract features
+        # ...note that we allow features to be turned on/off in evolution but we still plot all features
+        fe = feature_eval.FeatureExtractor()
         for individual in universe.population.population:
             if not individual.dead:
                 self.save_pytorch_individual(universe, individual)
@@ -280,6 +283,26 @@ class Problem(ProblemDefinition_Abstract):
                                                 attachment_folder,
                                                 refined_sim_preds,
                                                 real_preds)
+
+                # now plot the feature distributions...but use full batch
+                simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw, dtype=torch.float, device='cpu')
+                real_batch = torch.tensor(self.validating_datalist[0].real_raw, dtype=torch.float, device='cpu')
+                refined_sim_batch = R.cpu()(simulated_batch)
+
+                simulated_features = fe.get_features(np.squeeze(simulated_batch.cpu().detach().numpy())).T
+                refined_sim_features = fe.get_features(np.squeeze(refined_sim_batch.cpu().detach().numpy())).T
+                real_features = fe.get_features(np.squeeze(real_batch.cpu().detach().numpy())).T
+
+                # what is the shape returned of get_features()
+                for ith_feature, feature_name in enumerate(fe.feature_names):
+                    fig, axes = plot_things.plot_init(1, 1)
+                    data = [simulated_features[:,ith_feature], refined_sim_features[:,ith_feature], real_features[:,ith_feature]]
+                    labels = ["Simulated", "Refined Sim", "Real"]
+                    plot_things.violin(axes[0,0], data, labels)
+                    axes[0,0].set_title("%s feature distributions" % feature_name)
+                    name = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_%s_distribution.png" % (universe.generation, individual.id, feature_name))
+                    plot_things.plot_save(fig, name)
+
 
 
         # Pareto Plot for each objective combo at current HOF:
