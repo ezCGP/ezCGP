@@ -120,16 +120,15 @@ class BlockArguments_Abstract():
 
 
 
-class BlockArguments_Auto(BlockArguments_Abstract):
+class BlockArguments_AutoBasic(BlockArguments_Abstract):
     '''
     See if we can get the argument info to be automatically populated by passing in the operator dict.
     Kinda sucks we have to pass in operator_dict which means that the operator_def has to somehow 
     already been initialized or just initialized again for to initialize this class. best way for now I guess
     '''
     def __init__(self, operator_dict, multiplier=5):
-        ezLogging.debug("%s-%s - Initialize BlockArguments_Auto Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockArguments_AutoBasic Class" % (None, None))
         BlockArguments_Abstract.__init__(self)
-        self.multiplier = multiplier
 
         # get set of all arg types
         arg_types = []
@@ -145,6 +144,54 @@ class BlockArguments_Auto(BlockArguments_Abstract):
 
         # init
         self.init_from_weight_dict(arg_dict)
+
+
+
+class BlockArguments_Auto(BlockArguments_Abstract):
+    '''
+    Like AutoBasic but instead of setting all arg weights equal,
+    we will use the operator weights to set the arg weights to
+    influence how many we get of each.
+
+    Basic math will be, find the lowest operator weight and set the
+    multiplier to that weight and then the number of arg elements
+    introduced by each operator will be defined by:
+        count = (operator weight)/(min operator weight) * multiplier
+    '''
+    def __init__(self, operator_class, multiplier=5):
+        ezLogging.debug("%s-%s - Initialize BlockArguments_Auto Class" % (None, None))
+
+        # get min weight
+        min_operator_weight = min(operator_class.weights)
+
+        arg_dict = {}
+        arg_types = []
+        for operator, weight in zip(operator_class.operators, operator_class.weights):
+            for arg_type in operator_class.operator_dict[operator]["args"]:
+                additional_count = int(weight/min_operator_weight*multiplier)
+                if arg_type in arg_dict:
+                    arg_dict[arg_type] += additional_count
+                else:
+                    arg_dict[arg_type] = additional_count
+                    arg_types.append(arg_type)
+
+        self.arg_count = 0
+        for arg_type, arg_count in arg_dict.items():
+            self.arg_count += arg_count
+
+        self.arg_types = [None]*self.arg_count
+        # be sure to loop over a list and not a dict of keys so we don't introduce weird randomness
+        loc = 0
+        for arg_type in arg_types:
+            count = arg_dict[arg_type]
+            for i in range(loc,loc+count):
+                self.arg_types[i] = arg_type
+            loc += count
+
+        if self.arg_types[-1] is None:
+            ezLogging.critical("Problem with auto filling arg types - not sure how you got here bud...")
+            import pdb; pdb.set_trace()
+            exit()
 
 
 
