@@ -55,8 +55,8 @@ class FactoryDefinition():
         '''
         my_population = PopulationDefinition()
 
-        if (node_rank==0) and (problem.hall_of_fame_size is not None):
-            my_population.setup_hall_of_fame(problem.hall_of_fame_size)
+        if (node_rank==0) and (problem.hall_of_fame_flag):
+            my_population.setup_hall_of_fame()
 
         if len(problem.genome_seeds) == 0:
             genome_seeds = []

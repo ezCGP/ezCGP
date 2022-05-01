@@ -94,9 +94,13 @@ class PopulationDefinition():
         ezLogging.info("Combined %i sub populations into a single population" % (len(subpops)))
 
 
-    def setup_hall_of_fame(self, maxsize):
+    def setup_hall_of_fame(self):
         '''
-        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.HallOfFame
+        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.ParetoFront
+        https://github.com/DEAP/deap/blob/master/deap/tools/support.py#L591
+        NOTE using ParetoFront which inherits from HallOfFame. See Issue #285.
+        But tldr is that HallOfFame only works on single objective and ParetoFront
+        works for multiobjective and no maxsize which should also addess Issue #280.
 
         letting hall_of_fame use to be optional
         '''
@@ -111,12 +115,13 @@ class PopulationDefinition():
             '''
             if a.id == b.id:
                 return True
+            elif a.fitness.values == b.fitness_values:
+                return True
             else:
                 return False
 
-        self.hall_of_fame = deap.tools.HallOfFame(maxsize=maxsize,
-                                                  similar=similarity_equation)
-        ezLogging.debug("Established 'Hall of Fame' with maxsize %i" % maxsize)
+        self.hall_of_fame = deap.tools.ParetoFront(similar=similarity_equation)
+        ezLogging.debug("Established Hall of Fame")
 
 
     def update_hall_of_fame(self):

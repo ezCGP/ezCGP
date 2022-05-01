@@ -43,8 +43,8 @@ class Problem(problem_simgan.Problem):
         genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_ECG_Seed0/ConfigBlock_lisp.txt"]]*population_size
-        hall_of_fame_size = population_size*10
-        super(problem_simgan.Problem, self).__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_size)
+        hall_of_fame_flag = True
+        super(problem_simgan.Problem, self).__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_flag)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
