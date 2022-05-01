@@ -47,8 +47,8 @@ class Problem(ProblemDefinition_Abstract):
         genome_seeds = [["misc/IndivSeed_SimGAN_Seed0/RefinerBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/DiscriminatorBlock_lisp.txt",
                          "misc/IndivSeed_SimGAN_Seed0/ConfigBlock_lisp.txt"]]*population_size
-        hall_of_fame_size = population_size*10 # too big?
-        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_size)
+        hall_of_fame_flag = True
+        super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_flag)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
 
         refiner_def = self.construct_block_def(nickname = "refiner_block",
@@ -215,8 +215,6 @@ class Problem(ProblemDefinition_Abstract):
         attachment_folder = os.path.join(universe.output_folder, name)
         os.makedirs(attachment_folder, exist_ok=False)
 
-        print(individual.output)
-
         # save models
         # NOTE if indiv.dead then some of these values may not be filled
         if not individual[0].dead:
@@ -259,6 +257,9 @@ class Problem(ProblemDefinition_Abstract):
         save_things.save_fitness_scores(universe)
         save_things.save_HOF_scores(universe)
 
+        # to be used later to extract features
+        # ...note that we allow features to be turned on/off in evolution but we still plot all features
+        fe = feature_eval.FeatureExtractor()
         for individual in universe.population.population:
             if not individual.dead:
                 self.save_pytorch_individual(universe, individual)
@@ -266,7 +267,8 @@ class Problem(ProblemDefinition_Abstract):
 
                 # the rest is just to plot signals
                 num_signals = 5
-                sample_index_sim = np.random.choice(np.arange(len(self.validating_datalist[0].simulated_raw)), size=num_signals)
+                #sample_index_sim = np.random.choice(np.arange(len(self.validating_datalist[0].simulated_raw)), size=num_signals)
+                sample_index_sim = np.arange(num_signals) #not letting it be random so we can easily compare between refiners
                 simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw[sample_index_sim], dtype=torch.float, device='cpu')
                 sample_index_real = np.random.choice(np.arange(len(self.validating_datalist[0].real_raw)), size=num_signals)
                 real_batch = torch.tensor(self.validating_datalist[0].real_raw[sample_index_real], dtype=torch.float, device='cpu')
@@ -281,6 +283,26 @@ class Problem(ProblemDefinition_Abstract):
                                                 attachment_folder,
                                                 refined_sim_preds,
                                                 real_preds)
+
+                # now plot the feature distributions...but use full batch
+                simulated_batch = torch.tensor(self.validating_datalist[0].simulated_raw, dtype=torch.float, device='cpu')
+                real_batch = torch.tensor(self.validating_datalist[0].real_raw, dtype=torch.float, device='cpu')
+                refined_sim_batch = R.cpu()(simulated_batch)
+
+                simulated_features = fe.get_features(np.squeeze(simulated_batch.cpu().detach().numpy())).T
+                refined_sim_features = fe.get_features(np.squeeze(refined_sim_batch.cpu().detach().numpy())).T
+                real_features = fe.get_features(np.squeeze(real_batch.cpu().detach().numpy())).T
+
+                # what is the shape returned of get_features()
+                for ith_feature, feature_name in enumerate(fe.feature_names):
+                    fig, axes = plot_things.plot_init(1, 1)
+                    data = [simulated_features[:,ith_feature], refined_sim_features[:,ith_feature], real_features[:,ith_feature]]
+                    labels = ["Simulated", "Refined Sim", "Real"]
+                    plot_things.violin(axes[0,0], data, labels)
+                    axes[0,0].set_title("%s feature distributions" % feature_name)
+                    name = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_%s_distribution.png" % (universe.generation, individual.id, feature_name))
+                    plot_things.plot_save(fig, name)
+
 
 
         # Pareto Plot for each objective combo at current HOF:
@@ -306,7 +328,7 @@ class Problem(ProblemDefinition_Abstract):
                 #plot_things.plot_legend(pareto_fig)
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
-                                                   "pareto_front_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+                                                   "pareto_front_gen%04d_%s_vs_%s.png" % (universe.generation, x_obj, y_obj)))
 
 
         # Best Pareto Plot Over time
@@ -335,7 +357,7 @@ class Problem(ProblemDefinition_Abstract):
                 plot_things.plot_legend(pareto_fig)
                 plot_things.plot_save(pareto_fig,
                                       os.path.join(universe.output_folder,
-                                                   "pareto_front_overtime_gen%04d_%s_vs_%s.jpg" % (universe.generation, x_obj, y_obj)))
+                                                   "pareto_front_overtime_gen%04d_%s_vs_%s.png" % (universe.generation, x_obj, y_obj)))
 
 
         # AUC over time:
@@ -346,13 +368,19 @@ class Problem(ProblemDefinition_Abstract):
             hof_fitness = np.load(hof_fitness_file)['fitness']
             all_hof_scores.append(hof_fitness)
 
-        all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, *all_hof_scores)
-        auc_fig, auc_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
-        auc_axis[0,0].plot(all_auc, marker='*')
-        auc_axis[0,0].set_xlabel("ith Generation")
-        auc_axis[0,0].set_title("AUC over time")
-        plot_things.plot_save(auc_fig,
-                              os.path.join(universe.output_folder, "AUC_overtime_gen%04d.jpg" % (universe.generation)))
+        # now for each combo of objectives, make a plot
+        for i in range(len(self.maximize_objectives)-1):
+            for j in range(i+1,len(self.maximize_objectives)):
+                x_obj = self.objective_names[i]
+                y_obj = self.objective_names[j]
+
+                all_auc = plot_things.calc_auc_multi_gen(self.maximize_objectives, i, j, *all_hof_scores)
+                auc_fig, auc_axis = plot_things.plot_init(nrow=1, ncol=1, figsize=None, xlim=None, ylim=None)
+                auc_axis[0,0].plot(all_auc, marker='*')
+                auc_axis[0,0].set_xlabel("ith Generation")
+                auc_axis[0,0].set_title("AUC over time\n%s_vs_%s" % (x_obj, y_obj))
+                plot_things.plot_save(auc_fig,
+                                      os.path.join(universe.output_folder, "AUC_overtime_gen%04d_%s_vs_%s.png" % (universe.generation, x_obj, y_obj)))
 
 
     def postprocess_universe(self, universe):

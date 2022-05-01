@@ -82,7 +82,7 @@ class ProblemDefinition_Abstract(ABC):
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
                  genome_seeds: List=[],
-                 hall_of_fame_size: int=None):
+                 hall_of_fame_flag: bool=True):
         '''
         genome_seeds:
         * each element in outer list is an inividual to be seeded
@@ -97,7 +97,7 @@ class ProblemDefinition_Abstract(ABC):
         self.construct_individual([block_def])
         '''
         self.pop_size = population_size
-        self.hall_of_fame_size = hall_of_fame_size
+        self.hall_of_fame_flag = hall_of_fame_flag
         self.number_universe = number_universe
         self.Factory = factory_def
         self.mpi = mpi
@@ -170,16 +170,20 @@ class ProblemDefinition_Abstract(ABC):
         Going to select from hall_of_fame (if it exists) + population that aren't in hall_of_fame
         '''
         hall_of_fame_ids = []
+        hall_of_fame_individuals= []
         if universe.population.hall_of_fame is not None:
             for indiv in universe.population.hall_of_fame.items:
                 hall_of_fame_ids.append(indiv.id)
+                # deepcopying from hall of fame so that in the future, any changes to this indiv,
+                # won't affect the halloffame individuals.
+                hall_of_fame_individuals.append(deepcopy(indiv))
 
         new_individuals = []
         for indiv in universe.population.population:
             if indiv.id not in hall_of_fame_ids:
-                new_individuals.append(deepcopy(indiv))
+                new_individuals.append(indiv)
 
-        return selections.selNSGA2(universe.population.hall_of_fame.items + new_individuals,
+        return selections.selNSGA2(hall_of_fame_individuals + new_individuals,
                                    k=self.pop_size,
                                    nd='standard')
 

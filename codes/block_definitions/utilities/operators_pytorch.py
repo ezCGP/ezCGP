@@ -551,8 +551,8 @@ def feature_extraction(input_shapes, *args):
     NOTE: an idea was to make the output of this method to be a 2nd input into the
     discriminator block instead of a primitive of that block
     '''
-    from misc import features
-    class FeatureExtractor(MimicPyTorchModule, features.FeatureExtractor):
+    from codes.utilities import simgan_feature_eval
+    class FeatureExtractor(MimicPyTorchModule, simgan_feature_eval.FeatureExtractor):
         def __init__(self, input_shapes, *args):
             '''
             if input_shapes[0] doesn't 92 features then the code will
@@ -563,7 +563,7 @@ def feature_extraction(input_shapes, *args):
             fake_shape = input_shapes[0]
             fake_shape = fake_shape[:-1] + (92,)
             MimicPyTorchModule.__init__(self, [fake_shape], ftn=None)
-            features.FeatureExtractor.__init__(self, *args)
+            simgan_feature_eval.FeatureExtractor.__init__(self, *args)
 
         def get_out_shape(self):
             return (self.input_shapes[0][0], self.num_features)
