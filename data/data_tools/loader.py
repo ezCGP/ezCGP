@@ -171,27 +171,84 @@ class ezDataLoader_CIFAR100(ezDataLoader):
         (x_train, y_train), (x_test, y_test) = cifar100.load_data()
         train_data = ezdata.ezData_Images(x_train, y_train)
         validate_data = ezdata.ezData_Images(x_test, y_test)
-        return train_data, validate_data
+        test_datapair = []
+        return train_data, validate_data, test_datapair
 
 
 
 class ezDataLoader_MNIST(ezDataLoader):
     def __init__(self,
-                 train_split=0.5,
-                 validate_split=0.25,
-                 test_split=0.25):
+                 train_split=5/6,
+                 validate_split=1/6,
+                 test_split=0):
+        '''
+        These weights are not the actual split of the dataset but how we want to
+        split the original train-set provided by tf.keras so we can get train,
+        validate, and test sets.
+        '''
         super().__init__(train_split, validate_split, test_split)
 
 
     def load(self):
-        # https://www.tensorflow.org/api_docs/python/tf/keras/datasets/mnist/load_data
-        # image shape is (Samples, width, height, channels)
-        import tensorflow as tf
-        mnist = tf.keras.datasets.mnist
-        (x_train, y_train), (x_test, y_test) = mnist.load_data()
-        train_data = ezdata.ezData_Images(x_train, y_train)
-        validate_data = ezdata.ezData_Images(x_test, y_test)
-        return train_data, validate_data
+        '''
+        https://www.tensorflow.org/api_docs/python/tf/keras/datasets/mnist/load_data
+        Image shape is (Samples, width, height, channels)
+
+        copy/paste:
+        x_train: uint8 NumPy array of grayscale image data with shapes (60000, 28, 28),
+                containing the training data. Pixel values range from 0 to 255.
+        y_train: uint8 NumPy array of digit labels (integers in range 0-9) with shape
+                (60000,) for the training data.
+        x_test: uint8 NumPy array of grayscale image data with shapes (10000, 28, 28),
+                containing the test data. Pixel values range from 0 to 255.
+        y_test: uint8 NumPy array of digit labels (integers in range 0-9) with shape
+                (10000,) for the test data.
+
+        Going to further split the train set they gave us into train and validate.
+
+        See Issue #288 on why we can't use Augmentor for MNIST or any other single-
+        channel image dataset with tf.keras.
+        '''
+        import tensorflow.keras.datasets.mnist as mnist_dataset
+        (x_train_ori, y_train_ori), (x_test, y_test) = mnist_dataset.load_data()
+        (x_train, y_train), (x_validate, y_validate), _ = self.split(x_train_ori, y_train_ori)
+
+        # mnist only has 1 channel images and that dim is not included in the shape but
+        # we need that dim for our convolutions...gonna add here
+        x_train = np.expand_dims(x_train, axis=-1)
+        x_validate = np.expand_dims(x_validate, axis=-1)
+        x_test = np.expand_dims(x_test, axis=-1)
+
+        '''
+        # convert to [0,1] floats from [0,255] uint8
+        x_train = (x_train/(2**8-1)).astype(np.float32)
+        x_validate = (x_validate/(2**8-1)).astype(np.float32)
+        x_test = (x_test/(2**8-1)).astype(np.float32)
+        '''
+        # convert to floats
+        x_train = x_train.astype(np.float32)
+        x_validate = x_validate.astype(np.float32)
+        x_test = x_test.astype(np.float32)
+
+        # convert single array of labels into 01matrix
+        def make_matrix_label(array_label):
+            # assuming labels go from [0,N-1]
+            matrix_label = np.zeros(shape=(len(array_label), array_label.max()+1), dtype=array_label.dtype)
+            for row, col in enumerate(array_label):
+                matrix_label[row,col]=1
+            return matrix_label
+
+        y_train = make_matrix_label(y_train)
+        y_validate = make_matrix_label(y_validate)
+        y_test = make_matrix_label(y_test)
+
+        train_images = ezdata.ezData_Images(x_train, y_train)
+        validate_images = ezdata.ezData_Images(x_validate, y_validate)
+        test_images = ezdata.ezData_Images(x_test, y_test)
+
+        return ([train_images],
+                [validate_images],
+                [test_images])
 
 
 

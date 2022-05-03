@@ -104,6 +104,7 @@ class ProblemDefinition_Abstract(ABC):
         self.genome_seeds = genome_seeds
         self.set_optimization_goals()
         self.number_of_objectives = len(self.maximize_objectives)
+        self.construct_dataset()
 
 
     @abstractmethod
