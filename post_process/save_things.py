@@ -27,8 +27,33 @@ def save_fitness_scores(universe):
        fitness_values = ting['fitness']
     '''
     output_fitness_file = os.path.join(universe.output_folder, "gen%04d_fitness.npz" % universe.generation)
-    np.savez(output_fitness_file, fitness=universe.pop_fitness_scores)
+    np.savez(output_fitness_file, fitness=universe.pop_fitness_scores, ids=universe.pop_individual_ids)
     ezLogging.debug("saved scores for generation %i" % universe.generation)
+
+
+def save_HOF_scores(universe):
+    '''
+    save scores as an npz...remember that the last item in each row is the individual id
+
+    here is how to open an npz:
+       ting = np.load(output_fitness_file)
+       fitness_values = ting['fitness']
+    '''
+    # gotta get scores as np.array first
+    hof_scores = []
+    hof_scores_weighted = []
+    hof_ids = []
+    for indiv in universe.population.hall_of_fame.items:
+        hof_scores.append(indiv.fitness.values)
+        hof_scores_weighted.append(indiv.fitness.wvalues)
+        hof_ids.append(indiv.id)
+    hof_scores = np.array(hof_scores)
+    hof_scores_weighted = np.array(hof_scores_weighted)
+    hof_ids = np.array(hof_ids)
+
+    output_fitness_file = os.path.join(universe.output_folder, "gen%04d_hof_fitness.npz" % universe.generation)
+    np.savez(output_fitness_file, fitness=hof_scores, weighted=hof_scores_weighted, ids=hof_ids)
+    ezLogging.debug("saved HOF scores for generation %i" % universe.generation)
 
 
 def save_population(universe):
@@ -45,7 +70,19 @@ def save_population(universe):
         indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s.pkl" % (universe.generation, indiv.id))
         with open(indiv_file, "wb") as f:
             pkl.dump(indiv, f)
-            
+
+
+def save_pytorch_model(universe, network, indiv_id):
+    '''
+    save a PyTorch neural network
+    '''
+    import torch
+    ezLogging.debug("saving pytorch model from population for generation %i" % universe.generation)
+    path = os.path.join(universe.output_folder, "gen_%04d_id_%s.pkl" % (universe.generation, indiv_id))
+    # was getting a pickling error if didn't do .state_dict()
+    #...thanks https://github.com/pytorch/pytorch/issues/7545
+    torch.save(network.state_dict(), path)
+
             
 def save_population_asLisp(universe, indiv_definition):
     '''    

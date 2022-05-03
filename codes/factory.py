@@ -16,6 +16,7 @@ import numpy as np
 import pickle as pkl
 from copy import deepcopy
 from typing import List
+import importlib
 
 ### sys relative to root dir
 import sys
@@ -30,6 +31,7 @@ from codes.individual_definitions.individual_definition import IndividualDefinit
 from codes.block_definitions.block_definition import BlockDefinition
 from codes.utilities.custom_logging import ezLogging
 from data.data_tools.ezData import ezData
+from codes.utilities import decorators
 
 
 
@@ -41,6 +43,7 @@ class FactoryDefinition():
         pass
 
 
+    @decorators.stopwatch_decorator
     def build_population(self,
                          problem,#: ProblemDefinition_Abstract,
                          population_size: int, # not grabbed from problem to allow mpi to make subpops
@@ -52,8 +55,8 @@ class FactoryDefinition():
         '''
         my_population = PopulationDefinition()
 
-        if (node_rank==0) and (problem.hall_of_fame_size is not None):
-            my_population.setup_hall_of_fame(problem.hall_of_fame_size)
+        if (node_rank==0) and (problem.hall_of_fame_flag):
+            my_population.setup_hall_of_fame()
 
         if len(problem.genome_seeds) == 0:
             genome_seeds = []
@@ -75,6 +78,7 @@ class FactoryDefinition():
         for i, genome_seed in enumerate(genome_seeds):
             indiv = self.build_individual_from_seed(problem.indiv_def,
                                                     genome_seed,
+                                                    problem.maximize_objectives,
                                                     indiv_id="seededIndiv%i-%i" % (node_rank,i))
             if isinstance(indiv, IndividualMaterial):
                 # if build_individual failed then we don't want to add to population
@@ -82,17 +86,21 @@ class FactoryDefinition():
 
         for i in range(len(my_population.population), population_size):
             indiv = self.build_individual(problem.indiv_def,
+                                          problem.maximize_objectives,
                                           indiv_id="initPop%i-%i" % (node_rank,i))
             my_population.population.append(indiv)
 
         return my_population
 
 
-    def build_individual(self, indiv_def: IndividualDefinition, indiv_id=None):
+    def build_individual(self,
+                         indiv_def: IndividualDefinition,
+                         maximize_objectives_list: List[bool],
+                         indiv_id=None):
         '''
         TODO
         '''
-        indiv_material = IndividualMaterial()
+        indiv_material = IndividualMaterial(maximize_objectives_list)
         indiv_material.set_id(indiv_id)
         for block_def in indiv_def.block_defs:
             block_material = self.build_block(block_def, indiv_id=indiv_id)
@@ -100,7 +108,11 @@ class FactoryDefinition():
         return indiv_material
 
 
-    def build_individual_from_seed(self, indiv_def: IndividualDefinition, block_seeds: List[str], indiv_id=None):
+    def build_individual_from_seed(self,
+                                   indiv_def: IndividualDefinition,
+                                   block_seeds: List[str],
+                                   maximize_objectives_list: List[bool],
+                                   indiv_id=None):
         '''
         block_seeds will be a list of file paths. number of blocks in individual need to match block_seed length
         If we don't have a seed for a block, set it to None like [None, None, seed.npz]
@@ -139,9 +151,9 @@ class FactoryDefinition():
             except Exception as err:
                 ezLogging.error("%s - for seed %s" % (err, block_seeds))
                 indiv_material = None
-                
+
         if (isinstance(block_seeds, list)) and (len(block_seeds)>0):
-            indiv_material = IndividualMaterial()
+            indiv_material = IndividualMaterial(maximize_objectives_list)
             indiv_material.set_id(indiv_id)
             for ith_block in range(indiv_def.block_count):
                 # trying to refrain from zipping block_defs and block_seeds because it won't error if len don't match
@@ -172,9 +184,10 @@ class FactoryDefinition():
                         if not self.validate_material_wDefinition(block_def, block_material):
                             raise Exception("%ith block material does not match block definition")
                     except Exception as err:
-                        ezLogging.error("%s - for %ith block and seed %s" % (err, ith_block, block_seed))
-                        indiv_material = None
-                        break
+                        ezLogging.critical("%s - for %ith block and seed %s" % (err, ith_block, block_seed))
+                        ezLogging.warning("Randomly making block instead...")
+                        block_material = self.build_block(block_def, indiv_id=indiv_id)
+
                 indiv_material.blocks.append(block_material)
         
         return indiv_material
@@ -209,7 +222,7 @@ class FactoryDefinition():
         ith_node = 0
         while True:
             # from the start of the string, keep looking for lists []
-            match = re.search("\[[0-9A-Za-z_\-\s.,']+\]", lisp)
+            match = re.search("\[[0-9A-Za-z_\-()=\s.,']+\]", lisp)
             if match is None:
                 # no more lists inside lisp. so we're done
                 break
@@ -288,7 +301,15 @@ class FactoryDefinition():
                                 # kinda hacky but should work
                                 if 'float' in req_arg_type.__name__.lower():
                                     val = float(val)
+                                if 'learningrate' in req_arg_type.__name__.lower():
+                                    val = float(val)
                                 elif 'int' in req_arg_type.__name__.lower():
+                                    val = int(val)
+                                elif 'pow2' in req_arg_type.__name__.lower():
+                                    val = int(val)
+                                elif 'size' in req_arg_type.__name__.lower():
+                                    val = int(val)
+                                elif 'steps' in req_arg_type.__name__.lower():
                                     val = int(val)
                                 elif 'bool' in req_arg_type.__name__.lower():
                                     val = bool(val)
@@ -322,13 +343,14 @@ class FactoryDefinition():
                     arg_dtypes = block_def.operator_dict[ftn]["args"]
                     arg_index = [None]*len(arg_dtypes)
                     for ith_arg, arg_dtype in enumerate(arg_dtypes):
-                        arg_index[ith_arg] = block_def.get_random_arg(req_dtype=arg_dtype)
+                        arg_index[ith_arg] = block_def.get_random_arg(req_dtype=arg_dtype, exclude=args_used+arg_index)
                     if None in arg_index:
                         # failed to fill it in; try another ftn
                         continue
                     else:
                         pass
                     # all complete
+                    #args_used += arg_index # CHANGED MY MIND...okay for inactive node to use same arg as active node since not being set
                     block_material[node_index] = {"ftn": ftn,
                                                   "inputs": input_index,
                                                   "args": arg_index}
@@ -426,3 +448,81 @@ class FactoryDefinition():
         for ith_output, node_index in enumerate(range(block_def.main_count, block_def.main_count+block_def.output_count)):
             req_dtype = block_def.output_dtypes[ith_output]
             block_material[node_index] = block_def.get_random_input(block_material, req_dtype=req_dtype, _min=0, _max=block_def.main_count)
+
+
+
+class Factory_SimGAN(FactoryDefinition):
+    '''
+    For SimGAN we used PyTorch and we couldn't save the networks with pkl,
+    so we are going to inherit FactoryDefinition and adjust how we build_individual_from_seed
+    to tack on the networks that were saved with pytorch's own methods
+    '''
+    def __init__(self):
+        globals()['torch'] = importlib.import_module('torch')
+        globals()['MyTorchNetwork'] = getattr(importlib.import_module('codes.block_definitions.evaluate.block_evaluate_pytorch'), 'MyTorchNetwork')
+
+        # frankly just don't have a clever way of getting input shape so just hardcoding it in...sorry, i failed
+        self.input_shape = (None, 1, 92)
+
+
+    def build_individual_from_seed(self,
+                                   indiv_def: IndividualDefinition,
+                                   block_seeds: List[str],
+                                   maximize_objectives_list: List[bool],
+                                   indiv_id=None):
+        indiv_material = super().build_individual_from_seed(indiv_def, block_seeds, maximize_objectives_list, indiv_id)
+        if (isinstance(block_seeds, str)) and (block_seeds.endswith(".pkl")):
+            # ...then we assume it was a saved individual from a previous evolution
+
+            # Get folder of items
+            attachment_folder = block_seeds[:-4] # just strip the '.pkl'
+
+            
+            
+
+            # Load in Refiner
+            untrained_refiner = MyTorchNetwork(indiv_material[0],
+                                               indiv_def[0],
+                                               self.input_shape,
+                                               indiv_def[0].evaluate_def.final_module_dicts)
+            trained_refiner = deepcopy(untrained_refiner)
+            untrained_refiner.load_state_dict(torch.load(os.path.join(attachment_folder, "untrained_refiner")))
+            trained_refiner.load_state_dict(torch.load(os.path.join(attachment_folder, "trained_refiner")))
+            ''' untrained_refiner.eval()
+            Not gonna do eval...this is what doc says it does...
+                Remember that you must call model.eval() to set dropout and batch normalization layers
+                to evaluation mode before running inference.
+                Failing to do this will yield inconsistent inference results.
+            '''
+
+            # Load Discriminator
+            untrained_discriminator = MyTorchNetwork(indiv_material[1],
+                                                     indiv_def[1],
+                                                     self.input_shape,
+                                                     indiv_def[1].evaluate_def.final_module_dicts)
+            trained_discriminator = deepcopy(untrained_discriminator)
+            untrained_discriminator.load_state_dict(torch.load(os.path.join(attachment_folder, "untrained_discriminator")))
+            trained_discriminator.load_state_dict(torch.load(os.path.join(attachment_folder, "trained_discriminator")))
+
+            # Load TrainConfig
+            with open(os.path.join(attachment_folder, "trainconfig_dict.pkl"), 'rb') as f:
+                trainconfig_dict = pkl.load(f)
+
+            # Save to individual
+            indiv_material[0].output = untrained_refiner
+            indiv_material[1].output = untrained_discriminator
+            indiv_material[2].output = trainconfig_dict
+            indiv_material.output = (trained_refiner, trained_discriminator)
+
+
+        return indiv_material
+
+
+
+class Factory_SimGAN_ECG(FactoryDefinition):
+    '''
+    just gotta chage data shape for when we read in seeds
+    '''
+    def __init__(self):
+        super().__init__()
+        self.input_shape = (None, 1, 3600)

@@ -40,8 +40,8 @@ def main(problem_filename: str,
 
     # create custom logging.logger for this node
     log_formatter = ezLogging.logging_setup(loglevel)
-    if loglevel < logging.WARNING:
-        # true only for DEBUG or INFO
+    if loglevel <= logging.INFO:
+        # true only for INFO
         log_handler_2stdout = ezLogging.logging_2stdout(log_formatter)
     else:
         log_handler_2stdout = None
@@ -49,13 +49,28 @@ def main(problem_filename: str,
     # set the seed before importing problem.
     # NOTE will set another seed when we start the universe
     ezLogging.warning("Setting seed, for file imports, to %i" % (seed))
-    np.random.seed(seed)
     random.seed(seed) # shouldn't be using 'random' module but setting seed jic
-    problem_module = __import__(problem_filename[:-3]) #remoe the '.py' from filename
+    np.random.seed(seed)
+    # allow setting of seeds for packages unique to certain installations
+    # try/catch so that it won't break if you didn't include them in your python environmnet
+    try:
+        import tensorflow as tf
+        tf.random.set_seed(seed)
+    except:
+        pass
+    try:
+        import torch
+        torch.manual_seed(seed)
+        torch.use_deterministic_algorithms(True)
+    except:
+        pass
+
+    problem_module = __import__(problem_filename[:-3]) #remove the '.py' from filename
     problem = problem_module.Problem()
     if previous_run is not None:
         problem.seed_with_previous_run(previous_run)
     from codes.universe import UniverseDefinition, MPIUniverseDefinition
+    from codes.universe import RelativePopulationUniverseDefinition, RelativePopulationMPIUniverseDefinition
 
     # want to make sure that creation of files, folders, and logging is not duplicated if using mpi.
     # the following is always true if not using mpi 
@@ -79,11 +94,23 @@ def main(problem_filename: str,
         if problem.mpi:
             ezLogging_method = ezLogging.logging_2file_mpi
             universe_seed = seed + 1 + (ith_universe*node_size) + node_rank
-            ThisUniverse = MPIUniverseDefinition
+            try:
+                if problem.relativeScoring:
+                    ThisUniverse = RelativePopulationMPIUniverseDefinition
+                else:
+                    ThisUniverse = MPIUniverseDefinition
+            except:
+                ThisUniverse = MPIUniverseDefinition
         else:
             ezLogging_method = ezLogging.logging_2file
             universe_seed = seed + 1 + ith_universe
-            ThisUniverse = UniverseDefinition
+            try:
+                if problem.relativeScoring:
+                    ThisUniverse = RelativePopulationUniverseDefinition
+                else:
+                    ThisUniverse = UniverseDefinition
+            except:
+                ThisUniverse = UniverseDefinition
         log_handler_2file = ezLogging_method(log_formatter, filename=os.path.join(universe_output_directory, "log.txt"))
         ezLogging.log_git_metadata()
         ezLogging.warning("Setting seed for Universe, to %i" % (universe_seed))

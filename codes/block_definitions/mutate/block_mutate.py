@@ -46,10 +46,10 @@ class BlockMutate_OptA(BlockMutate_Abstract):
     '''
     Good for things like symbolic regression with NO args since we only mutate the input node connections or the primitive function used.
     '''
-    def __init__(self):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_OptA Class" % (None, None))
-        self.prob_mutate = 1.0
-        self.num_mutants = 4
+        self.prob_mutate = prob_mutate
+        self.num_mutants = num_mutants
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
         roll = rnd.random()
@@ -65,10 +65,10 @@ class BlockMutate_OptB(BlockMutate_Abstract):
     '''
     Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
     '''
-    def __init__(self):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_OptB Class" % (None, None))
-        self.prob_mutate = 1.0
-        self.num_mutants = 4
+        self.prob_mutate = prob_mutate
+        self.num_mutants = num_mutants
 
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
@@ -83,6 +83,26 @@ class BlockMutate_OptB(BlockMutate_Abstract):
         else:
             mutate_methods.mutate_single_ftn(mutant_material, block_def)
 
+
+class BlockMutate_OptB_No_Single_Ftn(BlockMutate_Abstract):
+    '''
+    Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
+    '''
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
+        ezLogging.debug("%s-%s - Initialize BlockMutate_OptB_No_Single_Ftn Class" % (None, None))
+        self.prob_mutate = prob_mutate
+        self.num_mutants = num_mutants
+
+
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+        roll = rnd.random()
+        ezLogging.info("%s - Sending block to mutate; roll: %f" % (mutant_material.id, roll))
+        if roll < (1/3):
+            mutate_methods.mutate_single_input(mutant_material, block_def)
+        elif roll < (2/3):
+            mutate_methods.mutate_single_argvalue(mutant_material, block_def)
+        else:
+            mutate_methods.mutate_single_argindex(mutant_material, block_def)
 
 
 class BlockMutate_OptB_4Blocks(BlockMutate_OptB):
@@ -100,10 +120,10 @@ class BlockMutate_NoFtn(BlockMutate_Abstract):
     '''
     used for guassian sum...we only have 1 primitive so no point in mutating ftns
     '''
-    def __init__(self):
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
         ezLogging.debug("%s-%s - Initialize BlockMutate_NoFtn Class" % (None, None))
-        self.prob_mutate = 1.0
-        self.num_mutants = 4
+        self.prob_mutate = prob_mutate
+        self.num_mutants = num_mutants
 
 
     def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
@@ -112,6 +132,26 @@ class BlockMutate_NoFtn(BlockMutate_Abstract):
         if roll < (1/3):
             mutate_methods.mutate_single_input(mutant_material, block_def)
         elif roll < (2/3):
+            mutate_methods.mutate_single_argvalue(mutant_material, block_def)
+        else:
+            mutate_methods.mutate_single_argindex(mutant_material, block_def)
+
+
+
+class BlockMutate_ArgsOnly(BlockMutate_Abstract):
+    '''
+    Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
+    '''
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
+        ezLogging.debug("%s-%s - Initialize BlockMutate_ArgsOnly Class" % (None, None))
+        self.prob_mutate = prob_mutate
+        self.num_mutants = num_mutants
+
+
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+        roll = rnd.random()
+        ezLogging.info("%s - Sending block to mutate; roll: %f" % (mutant_material.id, roll))
+        if roll < (1/2):
             mutate_methods.mutate_single_argvalue(mutant_material, block_def)
         else:
             mutate_methods.mutate_single_argindex(mutant_material, block_def)

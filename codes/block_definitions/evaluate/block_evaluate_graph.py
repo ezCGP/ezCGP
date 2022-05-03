@@ -9,6 +9,8 @@ Checkout BlockEvaluate_GraphAbstract() to see the main differences
 from abc import ABC, abstractmethod
 from copy import deepcopy
 import importlib
+import numpy as np
+import traceback
 
 ### sys relative to root dir
 import sys
@@ -126,7 +128,6 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         '''
         super().preprocess_block_evaluate(block_material)
         block_material.graph = None
-        tf.keras.backend.clear_session()
 
 
     def postprocess_block_evaluate(self, block_material):
@@ -137,11 +138,112 @@ class BlockEvaluate_GraphAbstract(BlockEvaluate_Abstract):
         '''
         super().postprocess_block_evaluate(block_material)
         block_material.graph = None
-        tf.keras.backend.clear_session()
 
 
 
 class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
+    '''
+    The original TFKeras BlockEvaluate has been renamed as TFKeras_wAugmentor.
+    In running MNIST or any other single channel image dataset, I found out that
+    we couldn't use Augmentor...Issue #288, so this just reads in data from
+    traininglist.
+    '''
+    def __init__(self):
+        super().__init__()
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras Class" % (None, None))
+
+
+    def build_graph(self,
+                    block_material,
+                    block_def,
+                    ezData_images):
+        ezLogging.debug("%s - Building Graph" % (block_material.id))
+
+        input_layer = tf.keras.Input(shape=ezData_images.image_shape, dtype=None)
+        output_layer = self.standard_build_graph(block_material,
+                                                 block_def,
+                                                 [input_layer])[0]
+
+        #  flatten the output node and perform a softmax
+        output_flatten = tf.keras.layers.Flatten()(output_layer)
+
+        logits = tf.keras.layers.Dense(units=ezData_images.num_classes, activation=None, use_bias=True)(output_flatten)
+        softmax = tf.keras.layers.Softmax(axis=1)(logits) # TODO verify axis...axis=1 was given by original code
+
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Model
+        block_material.graph = tf.keras.Model(inputs=input_layer, outputs=softmax)
+
+        #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
+        block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+                                     loss="categorical_crossentropy",
+                                     metrics=[tf.keras.metrics.CategoricalAccuracy(),
+                                              tf.keras.metrics.Precision(),
+                                              tf.keras.metrics.Recall()])
+
+
+    def train_graph(self,
+                    block_material,
+                    block_def,
+                    training_datalist,
+                    validating_datalist):
+        training_images = training_datalist[0]
+        validating_images = validating_datalist[0]
+        del training_datalist
+        del validating_datalist
+        ezLogging.debug("%s - Training Graph - %i batchsize, %i steps, %i epochs" % (block_material.id,
+                                                                                     block_def.batch_size,
+                                                                                     training_images.num_images//block_def.batch_size,
+                                                                                     block_def.epochs))
+        validation_data = (validating_images.x, validating_images.y)
+        history = block_material.graph.fit(x=training_images.x,
+                                           y=training_images.y,
+                                           batch_size=block_def.batch_size,
+                                           epochs=block_def.epochs,
+                                           verbose=2,
+                                           callbacks=None,
+                                           validation_data=validation_data,
+                                           shuffle=True,
+                                           steps_per_epoch=training_images.num_images//block_def.batch_size,
+                                           validation_steps=validating_images.num_images//block_def.batch_size,
+                                          )
+
+        # mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
+        return [-1 * history.history['val_categorical_accuracy'][-1],
+                -1 * history.history['val_precision'][-1],
+                -1 * history.history['val_recall'][-1]]
+
+
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition,
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements=None):
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        try:
+            self.build_graph(block_material, block_def, training_datalist[0])
+        except Exception as err:
+            ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            traceback.print_exc()
+            import pdb; pdb.set_trace()
+            return
+
+        try:
+            validation_scores = self.train_graph(block_material, block_def, training_datalist, validating_datalist)
+        except Exception as err:
+            ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
+            block_material.dead = True
+            traceback.print_exc()
+            import pdb; pdb.set_trace()
+            return
+
+        block_material.output = (None, None, validation_scores)
+
+
+
+
+class BlockEvaluate_TFKeras_wAugmentor(BlockEvaluate_GraphAbstract):
     '''
     assuming block_def has these custom attributes:
      * num_classes
@@ -149,7 +251,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
     '''
     def __init__(self):
         super().__init__()
-        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras Class" % (None, None))
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_TFKeras_wAugmentor Class" % (None, None))
 
 
     def build_graph(self, block_material, block_def, augmentor):
@@ -216,7 +318,8 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator
             '''
             training_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                    preprocessing_function=training_augmentor.pipeline.keras_preprocess_func()
+                                    preprocessing_function=training_augmentor.pipeline.keras_preprocess_func(),
+                                    dtype=np.uint8
                                     )
             #training_datagen.fit(training_datalist.x) # don't need to call fit(); see documentation
             training_generator = training_datagen.flow(x=training_images.x,
@@ -225,7 +328,8 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                                        shuffle=True)
 
             validating_datagen = tf.keras.preprocessing.image.ImageDataGenerator(
-                                    preprocessing_function=validating_augmentor.pipeline.keras_preprocess_func()
+                                    preprocessing_function=validating_augmentor.pipeline.keras_preprocess_func(),
+                                    dtype=np.uint8
                                     )
             #validating_datagen.fit(validating_datalist.x) # don't need to call fit(); see documentation
             validating_generator = training_datagen.flow(x=validating_images.x,
@@ -297,7 +401,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             ezLogging.critical("%s - Build Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import traceback; traceback.print_exc()
-            #import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace()
             return
 
         try:
@@ -306,7 +410,7 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
             ezLogging.critical("%s - Train Graph; Failed: %s" % (block_material.id, err))
             block_material.dead = True
             import traceback; traceback.print_exc()
-            #import pdb; pdb.set_trace()
+            import pdb; pdb.set_trace()
             return
 
         block_material.output = (None, None, validation_scores)

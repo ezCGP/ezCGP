@@ -9,6 +9,7 @@ mention any assumptions made in the code or rules about code structure should go
 '''
 
 ### packages
+import os
 import numpy as np
 from typing import List
 import importlib
@@ -25,6 +26,7 @@ sys.path.append(dirname(dirname(realpath(__file__))))
 from problems.problem_definition import ProblemDefinition_Abstract
 from codes.utilities.custom_logging import ezLogging
 from post_process import save_things
+from codes.utilities import decorators
 
 
 
@@ -93,6 +95,7 @@ class UniverseDefinition():
         problem.pop_size = possible_size
 
 
+    @decorators.stopwatch_decorator
     def parent_selection(self, problem: ProblemDefinition_Abstract):
         '''
         moved to problem class so user can easily customize selection method.
@@ -102,6 +105,7 @@ class UniverseDefinition():
         return problem.parent_selection(self)
 
 
+    @decorators.stopwatch_decorator
     def mate_population(self, problem: ProblemDefinition_Abstract):
         '''
         do a ranking/sorting of parents, then pair them off, mate the pairs, return and add the children
@@ -117,7 +121,7 @@ class UniverseDefinition():
         ezLogging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
-
+    @decorators.stopwatch_decorator
     def mutate_population(self, problem: ProblemDefinition_Abstract):
         '''
         super simple...just loop through am call mutate. at the block level is where it decides to mutate or not
@@ -130,7 +134,7 @@ class UniverseDefinition():
         ezLogging.info("Node %i - Mutation took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
-
+    @decorators.stopwatch_decorator
     def evolve_population(self, problem: ProblemDefinition_Abstract):
         '''
         TODO
@@ -144,7 +148,8 @@ class UniverseDefinition():
         ezLogging.info("Population size after Mutating: %i" % (len(self.population.population)))
 
 
-    def evaluate_score_population(self, problem: ProblemDefinition_Abstract, compute_node: int=None):
+    @decorators.stopwatch_decorator
+    def evaluate_score_population(self, problem: ProblemDefinition_Abstract):
         '''
         TODO
         '''
@@ -163,6 +168,7 @@ class UniverseDefinition():
         self.pop_individual_ids = np.array(self.pop_individual_ids)
 
 
+    @decorators.stopwatch_decorator
     def update_hall_of_fame(self):
         '''
         wrapper function to call the deap.tools.HallOfFame.update(population) method
@@ -170,15 +176,23 @@ class UniverseDefinition():
         self.population.update_hall_of_fame()
 
 
+    @decorators.stopwatch_decorator
     def population_selection(self, problem: ProblemDefinition_Abstract):
         '''
         moved to problem class so user can easily customize selection method.
         selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module.
         method should alter the self.population.population attr
         '''
-        problem.population_selection(self)
+        # current default population selection is better to have halloffame from previous generation, ie not updated yet
+        next_population = problem.population_selection(self)
+
+        # update hall of fame with current population before replacing population with next_population
+        self.update_hall_of_fame()
+
+        self.population.population = next_population
 
 
+    @decorators.stopwatch_decorator
     def check_convergence(self, problem: ProblemDefinition_Abstract):
         '''
         Should update self.converged
@@ -186,6 +200,7 @@ class UniverseDefinition():
         problem.check_convergence(self)
 
 
+    @decorators.stopwatch_decorator
     def postprocess_generation(self, problem: ProblemDefinition_Abstract):
         '''
         Just a wrapper to problem.postprocess_universe()
@@ -198,6 +213,7 @@ class UniverseDefinition():
         problem.postprocess_generation(self)
 
 
+    @decorators.stopwatch_decorator
     def postprocess_universe(self, problem: ProblemDefinition_Abstract):
         '''
         Wrapper to problem.postprocess_universe()
@@ -205,18 +221,16 @@ class UniverseDefinition():
         Provides an option for anything we want to do with the universe + population now that we reached the
         complete end of the evolutionary cycle.
         '''
-        save_things.save_population(self) # always save the population at the end of the run
         problem.postprocess_universe(self)
 
 
     def run(self, problem: ProblemDefinition_Abstract):
         '''
-        assumes a population has only been created and not evaluatedscored
+        assumes a population has only been created and not evaluated/scored
         '''
         self.generation = 0
         self.population = self.factory.build_population(problem, problem.pop_size, self.node_number, self.node_count)
         self.evaluate_score_population(problem)
-        self.update_hall_of_fame()
         self.population_selection(problem)
         self.check_convergence(problem)
         self.postprocess_generation(problem)
@@ -225,7 +239,6 @@ class UniverseDefinition():
             ezLogging.warning("Starting Generation %i" % self.generation)
             self.evolve_population(problem)
             self.evaluate_score_population(problem)
-            self.update_hall_of_fame()
             self.population_selection(problem)
             self.check_convergence(problem)
             self.postprocess_generation(problem)
@@ -265,6 +278,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         globals().update({name: getattr(mdl, name) for name in names})'''
 
 
+    @decorators.stopwatch_decorator
     def mpi_mate_population(self, problem: ProblemDefinition_Abstract):
         '''
         the only difference here with mate_population() [<-no mpi] is that we do parent_selection before hand
@@ -286,6 +300,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         ezLogging.info("Node %i - Mating took %.2f minutes" % (self.node_number, (time.time()-start_time)/60))
 
 
+    @decorators.stopwatch_decorator
     def mpi_evolve_population(self, problem: ProblemDefinition_Abstract):
         '''
         mpi wrapper around UniverseDefinition.evolve_population
@@ -298,6 +313,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.mutate_population(problem)
 
 
+    @decorators.stopwatch_decorator
     def mpi_evaluate_score_population(self, problem: ProblemDefinition_Abstract):
         '''
         a wrapper method to handle the scatter+gather to evaluate
@@ -309,6 +325,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.evaluate_score_population(problem)
 
 
+    @decorators.stopwatch_decorator
     def split_scatter_population(self, problem: ProblemDefinition_Abstract, parent_selection=False):
         '''
         small method where we assume that the population is a full list of individualmaterial
@@ -325,6 +342,7 @@ class MPIUniverseDefinition(UniverseDefinition):
         MPI.COMM_WORLD.Barrier()
 
 
+    @decorators.stopwatch_decorator
     def gather_population(self):
         '''
         each node has a subpopulation and now we want to collect all the subpops into a single list
@@ -356,14 +374,19 @@ class MPIUniverseDefinition(UniverseDefinition):
         self.population = self.factory.build_population(problem,
                                                         problem.pop_size//self.node_count, #each node make their own fraction of indiv...but how does seeding work, are they dups?
                                                         self.node_number,
-                                                        self.node_count) 
+                                                        self.node_count)
+        # Get host info for metadata
+        cmd = "hostname -I | awk '{print $1}'"
+        ip_address = os.popen(cmd).read()[:-1]
+        cmd = "uname -n"
+        hostname = os.popen(cmd).read()[:-1]
+        ezLogging.warning("Node %i - gpu count: (not avail rn) at %s on %s" % (self.node_number, ip_address, hostname))
         # TODO verify seeding
         # TODO verify that we are handling different indiv_id's for pop creation
         # TODO verify ezLogging
         self.mpi_evaluate_score_population(problem)
         self.gather_population()
         if self.node_number == 0:
-            self.update_hall_of_fame()
             self.population_selection(problem)
             self.check_convergence(problem)
             self.postprocess_generation(problem)
@@ -374,7 +397,130 @@ class MPIUniverseDefinition(UniverseDefinition):
             self.mpi_evaluate_score_population(problem)
             self.gather_population()
             if self.node_number == 0:
-                self.update_hall_of_fame()
+                self.population_selection(problem)
+                self.check_convergence(problem)
+                self.postprocess_generation(problem)
+            # if converged goes to True then we want all nodes to have that value changed
+            MPI.COMM_WORLD.Barrier()
+            self.converged = MPI.COMM_WORLD.bcast(self.converged, root=0)
+        if self.node_number == 0:
+            self.postprocess_universe(problem)
+
+
+
+class RelativePopulationUniverseDefinition(UniverseDefinition):
+    '''
+    Defines a Universe specifically for problems where the individuals are judged by a relative performance metric instead of an absolute performance metric
+    ie where the objective_function needs to be passed the whole population rather than a single individual.
+    '''
+    def __init__(self,
+                 problem: ProblemDefinition_Abstract,
+                 output_folder: str,
+                 random_seed: int):
+        ezLogging.info("Using Relative Population Universe")
+        super().__init__(problem, output_folder, random_seed)
+
+
+    @decorators.stopwatch_decorator
+    def evaluate_score_population(self, problem: ProblemDefinition_Abstract):
+        '''
+        Evaluates and scores the population
+        '''
+        self.pop_fitness_scores = []
+        self.pop_individual_ids = []
+
+        # EVALUATE
+        ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
+        for indiv in self.population.population:
+            problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
+
+        # SCORE
+        ezLogging.info("Scoring Population of size %i" % (len(self.population.population)))
+        problem.objective_functions(self.population)
+
+        # GET SCORES AND IDS
+        for indiv in self.population.population:
+            self.pop_fitness_scores.append(indiv.fitness.values)
+            self.pop_individual_ids.append(indiv.id)
+
+        self.pop_fitness_scores = np.array(self.pop_fitness_scores)
+        self.pop_individual_ids = np.array(self.pop_individual_ids)
+
+
+
+class RelativePopulationMPIUniverseDefinition(MPIUniverseDefinition):
+    '''
+    we have been using the RelativePopulationUniverse class for SimGAN
+    and now we want to try it with mpi to speed things up.
+    
+    Going to split up evaluate_score_population so we can distribute evaluate
+    but score on the same process...that's kinda the whole point of the relativepopulation
+    universe class
+    '''
+    def __init__(self,
+                 problem: ProblemDefinition_Abstract,
+                 output_folder: str,
+                 random_seed: int):
+        ezLogging.info("Using Relative Population !MPI! Universe")
+        super().__init__(problem, output_folder, random_seed)
+
+
+    @decorators.stopwatch_decorator
+    def mpi_evaluate_population(self, problem: ProblemDefinition_Abstract):
+        # EVALUATE
+        ezLogging.info("Evaluating Population of size %i" % (len(self.population.population)))
+        for indiv in self.population.population:
+            problem.indiv_def.evaluate(indiv, problem.training_datalist, problem.validating_datalist)
+
+
+    @decorators.stopwatch_decorator
+    def score_population(self, problem: ProblemDefinition_Abstract):
+        self.pop_fitness_scores = []
+        self.pop_individual_ids = []
+
+        # SCORE
+        ezLogging.info("Scoring Population of size %i" % (len(self.population.population)))
+        problem.objective_functions(self.population)
+
+        # GET SCORES AND IDS
+        for indiv in self.population.population:
+            self.pop_fitness_scores.append(indiv.fitness.values)
+            self.pop_individual_ids.append(indiv.id)
+
+        self.pop_fitness_scores = np.array(self.pop_fitness_scores)
+        self.pop_individual_ids = np.array(self.pop_individual_ids)
+
+
+    def run(self, problem: ProblemDefinition_Abstract):
+        self.generation = 0
+        # start split until after evaluate
+        self.population = self.factory.build_population(problem,
+                                                        problem.pop_size//self.node_count, #each node make their own fraction of indiv...but how does seeding work, are they dups?
+                                                        self.node_number,
+                                                        self.node_count)
+        # Get host info for metadata
+        import torch
+        gpu_count = torch.cuda.device_count()
+        cmd = "hostname -I | awk '{print $1}'"
+        ip_address = os.popen(cmd).read()[:-1]
+        cmd = "uname -n"
+        hostname = os.popen(cmd).read()[:-1]
+        ezLogging.warning("Node %i - gpu count: %i at %s on %s" % (self.node_number, gpu_count, ip_address, hostname))
+        self.mpi_evaluate_population(problem) #NEW
+        self.gather_population()
+        if self.node_number == 0:
+            self.score_population(problem) #NEW
+            self.population_selection(problem)
+            self.check_convergence(problem)
+            self.postprocess_generation(problem)
+        while not self.converged:
+            self.generation += 1
+            self.split_scatter_population(problem, parent_selection=True)
+            self.mpi_evolve_population(problem)
+            self.mpi_evaluate_population(problem) #NEW
+            self.gather_population()
+            if self.node_number == 0:
+                self.score_population(problem) #NEW
                 self.population_selection(problem)
                 self.check_convergence(problem)
                 self.postprocess_generation(problem)

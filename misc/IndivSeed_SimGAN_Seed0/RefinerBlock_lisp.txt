@@ -1,0 +1,1 @@
+[resnet,[resnet,[conv1d_layer,-1n,10,5,1,2,None],10,5,True],10,5,True]

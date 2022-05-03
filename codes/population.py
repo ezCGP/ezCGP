@@ -30,6 +30,7 @@ class PopulationDefinition():
         #self.pop_size = population_size #moved to problem.pop_size
         self.population = []
         self.hall_of_fame = None
+        self.hof_ids = []
 
 
     def __setitem__(self, node_index, value):
@@ -93,9 +94,13 @@ class PopulationDefinition():
         ezLogging.info("Combined %i sub populations into a single population" % (len(subpops)))
 
 
-    def setup_hall_of_fame(self, maxsize):
+    def setup_hall_of_fame(self):
         '''
-        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.HallOfFame
+        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.ParetoFront
+        https://github.com/DEAP/deap/blob/master/deap/tools/support.py#L591
+        NOTE using ParetoFront which inherits from HallOfFame. See Issue #285.
+        But tldr is that HallOfFame only works on single objective and ParetoFront
+        works for multiobjective and no maxsize which should also addess Issue #280.
 
         letting hall_of_fame use to be optional
         '''
@@ -110,12 +115,13 @@ class PopulationDefinition():
             '''
             if a.id == b.id:
                 return True
+            elif a.fitness.values == b.fitness_values:
+                return True
             else:
                 return False
 
-        self.hall_of_fame = deap.tools.HallOfFame(maxsize=maxsize,
-                                                  similar=similarity_equation)
-        ezLogging.debug("Established 'Hall of Fame' with maxsize %i" % maxsize)
+        self.hall_of_fame = deap.tools.ParetoFront(similar=similarity_equation)
+        ezLogging.debug("Established Hall of Fame")
 
 
     def update_hall_of_fame(self):
@@ -123,4 +129,32 @@ class PopulationDefinition():
         https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.HallOfFame.update
         '''
         if self.hall_of_fame is not None:
-            self.hall_of_fame.update(self.population)
+            # filter out dead people
+            alive_population = []
+            for indiv in self.population:
+                if not indiv.dead:
+                    if indiv.id not in self.hof_ids:
+                        alive_population.append(indiv)
+
+            self.hall_of_fame.update(alive_population)
+            ezLogging.debug("Updated Hall of Fame to size %i" % (len(self.hall_of_fame.items)))
+
+        # keep a running list of HOF id's just to keep handy...won't be too much extra space
+        self.hof_ids = []
+        for indiv in self.hall_of_fame.items:
+            self.hof_ids.append(indiv.id)
+
+
+    def get_pareto_front(self, use_hall_of_fame=False, first_front_only=False):
+        '''
+        https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.sortNondominated
+        https://github.com/DEAP/deap/blob/master/deap/tools/emo.py#L53
+        '''
+        if use_hall_of_fame:
+            individuals = self.hall_of_fame.items
+        else:
+            individuals = population.population
+        k = len(individuals)
+        fronts = deap.tools.sortNondominated(individuals, k, first_front_only)
+        ezLogging.debug("Calculated and Found %i Pareto Fronts" % (len(fronts)))
+        return fronts

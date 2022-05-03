@@ -68,7 +68,7 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         import tensorflow as tf
-        assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
+        # assert(len(tf.config.experimental.list_physical_devices('GPU'))>=1), "GPU NOT FOUND - ezCGP EXITING"
 
         population_size = 4#20
         number_universe = 1

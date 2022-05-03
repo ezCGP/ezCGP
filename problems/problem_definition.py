@@ -14,6 +14,7 @@ import glob
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import List
+from copy import deepcopy
 
 ### sys relative to root dir
 import sys
@@ -39,6 +40,31 @@ from codes.block_definitions.operators.block_operators import BlockOperators_Abs
 from codes.block_definitions.arguments.block_arguments import BlockArguments_Abstract
 
 
+def welless_check_decorator(func):
+    '''
+    just a convenient decorator to make it easier for the user to remember to check for dead
+    individuals and to quickly assign worst possible scores
+
+    inputs:
+        self -> Problem instance
+        population -> Population instance
+    '''
+    def inner(self, population):
+        for indiv in population.population:
+            if indiv.dead:
+                indiv.set_worst_score()
+            else:
+                but_really_is_dead = False
+                # double check just to be sure
+                for block in indiv.blocks:
+                    if block.dead:
+                        indiv.dead = True
+                        indiv.set_worst_score()
+        
+        func(self, population)
+
+    return inner
+
 
 class ProblemDefinition_Abstract(ABC):
     '''
@@ -56,8 +82,7 @@ class ProblemDefinition_Abstract(ABC):
                  factory_def: FactoryDefinition,
                  mpi: bool=False,
                  genome_seeds: List=[],
-                 number_of_objectives: int=None,
-                 hall_of_fame_size: int=None):
+                 hall_of_fame_flag: bool=True):
         '''
         genome_seeds:
         * each element in outer list is an inividual to be seeded
@@ -72,12 +97,14 @@ class ProblemDefinition_Abstract(ABC):
         self.construct_individual([block_def])
         '''
         self.pop_size = population_size
-        self.hall_of_fame_size = hall_of_fame_size
+        self.hall_of_fame_flag = hall_of_fame_flag
         self.number_universe = number_universe
         self.Factory = factory_def
         self.mpi = mpi
         self.genome_seeds = genome_seeds
-        self.number_of_objectives = number_of_objectives
+        self.set_optimization_goals()
+        self.number_of_objectives = len(self.maximize_objectives)
+        self.construct_dataset()
 
 
     @abstractmethod
@@ -87,6 +114,25 @@ class ProblemDefinition_Abstract(ABC):
         validating data + labels
         '''
         pass
+
+
+    @abstractmethod
+    def set_optimization_goals(self):
+        '''
+        Fill in the maximize_objectives attribute as a tuple/list of boolean values
+        where if the ith element is True, that indicates that the ith objective
+        is to be maximized in the optimization, and False indicates minimization.
+
+        Ex:
+        self.maximize_objectives = [True, True, False]
+
+        This tuple will be sued to set the weights and establish the number of
+        objectives for the IndividualMaterial.Fitness class,
+        And will be used to set the worst possible score for in individual_evaluate
+        if the individual is dead.
+        '''
+        pass
+
 
 
     @abstractmethod
@@ -121,8 +167,26 @@ class ProblemDefinition_Abstract(ABC):
         selection methods should be in codes/utilities/selections.py and generally are methods from deap.tools module
 
         setting default method to selNSGA2
+
+        Going to select from hall_of_fame (if it exists) + population that aren't in hall_of_fame
         '''
-        universe.population.population = selections.selNSGA2(universe.population.population, self.pop_size, nd='standard')
+        hall_of_fame_ids = []
+        hall_of_fame_individuals= []
+        if universe.population.hall_of_fame is not None:
+            for indiv in universe.population.hall_of_fame.items:
+                hall_of_fame_ids.append(indiv.id)
+                # deepcopying from hall of fame so that in the future, any changes to this indiv,
+                # won't affect the halloffame individuals.
+                hall_of_fame_individuals.append(deepcopy(indiv))
+
+        new_individuals = []
+        for indiv in universe.population.population:
+            if indiv.id not in hall_of_fame_ids:
+                new_individuals.append(indiv)
+
+        return selections.selNSGA2(hall_of_fame_individuals + new_individuals,
+                                   k=self.pop_size,
+                                   nd='standard')
 
 
     def parent_selection(self, universe):
@@ -179,8 +243,8 @@ class ProblemDefinition_Abstract(ABC):
         the idea here is that the universe.run() is about to exit but before it does,
         we can export or plot things wrt the final population
         '''
-        ezLogging.info("Post Processing Universe Run - pass")
-        pass
+        ezLogging.info("Post Processing Universe Run - default is to save population")
+        save_things.save_population(self)
 
 
     def get_best_indiv(self, universe, ith_obj):
