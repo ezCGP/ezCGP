@@ -6,6 +6,7 @@ evolution
 '''
 ### packages
 import os
+import json
 import pdb
 import random
 
@@ -27,10 +28,28 @@ class Dynamic():
             pdb.set_trace()
 
         # parse config file
-        # TODOOOOO
+        with open(config_filepath, "r") as f:
+            config = json.load(f)
+        
+        for key, value in config.items():
+            '''
+            functions
+            selection
+            mdf_prefix
+            parameters
+            root_type
+            root_primitive
+            fitness
+            initial_population
+            mdf_postfix
+            config
+            types
+            root_methods
+            '''
+            self.__dict__[key] = value
 
 
-    def define_argtypes(self):
+    def define_datatypes(self):
         '''
         Will use the BlockArguments_Auto() class to populate args,
         so the define_primitives() ftn better produce a valid operator_dict
@@ -40,9 +59,18 @@ class Dynamic():
         * float
         * str
 
-        ...how to mutate each?
+        Actually...going to change my approach. Going to think of it more like
+        input data types rather than argument/hyperparamter types
+        
+        say we had a dict of types like:
+        {'SomeClass': int,
+         'AnotherClass': dict}
         '''
-        TODO
+        for dtype_name, dtype in types_dict.items():
+            # holy crap that was way easier than i thought
+            globals()[dtype_name] = type(dtype_name, (dtype,), {})
+        
+        # or follow datatypes.py where I write all the custom classes to a new file that can be imported in
 
 
     def define_primitives(self):
@@ -55,19 +83,18 @@ class Dynamic():
         TODO
 
 
-    def define_shapemeta(self):
+    def define_shapemeta(self, name, input_dtypes, output_dtypes, main_count=50):
         '''
         gonna define shapemeta here so we can dynamically change
         input/output datatypes
+        
+        So this will return an un-instantiated class with type 'name'
         '''
         class BlockShapeMeta_Custom(BlockShapeMeta_Abstract):
             def __init__(self):
-                input_dtypes = [] # TODO
-                output_dtypes = [] # TODO
-                main_count = 50
                 BlockShapeMeta_Abstract.__init__(self,
                                                  input_dtypes,
                                                  output_dtypes,
                                                  main_count)
 
-        return BlockShapeMeta_Custom
+        return type(name, (BlockShapeMeta_Custom,), {})

@@ -1,0 +1,48 @@
+{
+    "parameters":{
+        "curr_num_sensors": {"type": "num"},
+        "curr_remaining_fuel": {"type": "num"}
+    },
+    "functions":{
+        "get_num_enemies": {"in_type": [], "out_type": "num", "function": "get_num_enemies()"},
+        "get_enemy_dists": {"in_type": [], "out_type": "list[num]", "function": "get_enemy_dists()"},
+        "get_paradigm_entry": {"in_type": ["num"], "out_type": "paradigm", "function": "return arg0"},
+        "def_paradigmns": {"in_type": ["dict{num:paradigm}"], "out_type": "paradigm_definitions", "function": "return arg0"}
+    },
+    "types":{
+        "num": {"type": "float"},
+        "paradigm": {"type": ""},
+        "list[num]": {"type": "list"},
+        "dict{num:paradigm}": {"type": "dict"},
+        "paradigm_definition": {"type": ""}
+    },
+    "root_primitive": "get_paradigm_entry",
+    "root_type": "paradigm",
+    "root_methods": "set_paradigm_entry",
+    "fitness": ["True", "True"],
+    "selection": {"function":"nsga2",
+                  "num_to_select":25},
+    "initial_population": 100,
+    "mdf_prefix":[
+        "from fargo_helper import get_num_enemies",
+        "from fargo_helper import get_enemy_dists\n",
+        "from evaluator import Paradigm",
+        "def set_globals(**args):",
+        "  raise NotImplementedError\n"
+    ],
+    "mdf_postfix":[
+        "\\ndef define_paradigms(**args):",
+        "  raise NotImplementedError\\n",
+        "def scoring_preprocessing(**args):",
+        "  raise NotImplementedError\\n",
+        "def scoring_postprocessing(**args):",
+        "  raise NotImplementedError\\n",
+        "def task_assigmnet_preprocessing(**args):",
+        "  raise NotImplementedError\\n",
+        "def task_assigmnet_preprocessing(**args):",
+        "  raise NotImplementedError\\n"
+    ],
+    "config":{
+        "max_time":"10:00"
+    }
+}
