@@ -288,3 +288,8 @@ class ProblemDefinition_Abstract(ABC):
                                               evaluate_def,
                                               mutate_def,
                                               mate_def)
+
+
+
+    def test(self, a, b, c):
+        print("noice")

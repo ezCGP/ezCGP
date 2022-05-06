@@ -529,3 +529,67 @@ class RelativePopulationMPIUniverseDefinition(MPIUniverseDefinition):
             self.converged = MPI.COMM_WORLD.bcast(self.converged, root=0)
         if self.node_number == 0:
             self.postprocess_universe(problem)
+
+
+
+class UniverseEvolveOnly(UniverseDefinition):
+    '''
+    See the evolve_only_module.py script for use of this class
+
+    Inheriting UniverseDefinition only for mating+mutating methods.
+    '''
+    def __init__(self,
+                 problem: ProblemDefinition_Abstract,
+                 output_folder: str,
+                 random_seed: int):
+        super().__init__(problem, output_folder, random_seed)
+
+
+    def reset_population(self, survived_individuals, problem):
+        '''
+        survived individuals, if not None, should be a list of tuples,
+        where each tuple is (output of individual evaluate, invidiaul id)
+        '''
+        if survived_individuals is None:
+            # init new population
+            self.population = self.factory.build_population(problem,
+                                                            problem.pop_size,
+                                                            self.node_number,
+                                                            self.node_count)
+        else:
+            assert(isinstance(survived_individuals,list)), "individuals passed to run() was not a list"
+            assert(isinstance(survived_individuals[0], tuple)), "an individual passed to run() is not a tuple"
+
+            # look through list of individuals and grab only the ids
+            survived_ids = []
+            for individual in survived_individuals:
+                survived_ids.append(individual[1])
+
+            # grab only individuals from population with survived id
+            next_population = []
+            for individual in self.universe.population:
+                if individual.id in survived_ids:
+                    next_population.append(individual)
+
+            self.population = next_population
+
+
+    @decorators.stopwatch_decorator
+    def evaluate_population(self, problem):
+        ezLogging.warning("Evaluating Population of size %i" % (len(self.population.population)))
+        output = []
+        for individual in self.population:
+            problem.indiv_def.evaluate(individual, problem.training_datalist, problem.validating_datalist)
+            if not individual.dead:
+                output.append((individual.output[0], individual.id))
+
+        return output
+
+
+    @decorators.stopwatch_decorator
+    def run(survived_individuals, problem):
+        self.generation += 1
+        self.reset_population(survived_individuals, problem)
+        self.evolve_population(problem)
+        outputs = self.evaluate_population(problem)
+        return outputs
