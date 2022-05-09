@@ -196,6 +196,23 @@ class BlockDefinition():
             block_material.lisp.append(lisp_str)
 
 
+    def dtypes_match(self, test_dtype, req_dtype):
+        '''
+        In strongly typing ezCGP we allow 2 things:
+        * if a dtype is 'None' then that means it could match with anything
+        * check the parent classes of ONLY non-req dtype for a match (excluding 'object' class)
+
+        class.__bases__ only returns immediate parent classes.
+        class.__mro__ returns all parents in lineage up to 'object'
+        '''
+        if (test_dtype is None) or (req_dtype is None):
+            return True
+
+        test_dtype_lineage = list(test_dtype.__mro__)
+        test_dtype_lineage.remove(object)
+        return req_dtype in test_dtype_lineage
+
+
     def get_node_dtype(self, block_material: BlockMaterial, node_index: int, key: str=None):
         '''
         this is a method to quickly grab the data type info at the 'node_index' position of the block_material genome
@@ -243,7 +260,7 @@ class BlockDefinition():
             for input_index in poss_inputs:
                 input_dtype = self.get_node_dtype(block_material, input_index, "output")
                 ezLogging.debug("%s - trying to match index %i with %s to %s" % (block_material.id, input_index, input_dtype, req_dtype))
-                if (req_dtype is None) or (req_dtype == input_dtype):
+                if self.dtypes_match(input_dtype, req_dtype):
                     # if req_dtype is None then it is NOT strongly-typed so it doesn't care about datatype
                     return input_index
                 else:
@@ -273,7 +290,7 @@ class BlockDefinition():
         if req_dtype is not None:
             delete = []
             for ith_choice, choice in enumerate(choices):
-                if self.operator_dict[choice]["output"] != req_dtype:
+                if self.dtypes_match(self.operator_dict[choice]["output"], req_dtype):
                     delete.append(ith_choice)
             weights = np.delete(weights, delete)
             choices = np.delete(choices, delete)
@@ -300,7 +317,7 @@ class BlockDefinition():
         ezLogging.debug("%s-%s - Inside get_random_arg; req_dtype: %s, exclude: %s" % (None, self.nickname, req_dtype, exclude))
         choices = []
         for arg_index, arg_type in enumerate(self.arg_types):
-            if (arg_type == req_dtype) and (arg_index not in exclude):
+            if self.dtypes_match(arg_type, req_dtype) and (arg_index not in exclude):
                 choices.append(arg_index)
 
         if len(choices) == 0:
@@ -365,7 +382,7 @@ class BlockDefinition():
         ezLogging.debug("%s - Sending to Block Evaluate Definition" % (block_material.id))
         '''# verify that the input data matches the expected datatypes
         for input_dtype, input_data in zip(self.input_dtypes, training_datapair):
-            if input_dtype != type(input_data):
+            if self.dtypes_match(type(input_data), input_dtype):
                 ezLogging.critical("%s - Input data type (%s) doesn't match expected type (%s)" % (block_material.id, type(input_data), input_dtype))
                 return None'''
         self.evaluate_def.preprocess_block_evaluate(block_material)
