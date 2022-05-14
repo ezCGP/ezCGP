@@ -13,6 +13,7 @@ Strategy:
 '''
 ### packages
 import os
+import sys
 import time
 import numpy as np
 import random
@@ -37,13 +38,14 @@ class ezCGP_Module():
         # create output directory
         time_str = time.strftime("%Y%m%d-%H%M%S")
         problem_filename = os.path.basename(problem_filepath)
-        self.universe_output_directory = os.path.join(dirname(realpath(__file__)),
+        self.universe_output_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                                       "outputs",
-                                                      problem_filename,
+                                                      problem_filename[:-3],
                                                       time_str)
+        os.makedirs(self.universe_output_directory, exist_ok=False)
 
         # set up logging
-        log_handler_2file = log_formatter = ezLogging.logging_setup(logging.WARNING)
+        self.log_handler_2file = log_formatter = ezLogging.logging_setup(logging.WARNING)
         ezLogging.logging_2file(log_formatter, filename=os.path.join(self.universe_output_directory, "log.txt"))
 
 
@@ -59,9 +61,9 @@ class ezCGP_Module():
         np.random.seed(seed)
 
         # import problem file
-        sys.path.join(os.path.dirname(problem_filepath))
+        sys.path.append(os.path.dirname(problem_filepath))
         problem_module = __import__(problem_filename[:-3]) #remove the '.py' from filename
-        self.problem = problem_module.Problem(config_filepath)
+        self.problem = problem_module.Problem(config_filepath, self.universe_output_directory)
 
         # import universe
         from codes.universe import UniverseEvolveOnly
@@ -70,17 +72,17 @@ class ezCGP_Module():
         random.seed(universe_seed)
         np.random.seed(universe_seed)
         ezLogging.warning("STARTING UNIVERSE")
-        self.universe = Universe(self.problem, self.universe_output_directory, universe_seed)
+        self.universe = UniverseEvolveOnly(self.problem, self.universe_output_directory, universe_seed)
 
 
-    def run(individuals=None):
-        output = self.universe.run(self.problem)
+    def run(self, individuals=None):
+        output = self.universe.run(individuals, self.problem)
         # TODO do we want to save anything?
         return output
 
 
-    def close():
-        ezLogging.logging_remove_handler(log_handler_2file)
+    def close(self):
+        ezLogging.logging_remove_handler(self.log_handler_2file)
         del self.universe
         del self.problem
         gc.collect()

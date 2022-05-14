@@ -17,7 +17,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 ### absolute imports wrt root
 from codes.block_definitions.shapemeta.block_shapemeta import BlockShapeMeta_Abstract
-from codes.misc.dynamic_problem_supplements import datatypes_template, primitives_template
+from misc.dynamic_problem_supplements import datatypes_template, primitives_template
 
 
 
@@ -80,7 +80,7 @@ class Dynamic():
 
         Load in some list of template primitives and write from there.
         '''
-        TODO
+        pass
 
 
     def define_shapemeta(self, name, input_dtypes, output_dtypes, main_count=50):

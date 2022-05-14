@@ -290,7 +290,7 @@ class BlockDefinition():
         if req_dtype is not None:
             delete = []
             for ith_choice, choice in enumerate(choices):
-                if self.dtypes_match(self.operator_dict[choice]["output"], req_dtype):
+                if not self.dtypes_match(self.operator_dict[choice]["output"], req_dtype):
                     delete.append(ith_choice)
             weights = np.delete(weights, delete)
             choices = np.delete(choices, delete)

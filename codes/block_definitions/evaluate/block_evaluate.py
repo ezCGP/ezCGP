@@ -23,6 +23,7 @@ and only want what is in supplements.
 
 ### packages
 from abc import ABC, abstractmethod
+from typing import List
 from copy import deepcopy
 import importlib
 
@@ -253,3 +254,122 @@ class BlockEvaluate_TrainValidate(BlockEvaluate_Standard):
 
         block_material.output = output
 '''
+
+
+
+class BlockEvaluate_WriteFtn(BlockEvaluate_Abstract):
+    '''
+    Each node returns a new line for the function we are writing out.
+    So the data types of the operator dict don't actually match what we are passing through
+    to the primitive...but it matters when the genome is assembled so that after the ftn
+    is written out, the datatypes will be valid there.
+    '''
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockEvaluate_WriteFtn Class" % (None, None))
+
+
+    def evaluate(self,
+                 block_material: BlockMaterial,
+                 block_def,#: BlockDefinition,
+                 training_datalist: ezData,
+                 validating_datalist: ezData,
+                 supplements: List[str]):
+        '''
+        for supplements, assume 2-element list:
+            *1) first chunk of the ftn we are writing
+            *2) last chunk ofthe ftn we are writing
+
+        our self.evaluated will be the string variable names for that node
+        '''
+        ezLogging.info("%s - Start evaluating..." % (block_material.id))
+        #assert(len(supplements)<=2), "Supplements to BlockEvaluate_WriteFtn are invalid"
+        assert(block_def.output_count==1), "BlockEvaluate_WriteFtn currently only works for when the block outputs 1 value, not %i" % block_def.output_count
+
+        ftn_str = []
+        ''' abandoning the whole 'supplements to carry beginning + end of ftn' thing 
+        if isinstance(supplements[0], str):
+            ftn_str.append(supplements[0])
+        elif isinstance(supplements[0], list):
+            ftn_str += supplements[0]
+        else:
+            raise Exception("Encountered a data type I didn't expect for supplements[0] in BlockEvaluate_WriteFtn: type %s" % (type(supplements[0])))
+        '''
+        # get function name from block nickname
+        function_name = block_def.nickname.split("-")[0]
+
+        ### Mimic Standard Evaluate:
+        first_line = "def %s(self, " % function_name
+
+        # add input data
+        for i, data_input in enumerate(training_datalist):
+            var_name = "input_%02i" % i
+            first_line += "%s, " % var_name
+            block_material.evaluated[-1*(i+1)] = var_name
+
+        # remove trailing ", " and close def statement
+        first_line = first_line[:-2]
+        first_line += "):"
+        ftn_str.append(first_line)
+
+        # go solve
+        for node_index in block_material.active_nodes:
+            if node_index < 0:
+                # do nothing. at input node
+                continue
+            elif node_index >= block_def.main_count:
+                # do nothing NOW. at output node. we'll come back to grab output after this loop
+                continue
+            else:
+                # name of variable to represent the output of this node
+                output_varname = "output_%02i" % node_index
+
+                # main node. this is where we evaluate
+                function = block_material[node_index]["ftn"]
+
+                inputs = []
+                node_input_indices = block_material[node_index]["inputs"]
+                for node_input_index in node_input_indices:
+                    inputs.append(block_material.evaluated[node_input_index])
+                inputs.append(output_varname)
+                ezLogging.debug("%s - Eval %i; input index: %s" % (block_material.id, node_index, node_input_indices))
+
+                args = []
+                node_arg_indices = block_material[node_index]["args"]
+                for node_arg_index in node_arg_indices:
+                    args.append(block_material.args[node_arg_index].value)
+                ezLogging.debug("%s - Eval %i; arg index: %s, value: %s" % (block_material.id, node_index, node_arg_indices, args))
+
+                ezLogging.debug("%s - Eval %i; Function: %s, Inputs: %s, Args: %s" % (block_material.id, node_index, function, inputs, args))
+                try:
+                    next_line = "\t" + function(*inputs, *args)
+                    ftn_str.append(next_line)
+                    block_material.evaluated[node_index] = output_varname
+                    ezLogging.info("%s - Eval %i; Success" % (block_material.id, node_index))
+                except Exception as err:
+                    ezLogging.critical("%s - Eval %i; Failed: %s" % (block_material.id, node_index, err))
+                    block_material.dead = True
+                    #import pdb; pdb.set_trace()
+                    break
+
+        # assumed block_def.output_count is 1...assertion established at top of evaluate()
+        output_index = block_def.main_count
+        next_line = "\tfinal_output = %s" % block_material.evaluated[block_material.genome[output_index]]
+        ftn_str.append(next_line)
+
+        ''' # abandoning the whole 'supplements to carry beginning + end of ftn' thing
+        if len(supplements) > 1:
+            # not sure what this would look like or if we'd ever use it, but put jic
+            if isinstance(supplements[-1], str):
+                ftn_str.append(supplements[-1])
+            elif isinstance(supplements[-1], list):
+                ftn_str += supplements[-1]
+            else:
+                raise Exception("Encountered a data type I didn't expect for supplements[-1] in BlockEvaluate_WriteFtn: type %s" % (type(supplements[-1])))
+        '''
+
+        last_line = "\treturn final_output"
+        ftn_str.append(last_line)
+        output_list = [ftn_str]
+
+        ezLogging.info("%s - Ending standard_evaluate...%i output" % (block_material.id, len(output_list)))
+        block_material.output = (None, None, output_list)

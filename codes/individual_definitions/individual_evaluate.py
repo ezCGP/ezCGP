@@ -17,8 +17,10 @@ and only want what is in supplements.
 '''
 
 ### packages
+import os
 from copy import deepcopy
 from abc import ABC, abstractmethod
+from typing import List
 import importlib
 
 ### sys relative to root dir
@@ -828,3 +830,117 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 discriminators.append(deepcopy(D))
 
         return refiners, discriminators
+
+
+
+class IndividualEvaluate_WriteMDF(IndividualEvaluate_Abstract):
+    '''
+    Evaluating will write to a file
+    '''
+    def __init__(self):
+        pass
+
+    def write_imports(self, filehandle):
+        modules = ['os',
+                   'sys',
+                   ('numpy','np'),
+                   'custom_datatypes']
+
+        for module in modules:
+            if isinstance(module, str):
+                filehandle.write("import %s\n" % module)
+            elif isinstance(module, tuple):
+                assert(len(module)==2), "Given tuple %s has unexpected shape" % module
+                module_name, alias = module
+                filehandle.write("import %s as %s\n" % (module_name, alias))
+            else:
+                raise("Unexpected datatype %s in IndividualEvaluate_WriteMDF.write_imports" % module)
+                continue
+
+        filehandle.write("\n") # trailing for gap
+
+
+    def start_class(self, filehandle, *arg_list):
+        filehandle.write("class My_MDF():\n")
+
+        # on init, pass in any args
+        arg_str = "self"
+        for arg in arg_list:
+            arg_str += ", %s" % arg
+        filehandle.write("\tdef __init__(%s):\n" % arg_str)
+
+        for arg in arg_list:
+            filehandle.write("\t\tself.%s = %s\n" % (arg, arg))
+
+        # if we want to set custom attributes
+        attributes = {}
+        for key, value in attributes.items():
+            filehandle.write("\t\tself.%s = %s\n" % (key, value))
+
+        if (len(arg_list)==0) and (len(attributes)==0):
+            filehandle.write("\t\tpass\n")
+    
+        filehandle.write("\n")
+
+
+    def write_method(self, filehandle, ftn_str_list):
+        # assume ftn_str_list already has the 'def ...()'' stuff
+        # but going to add in indent
+        indent = "\t"
+        for line in ftn_str_list:
+            if not line.endswith("\n"):
+                line += "\n"
+
+            line = indent+line
+
+            filehandle.write(line)
+    
+        filehandle.write("\n")
+
+
+    def finish_class(self, filehandle):
+        pass
+
+
+    @deepcopy_decorator
+    def evaluate(self,
+                 indiv_material: IndividualMaterial,
+                 indiv_def, #: IndividualDefinition,
+                 training_datalist: ezData,
+                 validating_datalist: ezData=None,
+                 supplements: List[str]=None):
+        '''
+        supplements will be where we will be storing the file to
+        '''
+        config = training_datalist[0]
+        filename = os.path.join(config.output_directory, "MDF_%s.py" % indiv_material.id)
+        with open(filename, 'w') as f:
+            self.write_imports(f)
+
+            class_arg_list = []
+            self.start_class(f, *class_arg_list)
+
+            for block_index, (block_material, block_def) in enumerate(zip(indiv_material.blocks, indiv_def.block_defs)):
+                # customize datalist for each block...
+                training_datalist=[None]*block_def.input_count
+                validating_datalist=None
+                self.standard_evaluate(indiv_material.id,
+                                       block_index,
+                                       block_def,
+                                       block_material,
+                                       training_datalist,
+                                       validating_datalist,
+                                       supplements=None,
+                                       apply_deepcopy=False)
+                if block_material.dead:
+                    indiv_material.dead = True
+                    break
+                _, _, supplements = block_material.output
+                self.write_method(f, supplements[0])
+
+            self.finish_class(f)
+
+        if indiv_material.dead:
+            indiv_material.output = [None]
+        else:
+            indiv_material.output = [filename]

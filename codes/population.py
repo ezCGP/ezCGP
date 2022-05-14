@@ -128,6 +128,7 @@ class PopulationDefinition():
         '''
         https://deap.readthedocs.io/en/master/api/tools.html#deap.tools.HallOfFame.update
         '''
+        self.hof_ids = []
         if self.hall_of_fame is not None:
             # filter out dead people
             alive_population = []
@@ -139,10 +140,9 @@ class PopulationDefinition():
             self.hall_of_fame.update(alive_population)
             ezLogging.debug("Updated Hall of Fame to size %i" % (len(self.hall_of_fame.items)))
 
-        # keep a running list of HOF id's just to keep handy...won't be too much extra space
-        self.hof_ids = []
-        for indiv in self.hall_of_fame.items:
-            self.hof_ids.append(indiv.id)
+            # keep a running list of HOF id's just to keep handy...won't be too much extra space
+            for indiv in self.hall_of_fame.items:
+                self.hof_ids.append(indiv.id)
 
 
     def get_pareto_front(self, use_hall_of_fame=False, first_front_only=False):

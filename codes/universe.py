@@ -543,6 +543,7 @@ class UniverseEvolveOnly(UniverseDefinition):
                  output_folder: str,
                  random_seed: int):
         super().__init__(problem, output_folder, random_seed)
+        self.generation = 0
 
 
     def reset_population(self, survived_individuals, problem):
@@ -556,6 +557,11 @@ class UniverseEvolveOnly(UniverseDefinition):
                                                             problem.pop_size,
                                                             self.node_number,
                                                             self.node_count)
+
+            # give them some fake pop score...need for evolving->parent selection
+            for i in range(len(self.population.population)):
+                self.population.population[i].fitness.values = (1,) * problem.num_objectives
+
         else:
             assert(isinstance(survived_individuals,list)), "individuals passed to run() was not a list"
             assert(isinstance(survived_individuals[0], tuple)), "an individual passed to run() is not a tuple"
@@ -567,11 +573,13 @@ class UniverseEvolveOnly(UniverseDefinition):
 
             # grab only individuals from population with survived id
             next_population = []
-            for individual in self.universe.population:
+            for individual in self.population:
                 if individual.id in survived_ids:
                     next_population.append(individual)
 
-            self.population = next_population
+            self.population.population = next_population
+
+        self.population_selection(problem) # needed for parent_selection
 
 
     @decorators.stopwatch_decorator
@@ -587,7 +595,7 @@ class UniverseEvolveOnly(UniverseDefinition):
 
 
     @decorators.stopwatch_decorator
-    def run(survived_individuals, problem):
+    def run(self, survived_individuals, problem):
         self.generation += 1
         self.reset_population(survived_individuals, problem)
         self.evolve_population(problem)

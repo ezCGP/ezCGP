@@ -182,6 +182,10 @@ if __name__ == "__main__":
         seed = int(args.seed)
     seed%=(2**32) #<-np.random.seed must be between [0,2**32-1]
     
+    # strip .py in problem
+    if args.problem.endswith('.py'):
+        args.problem = args.problem[:-3]
+
     if args.testing:
         time_str = "testing-%s" % time_str
     problem_output_directory = os.path.join(dirname(realpath(__file__)),
@@ -194,10 +198,7 @@ if __name__ == "__main__":
         problem_output_directory += name_str
 
     # figure out which problem py file to import
-    if args.problem.endswith('.py'):
-        problem_filename = os.path.basename(args.problem)
-    else:
-        problem_filename = os.path.basename(args.problem + ".py")
+    problem_filename = os.path.basename(args.problem + ".py")
     
     # RUN BABYYY
     main(problem_filename, problem_output_directory, args.previous_run, seed, args.loglevel)
