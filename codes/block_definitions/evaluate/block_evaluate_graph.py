@@ -176,9 +176,9 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
         block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                                      loss="categorical_crossentropy",
-                                     metrics=[tf.keras.metrics.CategoricalAccuracy(),
-                                              tf.keras.metrics.Precision(),
-                                              tf.keras.metrics.Recall()])
+                                     metrics=[tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy"),
+                                              tf.keras.metrics.Precision(name="precision"),
+                                              tf.keras.metrics.Recall(name="recall")])
 
 
     def train_graph(self,
@@ -207,10 +207,9 @@ class BlockEvaluate_TFKeras(BlockEvaluate_GraphAbstract):
                                            validation_steps=validating_images.num_images//block_def.batch_size,
                                           )
 
-        # mult by -1 since we want to maximize accuracy but universe optimization is minimization of fitness
-        return [-1 * history.history['val_categorical_accuracy'][-1],
-                -1 * history.history['val_precision'][-1],
-                -1 * history.history['val_recall'][-1]]
+        return [history.history['val_categorical_accuracy'][-1],
+                history.history['val_precision'][-1],
+                history.history['val_recall'][-1]]
 
 
     def evaluate(self,
