@@ -17,7 +17,10 @@ import os
 import time
 import gc
 from copy import deepcopy
+import numpy as np
 import matplotlib.pyplot as plt
+import subprocess as sp
+import multiprocessing
 
 ### sys relative to root dir
 import sys
@@ -45,9 +48,55 @@ we want to find correlation between variables we can change (batch size, network
 vs outcome (time, mem usage)
 '''
 
-TIMESTEP = 5 # in seconds
+TIMESTEP = 0.1 #5 # in seconds
 BATCH_SIZES = [2**5, 2**6, 2**7, 2**8, 2**9, 2**10] # TODO
 COLORS = ['k', 'b','g','r','c','m','y']
+
+
+def get_gpu_mem_tf():
+    '''
+    Assume that tf was already imported.
+    
+    TF allegedly allocates ALL available memory unless you set 'set_memory_growth' to True.
+    So if we have an old version of TF and can't get gpu memory from tf directly, then we have to
+    settle for the allocated memory instead of currently used memory and get it via nvidia-smi or something.
+    '''
+    assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
+    tf_version = float(".".join(tf.__version__.split(".")[:-1]))
+
+    if tf_version >= 2.5:
+        # https://www.tensorflow.org/versions/r2.5/api_docs/python/tf/config/experimental/get_memory_info
+        info = tf.config.experimental.get_memory_info('GPU:0')
+        memory = gpu_info['current']
+    elif tf_version >= 2.4:
+        # https://www.tensorflow.org/versions/r2.4/api_docs/python/tf/config/experimental/get_memory_usage
+        memory = tf.config.experimental.get_memory_usage('GPU:0')
+    else:
+        # https://www.tensorflow.org/versions/r2.2/api_docs/python/tf/config/experimental/set_memory_growth
+        gpu_devices = tf.config.list_physical_devices('GPU')
+        tf.config.experimental.set_memory_growth(gpu_devices[0], True)
+
+        # https://stackoverflow.com/questions/59567226/how-to-programmatically-determine-available-gpu-memory-with-tensorflow
+        command = "nvidia-smi --query-gpu=memory.free --format=csv"
+        memory_free_info = sp.check_output(command.split()).decode('ascii').split('\n')[:-1][1:]
+        memory = [int(x.split()[0]) for i, x in enumerate(memory_free_info)]
+
+    return memory
+
+
+def get_gpu_mem(module):
+    if module == 'tensorflow':
+        return get_gpu_mem_tf()
+    elif module == 'torch':
+        raise Exception("Haven't built a method to get gpu memory for pytorch.")
+    else:
+        raise Exception("Haven't built a method to get gpu memory for given module: %s" % module)
+
+
+def train(indiv_material, indiv_def, problem):
+    indiv_def.evaluate(indiv_material, problem.training_datalist, problem.validating_datalist)
+
+
 
 def go(problem, module, run_count=20):
     '''
@@ -60,7 +109,7 @@ def go(problem, module, run_count=20):
     population = factory.build_population(problem, 1, 0, 1)
     indiv_material = population[0]
     indiv_def = problem.indiv_def
-    
+
     # TODO: should i set num epochs to 1? what happens when we change it to 5 or something?
     if hasattr(indiv_def[0], 'epochs'):
         indiv_def[0].epochs = 1
@@ -80,8 +129,17 @@ def go(problem, module, run_count=20):
             # start subprocess to collect stats?
             # get help with
             
-            indiv_def.evaluate(indiv_material, problem.training_datalist, problem.validating_datalist)
-            
+            # threading stuff
+            p = multiprocessing.Process(target=train, args=(indiv_material, indiv_def, problem))
+            start_time = time.time()
+            p.start()
+            gpu_memory = []
+            while p.is_alive():
+                gpu_memory.append(get_gpu_mem(module))
+                time.sleep(TIMESTEP)
+            p.join()
+            run_time = time.time() - start_time
+
             if 'num_params' not in stats:
                 # fill with architecture stats:
                 stats['num_params'] = 0
@@ -89,9 +147,10 @@ def go(problem, module, run_count=20):
     
             # add stats:
             # TODO
-            stats[batch_size][i]['time'] = 0 # single float
-            stats[batch_size][i]['gpu_mem'] = 0 # array of floats at every X timestep
-            stats[batch_size][i]['sys_mem'] = 0 # array of floats at every X timestep
+            stats[batch_size][i] = {}
+            stats[batch_size][i]['time'] = run_time # single float
+            stats[batch_size][i]['gpu_mem'] = gpu_memory # array of floats at every X timestep
+            stats[batch_size][i]['sys_mem'] = gpu_memory # array of floats at every X timestep
             # TODO, should gpu_mem and sys_mem be the same length for each run?, right? depends on how we call i guess
             
             
@@ -116,36 +175,36 @@ def go(problem, module, run_count=20):
             batch_times.append(stats[batch_size][run]['time'])
         times.append(batch_times)
 
-    axes.bar() # TODO
+    #axes.bar() # TODO
 
-    axes.suptitle('%s\nTraining Time Stats' % (problem.__str__()))
+    fig.suptitle('%s\nTraining Time Stats' % (problem.__str__()))
     axes.set_ylabel('Ave Time')
     axes.set_xlabel('Batch Size')
-    
+    plt.close()
     
     ### mem -> time vs mem. 1 color for each batch_size. alpha low for overlap
-    fig, axes = plt.subplots(1, 2, sharex=True)
+    fig, axes = plt.subplots(2, 1, sharex=True)
     for i, batch_size in enumerate(BATCH_SIZES):
         color = COLORS[i]
-        for run in range(num_count):
+        for run in range(run_count):
             gpu_mem = stats[batch_size][run]['gpu_mem']
             sys_mem = stats[batch_size][run]['sys_mem']
             assert(len(gpu_mem)==len(sys_mem))
-            time = np.arange(len(gpu_mem)) * TIMESTEP
+            times = np.arange(len(gpu_mem)) * TIMESTEP
             kwargs = {'linestyle': '-',
                       'color': color,
                       'alpha': 0.4}
             if run == 0:
                 kwargs['label'] = batch_size
-            axes[0].plot(time, gpu_mem, **kwargs)
-            axes[1].plot(time, sys_mem, **kwargs)
+            axes[0].plot(times, gpu_mem, **kwargs)
+            axes[1].plot(times, sys_mem, **kwargs)
     
-    axes[0].suptitle("%s\nMemory Stats" % (problem.__str__())) # TODO, how to get class name??
+    fig.suptitle("%s\nMemory Stats" % (problem.__str__())) # TODO, how to get class name??
     axes[0].legend()
     axes[0].set_ylabel('GPU Mem (GB)')
     axes[1].set_ylabel('System Mem (GB)')
     axes[1].set_xlabel('Time (s)')
-    
+    plt.show()
 
 
 
@@ -164,7 +223,9 @@ if __name__ == "__main__":
                         required = False,
                         default = 'tensorflow',
                         help = "the module type will determine how we train and collect some stats")
-    
+
+    args = parser.parse_args()
+
     # figure out which problem py file to import
     if args.problem.endswith('.py'):
         problem_filename = args.problem[:-3]
@@ -177,6 +238,8 @@ if __name__ == "__main__":
     if args.module in ['tensorflow', 'tf', 'keras']:
         module = 'tensorflow'
         globals()['tf'] = __import__(module)
+        gpu_devices = tf.config.list_physical_devices('GPU')
+        tf.config.experimental.set_memory_growth(gpu_devices[0], True)
     elif args.module in ['pytorch', 'torch']:
         module = 'torch'
         globals()['torch'] = __import__(module)
