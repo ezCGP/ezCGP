@@ -510,7 +510,7 @@ def plot_mse_metric(mse, fitness_scores, objective_names=None, maximize_objectiv
     # reduce fitness scores to the 2 objectives we care about
     ezLogging.info("Fitnesses %s" % fitness_scores)
     fitness_scores = fitness_scores[:, fitness_index]
-  
+
     fitness_scores = fitness_scores.flatten()
     ezLogging.info("Fitnesses %s" % fitness_scores)
     #remove inf values
@@ -522,7 +522,7 @@ def plot_mse_metric(mse, fitness_scores, objective_names=None, maximize_objectiv
     ezLogging.info("MSE %s" % mse)
     #Convert max objectives to min (*-1 to points) so that we can make nice plot
     max_obj = maximize_objectives[fitness_index] 
-   
+
     labels = objective_names[fitness_index] 
     if max_obj == True:
         fitness_scores *= -1
