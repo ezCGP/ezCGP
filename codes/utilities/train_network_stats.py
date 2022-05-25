@@ -60,9 +60,15 @@ def get_gpu_mem_tf(return_dict):
     TF allegedly allocates ALL available memory unless you set 'set_memory_growth' to True.
     So if we have an old version of TF and can't get gpu memory from tf directly, then we have to
     settle for the allocated memory instead of currently used memory and get it via nvidia-smi or something.
+    UPDATE: memory growth set in problem_mnist.check_set_gpu(); do same in other problems, not here.
     '''
     memory_list = []
     return_dict['gpu_mem'] = memory_list
+
+    command = "nvidia-smi --query-gpu=memory.total --format=csv"
+    total_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
+    total_memory /= 1000 # convert MB to GB
+    return_dict['gpu_total_mem'] = total_memory
 
     assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
     tf_version = float(".".join(tf.__version__.split(".")[:-1]))
@@ -76,15 +82,16 @@ def get_gpu_mem_tf(return_dict):
             # https://www.tensorflow.org/versions/r2.4/api_docs/python/tf/config/experimental/get_memory_usage
             memory = tf.config.experimental.get_memory_usage('GPU:0')
         else:
-            # https://www.tensorflow.org/versions/r2.2/api_docs/python/tf/config/experimental/set_memory_growth
-            #gpu_devices = tf.config.list_physical_devices('GPU')
-            #tf.config.experimental.set_memory_growth(gpu_devices[0], True)
-            # Verified that we do ^this^ already in problem_mnist.check_set_gpu()
-
             # https://stackoverflow.com/questions/59567226/how-to-programmatically-determine-available-gpu-memory-with-tensorflow
-            command = "nvidia-smi --query-gpu=memory.free --format=csv"
-            memory_free_info = sp.check_output(command.split()).decode('ascii').split('\n')[:-1][1:]
-            memory = [int(x.split()[0]) for i, x in enumerate(memory_free_info)]
+            command = "nvidia-smi --query-gpu=memory.used --format=csv"
+            used_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
+            used_memory /= 1000 # convert MB to GB
+
+            command = "nvidia-smi --query-gpu=memory.reserved --format=csv"
+            reserved_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
+            reserved_memory /= 1000 # convert MB to GB
+
+            memory = used_memory + reserved_memory
 
         memory_list.append(memory)
         return_dict['gpu_mem'] = memory_list
@@ -238,7 +245,8 @@ def go(problem, module, run_count=20):
     axes[0].set_ylabel('GPU Mem (GB)')
     axes[1].set_ylabel('System Mem (GB)')
     axes[1].set_xlabel('Time (s)')
-    plt.show()
+    #plt.show()
+    plt.savefig("MemoryStats.png")
 
 
 
