@@ -48,7 +48,7 @@ we want to find correlation between variables we can change (batch size, network
 vs outcome (time, mem usage)
 '''
 
-TIMESTEP = 5 # in seconds
+TIMESTEP = 0.5 # in seconds
 BATCH_SIZES = [2**5, 2**6, 2**7, 2**8, 2**9, 2**10] # TODO
 COLORS = ['k', 'b','g','r','c','m','y']
 
@@ -174,8 +174,6 @@ def go(problem, module, run_count=20):
             train(indiv_material, indiv_def, problem)
             run_time = time.time() - start_time
             p.kill() # or terminate?
-            print(return_dict['gpu_mem'])
-            import pdb; pdb.set_trace()
             gpu_memory = return_dict['gpu_mem']
 
 
@@ -215,13 +213,19 @@ def go(problem, module, run_count=20):
         for run in range(run_count):
             batch_times.append(stats[batch_size][run]['time'])
         times.append(batch_times)
+    times = np.array(times)
 
-    #axes.bar() # TODO
+    x_pos = np.arange(len(bar_labels)) + 0.5
+    time_avg = times.mean(axis=1)
+    time_std = times.std(axis=1)
+    axes.bar(x_pos, time_avg, yerr=time_std)
+    axes.set_xticks(x_pos)
+    axes.set_xticklabels(bar_labels) 
 
-    fig.suptitle('%s\nTraining Time Stats' % (problem.__str__()))
+    fig.suptitle('%s\nTraining Time Stats' % (problem.__class__.__module__))
     axes.set_ylabel('Ave Time')
     axes.set_xlabel('Batch Size')
-    plt.close()
+    plt.savefig("TimeStats.png")
     
     ### mem -> time vs mem. 1 color for each batch_size. alpha low for overlap
     fig, axes = plt.subplots(2, 1, sharex=True)
@@ -233,6 +237,7 @@ def go(problem, module, run_count=20):
             assert(len(gpu_mem)==len(sys_mem))
             times = np.arange(len(gpu_mem)) * TIMESTEP
             kwargs = {'linestyle': '-',
+                      'marker': 'x',
                       'color': color,
                       'alpha': 0.4}
             if run == 0:
@@ -240,12 +245,11 @@ def go(problem, module, run_count=20):
             axes[0].plot(times, gpu_mem, **kwargs)
             axes[1].plot(times, sys_mem, **kwargs)
     
-    fig.suptitle("%s\nMemory Stats" % (problem.__str__())) # TODO, how to get class name??
+    fig.suptitle("%s\nMemory Stats" % (problem.__class__.__module__)) # TODO, how to get class name??
     axes[0].legend()
     axes[0].set_ylabel('GPU Mem (GB)')
     axes[1].set_ylabel('System Mem (GB)')
     axes[1].set_xlabel('Time (s)')
-    #plt.show()
     plt.savefig("MemoryStats.png")
 
 
@@ -288,4 +292,4 @@ if __name__ == "__main__":
     # load in NN module
     load_NN_module(args.module)
     
-    go(problem, module, 2)
+    go(problem, module, 10)

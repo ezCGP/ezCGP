@@ -16,7 +16,7 @@ nvidia-smi
 problem="--problem $1"
 
 cd ~/ezCGP/codes/utilities
-module load anaconda3/2020.02
+module load anaconda3/2021.11
 module load cuda/10.1
 conda activate ezcgp-py
 rm -rf ~/.nv
