@@ -48,12 +48,12 @@ we want to find correlation between variables we can change (batch size, network
 vs outcome (time, mem usage)
 '''
 
-TIMESTEP = 0.1 #5 # in seconds
+TIMESTEP = 5 # in seconds
 BATCH_SIZES = [2**5, 2**6, 2**7, 2**8, 2**9, 2**10] # TODO
 COLORS = ['k', 'b','g','r','c','m','y']
 
 
-def get_gpu_mem_tf():
+def get_gpu_mem_tf(return_dict):
     '''
     Assume that tf was already imported.
     
@@ -61,32 +61,49 @@ def get_gpu_mem_tf():
     So if we have an old version of TF and can't get gpu memory from tf directly, then we have to
     settle for the allocated memory instead of currently used memory and get it via nvidia-smi or something.
     '''
+    memory_list = []
+    return_dict['gpu_mem'] = memory_list
+
     assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
     tf_version = float(".".join(tf.__version__.split(".")[:-1]))
 
-    if tf_version >= 2.5:
-        # https://www.tensorflow.org/versions/r2.5/api_docs/python/tf/config/experimental/get_memory_info
-        info = tf.config.experimental.get_memory_info('GPU:0')
-        memory = gpu_info['current']
-    elif tf_version >= 2.4:
-        # https://www.tensorflow.org/versions/r2.4/api_docs/python/tf/config/experimental/get_memory_usage
-        memory = tf.config.experimental.get_memory_usage('GPU:0')
-    else:
-        # https://www.tensorflow.org/versions/r2.2/api_docs/python/tf/config/experimental/set_memory_growth
-        gpu_devices = tf.config.list_physical_devices('GPU')
-        tf.config.experimental.set_memory_growth(gpu_devices[0], True)
+    while True:
+        if tf_version >= 2.5:
+            # https://www.tensorflow.org/versions/r2.5/api_docs/python/tf/config/experimental/get_memory_info
+            info = tf.config.experimental.get_memory_info('GPU:0')
+            memory = gpu_info['current']
+        elif tf_version >= 2.4:
+            # https://www.tensorflow.org/versions/r2.4/api_docs/python/tf/config/experimental/get_memory_usage
+            memory = tf.config.experimental.get_memory_usage('GPU:0')
+        else:
+            # https://www.tensorflow.org/versions/r2.2/api_docs/python/tf/config/experimental/set_memory_growth
+            #gpu_devices = tf.config.list_physical_devices('GPU')
+            #tf.config.experimental.set_memory_growth(gpu_devices[0], True)
+            # Verified that we do ^this^ already in problem_mnist.check_set_gpu()
 
-        # https://stackoverflow.com/questions/59567226/how-to-programmatically-determine-available-gpu-memory-with-tensorflow
-        command = "nvidia-smi --query-gpu=memory.free --format=csv"
-        memory_free_info = sp.check_output(command.split()).decode('ascii').split('\n')[:-1][1:]
-        memory = [int(x.split()[0]) for i, x in enumerate(memory_free_info)]
+            # https://stackoverflow.com/questions/59567226/how-to-programmatically-determine-available-gpu-memory-with-tensorflow
+            command = "nvidia-smi --query-gpu=memory.free --format=csv"
+            memory_free_info = sp.check_output(command.split()).decode('ascii').split('\n')[:-1][1:]
+            memory = [int(x.split()[0]) for i, x in enumerate(memory_free_info)]
 
-    return memory
+        memory_list.append(memory)
+        return_dict['gpu_mem'] = memory_list
+        time.sleep(TIMESTEP)
 
 
-def get_gpu_mem(module):
+def get_gpu_mem(module, return_dict):
+    '''
+    I thought multiprocessing Process would have same imports but it doesn't
+    for some reason so having to re-load_NN_module.
+
+    Using multiprocessing Manager dict to store values.
+    NOTE we have to constantly overwrite the key/value for it to get stored properly
+    ...can't just 'append' values to existing key/value
+    '''
+    load_NN_module(module)
     if module == 'tensorflow':
-        return get_gpu_mem_tf()
+        assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
+        get_gpu_mem_tf(return_dict)
     elif module == 'torch':
         raise Exception("Haven't built a method to get gpu memory for pytorch.")
     else:
@@ -95,7 +112,6 @@ def get_gpu_mem(module):
 
 def train(indiv_material, indiv_def, problem):
     indiv_def.evaluate(indiv_material, problem.training_datalist, problem.validating_datalist)
-
 
 
 def go(problem, module, run_count=20):
@@ -129,6 +145,7 @@ def go(problem, module, run_count=20):
             # start subprocess to collect stats?
             # get help with
             
+            '''###################### ORIGINAL#############################
             # threading stuff
             p = multiprocessing.Process(target=train, args=(indiv_material, indiv_def, problem))
             start_time = time.time()
@@ -138,7 +155,24 @@ def go(problem, module, run_count=20):
                 gpu_memory.append(get_gpu_mem(module))
                 time.sleep(TIMESTEP)
             p.join()
+            run_time = time.time() - start_time'''
+            #################################################################
+            # use mulltiprocessing.Manager to store values from gpu_mem as it's run
+            assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
+            manager = multiprocessing.Manager()
+            return_dict = manager.dict()
+            p = multiprocessing.Process(target=get_gpu_mem, args=(module, return_dict))
+            p.start()
+            start_time = time.time()
+            train(indiv_material, indiv_def, problem)
             run_time = time.time() - start_time
+            p.kill() # or terminate?
+            print(return_dict['gpu_mem'])
+            import pdb; pdb.set_trace()
+            gpu_memory = return_dict['gpu_mem']
+
+
+            ###################################################################
 
             if 'num_params' not in stats:
                 # fill with architecture stats:
@@ -208,7 +242,16 @@ def go(problem, module, run_count=20):
 
 
 
-
+def load_NN_module(module):
+    if module in ['tensorflow', 'tf', 'keras']:
+        module = 'tensorflow'
+        globals()['tf'] = __import__(module)
+    elif module in ['pytorch', 'torch']:
+        module = 'torch'
+        globals()['torch'] = __import__(module)
+    else:
+        raise Exception("Didn't recognize command line argument for 'module': %s" % (args.module))
+    globals()['module'] = module
 
 
 if __name__ == "__main__":
@@ -235,15 +278,6 @@ if __name__ == "__main__":
     problem = problem_module.Problem()
     
     # load in NN module
-    if args.module in ['tensorflow', 'tf', 'keras']:
-        module = 'tensorflow'
-        globals()['tf'] = __import__(module)
-        gpu_devices = tf.config.list_physical_devices('GPU')
-        tf.config.experimental.set_memory_growth(gpu_devices[0], True)
-    elif args.module in ['pytorch', 'torch']:
-        module = 'torch'
-        globals()['torch'] = __import__(module)
-    else:
-        raise Exception("Didn't recognize command line argument for 'module': %s" % (args.module))
+    load_NN_module(args.module)
     
     go(problem, module, 2)
