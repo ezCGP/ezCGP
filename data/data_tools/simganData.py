@@ -119,8 +119,8 @@ class SimGANECGDataset():
         # REAL     |     24,56      |          1:0.64				  |              [1,4,6],[5,8,10]
         # SYNTHETIC|    23.5,55.5   |          1:0.78                 |                [4]  ,  [10]
         # Can configure these, but they are a bit obtuse
-        self.real_raw = np.expand_dims(np.load('./data/datasets/abnormal.npy', allow_pickle=True), axis=1)[:32]
-        self.simulated_raw = np.expand_dims(np.load('./data/datasets/sim_dataset.npy', allow_pickle=True), axis=1)[:400]
+        self.real_raw = np.expand_dims(np.load('./data/datasets/ecg/abnormal.npy', allow_pickle=True), axis=1)[:32]
+        self.simulated_raw = np.expand_dims(np.load('./data/datasets/ecg/sim_dataset.npy', allow_pickle=True), axis=1)[:400]
         print(self.real_raw.shape)
         print(self.simulated_raw.shape)
         print('_______________________________')
