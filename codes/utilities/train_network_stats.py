@@ -10,6 +10,10 @@ crazy complications:
 * We are only going to look at 1 individual in the population (always the 0th index)
 * Going to assume we only have 1 block in the indiv_def and that
 * That batch size is a param in indiv_def[0] as set by BlockShapeMeta
+
+Install 'psutil' for CPU and RAM status
+https://pypi.org/project/psutil/
+`pip install psutil`
 '''
 
 ### packages
@@ -19,6 +23,7 @@ import gc
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
+import psutil
 import subprocess as sp
 import multiprocessing
 
@@ -62,43 +67,31 @@ def get_gpu_mem_tf(return_dict):
     settle for the allocated memory instead of currently used memory and get it via nvidia-smi or something.
     UPDATE: memory growth set in problem_mnist.check_set_gpu(); do same in other problems, not here.
     '''
-    memory_list = []
-    return_dict['gpu_mem'] = memory_list
-
-    command = "nvidia-smi --query-gpu=memory.total --format=csv"
-    total_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
-    total_memory /= 1000 # convert MB to GB
-    return_dict['gpu_total_mem'] = total_memory
-
     assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
     tf_version = float(".".join(tf.__version__.split(".")[:-1]))
+    if tf_version >= 2.5:
+        # https://www.tensorflow.org/versions/r2.5/api_docs/python/tf/config/experimental/get_memory_info
+        info = tf.config.experimental.get_memory_info('GPU:0')
+        memory = gpu_info['current']
+    elif tf_version >= 2.4:
+        # https://www.tensorflow.org/versions/r2.4/api_docs/python/tf/config/experimental/get_memory_usage
+        memory = tf.config.experimental.get_memory_usage('GPU:0')
+    else:
+        # https://stackoverflow.com/questions/59567226/how-to-programmatically-determine-available-gpu-memory-with-tensorflow
+        command = "nvidia-smi --query-gpu=memory.used --format=csv"
+        used_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
+        used_memory /= 1000 # convert MB to GB
 
-    while True:
-        if tf_version >= 2.5:
-            # https://www.tensorflow.org/versions/r2.5/api_docs/python/tf/config/experimental/get_memory_info
-            info = tf.config.experimental.get_memory_info('GPU:0')
-            memory = gpu_info['current']
-        elif tf_version >= 2.4:
-            # https://www.tensorflow.org/versions/r2.4/api_docs/python/tf/config/experimental/get_memory_usage
-            memory = tf.config.experimental.get_memory_usage('GPU:0')
-        else:
-            # https://stackoverflow.com/questions/59567226/how-to-programmatically-determine-available-gpu-memory-with-tensorflow
-            command = "nvidia-smi --query-gpu=memory.used --format=csv"
-            used_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
-            used_memory /= 1000 # convert MB to GB
+        command = "nvidia-smi --query-gpu=memory.reserved --format=csv"
+        reserved_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
+        reserved_memory /= 1000 # convert MB to GB
 
-            command = "nvidia-smi --query-gpu=memory.reserved --format=csv"
-            reserved_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
-            reserved_memory /= 1000 # convert MB to GB
+        memory = used_memory + reserved_memory
 
-            memory = used_memory + reserved_memory
-
-        memory_list.append(memory)
-        return_dict['gpu_mem'] = memory_list
-        time.sleep(TIMESTEP)
+    return memory
 
 
-def get_gpu_mem(module, return_dict):
+def get_system_status(module, return_dict):
     '''
     I thought multiprocessing Process would have same imports but it doesn't
     for some reason so having to re-load_NN_module.
@@ -108,13 +101,40 @@ def get_gpu_mem(module, return_dict):
     ...can't just 'append' values to existing key/value
     '''
     load_NN_module(module)
-    if module == 'tensorflow':
-        assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
-        get_gpu_mem_tf(return_dict)
-    elif module == 'torch':
-        raise Exception("Haven't built a method to get gpu memory for pytorch.")
-    else:
-        raise Exception("Haven't built a method to get gpu memory for given module: %s" % module)
+
+    command = "nvidia-smi --query-gpu=memory.total --format=csv"
+    total_memory = int(sp.check_output(command.split()).decode('ascii').split("\n")[1].split()[0])
+    total_memory /= 1000 # convert MB to GB
+    return_dict['gpu_total_mem'] = total_memory
+
+    return_dict['gpu'] = None
+    return_dict['ram'] = None
+    return_dict['cpu'] = None
+    gpu_memory_list = []
+    ram_memory_list = []
+    cpu_usage_list = []
+    while True:
+        ### GET GPU INFO
+        if module == 'tensorflow':
+            assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
+            gpu_memory = get_gpu_mem_tf(return_dict)
+        elif module == 'torch':
+            raise Exception("Haven't built a method to get gpu memory for pytorch.")
+        else:
+            raise Exception("Haven't built a method to get gpu memory for given module: %s" % module)
+        gpu_memory_list.append(gpu_memory)
+
+        ### GET RAM IFNO
+        ram_total, ram_avail, ram_perc, ram_used, ram_free = psutil.virtual_memory()
+        ram_memory_list.append(ram_used)
+
+        ### GET CPU INFO
+        # skipping
+
+        return_dict['gpu'] = gpu_memory_list
+        return_dict['ram'] = ram_memory_list
+        return_dict['cpu'] = cpu_usage_list
+        time.sleep(TIMESTEP)
 
 
 def train(indiv_material, indiv_def, problem):
@@ -168,13 +188,15 @@ def go(problem, module, run_count=20):
             assert('tf' in globals()), "Using get_gpu_mem_tf but tensorflow as tf not imported"
             manager = multiprocessing.Manager()
             return_dict = manager.dict()
-            p = multiprocessing.Process(target=get_gpu_mem, args=(module, return_dict))
+            p = multiprocessing.Process(target=get_system_status, args=(module, return_dict))
             p.start()
             start_time = time.time()
             train(indiv_material, indiv_def, problem)
             run_time = time.time() - start_time
             p.kill() # or terminate?
-            gpu_memory = return_dict['gpu_mem']
+            gpu_memory = return_dict['gpu']
+            ram_memory = return_dict['ram']
+            cpu_usage = return_dict['cpu']
 
 
             ###################################################################
@@ -189,13 +211,13 @@ def go(problem, module, run_count=20):
             stats[batch_size][i] = {}
             stats[batch_size][i]['time'] = run_time # single float
             stats[batch_size][i]['gpu_mem'] = gpu_memory # array of floats at every X timestep
-            stats[batch_size][i]['sys_mem'] = gpu_memory # array of floats at every X timestep
+            stats[batch_size][i]['sys_mem'] = ram_memory # array of floats at every X timestep
             # TODO, should gpu_mem and sys_mem be the same length for each run?, right? depends on how we call i guess
             
             
             # reset individual...in this case, it is convenient to treat as a mutated indiv
             indiv_def.postprocess_evolved_individual(indiv_material, 0)
-            time.sleep(5)
+            time.sleep(1)
             gc.collect()
             
         # TODO is there a way to try/catch when gpu is going to run out of memory instead of python crashing?
