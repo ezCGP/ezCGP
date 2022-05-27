@@ -136,6 +136,11 @@ class Problem(ProblemDefinition_Abstract):
         self.training_datalist, self.validating_datalist, self.testing_datalist = loader.load()
 
 
+    def set_optimization_goals(self):
+        self.maximize_objectives = [True, True, True]
+        self.objective_names = ["Accuracy", "Precision", "Recal"]
+
+
     def objective_functions(self, indiv):
         '''
         :param indiv: individual which contains references to output of training
