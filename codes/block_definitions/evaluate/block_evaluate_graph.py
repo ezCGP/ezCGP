@@ -279,9 +279,9 @@ class BlockEvaluate_TFKeras_wAugmentor(BlockEvaluate_GraphAbstract):
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
         block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                                      loss="categorical_crossentropy",
-                                     metrics=[tf.keras.metrics.CategoricalAccuracy(),
-                                              tf.keras.metrics.Precision(),
-                                              tf.keras.metrics.Recall()])
+                                     metrics=[tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy"),
+                                              tf.keras.metrics.Precision(name="precision"),
+                                              tf.keras.metrics.Recall(name="recall")])
 
 
     def get_generator(self,
@@ -547,9 +547,9 @@ class BlockEvaluate_TFKeras_CloseAnOpenGraph(BlockEvaluate_TFKeras):
         #https://www.tensorflow.org/api_docs/python/tf/keras/Model#compile
         block_material.graph.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
                                      loss="categorical_crossentropy",
-                                     metrics=[tf.keras.metrics.CategoricalAccuracy(),
-                                              tf.keras.metrics.Precision(),
-                                              tf.keras.metrics.Recall()])
+                                     metrics=[tf.keras.metrics.CategoricalAccuracy(name="categorical_accuracy"),
+                                              tf.keras.metrics.Precision(name="precision"),
+                                              tf.keras.metrics.Recall(name="recall")])
 
 
     def evaluate(self,
