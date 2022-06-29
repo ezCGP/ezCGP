@@ -125,7 +125,7 @@ def get_system_status(module, return_dict):
         gpu_memory_list.append(gpu_memory)
 
         ### GET RAM IFNO
-        ram_total, ram_avail, ram_perc, ram_used, ram_free = psutil.virtual_memory()
+        ram_total, ram_avail, ram_perc, ram_used, ram_free = psutil.virtual_memory()[:5]
         ram_memory_list.append(ram_used)
 
         ### GET CPU INFO
@@ -154,8 +154,8 @@ def go(problem, module, run_count=20):
     indiv_def = problem.indiv_def
 
     # TODO: should i set num epochs to 1? what happens when we change it to 5 or something?
-    if hasattr(indiv_def[0], 'epochs'):
-        indiv_def[0].epochs = 1
+    if hasattr(indiv_def[-1], 'epochs'):
+        indiv_def[-1].epochs = 1
     else:
         raise Exception("Couldn't find 'batch_size' attr for block def; why isn't it in BlockShapeMeta?")    
     
@@ -163,8 +163,8 @@ def go(problem, module, run_count=20):
     for batch_size in BATCH_SIZES:
         stats[batch_size] = {}
         
-        if hasattr(indiv_def[0], 'batch_size'):
-            indiv_def[0].batch_size = batch_size
+        if hasattr(indiv_def[-1], 'batch_size'):
+            indiv_def[-1].batch_size = batch_size
         else:
             raise Exception("Couldn't find 'batch_size' attr for block def; why isn't it in BlockShapeMeta?")
         

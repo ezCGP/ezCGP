@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=ezCGP_train_stats                 # name of job
+#SBATCH --job-name=train_stats                       # name of job
 #SBATCH -N 1                                         # number of machines
 #SBATCH -c 8                                         # number of cores
 #SBATCH --gres=gpu:1                                 # number of gpus
