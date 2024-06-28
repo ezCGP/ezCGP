@@ -54,7 +54,7 @@ class Problem(ProblemDefinition_Abstract):
         refiner_def = self.construct_block_def(nickname = "refiner_block",
                                                shape_def = BlockShapeMeta_SimGAN_Network,
                                                operator_def = BlockOperators_SimGAN_Refiner,
-                                               argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Refiner().operator_dict, 10),
+                                               argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Refiner(), 10),
                                                evaluate_def = BlockEvaluate_SimGAN_Refiner,
                                                mutate_def=BlockMutate_OptB_No_Single_Ftn(prob_mutate=0.2, num_mutants=2),
                                                mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -63,7 +63,7 @@ class Problem(ProblemDefinition_Abstract):
         discriminator_def = self.construct_block_def(nickname = "discriminator_block",
                                                      shape_def = BlockShapeMeta_SimGAN_Network,
                                                      operator_def = BlockOperators_SimGAN_Discriminator,
-                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Discriminator().operator_dict, 15),
+                                                     argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Discriminator(), 15),
                                                      evaluate_def = BlockEvaluate_SimGAN_Discriminator,
                                                      mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=2),
                                                      mate_def=BlockMate_WholeOnly(prob_mate=1/3)
@@ -72,7 +72,7 @@ class Problem(ProblemDefinition_Abstract):
         train_config_def = self.construct_block_def(nickname = "train_config",
                                                     shape_def = BlockShapeMeta_SimGAN_Train_Config,
                                                     operator_def = BlockOperators_SimGAN_Train_Config,
-                                                    argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config().operator_dict, 10),
+                                                    argument_def = BlockArguments_Auto(BlockOperators_SimGAN_Train_Config(), 10),
                                                     evaluate_def = BlockEvaluate_SimGAN_Train_Config,
                                                     mutate_def=BlockMutate_ArgsOnly(prob_mutate=0.1, num_mutants=2),
                                                     mate_def=BlockMate_WholeOnly(prob_mate=1/3)

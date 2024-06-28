@@ -28,7 +28,7 @@ from codes.block_definitions.operators.block_operators import BlockOperators_TFK
 from codes.block_definitions.arguments.block_arguments import BlockArguments_Auto
 from codes.block_definitions.evaluate.block_evaluate_graph import BlockEvaluate_TFKeras
 from codes.block_definitions.mutate.block_mutate import BlockMutate_OptB
-from codes.block_definitions.mate.block_mate import BlockMate_WholeOnly
+from codes.block_definitions.mate.block_mate import BlockMate_NoMate
 # Individual Defs
 from codes.individual_definitions.individual_mutate import IndividualMutate_RollOnEachBlock
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
@@ -61,8 +61,8 @@ class Problem(ProblemDefinition_Abstract):
                                                   operator_def=BlockOperators_TFKeras,
                                                   argument_def=BlockArguments_Auto(BlockOperators_TFKeras(), 4),
                                                   evaluate_def=BlockEvaluate_TFKeras,
-                                                  mutate_def=BlockMutate_OptB(prob_mutate=0.2, num_mutants=1),
-                                                  mate_def=BlockMate_WholeOnly(prob_mate=1/2))
+                                                  mutate_def=BlockMutate_OptB(prob_mutate=1.0, num_mutants=4),
+                                                  mate_def=BlockMate_NoMate)
 
         self.construct_individual_def(block_defs=[conv_block_def],
                                       mutate_def=IndividualMutate_RollOnEachBlock,
@@ -90,8 +90,8 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        self.maximize_objectives = [True, True]
-        self.objective_names = ["Accuracy", "F1"] # will be helpful for plotting later
+        self.maximize_objectives = [True, True, True]
+        self.objective_names = ["Accuracy", "Precision", "Recal"] # will be helpful for plotting later
 
 
     @decorators.stopwatch_decorator
@@ -101,9 +101,10 @@ class Problem(ProblemDefinition_Abstract):
         :param indiv: individual which contains references to output of training
         :return: None
 
-        2 objectives:
-            1) accuracy score
-            2) f1 score
+        3 objectives:
+            1) Categorical Accuracy
+            2) Precision
+            3) Recall
 
         With updated code, we expect the last block to return the validation metrics assigned to the Model object,
         so we just need to connect those to the individual's fitness values
@@ -112,7 +113,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        GENERATION_LIMIT = 1 #50
+        GENERATION_LIMIT = 2 #50
 
         # only going to look at the 2nd objective value which is f1
         min_firstobjective_index = universe.pop_fitness_scores[:,0].argmin()

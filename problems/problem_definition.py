@@ -26,6 +26,7 @@ from codes.factory import FactoryDefinition
 #from codes.universe import UniverseDefinition # can't import because will create import loop
 from codes.utilities.custom_logging import ezLogging
 from codes.utilities import selections
+from codes.population import PopulationDefinition # for wellness check
 from codes.genetic_material import IndividualMaterial#, BlockMaterial
 from codes.individual_definitions.individual_definition import IndividualDefinition
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_Abstract
@@ -47,10 +48,19 @@ def welless_check_decorator(func):
 
     inputs:
         self -> Problem instance
-        population -> Population instance
+        thing -> can be 1 of 2 things:
+            population -> Population instance
+            individual -> IndividualMaterial
     '''
-    def inner(self, population):
-        for indiv in population.population:
+    def inner(self, thing):
+        if isinstance(thing, IndividualMaterial):
+            population = [thing]
+        elif isinstance(thing, PopulationDefinition):
+            population = population.population
+        else:
+            raise Exception("Argument passed to Problem.objective_function() is not an Individual or Population.")
+
+        for indiv in population:
             if indiv.dead:
                 indiv.set_worst_score()
             else:
@@ -61,7 +71,7 @@ def welless_check_decorator(func):
                         indiv.dead = True
                         indiv.set_worst_score()
         
-        func(self, population)
+        func(self, thing)
 
     return inner
 
