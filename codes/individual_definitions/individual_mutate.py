@@ -50,15 +50,14 @@ class IndividualMutate_RollOnEachBlock(IndividualMutate_Abstract):
     '''
     TODO
     '''
-    def __init__(self):
-        pass
+    def __init__(self, prob_mutate=1.0):
+        self.prob_mutate = prob_mutate
 
     def mutate(self,
                indiv_material: IndividualMaterial,
                indiv_def): #: IndividualDefinition):
         mutants = []
-        # ...uh who added this? i hate this -> TODO
-        if rnd.random() < 0.5:
+        if rnd.random() < (1-self.prob_mutate):
             # do not mutate
             return mutants
 
