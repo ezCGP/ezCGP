@@ -31,6 +31,21 @@ class ezData():
 
 
 
+class ezData_dict(dict, ezData):
+    '''
+    dict has to be first for super() call to work right
+
+    use like:
+        ting = ezData_dict(sape=123, this=333)
+    or
+        ting = ezData_dict()
+        ting['this'] = 'that
+    '''
+    def __init__(self, **kwargs):
+        super().__init__(kwargs)
+
+
+
 class ezData_float(np.float64, ezData):
     '''
     breaks if you inherit ezData first

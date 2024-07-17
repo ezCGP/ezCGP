@@ -1,0 +1,1 @@
+[pick_synomym_file,-1_n_,synonym.txt]

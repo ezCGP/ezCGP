@@ -83,7 +83,16 @@ def save_pytorch_model(universe, network, indiv_id):
     #...thanks https://github.com/pytorch/pytorch/issues/7545
     torch.save(network.state_dict(), path)
 
-            
+
+def save_individual_asLisp(universe, indiv_material, indiv_definition):
+    indiv_file = os.path.join(universe.output_folder, "gen_%04d_indiv_%s_lisp.txt" % (universe.generation, indiv_material.id))
+    with open(indiv_file, "w") as f:
+        for block_def, block_material in zip(indiv_definition, indiv_material):
+            block_def.get_lisp(block_material)
+            line = " ".join(block_material.lisp) # list with same length as number of block outputs, so we make into single string
+            f.write("%s\n" % line)
+
+
 def save_population_asLisp(universe, indiv_definition):
     '''    
     each individual will have it's own .txt file

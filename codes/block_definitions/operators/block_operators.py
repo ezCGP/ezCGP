@@ -366,3 +366,35 @@ class BlockOperators_SimGAN_ECG_Train_Config(BlockOperators_Abstract):
         weight_dict[operators_simgan_train_config.simgan_train_config_ecg] = 1
 
         self.init_from_weight_dict(weight_dict)
+
+
+
+class BlockOperators_SyscoSearch(BlockOperators_Abstract):
+    '''
+    SyscoSearch Optimization we only want to mutate the argvalues so only 1 operator needed.
+    '''
+    def __init__(self, operator_keyword):
+        ezLogging.debug(
+            "%s-%s - Initialize BlockOperators_SymbRegressionOpsNoArgs Class" % (None, None))
+        BlockOperators_Abstract.__init__(self)
+
+        modules = ['operators_SyscoSearch']
+        self.import_operator_scripts(modules)
+
+        if operator_keyword == 'synonym':
+            operator = operators_SyscoSearch.pick_synomym_file
+        elif operator_keyword == 'product_desc':
+            operator = operators_SyscoSearch.pick_productdesc_boosts
+        elif operator_keyword == 'stocked':
+            operator = operators_SyscoSearch.pick_stock_boosts
+        elif operator_keyword == 'additional':
+            operator = operators_SyscoSearch.pick_additional_boosts
+        elif operator_keyword == 'rank_equation':
+            operator = operators_SyscoSearch.pick_rank_equation
+        else:
+            raise Exception("operator_keyword, %s, passed to initialize BlockOperators_SyscoSearch is not recognized" % operator_keyword)
+
+        weight_dict = {}
+        weight_dict[operator] = 1
+
+        self.init_from_weight_dict(weight_dict)

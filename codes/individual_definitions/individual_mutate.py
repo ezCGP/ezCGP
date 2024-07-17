@@ -50,22 +50,21 @@ class IndividualMutate_RollOnEachBlock(IndividualMutate_Abstract):
     '''
     TODO
     '''
-    def __init__(self):
-        pass
+    def __init__(self, prob_mutate=1.0):
+        self.prob_mutate = prob_mutate
 
     def mutate(self,
                indiv_material: IndividualMaterial,
                indiv_def): #: IndividualDefinition):
         mutants = []
-        # ...uh who added this? i hate this -> TODO
-        if rnd.random() < 0.5:
+        if rnd.random() < (1-self.prob_mutate):
             # do not mutate
             return mutants
 
         for block_index, block_def in enumerate(indiv_def.block_defs):
             roll = rnd.random()
             if roll < block_def.mutate_def.prob_mutate:
-                for _ in range(block_def.num_mutants):
+                for _ in range(block_def.numt_mutants):
                     mutant_material = deepcopy(indiv_material)
                     block_def.mutate(mutant_material.blocks[block_index])
                     indiv_def.postprocess_evolved_individual(mutant_material, block_index)

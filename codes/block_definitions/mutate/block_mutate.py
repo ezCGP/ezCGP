@@ -155,3 +155,19 @@ class BlockMutate_ArgsOnly(BlockMutate_Abstract):
             mutate_methods.mutate_single_argvalue(mutant_material, block_def)
         else:
             mutate_methods.mutate_single_argindex(mutant_material, block_def)
+
+
+
+class BlockMutate_ArgValuesOnly(BlockMutate_Abstract):
+    '''
+    Good to be used for something like symbolic regression WITH args since this inclues mutate methods for args.
+    '''
+    def __init__(self, prob_mutate=1.0, num_mutants=4):
+        ezLogging.debug("%s-%s - Initialize BlockMutate_ArgsOnly Class" % (None, None))
+        self.prob_mutate = prob_mutate
+        self.num_mutants = num_mutants
+
+
+    def mutate(self, mutant_material: BlockMaterial, block_def): #: BlockDefinition):
+        ezLogging.info("%s - Sending block to mutate" % (mutant_material.id))
+        mutate_methods.mutate_single_argvalue(mutant_material, block_def)

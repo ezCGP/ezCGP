@@ -283,3 +283,35 @@ class ezDataLoader_EMADE_Titanic(ezDataLoader):
         test_datapair = []
 
         return train_datapair, validate_datapair, test_datapair
+
+
+
+class ezDataLoader_SyscoSearch(ezDataLoader):
+    '''
+    We want to build out a dictionary for each individual/experiment and then fill a list of them and write to json.
+    This will just initialize the dictionary for each individual.
+    '''
+    def __init__(self):
+        super().__init__(1,0,0)
+
+
+    def load(self):
+        experiment_hyperparams = ezdata.ezData_dict()
+        experiment_hyperparams['locale'] = 'en_US'
+        experiment_hyperparams['size'] = 50
+        experiment_hyperparams['from'] = 0
+        experiment_hyperparams['titleLocaleBoost'] = -1
+        experiment_hyperparams['descriptionLocaleBoost'] = -1
+        experiment_hyperparams['brandNameLocaleBoost'] = -1
+        experiment_hyperparams['categoryIntermediateNameLocaleBoost'] = -1
+        experiment_hyperparams['lineDescriptionLocaleBoost'] = -1
+        experiment_hyperparams['stockTypeSBoost'] = -1
+        experiment_hyperparams['stockTypeRBoost'] = -1
+        experiment_hyperparams['stockTypeDBoost'] = -1
+        experiment_hyperparams['isSyscoBrandBoost'] = -1
+        experiment_hyperparams['imageExistsBoost'] = -1
+        experiment_hyperparams['CustomerCountFactorBoost'] = 2.5
+        return ([experiment_hyperparams], None, None)
+
+
+ting = ezDataLoader_SyscoSearch()
