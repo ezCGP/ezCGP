@@ -1,4 +1,7 @@
 '''
+Working off assumption that ezCGP was added as a submodule to cx-search-lab in ./src/scripts/lab
+so we need to add that into sys.path for importing the subtasks
+
 wrapper function for all things cx_search_lab in running the experiment ie:
     * lab_judgement_set_create.py
     * lab_judgement_set_analyze.py
@@ -12,12 +15,17 @@ import numpy as np
 import pandas as pd
 import pdb
 
-### sys relative to root dir
+### adding ezCGP parent folder into sys.path
+# ./ezCGP/misc/__file__ -> ./ezCGP
 from os.path import dirname, realpath
 sys.path.append(dirname(dirname(realpath(__file__))))
-
-### absolute imports wrt root
 from codes.utilities.custom_logging import ezLogging
+
+### adding cx-search-lab parent folder into sys.path
+# ./cx-search-lab/src/scripts/lab/ezCGP/misc/__file -> ./cx-search-lab/src/scripts/lab
+sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
+import lab_judgement_set_create
+import lab_judgement_set_analyze
 
 
 def load_experiments(experiment_json_filepath):
