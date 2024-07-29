@@ -219,3 +219,15 @@ class BlockShapeMeta_SimGAN_Train_Config(BlockShapeMeta_Abstract):
         super().__init__(input_dtypes,
                          output_dtypes,
                          main_count)
+
+
+
+class BlockShapeMeta_Sysco(BlockShapeMeta_Abstract):
+    def __init__(self):
+        ezLogging.debug("%s-%s - Initialize BlockShapeMeta_Sysco Class" % (None, None))
+        input_dtypes = [dict]
+        output_dtypes = [dict]
+        main_count = 1
+        super().__init__(input_dtypes,
+                         output_dtypes,
+                         main_count)

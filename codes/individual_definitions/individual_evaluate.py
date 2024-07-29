@@ -828,3 +828,51 @@ class IndividualEvaluate_SimGAN(IndividualEvaluate_Abstract):
                 discriminators.append(deepcopy(D))
 
         return refiners, discriminators
+
+
+
+class IndividualEvaluate_SyscoSearch(IndividualEvaluate_Standard):
+    '''
+    Inherite Standard Eval:
+        for loop over each block; evaluate, take the output, and pass that in as the input to the next block
+        check for dead blocks (errored during evaluation) and then just stop evaluating. Note, the remaining blocks
+        should continue to have the need_evaluate flag as True.
+
+    But then plug in that output (ezData_dict) into another dict which is essentially the experiment config for that individual
+    '''
+    def __init__(self):
+        pass
+
+
+    def evaluate(self,
+                 indiv_material: IndividualMaterial,
+                 indiv_def, # IndividualDefinition
+                 training_datalist: ezData,
+                 validating_datalist, # None
+                 supplements=None):
+        # initialize dict 
+        experiment_config = {}
+        experiment_config['experiment_id'] = indiv_material.id
+        experiment_config['experiment_name'] = 'ezcgp_evolved_%s' % indiv_material.id
+        experiment_config['enable'] = 1
+        experiment_config['query_template'] = "base_template.json" # verify but I think get's overwritten later so doesn't matter TODO
+        experiment_config['index_template'] = "base_template.json" # how indexing is done by elastic. shouldn't change often unless new synonym file added or something.
+        experiment_config['use_base_index_template'] = 1 # TODO
+        experiment_config['use_base_query_template'] = 1 # TODO
+        experiment_config['metric'] = {"expected_reciprocal_rank": {"maximum_relevance": 10,
+                                                                    "k": 20}}
+        experiment_config['template_id'] = "1003_lab_search_template" # TODO
+        experiment_config['templates'] = [{'id': '1003_lab_search_template',
+                                           'template': {'id': '1003_lab_search_template'}}] # wow. i hate this.
+        experiment_config['params'] = '__placeholder__'
+
+        super().evaluate(indiv_material,
+                         indiv_def,
+                         training_datalist,
+                         validating_datalist,
+                         supplements)
+        
+        # individual.output is a list for training_datalist output and then validation_datalist if not None, but still a list
+        # then the output from each will be it's own list of len number_outputs for that block
+        experiment_config['params'] = indiv_material.output[0][0] # output would be a list of dict if valid, and list of None if dead
+        indiv_material.output = [experiment_config] # now overwrite for downstream...remember, output is expected to always be a list

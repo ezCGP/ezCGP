@@ -47,7 +47,7 @@ class BlockDefinition():
     '''
     def __init__(self,
                  nickname: str,
-                 meta_def: BlockShapeMeta_Abstract,
+                 shape_def: BlockShapeMeta_Abstract,
                  operator_def: BlockOperators_Abstract,
                  argument_def: BlockArguments_Abstract,
                  evaluate_def: BlockEvaluate_Abstract,
@@ -56,12 +56,12 @@ class BlockDefinition():
         # Meta:
         self.nickname = nickname
         ezLogging.debug("%s-%s - Starting Initialize Block" % (None, self.nickname))
-        if inspect.isclass(meta_def):
-            self.meta_def = meta_def()
+        if inspect.isclass(shape_def):
+            self.shape_def = shape_def()
         else:
             # then assume it has already been initialized
-            self.meta_def = meta_def
-        for name, val in self.meta_def.__dict__.items():
+            self.shape_def = shape_def
+        for name, val in self.shape_def.__dict__.items():
             # quick way to take all attributes and add to self
             setattr(self, name, val)
         
@@ -92,8 +92,8 @@ class BlockDefinition():
         else:
             self.operator_def = operator_def
         self.operator_dict = self.operator_def.operator_dict
-        self.operator_dict["input"] = self.meta_def.input_dtypes
-        self.operator_dict["output"] = self.meta_def.output_dtypes
+        self.operator_dict["input"] = self.shape_def.input_dtypes
+        self.operator_dict["output"] = self.shape_def.output_dtypes
         self.operators = self.operator_def.operators
         self.operator_weights = self.operator_def.weights
         
@@ -105,6 +105,16 @@ class BlockDefinition():
         self.arg_count = self.argument_def.arg_count
         self.arg_types = self.argument_def.arg_types
         ezLogging.debug("%s-%s - Done Initialize Block" % (None, self.nickname))
+    
+
+    def hash_lisp(self, block_material: BlockMaterial):
+        if (hasattr(block_material, 'lisp')) and (len(block_material.lisp)>0):
+            pass
+        else:
+            self.get_lisp(block_material)
+        
+        line = " ".join(block_material.lisp) # list with same length as number of block outputs, so we make into single string
+        return str(hash(line))
 
 
     def get_lisp(self, block_material: BlockMaterial):
@@ -140,7 +150,7 @@ class BlockDefinition():
             for _input in inputs:
                 # attach an 'n' to remind us that this is a node number and not an arg
                 # later we'll go through and replace each node with it's own entry in _active_dict
-                lisp.append('%in' % _input)
+                lisp.append('%i_n_' % _input)
             for _arg in args:
                 lisp.append('%s' % str(block_material.args[_arg]))
 
@@ -160,8 +170,8 @@ class BlockDefinition():
                 if i == 0:
                     # 0th position in lisp should be the function. keep and append.
                     pass
-                elif val.endswith('n'):
-                    if int(val[:-1]) < 0:
+                elif val.endswith('_n_'):
+                    if int(val[:-3]) < 0:
                         '''
                         decided not to use the datatype and just assume that input datatypes match
                         ...this stuff unecessarily complicates loading in an individual
@@ -175,7 +185,7 @@ class BlockDefinition():
                         
                     else:
                         # then it's a node number, replace with that node's new_lisp
-                        val = _active_dict[str(val[:-1])] #[:-1] to remove 'n'
+                        val = _active_dict[str(val[:-3])] #[:-3] to remove '_n_'
                 else:
                     # then it's an arg and we pass it as such
                     pass

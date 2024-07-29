@@ -95,6 +95,30 @@ class ArgumentType_Bool(ArgumentType_Abstract):
 
 
 
+class ArgumentType_ChoiceList(ArgumentType_Abstract):
+    '''
+    given a list of possible choices/categorical values, uniformly pick between them
+    '''
+    def __init__(self, choices, value=None):
+        self.choices = choices
+        self.value = value
+        if value is None:
+            self.mutate()
+        ezLogging.debug("%s-%s - Initialize ArgumentType_ChoiceList Class to %s" % (None, None, self.value))
+
+
+    def mutate(self):
+        if len(self.choices) == 1:
+            ezLogging.warning("%s-%s - List of values to mutate to for ArgumentType_ChoiceList is only 1 so arg-value mutation isn't possible: %s" % (None, None, self.choices))
+            self.value = self.choices[0] # <- doing this jic self.value is None
+            return
+        previous = deepcopy(self.value)
+        while self.value == previous:
+            self.value = np.random.choice(self.choices)
+        ezLogging.debug("%s-%s - Mutated ArgumentType_ChoiceList to %f" % (None, None, self.value))
+
+
+
 class ArgumentType_Ints(ArgumentType_Abstract):
     '''
     To try and capture a large range of ints, 1/3 of ints will start at 5,
@@ -133,6 +157,30 @@ class ArgumentType_Ints(ArgumentType_Abstract):
             pass
         self.value = int(self.value)
         ezLogging.debug("%s-%s - Mutated ArgumentType_Ints to %f" % (None, None, self.value))
+
+
+
+class ArgumentType_IntRange_Simple(ArgumentType_Abstract):
+    '''
+    A dynamic way to set inclusive range of ints to mutate to with simple uniform distribution
+    NOTE:
+        np.random.randint(low, high) ->[low, high)              <- bad
+        np.random.random_integers(low, high) -> [low,high]      <- good
+    '''
+    def __init__(self, low_inclusive, high_inclusive, value=None):
+        self.low = low_inclusive
+        self.high = high_inclusive
+        self.value = value
+        if value is None:
+            self.mutate()
+        ezLogging.debug("%s-%s - Initialize ArgumentType_IntRange_Simple Class with range [%i,%i] to %f" % (None, None, low_inclusive, high_inclusive, self.value))
+
+
+    def mutate(self):
+        previous = deepcopy(self.value)
+        while self.value == previous:
+            self.value = int(np.random.random_integers(self.low, self.high)) # cast as int or else it'll stay as np.int64 and error when doing json.dump
+        ezLogging.debug("%s-%s - Mutated ArgumentType_IntRange_Simple with range [%i,%i] to %f" % (None, None, self.low, self.high, self.value))
 
 
 
@@ -758,4 +806,36 @@ class ArgumentType_Placeholder(ArgumentType_Abstract):
         self.value = value
 
     def mutate(self):
-        ezlogging.debug("Called mutate on placeholder")
+        ezLogging.debug("Called mutate on placeholder")
+
+
+
+class ArgumentType_SyscoSearch_ProductDescBoost(ArgumentType_IntRange_Simple):
+    def __init__(self, value=None):
+        super().__init__(low_inclusive=1, high_inclusive=10, value=value)
+
+
+
+class ArgumentType_SyscoSearch_StockBoost(ArgumentType_IntRange_Simple):
+    def __init__(self, value=None):
+        super().__init__(low_inclusive=1, high_inclusive=25, value=value)
+
+
+
+class ArgumentType_SyscoSearch_MiscBoost(ArgumentType_IntRange_Simple):
+    def __init__(self, value=None):
+        super().__init__(low_inclusive=1, high_inclusive=25, value=value)
+
+
+
+class ArgumentType_SyscoSearch_SynonymFilter(ArgumentType_ChoiceList):
+    def __init__(self, value=None):
+        super().__init__(choices = ['optdefault'],
+                         value = value)
+
+
+
+class ArgumentType_SyscoSearch_RankEquationFile(ArgumentType_ChoiceList):
+    def __init__(self, value=None):
+        super().__init__(choices = ['base_query.json'],
+                         value = value)
