@@ -15,6 +15,7 @@ import os, sys
 import glob
 import json
 import numpy as np
+import pandas as pd
 import time, datetime
 #import logging
 import pdb
@@ -40,6 +41,7 @@ from codes.individual_definitions.individual_mutate import IndividualMutate_Roll
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SyscoSearch
 from codes.block_definitions.block_definition import BlockDefinition
+from misc import cx_search_lab_wrapper
 
 
 class Problem(ProblemDefinition_Abstract):
@@ -178,6 +180,7 @@ class Problem(ProblemDefinition_Abstract):
                 self.assign_indiv_hash(indiv_material)
             if indiv_material.hash in experiment_historical_results:
                 indiv_material.fitness.values = (experiment_historical_results[indiv_material.hash],)
+                ezLogging.debug("Found Individual %s in previous generation..." % (indiv_material.id))
                 continue
 
             all_configs.append(indiv_experiment_config)
@@ -193,23 +196,25 @@ class Problem(ProblemDefinition_Abstract):
             ezLogging.error(err)
             import pdb; pdb.set_trace()
 
-
         ### start 'analysis' step of cx_search_lab
-        self.cx_search_lab_analysis_wrapper(all_experiments_config_file)
-        pass
+        experiment_results = cx_search_lab_wrapper.main(all_experiments_config_file) # <-assume for now that we are still going to return a dict
     
         ### parse output file for true objective score and assign back to individual via indiv_material.fitness.values as tuple
-        # TODO
-        pass
+        for indiv_material in population:
+            if indiv_material.id in experiment_results:
+                indiv_material.fitness.values = (experiment_results[indiv_material.id],)
+                ezLogging.info("Scored Individual %s from current run: %.02f" % (indiv_material.id, indiv_material.fitness.values[0]))
+            elif len(indiv_material.fitness.values) == 0:
+                # fitness values should get initialized to empty ()
+                # We shouldn't be at this point, so treat as error
+                ezLogging.critical("Individual %s doesn't have a matching score/metric...Pronounced Dead" % indiv_material.id)
+                indiv_material.dead = True
+            else:
+                # if filled in, then an individual evaluated from previous generation
+                ezLogging.info("Scored Individual %s from previous generation with score: %.02f" % (indiv_material.id, indiv_material.fitness.values[0]))
 
         # log history for future reference
         self.log_results(population)
-
-
-    def cx_search_lab_analysis_wrapper(self, experiment_json_filepath):
-        ezLogging.info("got here"); import pdb; pdb.set_trace()
-        # TODO
-        pass
     
 
     def assign_indiv_hash(self, indiv_material):
@@ -263,7 +268,7 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def check_convergence(self, universe):
-        # TODO
+        # TODO - how do we want to finish?
         ezLogging.info("still need to fillout check convergence"); pdb.set_trace()
 
 
