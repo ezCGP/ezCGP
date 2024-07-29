@@ -828,9 +828,9 @@ class ArgumentType_SyscoSearch_MiscBoost(ArgumentType_IntRange_Simple):
 
 
 
-class ArgumentType_SyscoSearch_SynonymFile(ArgumentType_ChoiceList):
+class ArgumentType_SyscoSearch_SynonymFilter(ArgumentType_ChoiceList):
     def __init__(self, value=None):
-        super().__init__(choices = ['synonyms.txt'],
+        super().__init__(choices = ['optdefault'],
                          value = value)
 
 

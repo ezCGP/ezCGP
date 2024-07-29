@@ -31,15 +31,15 @@ def write_dict(hyperparam_dict, **kwargs):
     return {**hyperparam_dict, **kwargs}
 
 
-def pick_synomym_file(hyperparam_dict, synonym_file):
+def pick_synomym_filter(hyperparam_dict, synonym_filter):
     '''
     until we are ready to switch between files in the experiment_config, we will do nothing in this ftn
     '''
-    return write_dict(hyperparam_dict, synonym_file=synonym_file)
-operator_dict[pick_synomym_file] = {"inputs": [dict],
-                                    "output": dict,
-                                    "args": [argument_types.ArgumentType_SyscoSearch_SynonymFile]
-                                    }
+    return write_dict(hyperparam_dict, analyzerWithSynonymFilter=synonym_filter)
+operator_dict[pick_synomym_filter] = {"inputs": [dict],
+                                      "output": dict,
+                                      "args": [argument_types.ArgumentType_SyscoSearch_SynonymFilter]
+                                     }
 
 
 def pick_productdesc_boosts(hyperparam_dict,

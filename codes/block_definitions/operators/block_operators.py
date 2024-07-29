@@ -382,7 +382,7 @@ class BlockOperators_SyscoSearch(BlockOperators_Abstract):
         self.import_operator_scripts(modules)
 
         if operator_keyword == 'synonym':
-            operator = operators_SyscoSearch.pick_synomym_file
+            operator = operators_SyscoSearch.pick_synomym_filter
         elif operator_keyword == 'product_desc':
             operator = operators_SyscoSearch.pick_productdesc_boosts
         elif operator_keyword == 'stocked':

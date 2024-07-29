@@ -27,8 +27,8 @@ shapemeta = BlockShapeMeta_Sysco()
 args = []
 genome = [None]*shapemeta.genome_count
 
-this_args = ['synonym.txt']
-genome[0] = {"ftn": opSyscoSearch.pick_synomym_file,
+this_args = ['optdefault']
+genome[0] = {"ftn": opSyscoSearch.pick_synomym_filter,
              "inputs": [-1],
              "args": [0]}
 args+=this_args
