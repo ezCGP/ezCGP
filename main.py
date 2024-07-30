@@ -16,7 +16,7 @@ import random
 import tempfile
 import logging
 import gc
-from mpi4py import MPI
+#from mpi4py import MPI # HACK manually commenting out
 
 ### sys relative to root AND to problem dir to import respective problem file
 import sys
@@ -35,8 +35,8 @@ def main(problem_filename: str,
          previous_run: str=None,
          seed: int=0,
          loglevel: int=logging.WARNING):
-    node_rank = MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0
-    node_size = MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1
+    node_rank = 0 #MPI.COMM_WORLD.Get_rank() # which node are we on if mpi, else always 0 # HACK manually commenting out
+    node_size = 1 #MPI.COMM_WORLD.Get_size() # how many nodes are we using if mpi, else always 1 # HACK manually commenting out
 
     # create custom logging.logger for this node
     log_formatter = ezLogging.logging_setup(loglevel)
@@ -88,7 +88,7 @@ def main(problem_filename: str,
         universe_output_directory = os.path.join(problem_output_directory, "univ%04d" % ith_universe)
         if node_rank == 0:
             os.makedirs(universe_output_directory, exist_ok=False)
-        MPI.COMM_WORLD.Barrier()
+        #MPI.COMM_WORLD.Barrier() # HACK manually commenting out
 
         # init corresponding universe and new log file handler
         if problem.mpi:

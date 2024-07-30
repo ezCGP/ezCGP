@@ -9,7 +9,7 @@ ezLogging.info
 
 ### packages
 import logging
-from mpi4py import MPI
+#from mpi4py import MPI # HACK manually commenting out
 
 ### sys relative to root dir
 import sys
@@ -38,7 +38,7 @@ class ezLogging():
             print("False")
             #log_name = None # for RootLogger
             log_name = "NodeRank-0"'''
-        log_name = "NodeRank%i" % MPI.COMM_WORLD.Get_rank()
+        log_name = "NodeRank0" #"NodeRank%i" % MPI.COMM_WORLD.Get_rank() # HACK manually commenting out
         return logging.getLogger(log_name)
 
 

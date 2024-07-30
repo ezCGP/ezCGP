@@ -15,7 +15,7 @@ from typing import List
 import importlib
 import time
 from copy import deepcopy
-from mpi4py import MPI
+#from mpi4py import MPI # HACK manually commenting out
 
 ### sys relative to root dir
 import sys
@@ -53,8 +53,8 @@ class UniverseDefinition():
         self.converged = False
 
         # match a few attributes found in MPIUniverseDefinition
-        self.node_number = MPI.COMM_WORLD.Get_rank() #0 if not mpi
-        self.node_count = MPI.COMM_WORLD.Get_size() #1 if not mpi
+        self.node_number = 0 #MPI.COMM_WORLD.Get_rank() #0 if not mpi # HACK manually commenting out
+        self.node_count = 1 #MPI.COMM_WORLD.Get_size() #1 if not mpi # HACK manually commenting out
 
 
     def adjust_pop_size(self,
