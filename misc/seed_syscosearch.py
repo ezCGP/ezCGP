@@ -101,6 +101,28 @@ block_seed_info.append([genome,
                         shapemeta.output_count,
                         "stocked_flag_block"])
 
+# another version
+shapemeta = BlockShapeMeta_Sysco()
+args = []
+genome = [None]*shapemeta.genome_count
+
+this_args = [10,3,2]
+genome[0] = {"ftn": opSyscoSearch.pick_stock_boosts,
+             "inputs": [-1],
+             "args": [0,1,2]}
+args+=this_args
+
+genome[shapemeta.main_count] = 0
+
+material = lisp_generator.FakeMaterial(genome, args, "poop")
+definition = lisp_generator.FakeDefinition(shapemeta.input_count, shapemeta.main_count, shapemeta.output_count)
+definition.get_lisp(material)
+block_seed_info.append([genome,
+                        args,
+                        shapemeta.input_count,
+                        shapemeta.main_count,
+                        shapemeta.output_count,
+                        "stocked_flag_block2"])
 
 
 

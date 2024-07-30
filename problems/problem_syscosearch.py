@@ -53,7 +53,7 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         reset_experiment_result_log = False
-        population_size = 12
+        population_size = 4 # boost later TODO
         number_universe = 1
         factory = FactoryDefinition
         mpi = False
@@ -61,7 +61,12 @@ class Problem(ProblemDefinition_Abstract):
                          'misc/IndivSeed_SyscoSearch_Originalv2_Seed/product_description_block_lisp.txt',
                          'misc/IndivSeed_SyscoSearch_Originalv2_Seed/stocked_flag_block_lisp.txt',
                          'misc/IndivSeed_SyscoSearch_Originalv2_Seed/additional_boosts_block_lisp.txt',
-                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/ranking_equation_block_lisp.txt']]*population_size
+                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/ranking_equation_block_lisp.txt'],
+                        ['misc/IndivSeed_SyscoSearch_Originalv2_Seed/synonym_block_lisp.txt',
+                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/product_description_block_lisp.txt',
+                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/stocked_flag_block_v2_lisp.txt', # <- only this is different
+                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/additional_boosts_block_lisp.txt',
+                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/ranking_equation_block_lisp.txt']] #*population_size
         hall_of_fame_flag = False
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_flag)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
