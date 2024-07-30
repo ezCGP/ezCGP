@@ -132,9 +132,19 @@ class Problem(ProblemDefinition_Abstract):
 
 
     def set_optimization_goals(self):
-        # TODO!!!! VERIFY
-        self.maximize_objectives = [False]
-        self.objective_names = ["Something"] # will be helpful for plotting later
+        '''
+        metric -> "result.term_metric_score"
+        
+        the metric is defined by the hyperparam file experiment_configs_v2.json in `metric` key:
+            "expected_reciprocal_rank": {"maximum_relevance": 10, "k": 20}
+        "a search relevance metric that measures how long a user is expected to take to find a relevant document." - Google
+        bound by 0 and 1 -> https://notesonai.com/expected+reciprocal+rank 
+        I think it is a maximization optimization based off the equation which has a factor of (1/k) where k is the rank of the 
+        document, so the higher the rank, the later on in the document it is, and the worse it is, and ERR goes down.
+        Higher rank, higher score, maximization.
+        '''
+        self.maximize_objectives = [True]
+        self.objective_names = ["Expected Reciprocal Rank"] # will be helpful for plotting later
 
 
     def construct_block_def(self, nickname, *args, **kwargs):
@@ -186,8 +196,9 @@ class Problem(ProblemDefinition_Abstract):
             all_configs.append(indiv_experiment_config)
     
         # write to json in cx_search_lab
-        __PATH_TO_CXSEARCHLAB__ = "./test_area" #"./cx-search-lab/src/config" # TODO verify and fill
-        all_experiments_config_file = os.path.join(__PATH_TO_CXSEARCHLAB__, 'experiment_config_ezcgp_%s_gen%s.json' % (universe_timestamp, generation_timestamp))
+        problem_output_folder = os.path.dirname(experiment_result_file)
+        unique_tag = "%s_gen%s" % (universe_timestamp, generation_timestamp)
+        all_experiments_config_file = os.path.join(problem_output_folder, 'experiment_config_ezcgp_%s.json' % (unique_tag))
         try:
             with open(all_experiments_config_file, 'w') as f:
                 json.dump(all_configs, f, indent=2)
@@ -197,7 +208,7 @@ class Problem(ProblemDefinition_Abstract):
             import pdb; pdb.set_trace()
 
         ### start 'analysis' step of cx_search_lab
-        experiment_results = cx_search_lab_wrapper.main(all_experiments_config_file) # <-assume for now that we are still going to return a dict
+        experiment_results = cx_search_lab_wrapper.main(all_experiments_config_file, unique_tag) # <-assume for now that we are still going to return a dict
     
         ### parse output file for true objective score and assign back to individual via indiv_material.fitness.values as tuple
         for indiv_material in population:

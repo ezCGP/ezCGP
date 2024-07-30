@@ -26,9 +26,10 @@ from codes.utilities.custom_logging import ezLogging
 sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 import lab_judgement_set_create
 import lab_judgement_set_analyze
+import lab_judgement_set_utilities as lab_utils
 
 
-def load_experiments(experiment_json_filepath):
+def load_experiments(spark, experiment_json_filepath, universe_tag):
     ''' #1 Load Experiments
     https://github.com/SyscoCorporation/cx-search-lab/blob/HyperParamOpt--SRC-223_UpdateDAG/src/scripts/lab/lab_judgement_set_create.py#L65C1-L65C13
     in lab_judgement_set_create.py the experiments are loaded via `lab_exeriments_utils.get_all_experiments()` which just reads HARDCODED experiments_configs_v2.json
@@ -39,13 +40,14 @@ def load_experiments(experiment_json_filepath):
         "s3a://cx-search-test-analytics-data/judgement-set-data/cx_staging_judgement_set.parquet"
     '''
     ezLogging.info("Run `lab_judgement_set_create.py` to load in experiments.")
-
-    pass # TODO
-
+    judgement_set_parquet_path = lab_judgement_set_create.upload_experiments(spark,
+                                                            experiments_filepath=experiment_json_filepath,
+                                                            output_file_tag=universe_tag)
     ezLogging.debug("Success - `lab_judgement_set_create.py`")
+    return judgement_set_parquet_path
 
 
-def run_experiments(experiment_parquet="s3a://cx-search-test-analytics-data/judgement-set-data/cx_staging_judgement_set.parquet"):
+def run_experiments(spark, app_config, judgement_set_parquet_path, universe_tag):
     ''' #2 Run Experiments
     https://github.com/SyscoCorporation/cx-search-lab/blob/HyperParamOpt--SRC-223_UpdateDAG/src/scripts/lab/lab_judgement_set_analyze.py#L163
     in lab_judgement_set_analyze.py the experiments are passed in from previous step as `judgement_set_reduced` and then sent to be run with
@@ -63,16 +65,15 @@ def run_experiments(experiment_parquet="s3a://cx-search-test-analytics-data/judg
         bound by 0 and 1 -> https://notesonai.com/expected+reciprocal+rank 
         I think it is a maximization optimization based off the equation which has a factor of (1/k) where k is the rank of the 
         document, so the higher the rank, the later on in the document it is, and the worse it is, and ERR goes down.
-        Higher rank, higher score, maximization. <- TODO
+        Higher rank, higher score, maximization.
     '''
     ezLogging.info("Run `lab_judgement_set_analyze.py` to run in experiments.")
-
-    pass # TODO
-
+    lab_judgement_set_analyze.register_methods(spark)
+    results_parquet_path = lab_judgement_set_analyze(spark, app_config, judgement_set_parquet_path, universe_tag)
     ezLogging.debug("Success - `lab_judgement_set_analyze.py`")
+    return results_parquet_path
 
-
-def get_results(s3_bucket="s3a://cx-search-test-analytics-data/judgement-set-data/cx_analyze_judgement_set.parquet"):
+def get_results(spark, results_parquet_path):
     ''' #3 Get Experiment Results
     reiterated from #2...
 
@@ -87,17 +88,15 @@ def get_results(s3_bucket="s3a://cx-search-test-analytics-data/judgement-set-dat
     metric likely a maximization problem
     '''
     ezLogging.info("Request data from S3 bucket")
-
-    pass # TODO
-    # get experiment_id and metric
-    experiment_results = {} #pd.DataFrame({}) # <- can we turn it into a dict for easy querying later? ...like we don't need to worry about duplicates
-
+    experiment_results_table = spark.read.format('parquet').load(results_parquet_path)
+    experiment_results_df = experiment_results_table.toPandas()
+    experiment_results = dict(zip(experiment_results_df['experiment_id'],
+                                  experiment_results_df['result.term_metric_score']))
     ezLogging.debug("Success - S3 Request")
-    
     return experiment_results
 
 
-def main(experiment_json_filepath, fake=False):
+def main(experiment_json_filepath, universe_tag, fake=False):
     '''
     TODO do we want it wrapped with try/except?...what will happen if it errors on cloud, how can we log if we can't use try/except and manually debug?
     '''
@@ -110,9 +109,17 @@ def main(experiment_json_filepath, fake=False):
         return experiment_results
     
     try:
-        load_experiments(experiment_json_filepath)
-        run_experiments()
-        get_results()
+        app_config, config = lab_utils.load_configurations()
+        spark = lab_utils.build_spark_session()
+        judgement_set_parquet_filepath = load_experiments(experiment_json_filepath, universe_tag)
+        results_parquet_filepath = run_experiments(spark, app_config, judgement_set_parquet_path, universe_tag)
+        experiment_results = get_results(spark, results_parquet_filepath)
+    
     except Exception as err:
         ezLogging.error("cx_search_lab_wrapper.main() failed: %s" % err)
         pdb.set_trace()
+    
+    finally:
+        spark._sc.stop()
+    
+    return experiment_results
