@@ -41,7 +41,7 @@ from codes.individual_definitions.individual_mutate import IndividualMutate_Roll
 from codes.individual_definitions.individual_mate import IndividualMate_RollOnEachBlock
 from codes.individual_definitions.individual_evaluate import IndividualEvaluate_SyscoSearch
 from codes.block_definitions.block_definition import BlockDefinition
-from misc import cx_search_lab_wrapper
+from misc import cx_search_lab_wrapper, seed_syscosearch
 
 
 USE_BAYESIAN = True
@@ -56,7 +56,6 @@ class Problem(ProblemDefinition_Abstract):
     '''
     def __init__(self):
         reset_experiment_result_log = False
-        population_size = 4 # boost later TODO
         number_universe = 1
         factory = FactoryDefinition
         mpi = False
@@ -69,7 +68,30 @@ class Problem(ProblemDefinition_Abstract):
                          'misc/IndivSeed_SyscoSearch_Originalv2_Seed/product_description_block_lisp.txt',
                          'misc/IndivSeed_SyscoSearch_Originalv2_Seed/stocked_flag_block_v2_lisp.txt', # <- only this is different
                          'misc/IndivSeed_SyscoSearch_Originalv2_Seed/additional_boosts_block_lisp.txt',
-                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/ranking_equation_block_lisp.txt']] #*population_size
+                         'misc/IndivSeed_SyscoSearch_Originalv2_Seed/ranking_equation_block_lisp.txt']]
+        if USE_BAYESIAN:
+            population_size = 4
+        else:
+            READY = False
+            if READY:
+                genome_seeds = []
+                # TODO build genome seeds or population from historical results
+                experiment_historical_results, experiment_result_file, universe_timestamp = self.get_historical_log()
+                for hyperparam_set in experiment_historical_results: # TODO this is just junky pseudo code
+                    # go
+                    seeded_indiv_folder = seed_syscosearch(*hyperparam_set)
+                    seed = [os.path.join(seeded_indiv_folder, "%s_block_lisp.txt" % 'synonym'),
+                            os.path.join(seeded_indiv_folder, "%s_block_lisp.txt" % 'product_description'),
+                            os.path.join(seeded_indiv_folder, "%s_block_lisp.txt" % 'stocked_flag'),
+                            os.path.join(seeded_indiv_folder, "%s_block_lisp.txt" % 'additional_boosts'),
+                            os.path.join(seeded_indiv_folder, "%s_block_lisp.txt" % 'ranking_equation')]
+                    genome_seeds.append(seed)
+            else:
+                # don't overwrite genome_seeds
+                pass
+
+            population_size = len(genome_seeds)
+
         hall_of_fame_flag = False
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_flag)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
@@ -181,7 +203,7 @@ class Problem(ProblemDefinition_Abstract):
     def construct_dataset(self):
         data_loader = loader.ezDataLoader_SyscoSearch()
         self.training_datalist, self.validating_datalist, self.testing_datalist = data_loader.load()
-    
+
 
     def population_selection(self, universe):
         '''
@@ -257,7 +279,7 @@ class Problem(ProblemDefinition_Abstract):
 
         # log history for future reference
         self.log_results(population)
-    
+
 
     def assign_indiv_hash(self, indiv_material):
         indiv_hash = []
@@ -267,7 +289,7 @@ class Problem(ProblemDefinition_Abstract):
             indiv_hash.append(block_genome_hash)
         indiv_material.hash = 'x'.join(indiv_hash)
         return indiv_material.hash
-    
+
 
     def get_historical_log(self):
         '''
@@ -304,9 +326,7 @@ class Problem(ProblemDefinition_Abstract):
 
         # overwrite historical results
         with open(experiment_result_file, 'w') as f:
-            json.dump(experiment_historical_results, f)        
-
-
+            json.dump(experiment_historical_results, f)
 
 
     def check_convergence(self, universe):

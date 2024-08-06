@@ -80,7 +80,8 @@ def generate_individual_seed(list_of_info, individual_name):
     the greater list has len == number of blocks and each element is the list of args
     needed for generate_block_seed()
     '''
-    save_to = os.path.join(os.getcwd(), "IndivSeed_%s" % individual_name)
+    ezcgp_root = dirname(dirname(dirname(realpath(__file__))))
+    save_to = os.path.join(ezcgp_root, 'misc', "IndivSeed_%s" % individual_name)
     if os.path.exists(save_to):
         response = input("folder exists; are you sure you want to overwrite it? (y/n)... ")
         if response.lower() == "y":
@@ -92,6 +93,8 @@ def generate_individual_seed(list_of_info, individual_name):
     os.makedirs(save_to)
     for args in list_of_info:
         generate_block_seed(*args, save_to=save_to)
+    
+    return save_to
 
 
 
