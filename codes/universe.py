@@ -420,6 +420,33 @@ class RelativePopulationUniverseDefinition(UniverseDefinition):
         ezLogging.info("Using Relative Population Universe")
         super().__init__(problem, output_folder, random_seed)
 
+    
+    @decorators.stopwatch_decorator
+    def bayesian_wrapper(self, problem: ProblemDefinition_Abstract):
+        '''
+        Doing some Bayesian Hyper Optimization at the 'population' level. Want to keep growing population with this...
+        '''
+        globals()['bayopt'] = importlib.import_module("misc.syscosearch_bayesianopt")
+        new_hyperparams_set = bayopt.run(self, problem)
+
+        # TODO create individuals from hyperparameter set
+        new_individuals = []
+        for hyperparams in new_hyperparams_set:
+            pass
+
+        return new_individuals
+    
+    
+    def evolve_population(self, problem: ProblemDefinition_Abstract):
+        '''
+        ideally would have just turned off 'mate' and made 'mutate' do the bayesian stuff, but all that happens at the 'individual' level
+        and not the 'population' level, so interfering here and throwing it in
+        '''
+        if (hasattr(problem, 'using_bayesian')) and (self.using_bayesian):
+            self.bayesian_wrapper(problem)
+        else:
+            super().evolve_population(problem)
+
 
     @decorators.stopwatch_decorator
     def evaluate_score_population(self, problem: ProblemDefinition_Abstract):

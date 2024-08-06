@@ -44,6 +44,9 @@ from codes.block_definitions.block_definition import BlockDefinition
 from misc import cx_search_lab_wrapper
 
 
+USE_BAYESIAN = True
+
+
 class Problem(ProblemDefinition_Abstract):
     '''
     Design:
@@ -70,6 +73,7 @@ class Problem(ProblemDefinition_Abstract):
         hall_of_fame_flag = False
         super().__init__(population_size, number_universe, factory, mpi, genome_seeds, hall_of_fame_flag)
         self.relativeScoring = True # this will force universe to be instance of RelativePopulationUniverseDefinition() in main.py
+        self.using_bayesian = USE_BAYESIAN # will be to set indiv_def for mate and mutate and for poulation_selection
 
         prob_mutate = 0.2
         num_mutants = 2
@@ -124,13 +128,22 @@ class Problem(ProblemDefinition_Abstract):
                                                     mate_def = BlockMate_WholeOnly(prob_mate))
         rankeq_block_def.freeze = True
 
+        if self.using_bayesian:
+            # Going to use the same Individual Defs here BUT will change how we evolve the population at the Universe level
+            # so check the code there
+            indivdef_mutate = IndividualMutate_RollOnEachBlock
+            indivdef_mate = IndividualMate_RollOnEachBlock
+        else:
+            indivdef_mutate = IndividualMutate_RollOnEachBlock
+            indivdef_mate = IndividualMate_RollOnEachBlock
+
         self.construct_individual_def(block_defs = [synonym_block_def,
                                                     productdesc_block_def,
                                                     stocked_block_def,
                                                     addboosts_block_def,
                                                     rankeq_block_def],
-                                      mutate_def = IndividualMutate_RollOnEachBlock,
-                                      mate_def = IndividualMate_RollOnEachBlock,
+                                      mutate_def = indivdef_mutate,
+                                      mate_def = indivdef_mate,
                                       evaluate_def = IndividualEvaluate_SyscoSearch)
 
         self.construct_dataset()
@@ -168,6 +181,19 @@ class Problem(ProblemDefinition_Abstract):
     def construct_dataset(self):
         data_loader = loader.ezDataLoader_SyscoSearch()
         self.training_datalist, self.validating_datalist, self.testing_datalist = data_loader.load()
+    
+
+    def population_selection(self, universe):
+        '''
+        overwriting default method from ProblemDefinition to just avoid hall_of_fame completely and to keep 
+        '''
+        if self.using_bayesian:
+            # we don't want to filter down like usual...just keep growing and building
+            self.pop_size = len(universe.population.population)
+            return universe.population.population
+
+        else:
+            super().popultion_selection(universe)
 
 
     def objective_functions(self, population):
